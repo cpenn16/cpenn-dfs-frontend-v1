@@ -14,7 +14,7 @@ export const PROMO_UNLOCKS = {
   "/nascar/cup": false,
   "/nascar/xfinity": false,
   "/nascar/trucks": false,
-  "/nascar": false,
+  "/nascar": true,
 
   // NFL
   "/nfl/classic/optimizer": false,
