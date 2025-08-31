@@ -39,45 +39,55 @@ const escapeCSV = (s) => {
 const normName = (s) =>
   String(s || "")
     .toLowerCase()
-    .replace(/\u2019/g, "'")      // smart apostrophe → '
-    .replace(/\./g, "")           // remove dots
-    .replace(/,\s*(jr|sr)\b/g, "")// remove ", Jr"/", Sr"
-    .replace(/\b(jr|sr)\b/g, "")  // remove trailing Jr/Sr
-    .replace(/[^a-z' -]/g, "")    // letters/'/-/space only
-    .replace(/\s+/g, " ")         // squeeze spaces
+    .replace(/\u2019/g, "'")
+    .replace(/\./g, "")
+    .replace(/,\s*(jr|sr)\b/g, "")
+    .replace(/\b(jr|sr)\b/g, "")
+    .replace(/[^a-z' -]/g, "")
+    .replace(/\s+/g, " ")
     .trim();
 
-// Build a name→record index from site_ids
+// Build a name → { id, nameFromSite } index from site_ids json
 function buildSiteIdIndex(siteIdsList) {
   const idx = new Map();
   for (const r of siteIdsList || []) {
-    const id  = String(r.id ?? r.ID ?? r.playerId ?? "").trim();
+    // be generous with possible id fields
+    const id =
+      String(
+        r.id ??
+          r.ID ??
+          r.playerId ??
+          r.player_id ??
+          r.fd_id ??
+          r.FD_ID ??
+          r.dk_id ??
+          r.DK_ID ??
+          ""
+      ).trim();
+
     const nm0 = r.name ?? r.player ?? r.Player ?? r.displayName ?? r.Name;
     if (!id || !nm0) continue;
+
     const key = normName(nm0);
-    if (!idx.has(key)) {
-      idx.set(key, { id, nameFromSite: String(nm0) });
-    }
+    if (!idx.has(key)) idx.set(key, { id, nameFromSite: String(nm0) });
   }
   return idx;
 }
 
-// Discover FanDuel "prefix" (slate/group id) if present
+// Try to discover FanDuel slate/group prefix
 function detectFdPrefix(siteIdsList) {
   const counts = new Map();
   for (const r of siteIdsList || []) {
     const px =
-      r.slateId ?? r.slate_id ??
-      r.groupId ?? r.group_id ??
-      r.lid ?? r.prefix ?? null;
+      r.slateId ?? r.slate_id ?? r.groupId ?? r.group_id ?? r.lid ?? r.prefix ?? r.fd_prefix ?? null;
     if (px != null && px !== "") {
       const key = String(px);
       counts.set(key, (counts.get(key) || 0) + 1);
     }
   }
   if (counts.size === 1) return [...counts.keys()][0];
-  if (counts.size > 1) return [...counts.entries()].sort((a,b)=>b[1]-a[1])[0][0];
-  return null; // no prefix found (ok)
+  if (counts.size > 1) return [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0];
+  return null;
 }
 
 
@@ -163,12 +173,13 @@ function downloadSiteLineupsCSV({
   fname = "lineups_site_ids.csv",
 }) {
   const siteKey = site === "fd" ? "fd" : "dk";
-  const list =
-    Array.isArray(siteIds?.[siteKey])
-      ? siteIds[siteKey]
-      : (siteIds?.sites?.[siteKey] ?? []); // support { sites: { dk:[], fd:[] } } too
 
-  // Build index + detect FD prefix
+  // Support both flat and nested shapes:
+  // { fd: [...] }  or  { sites: { fd: [...] } }
+  const list = Array.isArray(siteIds?.[siteKey])
+    ? siteIds[siteKey]
+    : (siteIds?.sites?.[siteKey] ?? []);
+
   const idIndex = buildSiteIdIndex(list);
   const fdPrefix = siteKey === "fd" ? detectFdPrefix(list) : null;
 
@@ -183,17 +194,17 @@ function downloadSiteLineupsCSV({
     const names = Array.isArray(L.drivers) ? L.drivers : [];
     const cells = names.slice(0, rosterSize).map((name) => {
       const rec = idIndex.get(normName(name));
-      if (!rec) {
-        // not found -> export raw name so DK templates still accept it
-        return escapeCSV(name);
-      }
+      if (!rec) return escapeCSV(name); // fallback to raw name
+
       if (siteKey === "fd") {
-        // FD wants prefix-id:DisplayName
+        // FanDuel wants: "<prefix>-<id>:<Display Name>"
+        // If we didn't detect a prefix, we still emit "<id>:<Display Name>" (FD accepts that on many slates).
         const outId = fdPrefix ? `${fdPrefix}-${rec.id}` : rec.id;
         const display = rec.nameFromSite || name;
         return escapeCSV(`${outId}:${display}`);
       }
-      // DK format
+
+      // DraftKings wants: "Name (id)"
       return escapeCSV(`${name} (${rec.id})`);
     });
 
