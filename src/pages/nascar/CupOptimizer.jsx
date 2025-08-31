@@ -262,7 +262,7 @@ async function fetchFirstOk(paths, init) {
 /* ----------------------------- server calls ----------------------------- */
 async function solveStreamWithProbe(payload, onItem, onDone) {
   // First try to find a streaming endpoint
-  const attempt = await probeAndPostCup(payload, { streaming: true });
+  const attempt = await probeAndPostCup({ ...payload, series: "cup" }, { streaming: true });
 
   // If the server returned a stream, consume it
   if (attempt.res.ok && attempt.res.body) {
@@ -448,7 +448,7 @@ export default function CupOptimizer() {
     tickRef.current = setInterval(() => {
       setProgressUI((p) => {
         const N = Math.max(1, Number(numLineups) || 1);
-        const target = Math.max(progressActual, 1); // never look stuck at 0
+        const target = progressActual; // never look stuck at 0
         const ceiling = N;
         const next = Math.min(Math.max(p + 1, target), ceiling);
         return next;
