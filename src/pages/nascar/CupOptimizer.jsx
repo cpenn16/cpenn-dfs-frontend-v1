@@ -626,7 +626,7 @@ async function optimize() {
   const out = [];
   try {
     // 1) Try the streaming Cup endpoint first
-    await solveStream(
+    await solveStreamWithProbe(
       payload,
       (evt) => {
         const chosen = evt.drivers
@@ -648,7 +648,7 @@ async function optimize() {
     );
   } catch (e) {
     // 2) Fallback to non-streaming: try several POST endpoints
-    const attempt = await fetchFirstOk(CUP_POST_PATHS, {
+    const attempt = await fetchFirstOk([...CUP_POST_PATHS, "solve"], {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       // include series hint so generic /solve can route it
