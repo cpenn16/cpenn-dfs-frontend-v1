@@ -27,8 +27,8 @@ import pandas as pd
 
 # --------------------- DEFAULTS ---------------------
 DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\2025 NASCAR\Cup Southern 500 Darlington.xlsm"
-DEFAULT_PROJ   = r"C:\Users\cpenn\Downloads\cpenn-dfs"
-DEFAULT_CONFIG = r"C:\Users\cpenn\Downloads\cpenn-dfs\scripts\configs\nascar_cup.json"
+DEFAULT_PROJ   = r"C:\Users\cpenn\Downloads\cpenn-dfs_frontend-v1"
+DEFAULT_CONFIG = r"C:\Users\cpenn\Downloads\cpenn-dfs_frontend-v1\scripts\configs\nascar_cup.json"
 # ---------------------------------------------------
 
 
