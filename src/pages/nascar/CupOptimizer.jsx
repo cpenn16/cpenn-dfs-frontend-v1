@@ -1,6 +1,5 @@
-// src/pages/nascar/TrucksOptimizer.jsx
+// src/pages/nascar/CupOptimizer.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import API_BASE from "../../utils/api";
 
 /* ----------------------------- helpers ----------------------------- */
 const clamp = (v, lo = 0, hi = 1e9) => Math.max(lo, Math.min(hi, v));
@@ -80,6 +79,7 @@ function detectFdPrefix(siteIdsList) {
   return null; // no prefix found (ok)
 }
 
+
 /* ------------------------- sites & columns ------------------------- */
 const SITES = {
   dk: {
@@ -110,8 +110,8 @@ const SITES = {
   },
 };
 
-const SOURCE = "/data/nascar/trucks/latest/projections.json";
-const SITE_IDS_SOURCE = "/data/nascar/trucks/latest/site_ids.json";
+const SOURCE = "/data/nascar/cup/latest/projections.json";
+const SITE_IDS_SOURCE = "/data/nascar/cup/latest/site_ids.json";
 
 /* ------------------------------ data ------------------------------- */
 function useJson(url) {
@@ -234,16 +234,45 @@ function downloadExposuresCSV(lineups, fname = "exposures.csv") {
   URL.revokeObjectURL(url);
 }
 
+import API_BASE from "../../utils/api";
+
+/* -------------------- CUP endpoints: auto-resolver ------------------ */
+const CUP_SSE_PATHS = [
+  "nascar/cup/solve_stream",
+  "cup/solve_stream",
+];
+
+const CUP_POST_PATHS = [
+  "nascar/cup/solve",
+  "cup/solve",
+];
+
+async function fetchFirstOk(paths, init) {
+  for (const p of paths) {
+    try {
+      const base = API_BASE.replace(/\/$/, "");
+      const res = await fetch(`${base}/${p}`, init);
+      if (res.ok) return { res, path: p };
+    } catch (_) {
+      // try next
+    }
+  }
+  return null;
+}
+
 /* ----------------------------- server calls ----------------------------- */
 async function solveStream(payload, onItem, onDone) {
-  const res = await fetch(`${API_BASE}/trucks/solve_stream`, {
+  const attempt = await fetchFirstOk(CUP_SSE_PATHS, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (!res.ok || !res.body) throw new Error("Stream failed to start");
 
-  const reader = res.body.getReader();
+  if (!attempt || !attempt.res.body) {
+    throw new Error("No streaming endpoint");
+  }
+
+  const reader = attempt.res.body.getReader();
   const decoder = new TextDecoder("utf-8");
   let buf = "";
 
@@ -258,12 +287,12 @@ async function solveStream(payload, onItem, onDone) {
       try {
         const msg = JSON.parse(part);
         if (msg.done) {
-          if (onDone) onDone(msg);
-        } else if (onItem) {
-          onItem(msg);
+          onDone && onDone(msg);
+        } else {
+          onItem && onItem(msg);
         }
       } catch (err) {
-        console.error("Stream parse error", err, part);
+        console.error("Cup stream parse error", err, part);
       }
     }
   }
@@ -272,7 +301,7 @@ async function solveStream(payload, onItem, onDone) {
 /* --------- robust per-site build naming to avoid stale length ------- */
 function nextBuildNameForSite(site) {
   try {
-    const raw = localStorage.getItem(`trucksOpt.${site}.builds`);
+    const raw = localStorage.getItem(`cupOpt.${site}.builds`);
     const arr = raw ? JSON.parse(raw) : [];
     const nums = arr
       .map((b) => (b?.name ? String(b.name).match(/^Build\s+(\d+)$/i) : null))
@@ -358,18 +387,18 @@ function DriverMultiPicker({ allDrivers, value, onChange, placeholder = "Add dri
 }
 
 /* ============================== page =============================== */
-export default function TrucksOptimizer() {
+export default function CupOptimizer() {
   const { data, err, loading } = useJson(SOURCE);
   const { data: siteIds } = useJson(SITE_IDS_SOURCE);
 
-  const [site, setSite] = useStickyState("trucksOpt.site", "dk");
+  const [site, setSite] = useStickyState("cupOpt.site", "dk");
   const cfg = SITES[site];
 
-  const [optBy, setOptBy] = useStickyState("trucksOpt.optBy", "proj");
-  const [numLineups, setNumLineups] = useStickyState("trucksOpt.N", 20);
-  const [maxSalary, setMaxSalary] = useStickyState("trucksOpt.cap", 50000);
-  const [globalMax, setGlobalMax] = useStickyState("trucksOpt.gmax", 100);
-  const [randomness, setRandomness] = useStickyState("trucksOpt.rand", 0);
+  const [optBy, setOptBy] = useStickyState("cupOpt.optBy", "proj");
+  const [numLineups, setNumLineups] = useStickyState("cupOpt.N", 20);
+  const [maxSalary, setMaxSalary] = useStickyState("cupOpt.cap", 50000);
+  const [globalMax, setGlobalMax] = useStickyState("cupOpt.gmax", 100);
+  const [randomness, setRandomness] = useStickyState("cupOpt.rand", 0);
 
   const [q, setQ] = useState("");
 
@@ -380,10 +409,10 @@ export default function TrucksOptimizer() {
   const [boost, setBoost] = useState(() => ({}));
 
   // NEW: player groups (persisted per site)
-  const [groups, setGroups] = useStickyState(`trucksOpt.${site}.groups`, []);
+  const [groups, setGroups] = useStickyState(`cupOpt.${site}.groups`, []);
 
   // Per-site builds (so DK builds don't appear on FD)
-  const buildsKey = (k) => `trucksOpt.${site}.${k}`;
+  const buildsKey = (k) => `cupOpt.${site}.${k}`;
   const [builds, setBuilds] = useStickyState(buildsKey("builds"), []);
   const [activeBuildId, setActiveBuildId] = useStickyState(buildsKey("active"), null);
 
@@ -408,12 +437,13 @@ export default function TrucksOptimizer() {
   const tickRef = useRef(null);
 
   useEffect(() => {
+    // smooth UI ticks while optimizing
     if (!isOptimizing) return;
     clearInterval(tickRef.current);
     tickRef.current = setInterval(() => {
       setProgressUI((p) => {
         const N = Math.max(1, Number(numLineups) || 1);
-        const target = Math.max(progressActual, 1);
+        const target = Math.max(progressActual, 1); // never look stuck at 0
         const ceiling = N;
         const next = Math.min(Math.max(p + 1, target), ceiling);
         return next;
@@ -449,7 +479,7 @@ export default function TrucksOptimizer() {
         ceil: num(r[cfg.ceil]),
         pown: getPct(r, cfg.pown),
         opt: getPct(r, cfg.opt),
-        val: 0,
+        val: 0, // computed dynamically for sorting
       }))
       .filter((r) => r.driver && r.salary > 0);
   }, [data, site]);
@@ -483,6 +513,7 @@ export default function TrucksOptimizer() {
     );
   }, [rows, order, q, usagePct, boost]);
 
+  // Make columns sortable (now includes Usage% and Val)
   const sortable = new Set(["qual", "salary", "proj", "val", "floor", "ceil", "pown", "opt", "usage"]);
 
   const setSort = (col) => {
@@ -495,8 +526,8 @@ export default function TrucksOptimizer() {
 
     const sorted = [...displayRows].sort((a, b) => {
       const getVal = (r) => {
-        if (col === "usage") return usagePct[r.driver] ?? -Infinity;
-        if (col === "pown" || col === "opt") return ((r[col] || 0) * 100);
+        if (col === "usage") return usagePct[r.driver] ?? -Infinity; // computed Usage%
+        if (col === "pown" || col === "opt") return ((r[col] || 0) * 100); // convert 0..1 → %
         if (col === "proj") return boostedProj(r);
         if (col === "val") {
           const salK = (r.salary || 0) / 1000;
@@ -580,8 +611,6 @@ export default function TrucksOptimizer() {
       ),
       min_diff: 1,
       time_limit_ms: 1500,
-
-      // Player groups
       groups: groups.map((g) => ({
         mode: g.mode || "at_most", // at_most | at_least | exactly
         count: Math.max(0, Number(g.count) || 0),
@@ -617,19 +646,21 @@ export default function TrucksOptimizer() {
         }
       );
     } catch (e) {
-      // non-streaming fallback
-      const res = await fetch(`${API_BASE}/trucks/solve`, {
+      // non-streaming fallback: try /nascar/cup/solve then /cup/solve
+      const attempt = await fetchFirstOk(CUP_POST_PATHS, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) {
-        alert(`Solve failed: ${await res.text()}`);
+
+      if (!attempt) {
+        alert("Solve failed: No working Cup endpoint found.");
         setIsOptimizing(false);
         clearInterval(tickRef.current);
         return;
       }
-      const j = await res.json();
+
+      const j = await attempt.res.json();
       const out2 =
         (j.lineups || []).map((L) => ({
           drivers: L.drivers,
@@ -710,6 +741,7 @@ export default function TrucksOptimizer() {
       ? "pOWN%"
       : "Opt%";
 
+  // compact, center-aligned look
   const cell = "px-2 py-1 text-center";
   const header = "px-2 py-1 font-semibold text-center";
   const textSz = "text-[12px]";
@@ -722,7 +754,7 @@ export default function TrucksOptimizer() {
     { key: "driver", label: "Driver", sortable: false },
     { key: "salary", label: "Salary", sortable: true },
     { key: "proj", label: "Proj", sortable: true },
-    { key: "val",  label: "Val",  sortable: true },
+    { key: "val",  label: "Val",  sortable: true },       // NEW
     { key: "floor", label: "Floor", sortable: true },
     { key: "ceil", label: "Ceiling", sortable: true },
     { key: "pown", label: "pOWN%", sortable: true },
@@ -736,7 +768,7 @@ export default function TrucksOptimizer() {
 
   return (
     <div className="px-4 md:px-6 py-5">
-      <h1 className="text-2xl md:text-3xl font-extrabold mb-1">NASCAR Trucks — Optimizer</h1>
+      <h1 className="text-2xl md:text-3xl font-extrabold mb-1">NASCAR Cup — Optimizer</h1>
 
       {/* site toggle & reset */}
       <div className="mb-3 flex gap-2 items-center">
@@ -1166,7 +1198,7 @@ export default function TrucksOptimizer() {
                             <td className={`${cell} tabular-nums`}>{fmt0(r.salary)}</td>
                           </tr>
                         ))}
-                        <tr className="border-top">
+                        <tr className="border-t">
                           <td className={`${cell} font-semibold`}>Totals</td>
                           <td className={cell} />
                           <td className={`${cell} tabular-nums font-semibold`}>{fmt1(totalPownPct)}</td>
