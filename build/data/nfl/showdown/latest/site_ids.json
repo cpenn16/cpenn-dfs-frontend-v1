@@ -1,0 +1,1577 @@
+{
+  "dk": [
+    {
+      "name": "Saquon Barkley",
+      "id": "39559980",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "11200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Jalen Hurts",
+      "id": "39559981",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "11000",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "CeeDee Lamb",
+      "id": "39559982",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "10800",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "A.J. Brown",
+      "id": "39559983",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "9400",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Dak Prescott",
+      "id": "39559984",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "9000",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "DeVonta Smith",
+      "id": "39559985",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "8400",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "George Pickens",
+      "id": "39559986",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "8000",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Tanner McKee",
+      "id": "39559987",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "7000",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Joe Milton III",
+      "id": "39559988",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "7000",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Dallas Goedert",
+      "id": "39559989",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "6400",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Dorian Thompson-Robinson",
+      "id": "39559990",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "6000",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Kyle McCord",
+      "id": "39559991",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "6000",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Will Grier",
+      "id": "39559992",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "6000",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Sam Howell",
+      "id": "39823941",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "6000",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Javonte Williams",
+      "id": "39559993",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "5400",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Jake Ferguson",
+      "id": "39559994",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "5200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Jaydon Blue",
+      "id": "39559995",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "5000",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Brandon Aubrey",
+      "id": "39559996",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "4800",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Eagles",
+      "id": "39559997",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "4600",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Jake Elliott",
+      "id": "39559998",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "4400",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Miles Sanders",
+      "id": "39559999",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "4000",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "John Metchie III",
+      "id": "39823942",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "3800",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Cowboys",
+      "id": "39560000",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "3600",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Jalen Tolbert",
+      "id": "39560001",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "3400",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Jahan Dotson",
+      "id": "39560002",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "3200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "A.J. Dillon",
+      "id": "39560003",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "3000",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "KaVontae Turpin",
+      "id": "39560004",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "2800",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Terrace Marshall",
+      "id": "39560005",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "2600",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Grant Calcaterra",
+      "id": "39560006",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "2400",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Will Shipley",
+      "id": "39560007",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "2000",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Luke Schoonmaker",
+      "id": "39560008",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "1600",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Jonathan Mingo",
+      "id": "39560009",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "1200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Phil Mafah",
+      "id": "39560010",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "1000",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Deuce Vaughn",
+      "id": "39560011",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "800",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Ainias Smith",
+      "id": "39560012",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "600",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Hunter Luepke",
+      "id": "39560013",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "400",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Jalen Brooks",
+      "id": "39560014",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Parris Campbell",
+      "id": "39560015",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Kylen Granson",
+      "id": "39560016",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Ryan Flournoy",
+      "id": "39560017",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Harrison Bryant",
+      "id": "39560018",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Brevyn Spann-Ford",
+      "id": "39560019",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Johnny Wilson",
+      "id": "39560020",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "E.J. Jenkins",
+      "id": "39560021",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Ben VanSumeren",
+      "id": "39560022",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Ife Adeyi",
+      "id": "39560023",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Josh Kelly",
+      "id": "39560024",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Traeshon Holden",
+      "id": "39560025",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Giles Jackson",
+      "id": "39560026",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Jalen Cropper",
+      "id": "39560027",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Darius Cooper",
+      "id": "39560028",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Taylor Morin",
+      "id": "39560029",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "ShunDerrick Powell",
+      "id": "39560030",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Elijah Cooks",
+      "id": "39560031",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Nick Muse",
+      "id": "39560032",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Tyler Neville",
+      "id": "39560033",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Montrell Johnson Jr.",
+      "id": "39560034",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Cameron Latu",
+      "id": "39560035",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Rivaldo Fairweather",
+      "id": "39560036",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Keilan Robinson",
+      "id": "39560037",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Princeton Fant",
+      "id": "39560038",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Avery Williams",
+      "id": "39560039",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "John Stephens Jr.",
+      "id": "39560040",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Danny Gray",
+      "id": "39560041",
+      "team": "PHI",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Malik Davis",
+      "id": "39823943",
+      "team": "DAL",
+      "slot": "FLEX",
+      "salary": "200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Saquon Barkley",
+      "id": "39560042",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "16800",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Jalen Hurts",
+      "id": "39560043",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "16500",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "CeeDee Lamb",
+      "id": "39560044",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "16200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "A.J. Brown",
+      "id": "39560045",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "14100",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Dak Prescott",
+      "id": "39560046",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "13500",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "DeVonta Smith",
+      "id": "39560047",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "12600",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "George Pickens",
+      "id": "39560048",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "12000",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Tanner McKee",
+      "id": "39560049",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "10500",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Joe Milton III",
+      "id": "39560050",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "10500",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Dallas Goedert",
+      "id": "39560051",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "9600",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Dorian Thompson-Robinson",
+      "id": "39560052",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "9000",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Kyle McCord",
+      "id": "39560053",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "9000",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Will Grier",
+      "id": "39560054",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "9000",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Sam Howell",
+      "id": "39823944",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "9000",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Javonte Williams",
+      "id": "39560055",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "8100",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Jake Ferguson",
+      "id": "39560056",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "7800",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Jaydon Blue",
+      "id": "39560057",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "7500",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Brandon Aubrey",
+      "id": "39560058",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "7200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Eagles",
+      "id": "39560059",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "6900",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Jake Elliott",
+      "id": "39560060",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "6600",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Miles Sanders",
+      "id": "39560061",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "6000",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "John Metchie III",
+      "id": "39823945",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "5700",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Cowboys",
+      "id": "39560062",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "5400",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Jalen Tolbert",
+      "id": "39560063",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "5100",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Jahan Dotson",
+      "id": "39560064",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "4800",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "A.J. Dillon",
+      "id": "39560065",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "4500",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "KaVontae Turpin",
+      "id": "39560066",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "4200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Terrace Marshall",
+      "id": "39560067",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "3900",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Grant Calcaterra",
+      "id": "39560068",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "3600",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Will Shipley",
+      "id": "39560069",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "3000",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Luke Schoonmaker",
+      "id": "39560070",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "2400",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Jonathan Mingo",
+      "id": "39560071",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "1800",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Phil Mafah",
+      "id": "39560072",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "1500",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Deuce Vaughn",
+      "id": "39560073",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "1200",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Ainias Smith",
+      "id": "39560074",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "900",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Hunter Luepke",
+      "id": "39560075",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "600",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Jalen Brooks",
+      "id": "39560076",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Parris Campbell",
+      "id": "39560077",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Kylen Granson",
+      "id": "39560078",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Ryan Flournoy",
+      "id": "39560079",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Harrison Bryant",
+      "id": "39560080",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Brevyn Spann-Ford",
+      "id": "39560081",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Johnny Wilson",
+      "id": "39560082",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "E.J. Jenkins",
+      "id": "39560083",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Ben VanSumeren",
+      "id": "39560084",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Ife Adeyi",
+      "id": "39560085",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Josh Kelly",
+      "id": "39560086",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Traeshon Holden",
+      "id": "39560087",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Giles Jackson",
+      "id": "39560088",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Jalen Cropper",
+      "id": "39560089",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Darius Cooper",
+      "id": "39560090",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Taylor Morin",
+      "id": "39560091",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "ShunDerrick Powell",
+      "id": "39560092",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Elijah Cooks",
+      "id": "39560093",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Nick Muse",
+      "id": "39560094",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Tyler Neville",
+      "id": "39560095",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Montrell Johnson Jr.",
+      "id": "39560096",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Cameron Latu",
+      "id": "39560097",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Rivaldo Fairweather",
+      "id": "39560098",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Keilan Robinson",
+      "id": "39560099",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Princeton Fant",
+      "id": "39560100",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Avery Williams",
+      "id": "39560101",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "John Stephens Jr.",
+      "id": "39560102",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Danny Gray",
+      "id": "39560103",
+      "team": "PHI",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    },
+    {
+      "name": "Malik Davis",
+      "id": "39823946",
+      "team": "DAL",
+      "slot": "CPT",
+      "salary": "300",
+      "game": "DAL@PHI 09/04/2025 08:20PM ET"
+    }
+  ],
+  "fd": [
+    {
+      "name": "Saquon Barkley",
+      "id": "119244-64401",
+      "team": "PHI",
+      "pos": "RB",
+      "salary": "14400",
+      "mvp_salary": "21600",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Jalen Hurts",
+      "id": "119244-69531",
+      "team": "PHI",
+      "pos": "QB",
+      "salary": "12200",
+      "mvp_salary": "18300",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "CeeDee Lamb",
+      "id": "119244-86631",
+      "team": "DAL",
+      "pos": "WR",
+      "salary": "12000",
+      "mvp_salary": "18000",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "A.J. Brown",
+      "id": "119244-72846",
+      "team": "PHI",
+      "pos": "WR",
+      "salary": "11200",
+      "mvp_salary": "16800",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Dak Prescott",
+      "id": "119244-31716",
+      "team": "DAL",
+      "pos": "QB",
+      "salary": "10800",
+      "mvp_salary": "16200",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "DeVonta Smith",
+      "id": "119244-90576",
+      "team": "PHI",
+      "pos": "WR",
+      "salary": "9600",
+      "mvp_salary": "14400",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "George Pickens",
+      "id": "119244-110246",
+      "team": "DAL",
+      "pos": "WR",
+      "salary": "8400",
+      "mvp_salary": "12600",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Philadelphia Eagles",
+      "id": "119244-12545",
+      "team": "PHI",
+      "pos": "D",
+      "salary": "7800",
+      "mvp_salary": "11700",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Dallas Goedert",
+      "id": "119244-83074",
+      "team": "PHI",
+      "pos": "TE",
+      "salary": "7400",
+      "mvp_salary": "11100",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Javonte Williams",
+      "id": "119244-93541",
+      "team": "DAL",
+      "pos": "RB",
+      "salary": "6600",
+      "mvp_salary": "9900",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Brandon Aubrey",
+      "id": "119244-189471",
+      "team": "DAL",
+      "pos": "K",
+      "salary": "6200",
+      "mvp_salary": "9300",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Jake Elliott",
+      "id": "119244-41235",
+      "team": "PHI",
+      "pos": "K",
+      "salary": "5800",
+      "mvp_salary": "8700",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Dallas Cowboys",
+      "id": "119244-12530",
+      "team": "DAL",
+      "pos": "D",
+      "salary": "5400",
+      "mvp_salary": "8100",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Jalen Tolbert",
+      "id": "119244-88548",
+      "team": "DAL",
+      "pos": "WR",
+      "salary": "5200",
+      "mvp_salary": "7800",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Jake Ferguson",
+      "id": "119244-89680",
+      "team": "DAL",
+      "pos": "TE",
+      "salary": "5000",
+      "mvp_salary": "7500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Miles Sanders",
+      "id": "119244-71845",
+      "team": "DAL",
+      "pos": "RB",
+      "salary": "4000",
+      "mvp_salary": "6000",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Will Shipley",
+      "id": "119244-152520",
+      "team": "PHI",
+      "pos": "RB",
+      "salary": "3400",
+      "mvp_salary": "5100",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Jahan Dotson",
+      "id": "119244-86229",
+      "team": "PHI",
+      "pos": "WR",
+      "salary": "3000",
+      "mvp_salary": "4500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "KaVontae Turpin",
+      "id": "119244-60957",
+      "team": "DAL",
+      "pos": "WR",
+      "salary": "2800",
+      "mvp_salary": "4200",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Jaydon Blue",
+      "id": "119244-166801",
+      "team": "DAL",
+      "pos": "RB",
+      "salary": "2400",
+      "mvp_salary": "3600",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Johnny Wilson",
+      "id": "119244-119722",
+      "team": "PHI",
+      "pos": "WR",
+      "salary": "2200",
+      "mvp_salary": "3300",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "A.J. Dillon",
+      "id": "119244-93107",
+      "team": "PHI",
+      "pos": "RB",
+      "salary": "2000",
+      "mvp_salary": "3000",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Jonathan Mingo",
+      "id": "119244-112192",
+      "team": "DAL",
+      "pos": "WR",
+      "salary": "1800",
+      "mvp_salary": "2700",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Luke Schoonmaker",
+      "id": "119244-91417",
+      "team": "DAL",
+      "pos": "TE",
+      "salary": "1600",
+      "mvp_salary": "2400",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Jalen Brooks",
+      "id": "119244-138277",
+      "team": "DAL",
+      "pos": "WR",
+      "salary": "1400",
+      "mvp_salary": "2100",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Kylen Granson",
+      "id": "119244-71143",
+      "team": "PHI",
+      "pos": "TE",
+      "salary": "1400",
+      "mvp_salary": "2100",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Hunter Luepke",
+      "id": "119244-185863",
+      "team": "DAL",
+      "pos": "RB",
+      "salary": "1200",
+      "mvp_salary": "1800",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Deuce Vaughn",
+      "id": "119244-137254",
+      "team": "DAL",
+      "pos": "RB",
+      "salary": "1200",
+      "mvp_salary": "1800",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Tyler Neville",
+      "id": "119244-200450",
+      "team": "DAL",
+      "pos": "TE",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Tanner McKee",
+      "id": "119244-89607",
+      "team": "PHI",
+      "pos": "QB",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "John Metchie III",
+      "id": "119244-94600",
+      "team": "DAL",
+      "pos": "WR",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Ryan Flournoy",
+      "id": "119244-201233",
+      "team": "DAL",
+      "pos": "WR",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Princeton Fant",
+      "id": "119244-87442",
+      "team": "DAL",
+      "pos": "TE",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Elijah Cooks",
+      "id": "119244-94363",
+      "team": "PHI",
+      "pos": "WR",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Grant Calcaterra",
+      "id": "119244-86682",
+      "team": "PHI",
+      "pos": "TE",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Cameron Latu",
+      "id": "119244-90522",
+      "team": "PHI",
+      "pos": "TE",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Giles Jackson",
+      "id": "119244-114589",
+      "team": "PHI",
+      "pos": "WR",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Christian Johnstone",
+      "id": "119244-114716",
+      "team": "PHI",
+      "pos": "TE",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Rivaldo Fairweather",
+      "id": "119244-135325",
+      "team": "DAL",
+      "pos": "TE",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Darius Cooper",
+      "id": "119244-226859",
+      "team": "PHI",
+      "pos": "WR",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Terrace Marshall",
+      "id": "119244-85672",
+      "team": "PHI",
+      "pos": "WR",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "ShunDerrick Powell",
+      "id": "119244-226858",
+      "team": "PHI",
+      "pos": "RB",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Keilan Robinson",
+      "id": "119244-110380",
+      "team": "PHI",
+      "pos": "RB",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "E.J. Jenkins",
+      "id": "119244-151737",
+      "team": "PHI",
+      "pos": "TE",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Traeshon Holden",
+      "id": "119244-119619",
+      "team": "DAL",
+      "pos": "WR",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Ife Adeyi",
+      "id": "119244-184128",
+      "team": "PHI",
+      "pos": "WR",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Kyle McCord",
+      "id": "119244-152646",
+      "team": "PHI",
+      "pos": "QB",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Avery Williams",
+      "id": "119244-72772",
+      "team": "PHI",
+      "pos": "RB",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Parris Campbell",
+      "id": "119244-56262",
+      "team": "DAL",
+      "pos": "WR",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Phil Mafah",
+      "id": "119244-152522",
+      "team": "DAL",
+      "pos": "RB",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "C.J. Goodwin",
+      "id": "119244-54863",
+      "team": "DAL",
+      "pos": "WR",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Jalen Cropper",
+      "id": "119244-109008",
+      "team": "DAL",
+      "pos": "WR",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Brevyn Spann-Ford",
+      "id": "119244-85842",
+      "team": "DAL",
+      "pos": "TE",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Montrell Johnson Jr.",
+      "id": "119244-155733",
+      "team": "PHI",
+      "pos": "RB",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Taylor Morin",
+      "id": "119244-112356",
+      "team": "PHI",
+      "pos": "WR",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Will Grier",
+      "id": "119244-52342",
+      "team": "DAL",
+      "pos": "QB",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Dorian Thompson-Robinson",
+      "id": "119244-91898",
+      "team": "PHI",
+      "pos": "QB",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Joe Milton III",
+      "id": "119244-91390",
+      "team": "DAL",
+      "pos": "QB",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    },
+    {
+      "name": "Nick Muse",
+      "id": "119244-96254",
+      "team": "PHI",
+      "pos": "TE",
+      "salary": "1000",
+      "mvp_salary": "1500",
+      "game": "DAL@PHI"
+    }
+  ]
+}

@@ -1,0 +1,2162 @@
+[
+  {
+    "proj": "Ja'Marr Chase",
+    "team": "CIN",
+    "pos": "WR",
+    "dk_name": "Ja'Marr Chase",
+    "dk_id": "39506085",
+    "fd_name": "Ja'Marr Chase",
+    "fd_id": "119110-85701"
+  },
+  {
+    "proj": "Joe Burrow",
+    "team": "CIN",
+    "pos": "QB",
+    "dk_name": "Joe Burrow",
+    "dk_id": "39505689",
+    "fd_name": "Joe Burrow",
+    "fd_id": "119110-63336"
+  },
+  {
+    "proj": "Baker Mayfield",
+    "team": "TB",
+    "pos": "QB",
+    "dk_name": "Baker Mayfield",
+    "dk_id": "39505690",
+    "fd_name": "Baker Mayfield",
+    "fd_id": "119110-41535"
+  },
+  {
+    "proj": "Jayden Daniels",
+    "team": "WAS",
+    "pos": "QB",
+    "dk_name": "Jayden Daniels",
+    "dk_id": "39505688",
+    "fd_name": "Jayden Daniels",
+    "fd_id": "119110-102785"
+  },
+  {
+    "proj": "Bijan Robinson",
+    "team": "ATL",
+    "pos": "RB",
+    "dk_name": "Bijan Robinson",
+    "dk_id": "39505777",
+    "fd_name": "Bijan Robinson",
+    "fd_id": "119110-136855"
+  },
+  {
+    "proj": "Amon-Ra St. Brown",
+    "team": "DET",
+    "pos": "WR",
+    "dk_name": "Amon-Ra St. Brown",
+    "dk_id": "39506091",
+    "fd_name": "Amon-Ra St. Brown",
+    "fd_id": "119110-86997"
+  },
+  {
+    "proj": "De'Von Achane",
+    "team": "MIA",
+    "pos": "RB",
+    "dk_name": "De'Von Achane",
+    "dk_id": "39505787",
+    "fd_name": "De'Von Achane",
+    "fd_id": "119110-138820"
+  },
+  {
+    "proj": "Jared Goff",
+    "team": "DET",
+    "pos": "QB",
+    "dk_name": "Jared Goff",
+    "dk_id": "39505691",
+    "fd_name": "Jared Goff",
+    "fd_id": "119110-38435"
+  },
+  {
+    "proj": "Christian McCaffrey",
+    "team": "SF",
+    "pos": "RB",
+    "dk_name": "Christian McCaffrey",
+    "dk_id": "39505781",
+    "fd_name": "Christian McCaffrey",
+    "fd_id": "119110-55050"
+  },
+  {
+    "proj": "Brock Purdy",
+    "team": "SF",
+    "pos": "QB",
+    "dk_name": "Brock Purdy",
+    "dk_id": "39505694",
+    "fd_name": "Brock Purdy",
+    "fd_id": "119110-85607"
+  },
+  {
+    "proj": "Jahmyr Gibbs",
+    "team": "DET",
+    "pos": "RB",
+    "dk_name": "Jahmyr Gibbs",
+    "dk_id": "39505779",
+    "fd_name": "Jahmyr Gibbs",
+    "fd_id": "119110-129368"
+  },
+  {
+    "proj": "Bucky Irving",
+    "team": "TB",
+    "pos": "RB",
+    "dk_name": "Bucky Irving",
+    "dk_id": "39505783",
+    "fd_name": "Bucky Irving",
+    "fd_id": "119110-152664"
+  },
+  {
+    "proj": "Puka Nacua",
+    "team": "LAR",
+    "pos": "WR",
+    "dk_name": "Puka Nacua",
+    "dk_id": "39506087",
+    "fd_name": "Puka Nacua",
+    "fd_id": "119110-103020"
+  },
+  {
+    "proj": "Malik Nabers",
+    "team": "NYG",
+    "pos": "WR",
+    "dk_name": "Malik Nabers",
+    "dk_id": "39506093",
+    "fd_name": "Malik Nabers",
+    "fd_id": "119110-151761"
+  },
+  {
+    "proj": "Kyler Murray",
+    "team": "ARI",
+    "pos": "QB",
+    "dk_name": "Kyler Murray",
+    "dk_id": "39505692",
+    "fd_name": "Kyler Murray",
+    "fd_id": "119110-63484"
+  },
+  {
+    "proj": "Bo Nix",
+    "team": "DEN",
+    "pos": "QB",
+    "dk_name": "Bo Nix",
+    "dk_id": "39505693",
+    "fd_name": "Bo Nix",
+    "fd_id": "119110-102965"
+  },
+  {
+    "proj": "Garrett Wilson",
+    "team": "NYJ",
+    "pos": "WR",
+    "dk_name": "Garrett Wilson",
+    "dk_id": "39506105",
+    "fd_name": "Garrett Wilson",
+    "fd_id": "119110-103564"
+  },
+  {
+    "proj": "Josh Jacobs",
+    "team": "GB",
+    "pos": "RB",
+    "dk_name": "Josh Jacobs",
+    "dk_id": "39505791",
+    "fd_name": "Josh Jacobs",
+    "fd_id": "119110-72731"
+  },
+  {
+    "proj": "Nico Collins",
+    "team": "HOU",
+    "pos": "WR",
+    "dk_name": "Nico Collins",
+    "dk_id": "39506089",
+    "fd_name": "Nico Collins",
+    "fd_id": "119110-91419"
+  },
+  {
+    "proj": "James Conner",
+    "team": "ARI",
+    "pos": "RB",
+    "dk_name": "James Conner",
+    "dk_id": "39505803",
+    "fd_name": "James Conner",
+    "fd_id": "119110-40687"
+  },
+  {
+    "proj": "Justin Fields",
+    "team": "NYJ",
+    "pos": "QB",
+    "dk_name": "Justin Fields",
+    "dk_id": "39505702",
+    "fd_name": "Justin Fields",
+    "fd_id": "119110-91591"
+  },
+  {
+    "proj": "Tyreek Hill",
+    "team": "MIA",
+    "pos": "WR",
+    "dk_name": "Tyreek Hill",
+    "dk_id": "39506097",
+    "fd_name": "Tyreek Hill",
+    "fd_id": "119110-53681"
+  },
+  {
+    "proj": "Trevor Lawrence",
+    "team": "JAX",
+    "pos": "QB",
+    "dk_name": "Trevor Lawrence",
+    "dk_id": "39505704",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Jordan Love",
+    "team": "GB",
+    "pos": "QB",
+    "dk_name": "Jordan Love",
+    "dk_id": "39505695",
+    "fd_name": "Jordan Love",
+    "fd_id": "119110-69017"
+  },
+  {
+    "proj": "Brian Thomas Jr.",
+    "team": "JAX",
+    "pos": "WR",
+    "dk_name": "Brian Thomas Jr.",
+    "dk_id": "39506095",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Sam Darnold",
+    "team": "SEA",
+    "pos": "QB",
+    "dk_name": "Sam Darnold",
+    "dk_id": "39505703",
+    "fd_name": "Sam Darnold",
+    "fd_id": "119110-63589"
+  },
+  {
+    "proj": "Trey McBride",
+    "team": "ARI",
+    "pos": "TE",
+    "dk_name": "Trey McBride",
+    "dk_id": "39506679",
+    "fd_name": "Trey McBride",
+    "fd_id": "119110-91750"
+  },
+  {
+    "proj": "Drake Maye",
+    "team": "NE",
+    "pos": "QB",
+    "dk_name": "Drake Maye",
+    "dk_id": "39505701",
+    "fd_name": "Drake Maye",
+    "fd_id": "119110-152316"
+  },
+  {
+    "proj": "Drake London",
+    "team": "ATL",
+    "pos": "WR",
+    "dk_name": "Drake London",
+    "dk_id": "39506101",
+    "fd_name": "Drake London",
+    "fd_id": "119110-112745"
+  },
+  {
+    "proj": "Tee Higgins",
+    "team": "CIN",
+    "pos": "WR",
+    "dk_name": "Tee Higgins",
+    "dk_id": "39506103",
+    "fd_name": "Tee Higgins",
+    "fd_id": "119110-89981"
+  },
+  {
+    "proj": "Alvin Kamara",
+    "team": "NO",
+    "pos": "RB",
+    "dk_name": "Alvin Kamara",
+    "dk_id": "39505799",
+    "fd_name": "Alvin Kamara",
+    "fd_id": "119110-42104"
+  },
+  {
+    "proj": "Kyren Williams",
+    "team": "LAR",
+    "pos": "RB",
+    "dk_name": "Kyren Williams",
+    "dk_id": "39505795",
+    "fd_name": "Kyren Williams",
+    "fd_id": "119110-104433"
+  },
+  {
+    "proj": "Chase Brown",
+    "team": "CIN",
+    "pos": "RB",
+    "dk_name": "Chase Brown",
+    "dk_id": "39505793",
+    "fd_name": "Chase Brown",
+    "fd_id": "119110-89493"
+  },
+  {
+    "proj": "Jerry Jeudy",
+    "team": "CLE",
+    "pos": "WR",
+    "dk_name": "Jerry Jeudy",
+    "dk_id": "39506125",
+    "fd_name": "Jerry Jeudy",
+    "fd_id": "119110-90561"
+  },
+  {
+    "proj": "Ashton Jeanty",
+    "team": "LV",
+    "pos": "RB",
+    "dk_name": "Ashton Jeanty",
+    "dk_id": "39505785",
+    "fd_name": "Ashton Jeanty",
+    "fd_id": "119110-167031"
+  },
+  {
+    "proj": "Brock Bowers",
+    "team": "LV",
+    "pos": "TE",
+    "dk_name": "Brock Bowers",
+    "dk_id": "39506677",
+    "fd_name": "Brock Bowers",
+    "fd_id": "119110-151794"
+  },
+  {
+    "proj": "Jonathan Taylor",
+    "team": "IND",
+    "pos": "RB",
+    "dk_name": "Jonathan Taylor",
+    "dk_id": "39505789",
+    "fd_name": "Jonathan Taylor",
+    "fd_id": "119110-89675"
+  },
+  {
+    "proj": "Tua Tagovailoa",
+    "team": "MIA",
+    "pos": "QB",
+    "dk_name": "Tua Tagovailoa",
+    "dk_id": "39505698",
+    "fd_name": "Tua Tagovailoa",
+    "fd_id": "119110-90572"
+  },
+  {
+    "proj": "Mike Evans",
+    "team": "TB",
+    "pos": "WR",
+    "dk_name": "Mike Evans",
+    "dk_id": "39506099",
+    "fd_name": "Mike Evans",
+    "fd_id": "119110-32384"
+  },
+  {
+    "proj": "Geno Smith",
+    "team": "LV",
+    "pos": "QB",
+    "dk_name": "Geno Smith",
+    "dk_id": "39505706",
+    "fd_name": "Geno Smith",
+    "fd_id": "119110-26483"
+  },
+  {
+    "proj": "Breece Hall",
+    "team": "NYJ",
+    "pos": "RB",
+    "dk_name": "Breece Hall",
+    "dk_id": "39505797",
+    "fd_name": "Breece Hall",
+    "fd_id": "119110-103064"
+  },
+  {
+    "proj": "George Kittle",
+    "team": "SF",
+    "pos": "TE",
+    "dk_name": "George Kittle",
+    "dk_id": "39506681",
+    "fd_name": "George Kittle",
+    "fd_id": "119110-39793"
+  },
+  {
+    "proj": "Bryce Young",
+    "team": "CAR",
+    "pos": "QB",
+    "dk_name": "Bryce Young",
+    "dk_id": "39505699",
+    "fd_name": "Bryce Young",
+    "fd_id": "119110-119606"
+  },
+  {
+    "proj": "Michael Penix Jr.",
+    "team": "ATL",
+    "pos": "QB",
+    "dk_name": "Michael Penix Jr.",
+    "dk_id": "39505700",
+    "fd_name": "Michael Penix Jr.",
+    "fd_id": "119110-88797"
+  },
+  {
+    "proj": "Terry McLaurin",
+    "team": "WAS",
+    "pos": "WR",
+    "dk_name": "Terry McLaurin",
+    "dk_id": "39506107",
+    "fd_name": "Terry McLaurin",
+    "fd_id": "119110-56250"
+  },
+  {
+    "proj": "Joe Flacco",
+    "team": "CLE",
+    "pos": "QB",
+    "dk_name": "Joe Flacco",
+    "dk_id": "39505711",
+    "fd_name": "Joe Flacco",
+    "fd_id": "119110-6714"
+  },
+  {
+    "proj": "Russell Wilson",
+    "team": "NYG",
+    "pos": "QB",
+    "dk_name": "Russell Wilson",
+    "dk_id": "39505709",
+    "fd_name": "Russell Wilson",
+    "fd_id": "119110-22015"
+  },
+  {
+    "proj": "C.J. Stroud",
+    "team": "HOU",
+    "pos": "QB",
+    "dk_name": "C.J. Stroud",
+    "dk_id": "39505696",
+    "fd_name": "C.J. Stroud",
+    "fd_id": "119110-129471"
+  },
+  {
+    "proj": "Matthew Stafford",
+    "team": "LAR",
+    "pos": "QB",
+    "dk_name": "Matthew Stafford",
+    "dk_id": "39505697",
+    "fd_name": "Matthew Stafford",
+    "fd_id": "119110-6654"
+  },
+  {
+    "proj": "Chuba Hubbard",
+    "team": "CAR",
+    "pos": "RB",
+    "dk_name": "Chuba Hubbard",
+    "dk_id": "39505805",
+    "fd_name": "Chuba Hubbard",
+    "fd_id": "119110-87467"
+  },
+  {
+    "proj": "Jaylen Warren",
+    "team": "PIT",
+    "pos": "RB",
+    "dk_name": "Jaylen Warren",
+    "dk_id": "39505833",
+    "fd_name": "Jaylen Warren",
+    "fd_id": "119110-112057"
+  },
+  {
+    "proj": "Jameson Williams",
+    "team": "DET",
+    "pos": "WR",
+    "dk_name": "Jameson Williams",
+    "dk_id": "39506123",
+    "fd_name": "Jameson Williams",
+    "fd_id": "119110-111631"
+  },
+  {
+    "proj": "Kenneth Walker III",
+    "team": "SEA",
+    "pos": "RB",
+    "dk_name": "Kenneth Walker III",
+    "dk_id": "39505807",
+    "fd_name": "Kenneth Walker III",
+    "fd_id": "119110-103342"
+  },
+  {
+    "proj": "Jaxon Smith-Njigba",
+    "team": "SEA",
+    "pos": "WR",
+    "dk_name": "Jaxon Smith-Njigba",
+    "dk_id": "39506115",
+    "fd_name": "Jaxon Smith-Njigba",
+    "fd_id": "119110-129458"
+  },
+  {
+    "proj": "Courtland Sutton",
+    "team": "DEN",
+    "pos": "WR",
+    "dk_name": "Courtland Sutton",
+    "dk_id": "39506111",
+    "fd_name": "Courtland Sutton",
+    "fd_id": "119110-57403"
+  },
+  {
+    "proj": "Cameron Ward",
+    "team": "TEN",
+    "pos": "QB",
+    "dk_name": "Cameron Ward",
+    "dk_id": "39505710",
+    "fd_name": "Cameron Ward",
+    "fd_id": "119110-168356"
+  },
+  {
+    "proj": "David Njoku",
+    "team": "CLE",
+    "pos": "TE",
+    "dk_name": "David Njoku",
+    "dk_id": "39506685",
+    "fd_name": "David Njoku",
+    "fd_id": "119110-55335"
+  },
+  {
+    "proj": "Anthony Richardson Sr.",
+    "team": "IND",
+    "pos": "QB",
+    "dk_name": "Anthony Richardson Sr.",
+    "dk_id": "39505707",
+    "fd_name": "Anthony Richardson Sr.",
+    "fd_id": "119110-129315"
+  },
+  {
+    "proj": "Davante Adams",
+    "team": "LAR",
+    "pos": "WR",
+    "dk_name": "Davante Adams",
+    "dk_id": "39506109",
+    "fd_name": "Davante Adams",
+    "fd_id": "119110-45889"
+  },
+  {
+    "proj": "Jakobi Meyers",
+    "team": "LV",
+    "pos": "WR",
+    "dk_name": "Jakobi Meyers",
+    "dk_id": "39506137",
+    "fd_name": "Jakobi Meyers",
+    "fd_id": "119110-63634"
+  },
+  {
+    "proj": "Kaleb Johnson",
+    "team": "PIT",
+    "pos": "RB",
+    "dk_name": "Kaleb Johnson",
+    "dk_id": "39505831",
+    "fd_name": "Kaleb Johnson",
+    "fd_id": "119110-168916"
+  },
+  {
+    "proj": "Calvin Ridley",
+    "team": "TEN",
+    "pos": "WR",
+    "dk_name": "Calvin Ridley",
+    "dk_id": "39506141",
+    "fd_name": "Calvin Ridley",
+    "fd_id": "119110-64555"
+  },
+  {
+    "proj": "Jauan Jennings",
+    "team": "SF",
+    "pos": "WR",
+    "dk_name": "Jauan Jennings",
+    "dk_id": "39506147",
+    "fd_name": "Jauan Jennings",
+    "fd_id": "119110-61593"
+  },
+  {
+    "proj": "DK Metcalf",
+    "team": "PIT",
+    "pos": "WR",
+    "dk_name": "DK Metcalf",
+    "dk_id": "39506113",
+    "fd_name": "DK Metcalf",
+    "fd_id": "119110-73048"
+  },
+  {
+    "proj": "Tetairoa McMillan",
+    "team": "CAR",
+    "pos": "WR",
+    "dk_name": "Tetairoa McMillan",
+    "dk_id": "39506135",
+    "fd_name": "Tetairoa McMillan",
+    "fd_id": "119110-167620"
+  },
+  {
+    "proj": "Marvin Harrison Jr.",
+    "team": "ARI",
+    "pos": "WR",
+    "dk_name": "Marvin Harrison Jr.",
+    "dk_id": "39506121",
+    "fd_name": "Marvin Harrison Jr.",
+    "fd_id": "119110-152651"
+  },
+  {
+    "proj": "Tony Pollard",
+    "team": "TEN",
+    "pos": "RB",
+    "dk_name": "Tony Pollard",
+    "dk_id": "39505813",
+    "fd_name": "Tony Pollard",
+    "fd_id": "119110-63759"
+  },
+  {
+    "proj": "Jaylen Waddle",
+    "team": "MIA",
+    "pos": "WR",
+    "dk_name": "Jaylen Waddle",
+    "dk_id": "39506117",
+    "fd_name": "Jaylen Waddle",
+    "fd_id": "119110-90573"
+  },
+  {
+    "proj": "Aaron Rodgers",
+    "team": "PIT",
+    "pos": "QB",
+    "dk_name": "Aaron Rodgers",
+    "dk_id": "39505705",
+    "fd_name": "Aaron Rodgers",
+    "fd_id": "119110-6894"
+  },
+  {
+    "proj": "Chris Godwin",
+    "team": "TB",
+    "pos": "WR",
+    "dk_name": "Chris Godwin",
+    "dk_id": "39506119",
+    "fd_name": "Chris Godwin",
+    "fd_id": "119110-55635"
+  },
+  {
+    "proj": "David Montgomery",
+    "team": "DET",
+    "pos": "RB",
+    "dk_name": "David Montgomery",
+    "dk_id": "39505815",
+    "fd_name": "David Montgomery",
+    "fd_id": "119110-73273"
+  },
+  {
+    "proj": "Deebo Samuel Sr.",
+    "team": "WAS",
+    "pos": "WR",
+    "dk_name": "Deebo Samuel Sr.",
+    "dk_id": "39506133",
+    "fd_name": "Deebo Samuel Sr.",
+    "fd_id": "119110-56018"
+  },
+  {
+    "proj": "RJ Harvey",
+    "team": "DEN",
+    "pos": "RB",
+    "dk_name": "RJ Harvey",
+    "dk_id": "39505811",
+    "fd_name": "RJ Harvey",
+    "fd_id": "119110-110484"
+  },
+  {
+    "proj": "Jayden Reed",
+    "team": "GB",
+    "pos": "WR",
+    "dk_name": "Jayden Reed",
+    "dk_id": "39506127",
+    "fd_name": "Jayden Reed",
+    "fd_id": "119110-89455"
+  },
+  {
+    "proj": "Rhamondre Stevenson",
+    "team": "NE",
+    "pos": "RB",
+    "dk_name": "Rhamondre Stevenson",
+    "dk_id": "39505825",
+    "fd_name": "Rhamondre Stevenson",
+    "fd_id": "119110-111540"
+  },
+  {
+    "proj": "J.K. Dobbins",
+    "team": "DEN",
+    "pos": "RB",
+    "dk_name": "J.K. Dobbins",
+    "dk_id": "39505821",
+    "fd_name": "J.K. Dobbins",
+    "fd_id": "119110-87787"
+  },
+  {
+    "proj": "Joe Mixon",
+    "team": "HOU",
+    "pos": "RB",
+    "dk_name": "Joe Mixon",
+    "dk_id": "39505801",
+    "fd_name": "Joe Mixon",
+    "fd_id": "119110-52442"
+  },
+  {
+    "proj": "Sam LaPorta",
+    "team": "DET",
+    "pos": "TE",
+    "dk_name": "Sam LaPorta",
+    "dk_id": "39506683",
+    "fd_name": "Sam LaPorta",
+    "fd_id": "119110-105646"
+  },
+  {
+    "proj": "Brian Robinson Jr.",
+    "team": "WAS",
+    "pos": "RB",
+    "dk_name": "Brian Robinson Jr.",
+    "dk_id": "39505809",
+    "fd_name": "Brian Robinson Jr.",
+    "fd_id": "119110-90562"
+  },
+  {
+    "proj": "Ricky Pearsall",
+    "team": "SF",
+    "pos": "WR",
+    "dk_name": "Ricky Pearsall",
+    "dk_id": "39506171",
+    "fd_name": "Ricky Pearsall",
+    "fd_id": "119110-102796"
+  },
+  {
+    "proj": "Tyrone Tracy Jr.",
+    "team": "NYG",
+    "pos": "RB",
+    "dk_name": "Tyrone Tracy Jr.",
+    "dk_id": "39505817",
+    "fd_name": "Tyrone Tracy Jr.",
+    "fd_id": "119110-86153"
+  },
+  {
+    "proj": "Travis Hunter",
+    "team": "JAX",
+    "pos": "WR",
+    "dk_name": "Travis Hunter",
+    "dk_id": "39506145",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Cooper Kupp",
+    "team": "SEA",
+    "pos": "WR",
+    "dk_name": "Cooper Kupp",
+    "dk_id": "39506129",
+    "fd_name": "Cooper Kupp",
+    "fd_id": "119110-79970"
+  },
+  {
+    "proj": "Matthew Golden",
+    "team": "GB",
+    "pos": "WR",
+    "dk_name": "Matthew Golden",
+    "dk_id": "39506151",
+    "fd_name": "Matthew Golden",
+    "fd_id": "119110-166916"
+  },
+  {
+    "proj": "Darnell Mooney",
+    "team": "ATL",
+    "pos": "WR",
+    "dk_name": "Darnell Mooney",
+    "dk_id": "39506143",
+    "fd_name": "Darnell Mooney",
+    "fd_id": "119110-69777"
+  },
+  {
+    "proj": "Spencer Rattler",
+    "team": "NO",
+    "pos": "QB",
+    "dk_name": "Spencer Rattler",
+    "dk_id": "39505715",
+    "fd_name": "Spencer Rattler",
+    "fd_id": "119110-111557"
+  },
+  {
+    "proj": "Stefon Diggs",
+    "team": "NE",
+    "pos": "WR",
+    "dk_name": "Stefon Diggs",
+    "dk_id": "39506131",
+    "fd_name": "Stefon Diggs",
+    "fd_id": "119110-25079"
+  },
+  {
+    "proj": "Evan Engram",
+    "team": "DEN",
+    "pos": "TE",
+    "dk_name": "Evan Engram",
+    "dk_id": "39506687",
+    "fd_name": "Evan Engram",
+    "fd_id": "119110-41872"
+  },
+  {
+    "proj": "Travis Etienne Jr.",
+    "team": "JAX",
+    "pos": "RB",
+    "dk_name": "Travis Etienne Jr.",
+    "dk_id": "39505827",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Chris Olave",
+    "team": "NO",
+    "pos": "WR",
+    "dk_name": "Chris Olave",
+    "dk_id": "39506139",
+    "fd_name": "Chris Olave",
+    "fd_id": "119110-87770"
+  },
+  {
+    "proj": "Rachaad White",
+    "team": "TB",
+    "pos": "RB",
+    "dk_name": "Rachaad White",
+    "dk_id": "39505839",
+    "fd_name": "Rachaad White",
+    "fd_id": "119110-137902"
+  },
+  {
+    "proj": "TreVeyon Henderson",
+    "team": "NE",
+    "pos": "RB",
+    "dk_name": "TreVeyon Henderson",
+    "dk_id": "39505823",
+    "fd_name": "TreVeyon Henderson",
+    "fd_id": "119110-152647"
+  },
+  {
+    "proj": "Jayden Higgins",
+    "team": "HOU",
+    "pos": "WR",
+    "dk_name": "Jayden Higgins",
+    "dk_id": "39506153",
+    "fd_name": "Jayden Higgins",
+    "fd_id": "119110-147315"
+  },
+  {
+    "proj": "Emeka Egbuka",
+    "team": "TB",
+    "pos": "WR",
+    "dk_name": "Emeka Egbuka",
+    "dk_id": "39506165",
+    "fd_name": "Emeka Egbuka",
+    "fd_id": "119110-152655"
+  },
+  {
+    "proj": "Marvin Mims Jr.",
+    "team": "DEN",
+    "pos": "WR",
+    "dk_name": "Marvin Mims Jr.",
+    "dk_id": "39506169",
+    "fd_name": "Marvin Mims Jr.",
+    "fd_id": "119110-120093"
+  },
+  {
+    "proj": "Wan'Dale Robinson",
+    "team": "NYG",
+    "pos": "WR",
+    "dk_name": "Wan'Dale Robinson",
+    "dk_id": "39506167",
+    "fd_name": "Wan'Dale Robinson",
+    "fd_id": "119110-103539"
+  },
+  {
+    "proj": "Quinshon Judkins",
+    "team": "CLE",
+    "pos": "RB",
+    "dk_name": "Quinshon Judkins",
+    "dk_id": "39505841",
+    "fd_name": "Quinshon Judkins",
+    "fd_id": "119110-169410"
+  },
+  {
+    "proj": "Cedric Tillman",
+    "team": "CLE",
+    "pos": "WR",
+    "dk_name": "Cedric Tillman",
+    "dk_id": "39506173",
+    "fd_name": "Cedric Tillman",
+    "fd_id": "119110-87432"
+  },
+  {
+    "proj": "Christian Kirk",
+    "team": "HOU",
+    "pos": "WR",
+    "dk_name": "Christian Kirk",
+    "dk_id": "39506159",
+    "fd_name": "Christian Kirk",
+    "fd_id": "119110-60858"
+  },
+  {
+    "proj": "Adam Thielen",
+    "team": "CAR",
+    "pos": "WR",
+    "dk_name": "Adam Thielen",
+    "dk_id": "39506157",
+    "fd_name": "Adam Thielen",
+    "fd_id": "119110-39716"
+  },
+  {
+    "proj": "Tucker Kraft",
+    "team": "GB",
+    "pos": "TE",
+    "dk_name": "Tucker Kraft",
+    "dk_id": "39506697",
+    "fd_name": "Tucker Kraft",
+    "fd_id": "119110-160303"
+  },
+  {
+    "proj": "Romeo Doubs",
+    "team": "GB",
+    "pos": "WR",
+    "dk_name": "Romeo Doubs",
+    "dk_id": "39506179",
+    "fd_name": "Romeo Doubs",
+    "fd_id": "119110-94370"
+  },
+  {
+    "proj": "Zach Charbonnet",
+    "team": "SEA",
+    "pos": "RB",
+    "dk_name": "Zach Charbonnet",
+    "dk_id": "39505851",
+    "fd_name": "Zach Charbonnet",
+    "fd_id": "119110-103376"
+  },
+  {
+    "proj": "Austin Ekeler",
+    "team": "WAS",
+    "pos": "RB",
+    "dk_name": "Austin Ekeler",
+    "dk_id": "39505859",
+    "fd_name": "Austin Ekeler",
+    "fd_id": "119110-80001"
+  },
+  {
+    "proj": "Zach Ertz",
+    "team": "WAS",
+    "pos": "TE",
+    "dk_name": "Zach Ertz",
+    "dk_id": "39506695",
+    "fd_name": "Zach Ertz",
+    "fd_id": "119110-29780"
+  },
+  {
+    "proj": "Hunter Henry",
+    "team": "NE",
+    "pos": "TE",
+    "dk_name": "Hunter Henry",
+    "dk_id": "39506699",
+    "fd_name": "Hunter Henry",
+    "fd_id": "119110-40845"
+  },
+  {
+    "proj": "Michael Pittman Jr.",
+    "team": "IND",
+    "pos": "WR",
+    "dk_name": "Michael Pittman Jr.",
+    "dk_id": "39506149",
+    "fd_name": "Michael Pittman Jr.",
+    "fd_id": "119110-69213"
+  },
+  {
+    "proj": "Broncos",
+    "team": "DEN",
+    "pos": "DST",
+    "dk_name": "Broncos",
+    "dk_id": "39506991",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Tank Bigsby",
+    "team": "JAX",
+    "pos": "RB",
+    "dk_name": "Tank Bigsby",
+    "dk_id": "39505871",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Jerome Ford",
+    "team": "CLE",
+    "pos": "RB",
+    "dk_name": "Jerome Ford",
+    "dk_id": "39505819",
+    "fd_name": "Jerome Ford",
+    "fd_id": "119110-90533"
+  },
+  {
+    "proj": "Mike Gesicki",
+    "team": "CIN",
+    "pos": "TE",
+    "dk_name": "Mike Gesicki",
+    "dk_id": "39506705",
+    "fd_name": "Mike Gesicki",
+    "fd_id": "119110-56265"
+  },
+  {
+    "proj": "Rashid Shaheed",
+    "team": "NO",
+    "pos": "WR",
+    "dk_name": "Rashid Shaheed",
+    "dk_id": "39506163",
+    "fd_name": "Rashid Shaheed",
+    "fd_id": "119110-170287"
+  },
+  {
+    "proj": "Pat Freiermuth",
+    "team": "PIT",
+    "pos": "TE",
+    "dk_name": "Pat Freiermuth",
+    "dk_id": "39506719",
+    "fd_name": "Pat Freiermuth",
+    "fd_id": "119110-86244"
+  },
+  {
+    "proj": "Cade Otton",
+    "team": "TB",
+    "pos": "TE",
+    "dk_name": "Cade Otton",
+    "dk_id": "39506701",
+    "fd_name": "Cade Otton",
+    "fd_id": "119110-86811"
+  },
+  {
+    "proj": "Darren Waller",
+    "team": "MIA",
+    "pos": "TE",
+    "dk_name": "Darren Waller",
+    "dk_id": "39506709",
+    "fd_name": "Darren Waller",
+    "fd_id": "119110-25011"
+  },
+  {
+    "proj": "Michael Wilson",
+    "team": "ARI",
+    "pos": "WR",
+    "dk_name": "Michael Wilson",
+    "dk_id": "39506187",
+    "fd_name": "Michael Wilson",
+    "fd_id": "119110-89612"
+  },
+  {
+    "proj": "DeMario Douglas",
+    "team": "NE",
+    "pos": "WR",
+    "dk_name": "DeMario Douglas",
+    "dk_id": "39506189",
+    "fd_name": "DeMario Douglas",
+    "fd_id": "119110-111876"
+  },
+  {
+    "proj": "Bengals",
+    "team": "CIN",
+    "pos": "DST",
+    "dk_name": "Bengals",
+    "dk_id": "39506993",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Tyjae Spears",
+    "team": "TEN",
+    "pos": "RB",
+    "dk_name": "Tyjae Spears",
+    "dk_id": "39505865",
+    "fd_name": "Tyjae Spears",
+    "fd_id": "119110-107293"
+  },
+  {
+    "proj": "Brenton Strange",
+    "team": "JAX",
+    "pos": "TE",
+    "dk_name": "Brenton Strange",
+    "dk_id": "39506715",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Josh Downs",
+    "team": "IND",
+    "pos": "WR",
+    "dk_name": "Josh Downs",
+    "dk_id": "39506161",
+    "fd_name": "Josh Downs",
+    "fd_id": "119110-129305"
+  },
+  {
+    "proj": "Kyle Pitts Sr.",
+    "team": "ATL",
+    "pos": "TE",
+    "dk_name": "Kyle Pitts Sr.",
+    "dk_id": "39506691",
+    "fd_name": "Kyle Pitts Sr.",
+    "fd_id": "119110-86080"
+  },
+  {
+    "proj": "Allen Lazard",
+    "team": "NYJ",
+    "pos": "WR",
+    "dk_name": "Allen Lazard",
+    "dk_id": "39506205",
+    "fd_name": "Allen Lazard",
+    "fd_id": "119110-56809"
+  },
+  {
+    "proj": "Alec Pierce",
+    "team": "IND",
+    "pos": "WR",
+    "dk_name": "Alec Pierce",
+    "dk_id": "39506175",
+    "fd_name": "Alec Pierce",
+    "fd_id": "119110-86312"
+  },
+  {
+    "proj": "Trey Benson",
+    "team": "ARI",
+    "pos": "RB",
+    "dk_name": "Trey Benson",
+    "dk_id": "39505873",
+    "fd_name": "Trey Benson",
+    "fd_id": "119110-142042"
+  },
+  {
+    "proj": "Darius Slayton",
+    "team": "NYG",
+    "pos": "WR",
+    "dk_name": "Darius Slayton",
+    "dk_id": "39506199",
+    "fd_name": "Darius Slayton",
+    "fd_id": "119110-63819"
+  },
+  {
+    "proj": "Tyler Warren",
+    "team": "IND",
+    "pos": "TE",
+    "dk_name": "Tyler Warren",
+    "dk_id": "39506689",
+    "fd_name": "Tyler Warren",
+    "fd_id": "119110-137530"
+  },
+  {
+    "proj": "Dalton Schultz",
+    "team": "HOU",
+    "pos": "TE",
+    "dk_name": "Dalton Schultz",
+    "dk_id": "39506707",
+    "fd_name": "Dalton Schultz",
+    "fd_id": "119110-55042"
+  },
+  {
+    "proj": "Chig Okonkwo",
+    "team": "TEN",
+    "pos": "TE",
+    "dk_name": "Chig Okonkwo",
+    "dk_id": "39506713",
+    "fd_name": "Chig Okonkwo",
+    "fd_id": "119110-88297"
+  },
+  {
+    "proj": "Cam Skattebo",
+    "team": "NYG",
+    "pos": "RB",
+    "dk_name": "Cam Skattebo",
+    "dk_id": "39505843",
+    "fd_name": "Cam Skattebo",
+    "fd_id": "119110-183240"
+  },
+  {
+    "proj": "Tyler Lockett",
+    "team": "TEN",
+    "pos": "WR",
+    "dk_name": "Tyler Lockett",
+    "dk_id": "39506201",
+    "fd_name": "Tyler Lockett",
+    "fd_id": "119110-27050"
+  },
+  {
+    "proj": "Rico Dowdle",
+    "team": "CAR",
+    "pos": "RB",
+    "dk_name": "Rico Dowdle",
+    "dk_id": "39505845",
+    "fd_name": "Rico Dowdle",
+    "fd_id": "119110-72297"
+  },
+  {
+    "proj": "Diontae Johnson",
+    "team": "CLE",
+    "pos": "WR",
+    "dk_name": "Diontae Johnson",
+    "dk_id": "39506209",
+    "fd_name": "Diontae Johnson",
+    "fd_id": "119110-66008"
+  },
+  {
+    "proj": "Xavier Legette",
+    "team": "CAR",
+    "pos": "WR",
+    "dk_name": "Xavier Legette",
+    "dk_id": "39506185",
+    "fd_name": "Xavier Legette",
+    "fd_id": "119110-114198"
+  },
+  {
+    "proj": "Tyler Allgeier",
+    "team": "ATL",
+    "pos": "RB",
+    "dk_name": "Tyler Allgeier",
+    "dk_id": "39505849",
+    "fd_name": "Tyler Allgeier",
+    "fd_id": "119110-90428"
+  },
+  {
+    "proj": "Nick Chubb",
+    "team": "HOU",
+    "pos": "RB",
+    "dk_name": "Nick Chubb",
+    "dk_id": "39505835",
+    "fd_name": "Nick Chubb",
+    "fd_id": "119110-53562"
+  },
+  {
+    "proj": "Patriots",
+    "team": "NE",
+    "pos": "DST",
+    "dk_name": "Patriots",
+    "dk_id": "39506998",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Ray-Ray McCloud III",
+    "team": "ATL",
+    "pos": "WR",
+    "dk_name": "Ray-Ray McCloud III",
+    "dk_id": "39506221",
+    "fd_name": "Ray-Ray McCloud III",
+    "fd_id": "119110-62055"
+  },
+  {
+    "proj": "Jonnu Smith",
+    "team": "PIT",
+    "pos": "TE",
+    "dk_name": "Jonnu Smith",
+    "dk_id": "39506693",
+    "fd_name": "Jonnu Smith",
+    "fd_id": "119110-48116"
+  },
+  {
+    "proj": "Tutu Atwell",
+    "team": "LAR",
+    "pos": "WR",
+    "dk_name": "Tutu Atwell",
+    "dk_id": "39506229",
+    "fd_name": "Tutu Atwell",
+    "fd_id": "119110-92976"
+  },
+  {
+    "proj": "Jack Bech",
+    "team": "LV",
+    "pos": "WR",
+    "dk_name": "Jack Bech",
+    "dk_id": "39506195",
+    "fd_name": "Jack Bech",
+    "fd_id": "119110-151741"
+  },
+  {
+    "proj": "Isaac Guerendo",
+    "team": "SF",
+    "pos": "RB",
+    "dk_name": "Isaac Guerendo",
+    "dk_id": "39505829",
+    "fd_name": "Isaac Guerendo",
+    "fd_id": "119110-89644"
+  },
+  {
+    "proj": "Theo Johnson",
+    "team": "NYG",
+    "pos": "TE",
+    "dk_name": "Theo Johnson",
+    "dk_id": "39506729",
+    "fd_name": "Theo Johnson",
+    "fd_id": "119110-128810"
+  },
+  {
+    "proj": "Kyle Williams",
+    "team": "NE",
+    "pos": "WR",
+    "dk_name": "Kyle Williams",
+    "dk_id": "39506183",
+    "fd_name": "Kyle Williams",
+    "fd_id": "119110-136538"
+  },
+  {
+    "proj": "Dyami Brown",
+    "team": "JAX",
+    "pos": "WR",
+    "dk_name": "Dyami Brown",
+    "dk_id": "39506181",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Commanders",
+    "team": "WAS",
+    "pos": "DST",
+    "dk_name": "Commanders",
+    "dk_id": "39506992",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Calvin Austin III",
+    "team": "PIT",
+    "pos": "WR",
+    "dk_name": "Calvin Austin III",
+    "dk_id": "39506177",
+    "fd_name": "Calvin Austin III",
+    "fd_id": "119110-90870"
+  },
+  {
+    "proj": "Tre Tucker",
+    "team": "LV",
+    "pos": "WR",
+    "dk_name": "Tre Tucker",
+    "dk_id": "39506281",
+    "fd_name": "Tre Tucker",
+    "fd_id": "119110-103619"
+  },
+  {
+    "proj": "Noah Brown",
+    "team": "WAS",
+    "pos": "WR",
+    "dk_name": "Noah Brown",
+    "dk_id": "39506295",
+    "fd_name": "Noah Brown",
+    "fd_id": "119110-56248"
+  },
+  {
+    "proj": "49ers",
+    "team": "SF",
+    "pos": "DST",
+    "dk_name": "49ers",
+    "dk_id": "39507000",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Rams",
+    "team": "LAR",
+    "pos": "DST",
+    "dk_name": "Rams",
+    "dk_id": "39506995",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Mason Taylor",
+    "team": "NYJ",
+    "pos": "TE",
+    "dk_name": "Mason Taylor",
+    "dk_id": "39506725",
+    "fd_name": "Mason Taylor",
+    "fd_id": "119110-168054"
+  },
+  {
+    "proj": "Gary Brightwell",
+    "team": "CIN",
+    "pos": "RB",
+    "dk_name": "Gary Brightwell",
+    "dk_id": "39505985",
+    "fd_name": "Gary Brightwell",
+    "fd_id": "119110-88109"
+  },
+  {
+    "proj": "Andrei Iosivas",
+    "team": "CIN",
+    "pos": "WR",
+    "dk_name": "Andrei Iosivas",
+    "dk_id": "39506223",
+    "fd_name": "Andrei Iosivas",
+    "fd_id": "119110-185593"
+  },
+  {
+    "proj": "Noah Fant",
+    "team": "CIN",
+    "pos": "TE",
+    "dk_name": "Noah Fant",
+    "dk_id": "39506451",
+    "fd_name": "Noah Fant",
+    "fd_id": "119110-71705"
+  },
+  {
+    "proj": "Devaughn Vele",
+    "team": "DEN",
+    "pos": "WR",
+    "dk_name": "Devaughn Vele",
+    "dk_id": "39506207",
+    "fd_name": "Devaughn Vele",
+    "fd_id": "119110-103511"
+  },
+  {
+    "proj": "Tyler Higbee",
+    "team": "LAR",
+    "pos": "TE",
+    "dk_name": "Tyler Higbee",
+    "dk_id": "39506711",
+    "fd_name": "Tyler Higbee",
+    "fd_id": "119110-47870"
+  },
+  {
+    "proj": "Steelers",
+    "team": "PIT",
+    "pos": "DST",
+    "dk_name": "Steelers",
+    "dk_id": "39506996",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Raiders",
+    "team": "LV",
+    "pos": "DST",
+    "dk_name": "Raiders",
+    "dk_id": "39507006",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Nick Westbrook-Ikhine",
+    "team": "MIA",
+    "pos": "WR",
+    "dk_name": "Nick Westbrook-Ikhine",
+    "dk_id": "39506235",
+    "fd_name": "Nick Westbrook-Ikhine",
+    "fd_id": "119110-64389"
+  },
+  {
+    "proj": "Demarcus Robinson",
+    "team": "SF",
+    "pos": "WR",
+    "dk_name": "Demarcus Robinson",
+    "dk_id": "39506203",
+    "fd_name": "Demarcus Robinson",
+    "fd_id": "119110-38264"
+  },
+  {
+    "proj": "Cardinals",
+    "team": "ARI",
+    "pos": "DST",
+    "dk_name": "Cardinals",
+    "dk_id": "39506994",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Raheem Mostert",
+    "team": "LV",
+    "pos": "RB",
+    "dk_name": "Raheem Mostert",
+    "dk_id": "39505847",
+    "fd_name": "Raheem Mostert",
+    "fd_id": "119110-28744"
+  },
+  {
+    "proj": "Ja'Tavion Sanders",
+    "team": "CAR",
+    "pos": "TE",
+    "dk_name": "Ja'Tavion Sanders",
+    "dk_id": "39506733",
+    "fd_name": "Ja'Tavion Sanders",
+    "fd_id": "119110-158983"
+  },
+  {
+    "proj": "AJ Barner",
+    "team": "SEA",
+    "pos": "TE",
+    "dk_name": "AJ Barner",
+    "dk_id": "39506735",
+    "fd_name": "AJ Barner",
+    "fd_id": "119110-137953"
+  },
+  {
+    "proj": "Tory Horton",
+    "team": "SEA",
+    "pos": "WR",
+    "dk_name": "Tory Horton",
+    "dk_id": "39506373",
+    "fd_name": "Tory Horton",
+    "fd_id": "119110-134837"
+  },
+  {
+    "proj": "Dolphins",
+    "team": "MIA",
+    "pos": "DST",
+    "dk_name": "Dolphins",
+    "dk_id": "39507004",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Troy Franklin",
+    "team": "DEN",
+    "pos": "WR",
+    "dk_name": "Troy Franklin",
+    "dk_id": "39506239",
+    "fd_name": "Troy Franklin",
+    "fd_id": "119110-151903"
+  },
+  {
+    "proj": "Braelon Allen",
+    "team": "NYJ",
+    "pos": "RB",
+    "dk_name": "Braelon Allen",
+    "dk_id": "39505853",
+    "fd_name": "Braelon Allen",
+    "fd_id": "119110-158412"
+  },
+  {
+    "proj": "Jalen McMillan",
+    "team": "TB",
+    "pos": "WR",
+    "dk_name": "Jalen McMillan",
+    "dk_id": "39506191",
+    "fd_name": "Jalen McMillan",
+    "fd_id": "119110-120042"
+  },
+  {
+    "proj": "Jets",
+    "team": "NYJ",
+    "pos": "DST",
+    "dk_name": "Jets",
+    "dk_id": "39507003",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Jordan Whittington",
+    "team": "LAR",
+    "pos": "WR",
+    "dk_name": "Jordan Whittington",
+    "dk_id": "39506283",
+    "fd_name": "Jordan Whittington",
+    "fd_id": "119110-103195"
+  },
+  {
+    "proj": "Seahawks",
+    "team": "SEA",
+    "pos": "DST",
+    "dk_name": "Seahawks",
+    "dk_id": "39507008",
+    "fd_name": "Seattle Seahawks",
+    "fd_id": "119110-12550"
+  },
+  {
+    "proj": "Juwan Johnson",
+    "team": "NO",
+    "pos": "TE",
+    "dk_name": "Juwan Johnson",
+    "dk_id": "39506717",
+    "fd_name": "Juwan Johnson",
+    "fd_id": "119110-64808"
+  },
+  {
+    "proj": "Browns",
+    "team": "CLE",
+    "pos": "DST",
+    "dk_name": "Browns",
+    "dk_id": "39507012",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Dontayvion Wicks",
+    "team": "GB",
+    "pos": "WR",
+    "dk_name": "Dontayvion Wicks",
+    "dk_id": "39506245",
+    "fd_name": "Dontayvion Wicks",
+    "fd_id": "119110-110457"
+  },
+  {
+    "proj": "Jaylen Wright",
+    "team": "MIA",
+    "pos": "RB",
+    "dk_name": "Jaylen Wright",
+    "dk_id": "39505857",
+    "fd_name": "Jaylen Wright",
+    "fd_id": "119110-152103"
+  },
+  {
+    "proj": "Marquez Valdes-Scantling",
+    "team": "SEA",
+    "pos": "WR",
+    "dk_name": "Marquez Valdes-Scantling",
+    "dk_id": "39506215",
+    "fd_name": "Marquez Valdes-Scantling",
+    "fd_id": "119110-40647"
+  },
+  {
+    "proj": "Colts",
+    "team": "IND",
+    "pos": "DST",
+    "dk_name": "Colts",
+    "dk_id": "39507002",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Jaguars",
+    "team": "JAX",
+    "pos": "DST",
+    "dk_name": "Jaguars",
+    "dk_id": "39506997",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Elijah Arroyo",
+    "team": "SEA",
+    "pos": "TE",
+    "dk_name": "Elijah Arroyo",
+    "dk_id": "39506743",
+    "fd_name": "Elijah Arroyo",
+    "fd_id": "119110-152258"
+  },
+  {
+    "proj": "Falcons",
+    "team": "ATL",
+    "pos": "DST",
+    "dk_name": "Falcons",
+    "dk_id": "39507007",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Panthers",
+    "team": "CAR",
+    "pos": "DST",
+    "dk_name": "Panthers",
+    "dk_id": "39507011",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Buccaneers",
+    "team": "TB",
+    "pos": "DST",
+    "dk_name": "Buccaneers",
+    "dk_id": "39506999",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Kayshon Boutte",
+    "team": "NE",
+    "pos": "WR",
+    "dk_name": "Kayshon Boutte",
+    "dk_id": "39506211",
+    "fd_name": "Kayshon Boutte",
+    "fd_id": "119110-119653"
+  },
+  {
+    "proj": "Austin Hooper",
+    "team": "NE",
+    "pos": "TE",
+    "dk_name": "Austin Hooper",
+    "dk_id": "39506731",
+    "fd_name": "Austin Hooper",
+    "fd_id": "119110-40126"
+  },
+  {
+    "proj": "Tim Patrick",
+    "team": "DET",
+    "pos": "WR",
+    "dk_name": "Tim Patrick",
+    "dk_id": "39506231",
+    "fd_name": "Tim Patrick",
+    "fd_id": "119110-57091"
+  },
+  {
+    "proj": "Robert Woods",
+    "team": "PIT",
+    "pos": "WR",
+    "dk_name": "Robert Woods",
+    "dk_id": "39506249",
+    "fd_name": "Robert Woods",
+    "fd_id": "119110-29685"
+  },
+  {
+    "proj": "Giants",
+    "team": "NYG",
+    "pos": "DST",
+    "dk_name": "Giants",
+    "dk_id": "39507013",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Jalen Coker",
+    "team": "CAR",
+    "pos": "WR",
+    "dk_name": "Jalen Coker",
+    "dk_id": "39506219",
+    "fd_name": "Jalen Coker",
+    "fd_id": "119110-201547"
+  },
+  {
+    "proj": "Kendre Miller",
+    "team": "NO",
+    "pos": "RB",
+    "dk_name": "Kendre Miller",
+    "dk_id": "39505895",
+    "fd_name": "Kendre Miller",
+    "fd_id": "119110-120657"
+  },
+  {
+    "proj": "Brandin Cooks",
+    "team": "NO",
+    "pos": "WR",
+    "dk_name": "Brandin Cooks",
+    "dk_id": "39506193",
+    "fd_name": "Brandin Cooks",
+    "fd_id": "119110-29501"
+  },
+  {
+    "proj": "Parker Washington",
+    "team": "JAX",
+    "pos": "WR",
+    "dk_name": "Parker Washington",
+    "dk_id": "39506213",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "MarShawn Lloyd",
+    "team": "GB",
+    "pos": "RB",
+    "dk_name": "MarShawn Lloyd",
+    "dk_id": "39505869",
+    "fd_name": "MarShawn Lloyd",
+    "fd_id": "119110-119697"
+  },
+  {
+    "proj": "Packers",
+    "team": "GB",
+    "pos": "DST",
+    "dk_name": "Packers",
+    "dk_id": "39507001",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Saints",
+    "team": "NO",
+    "pos": "DST",
+    "dk_name": "Saints",
+    "dk_id": "39507010",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Van Jefferson",
+    "team": "TEN",
+    "pos": "WR",
+    "dk_name": "Van Jefferson",
+    "dk_id": "39506247",
+    "fd_name": "Van Jefferson",
+    "fd_id": "119110-64581"
+  },
+  {
+    "proj": "Texans",
+    "team": "HOU",
+    "pos": "DST",
+    "dk_name": "Texans",
+    "dk_id": "39507009",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Michael Mayer",
+    "team": "LV",
+    "pos": "TE",
+    "dk_name": "Michael Mayer",
+    "dk_id": "39506727",
+    "fd_name": "Michael Mayer",
+    "fd_id": "119110-138998"
+  },
+  {
+    "proj": "Josh Reynolds",
+    "team": "NYJ",
+    "pos": "WR",
+    "dk_name": "Josh Reynolds",
+    "dk_id": "39506265",
+    "fd_name": "Josh Reynolds",
+    "fd_id": "119110-53097"
+  },
+  {
+    "proj": "Greg Dortch",
+    "team": "ARI",
+    "pos": "WR",
+    "dk_name": "Greg Dortch",
+    "dk_id": "39506237",
+    "fd_name": "Greg Dortch",
+    "fd_id": "119110-69558"
+  },
+  {
+    "proj": "Jeremy Ruckert",
+    "team": "NYJ",
+    "pos": "TE",
+    "dk_name": "Jeremy Ruckert",
+    "dk_id": "39506967",
+    "fd_name": "Jeremy Ruckert",
+    "fd_id": "119110-87815"
+  },
+  {
+    "proj": "Lions",
+    "team": "DET",
+    "pos": "DST",
+    "dk_name": "Lions",
+    "dk_id": "39507005",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Titans",
+    "team": "TEN",
+    "pos": "DST",
+    "dk_name": "Titans",
+    "dk_id": "39507014",
+    "fd_name": "Tennessee Titans",
+    "fd_id": "119110-12534"
+  },
+  {
+    "proj": "Elic Ayomanor",
+    "team": "TEN",
+    "pos": "WR",
+    "dk_name": "Elic Ayomanor",
+    "dk_id": "39506291",
+    "fd_name": "Elic Ayomanor",
+    "fd_id": "119110-172861"
+  },
+  {
+    "proj": "Kalif Raymond",
+    "team": "DET",
+    "pos": "WR",
+    "dk_name": "Kalif Raymond",
+    "dk_id": "39506271",
+    "fd_name": "Kalif Raymond",
+    "fd_id": "119110-70422"
+  },
+  {
+    "proj": "Zay Jones",
+    "team": "ARI",
+    "pos": "WR",
+    "dk_name": "Zay Jones",
+    "dk_id": "39506263",
+    "fd_name": "Zay Jones",
+    "fd_id": "119110-41305"
+  },
+  {
+    "proj": "Khalil Herbert",
+    "team": "IND",
+    "pos": "RB",
+    "dk_name": "Khalil Herbert",
+    "dk_id": "39505897",
+    "fd_name": "Khalil Herbert",
+    "fd_id": "119110-72412"
+  },
+  {
+    "proj": "Jaylin Noel",
+    "team": "HOU",
+    "pos": "WR",
+    "dk_name": "Jaylin Noel",
+    "dk_id": "39506217",
+    "fd_name": "Jaylin Noel",
+    "fd_id": "119110-152007"
+  },
+  {
+    "proj": "Tommy Tremble",
+    "team": "CAR",
+    "pos": "TE",
+    "dk_name": "Tommy Tremble",
+    "dk_id": "39506757",
+    "fd_name": "Tommy Tremble",
+    "fd_id": "119110-91101"
+  },
+  {
+    "proj": "Josh Whyle",
+    "team": "TEN",
+    "pos": "TE",
+    "dk_name": "Josh Whyle",
+    "dk_id": "39506813",
+    "fd_name": "Josh Whyle",
+    "fd_id": "119110-86255"
+  },
+  {
+    "proj": "Blake Corum",
+    "team": "LAR",
+    "pos": "RB",
+    "dk_name": "Blake Corum",
+    "dk_id": "39505881",
+    "fd_name": "Blake Corum",
+    "fd_id": "119110-137967"
+  },
+  {
+    "proj": "Foster Moreau",
+    "team": "NO",
+    "pos": "TE",
+    "dk_name": "Foster Moreau",
+    "dk_id": "39506741",
+    "fd_name": "Foster Moreau",
+    "fd_id": "119110-60712"
+  },
+  {
+    "proj": "Luke McCaffrey",
+    "team": "WAS",
+    "pos": "WR",
+    "dk_name": "Luke McCaffrey",
+    "dk_id": "39506243",
+    "fd_name": "Luke McCaffrey",
+    "fd_id": "119110-103547"
+  },
+  {
+    "proj": "Malik Washington",
+    "team": "MIA",
+    "pos": "WR",
+    "dk_name": "Malik Washington",
+    "dk_id": "39506267",
+    "fd_name": "Malik Washington",
+    "fd_id": "119110-110974"
+  },
+  {
+    "proj": "Adonai Mitchell",
+    "team": "IND",
+    "pos": "WR",
+    "dk_name": "Adonai Mitchell",
+    "dk_id": "39506251",
+    "fd_name": "Adonai Mitchell",
+    "fd_id": "119110-151789"
+  },
+  {
+    "proj": "Luke Musgrave",
+    "team": "GB",
+    "pos": "TE",
+    "dk_name": "Luke Musgrave",
+    "dk_id": "39506737",
+    "fd_name": "Luke Musgrave",
+    "fd_id": "119110-113228"
+  },
+  {
+    "proj": "Johnny Mundt",
+    "team": "JAX",
+    "pos": "TE",
+    "dk_name": "Johnny Mundt",
+    "dk_id": "39506855",
+    "fd_name": "",
+    "fd_id": ""
+  },
+  {
+    "proj": "Adam Trautman",
+    "team": "DEN",
+    "pos": "TE",
+    "dk_name": "Adam Trautman",
+    "dk_id": "39506739",
+    "fd_name": "Adam Trautman",
+    "fd_id": "119110-130270"
+  },
+  {
+    "proj": "Jermaine Burton",
+    "team": "CIN",
+    "pos": "WR",
+    "dk_name": "Jermaine Burton",
+    "dk_id": "39506293",
+    "fd_name": "Jermaine Burton",
+    "fd_id": "119110-133484"
+  },
+  {
+    "proj": "Daniel Bellinger",
+    "team": "NYG",
+    "pos": "TE",
+    "dk_name": "Daniel Bellinger",
+    "dk_id": "39506887",
+    "fd_name": "Daniel Bellinger",
+    "fd_id": "119110-90307"
+  },
+  {
+    "proj": "Jamari Thrash",
+    "team": "CLE",
+    "pos": "WR",
+    "dk_name": "Jamari Thrash",
+    "dk_id": "39506433",
+    "fd_name": "Jamari Thrash",
+    "fd_id": "119110-112780"
+  },
+  {
+    "proj": "Terrance Ferguson",
+    "team": "LAR",
+    "pos": "TE",
+    "dk_name": "Terrance Ferguson",
+    "dk_id": "39506721",
+    "fd_name": "Terrance Ferguson",
+    "fd_id": "119110-151915"
+  },
+  {
+    "proj": "Payne Durham",
+    "team": "TB",
+    "pos": "TE",
+    "dk_name": "Payne Durham",
+    "dk_id": "39506747",
+    "fd_name": "Payne Durham",
+    "fd_id": "119110-93391"
+  },
+  {
+    "proj": "Tip Reiman",
+    "team": "ARI",
+    "pos": "TE",
+    "dk_name": "Tip Reiman",
+    "dk_id": "39506897",
+    "fd_name": "Tip Reiman",
+    "fd_id": "119110-137990"
+  },
+  {
+    "proj": "Pharaoh Brown",
+    "team": "MIA",
+    "pos": "TE",
+    "dk_name": "Pharaoh Brown",
+    "dk_id": "39506919",
+    "fd_name": "Pharaoh Brown",
+    "fd_id": "119110-29411"
+  },
+  {
+    "proj": "KhaDarel Hodge",
+    "team": "ATL",
+    "pos": "WR",
+    "dk_name": "KhaDarel Hodge",
+    "dk_id": "39506279",
+    "fd_name": "KhaDarel Hodge",
+    "fd_id": "119110-85306"
+  },
+  {
+    "proj": "Charlie Woerner",
+    "team": "ATL",
+    "pos": "TE",
+    "dk_name": "Charlie Woerner",
+    "dk_id": "39506947",
+    "fd_name": "Charlie Woerner",
+    "fd_id": "119110-71351"
+  },
+  {
+    "proj": "John Bates",
+    "team": "WAS",
+    "pos": "TE",
+    "dk_name": "John Bates",
+    "dk_id": "39506873",
+    "fd_name": "John Bates",
+    "fd_id": "119110-72705"
+  },
+  {
+    "proj": "Luke Farrell",
+    "team": "SF",
+    "pos": "TE",
+    "dk_name": "Luke Farrell",
+    "dk_id": "39506803",
+    "fd_name": "Luke Farrell",
+    "fd_id": "119110-73176"
+  },
+  {
+    "proj": "Shane Zylstra",
+    "team": "DET",
+    "pos": "TE",
+    "dk_name": "Shane Zylstra",
+    "dk_id": "39506791",
+    "fd_name": "Shane Zylstra",
+    "fd_id": "119110-149832"
+  },
+  {
+    "proj": "Jalin Hyatt",
+    "team": "NYG",
+    "pos": "WR",
+    "dk_name": "Jalin Hyatt",
+    "dk_id": "39506507",
+    "fd_name": "Jalin Hyatt",
+    "fd_id": "119110-139094"
+  },
+  {
+    "proj": "Jacob Cowing",
+    "team": "SF",
+    "pos": "WR",
+    "dk_name": "Jacob Cowing",
+    "dk_id": "39506241",
+    "fd_name": "Jacob Cowing",
+    "fd_id": "119110-114530"
+  },
+  {
+    "proj": "Dont'e Thornton Jr.",
+    "team": "LV",
+    "pos": "WR",
+    "dk_name": "Dont'e Thornton Jr.",
+    "dk_id": "39506233",
+    "fd_name": "Dont'e Thornton Jr.",
+    "fd_id": "119110-151909"
+  },
+  {
+    "proj": "Scotty Miller",
+    "team": "PIT",
+    "pos": "WR",
+    "dk_name": "Scotty Miller",
+    "dk_id": "39506619",
+    "fd_name": "Scotty Miller",
+    "fd_id": "119110-61273"
+  },
+  {
+    "proj": "Tyler Johnson",
+    "team": "NYJ",
+    "pos": "WR",
+    "dk_name": "Tyler Johnson",
+    "dk_id": "39506637",
+    "fd_name": "Tyler Johnson",
+    "fd_id": "119110-68712"
+  },
+  {
+    "proj": "Cedrick Wilson Jr.",
+    "team": "NO",
+    "pos": "WR",
+    "dk_name": "Cedrick Wilson Jr.",
+    "dk_id": "39506323",
+    "fd_name": "Cedrick Wilson Jr.",
+    "fd_id": "119110-69581"
+  },
+  {
+    "proj": "Jelani Woods",
+    "team": "IND",
+    "pos": "TE",
+    "dk_name": "Jelani Woods",
+    "dk_id": "39506931",
+    "fd_name": "Jelani Woods",
+    "fd_id": "119110-87469"
+  },
+  {
+    "proj": "Harold Fannin Jr.",
+    "team": "CLE",
+    "pos": "TE",
+    "dk_name": "Harold Fannin Jr.",
+    "dk_id": "39506723",
+    "fd_name": "Harold Fannin Jr.",
+    "fd_id": "119110-172699"
+  },
+  {
+    "proj": "Irv Smith Jr.",
+    "team": "HOU",
+    "pos": "TE",
+    "dk_name": "Irv Smith Jr.",
+    "dk_id": "39506775",
+    "fd_name": "Irv Smith Jr.",
+    "fd_id": "119110-72725"
+  }
+]

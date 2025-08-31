@@ -1,0 +1,160 @@
+{
+  "xlsm_default": "C:/Users/cpenn/Dropbox/Sports Models/2025 NASCAR/Cup Cook Out 400 Richmond.xlsm",
+  "project_root_default": "C:/Users/cpenn/Downloads/cpenn-dfs",
+
+  "cheatsheets": {
+    "sheet": "Cheat Sheet",
+    "out_rel": "data/nascar/trucks/latest/cheatsheets",
+    "tables": [
+      { "title": "Top 10 DK Projections", "width": 4 },
+      { "title": "Top 10 FD Projections", "width": 4 },
+      { "title": "Top 10 Win%", "width": 3 },
+      { "title": "Top 10 DK Value", "width": 4 },
+      { "title": "Top 10 FD Value", "width": 4 },
+      { "title": "Top 10 T3%", "width": 3 },
+      { "title": "Top 10 DK Floor", "width": 4 },
+      { "title": "Top 10 FD Floor", "width": 4 },
+      { "title": "Top 10 T5%", "width": 3 },
+      { "title": "Top 10 DK Ceiling", "width": 4 },
+      { "title": "Top 10 FD Ceiling", "width": 4 },
+      { "title": "Top 10 T10%", "width": 3 },
+      { "title": "Top 10 DK pOwn%", "width": 4 },
+      { "title": "Top 10 FD pOwn%", "width": 4 },
+      { "title": "Top 10 Win Leverage%", "width": 3 },
+      { "title": "Top 10 DK Opt%", "width": 4 },
+      { "title": "Top 10 FD Opt%", "width": 4 },
+      { "title": "Top 10 T3 Leverage%", "width": 3 },
+      { "title": "Top 10 DK Leverage", "width": 4 },
+      { "title": "Top 10 FD Leverage", "width": 4 },
+      { "title": "Top 10 T5 Leverage%", "width": 3 },
+      { "title": "Top 10 DK Rating", "width": 4 },
+      { "title": "Top 10 FD Rating", "width": 4 },
+      { "title": "Top 10 T10 Leverage%", "width": 3 }
+    ],
+    "title_match_ci": true,
+    "limit_rows": 10
+  },
+
+  "site_ids": {
+    "sheet": "Imports",
+    "out_rel": "data/nascar/trucks/latest/site_ids"
+  },
+
+  "h2h_matrix": {
+    "sheet": "H2H Matrix",
+    "out_rel": "data/nascar/trucks/latest/h2h_matrix",
+    "header_row": 1,
+    "data_start_row": 2
+  },
+
+  "finish_distribution": {
+    "sheet": "Finish Distributions",
+    "out_rel": "data/nascar/trucks/latest/finish_dist",
+    "header_row": 1,
+    "data_start_row": 2
+  },
+
+  "tasks": [
+    {
+      "sheet": "Data Central",
+      "task_id": "data_master",
+      "header_row": 2,
+      "data_start_row": 3,
+      "out_rel": "data/nascar/trucks/latest/data",
+      "format": "json",
+      "round_decimals": 1,
+      "percent_name_contains": ["win%", "t3%", "t5%", "t10%", "pown%", "opt%", "lev%", "proj"],
+      "percent_as_string": true,
+      "filters": [
+        { "column": "Driver", "op": "nonempty" }
+      ]
+    },
+
+    {
+      "sheet": "Projections",
+      "keep_range": "A:AA",
+      "header_row": 3,
+      "data_start_row": 4,
+      "out_rel": "data/nascar/trucks/latest/projections",
+      "format": "json",
+      "round_decimals": 1,
+      "filters": [
+        { "column": "Driver", "op": "nonempty" }
+      ]
+    },
+
+    {
+      "sheet": "Betting Dashboard",
+      "task_id": "odds_main",
+      "keep_range": "A:J",
+      "header_row": 3,
+      "data_start_row": 4,
+      "out_rel": "data/nascar/trucks/latest/odds_main",
+      "format": "json",
+      "round_decimals": 1,
+      "percent_columns": ["WIN%", "Win%", "T3%", "T5%", "T10%"],
+      "percent_name_contains": ["win%", "t3%", "t5%", "t10%"],
+      "percent_as_string": true,
+      "filters": [
+        { "column": "Driver", "op": "nonempty" }
+      ]
+    },
+
+    {
+      "sheet": "Betting Dashboard",
+      "task_id": "odds_extra",
+      "keep_range": "W:AH",
+      "header_row": 3,
+      "data_start_row": 4,
+      "out_rel": "data/nascar/trucks/latest/odds_extra",
+      "format": "json",
+      "round_decimals": 1,
+      "percent_columns": ["Proj"],
+      "percent_name_contains": ["proj"],
+      "percent_as_string": true,
+      "integer_columns": ["Fair Odds", "Fair Odds_1", "Fair Odds_2", "Fair Odds_3"],
+      "filters": [
+        { "column": "Manufacturer", "op": "nonempty" }
+      ]
+    },
+
+    {
+      "sheet": "GFS Data",
+      "keep_range": "A:AA",
+      "header_row": 2,
+      "data_start_row": 3,
+      "out_rel": "data/nascar/trucks/latest/gfs",
+      "format": "json",
+      "round_decimals": 1,
+      "filters": [
+        { "column": "Driver", "op": "nonempty" }
+      ]
+    },
+
+    {
+      "sheet": "Practice Results",
+      "keep_ranges": ["A:L"],
+      "header_row": 2,
+      "data_start_row": 3,
+      "out_rel": "data/nascar/trucks/latest/practice_cons",
+      "format": "json",
+      "round_decimals": 0,
+      "filters": [
+        { "column": "Driver", "op": "nonempty" }
+      ]
+    },
+
+    {
+      "sheet": "Practice Results",
+      "keep_ranges": ["M:DR"],
+      "header_row": 2,
+      "data_start_row": 3,
+      "out_rel": "data/nascar/trucks/latest/practice_laps",
+      "format": "json",
+      "round_decimals": 2,
+      "filters": [
+        { "column": "Driver", "op": "nonempty" }
+      ]
+    }
+  ]
+}

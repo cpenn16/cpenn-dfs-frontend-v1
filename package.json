@@ -1,0 +1,49 @@
+{
+  "name": "cpenn-dfs",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.424.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-router-dom": "6.23.1",
+    "react-scripts": "5.0.1",
+    "recharts": "^2.10.3"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.16",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.4.1"
+  },
+"eslintConfig": {
+  "extends": ["react-app", "react-app/jest"],
+  "rules": {
+    "jsx-a11y/alt-text": "off",
+    "jsx-a11y/label-has-associated-control": "off",
+    "jsx-a11y/no-autofocus": "off",
+    "jsx-a11y/click-events-have-key-events": "off",
+    "jsx-a11y/no-static-element-interactions": "off"
+  }
+},
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

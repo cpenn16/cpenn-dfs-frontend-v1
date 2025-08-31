@@ -1,0 +1,111 @@
+// src/navConfig.js
+export const sportsNav = [
+  {
+    key: "nascar",
+    label: "NASCAR",
+    groups: [
+      {
+        key: "cup",
+        label: "Cup",
+        links: [
+          { label: "DFS Projections", path: "/nascar/cup/dfs-projections" },
+          { label: "Betting Sims", path: "/nascar/cup/betting-sims" },
+          { label: "Practice", path: "/nascar/cup/practice" },
+          { label: "Cheat Sheets", path: "/nascar/cup/cheat-sheets" },
+          { label: "GFS", path: "/nascar/cup/gfs" },
+          { label: "Optimizer", path: "/nascar/cup/optimizer" },
+        ],
+      },
+      {
+        key: "xfinity",
+        label: "Xfinity",
+        links: [
+          { label: "DFS Projections", path: "/nascar/xfinity/dfs-projections" },
+          { label: "Betting Sims", path: "/nascar/xfinity/betting-sims" },
+          { label: "Practice", path: "/nascar/xfinity/practice" },
+          { label: "Cheat Sheets", path: "/nascar/xfinity/cheat-sheets" },
+          { label: "GFS", path: "/nascar/xfinity/gfs" },
+          { label: "Optimizer", path: "/nascar/xfinity/optimizer" },
+        ],
+      },
+      {
+        key: "trucks",
+        label: "Trucks",
+        links: [
+          { label: "DFS Projections", path: "/nascar/trucks/dfs-projections" },
+          { label: "Betting Sims", path: "/nascar/trucks/betting-sims" },
+          { label: "Practice", path: "/nascar/trucks/practice" },
+          { label: "Cheat Sheets", path: "/nascar/trucks/cheat-sheets" },
+          { label: "GFS", path: "/nascar/trucks/gfs" },
+          { label: "Optimizer", path: "/nascar/trucks/optimizer" },
+        ],
+      },
+    ],
+  },
+  {
+    key: "nfl",
+    label: "NFL",
+    groups: [
+      {
+        key: "classic",
+        label: "Classic",
+        links: [
+          { label: "DFS Projections", path: "/nfl/classic/dfs-projections" },
+          { label: "Stacks", path: "/nfl/classic/stacks" },
+          { label: "Cheat Sheets", path: "/nfl/classic/cheat-sheets" },
+          { label: "QB Projections", path: "/nfl/classic/qb-projections" },
+          { label: "RB Projections", path: "/nfl/classic/rb-projections" },
+          { label: "WR Projections", path: "/nfl/classic/wr-projections" },
+          { label: "TE Projections", path: "/nfl/classic/te-projections" },
+          { label: "QB Data", path: "/nfl/classic/qb-data" },
+          { label: "RB Data", path: "/nfl/classic/rb-data" },
+          { label: "WR Data", path: "/nfl/classic/wr-data" },
+          { label: "TE Data", path: "/nfl/classic/te-data" },
+          { label: "DST Data", path: "/nfl/classic/dst-data" },
+          { label: "Optimizer", path: "/nfl/classic/optimizer" },
+        ],
+      },
+      {
+        key: "showdown",
+        label: "Showdown",
+        links: [
+          { label: "DFS Projections", path: "/nfl/showdown/dfs-projections" },
+          { label: "Stacks", path: "/nfl/showdown/stacks" },
+          { label: "Cheat Sheets", path: "/nfl/showdown/cheat-sheets" },
+          { label: "QB Projections", path: "/nfl/showdown/qb-projections" },
+          { label: "RB Projections", path: "/nfl/showdown/rb-projections" },
+          { label: "WR Projections", path: "/nfl/showdown/wr-projections" },
+          { label: "TE Projections", path: "/nfl/showdown/te-projections" },
+          { label: "QB Data", path: "/nfl/showdown/qb-data" },
+          { label: "RB Data", path: "/nfl/showdown/rb-data" },
+          { label: "WR Data", path: "/nfl/showdown/wr-data" },
+          { label: "TE Data", path: "/nfl/showdown/te-data" },
+          { label: "DST Data", path: "/nfl/showdown/dst-data" },
+          { label: "Optimizer", path: "/nfl/showdown/optimizer" },
+        ],
+      },
+    ],
+  },
+  {
+    key: "mlb",
+    label: "MLB",
+    links: [
+      { label: "Pitcher Projections", path: "/mlb/pitcher-projections" },
+      { label: "Batter Projections", path: "/mlb/batter-projections" },
+      { label: "Stacks", path: "/mlb/stacks" },
+      { label: "Cheat Sheets", path: "/mlb/cheat-sheets" },
+      { label: "Pitcher Data", path: "/mlb/pitcher-data" },
+      { label: "Batter Data", path: "/mlb/batter-data" },
+      { label: "Optimizer", path: "/mlb/optimizer" },
+    ],
+  },
+  {
+    key: "nba",
+    label: "NBA",
+    links: [
+      { label: "DFS Projections", path: "/nba/dfs-projections" },
+      { label: "Cheat Sheets", path: "/nba/cheat-sheets" },
+      { label: "Optimizer", path: "/nba/optimizer" },
+    ],
+  },
+];

@@ -1,0 +1,21 @@
+// src/auth/plans.js
+export const PLANS = {
+  MLB_LITE: "MLB_LITE",
+  MLB_PRO: "MLB_PRO",
+  NASCAR_LITE: "NASCAR_LITE",
+  NASCAR_PRO: "NASCAR_PRO",
+  NFL_LITE: "NFL_LITE",
+  NFL_PRO: "NFL_PRO",
+  NBA_LITE: "NBA_LITE",
+  NBA_PRO: "NBA_PRO",
+  ALL_ACCESS_LITE: "ALL_ACCESS_LITE",
+  ALL_ACCESS_PRO: "ALL_ACCESS_PRO",
+  DISCORD: "DISCORD", // unused here, kept for completeness
+};
+
+export const ALL_ACCESS = [PLANS.ALL_ACCESS_LITE, PLANS.ALL_ACCESS_PRO];
+
+export const NASCAR_ALL = [PLANS.NASCAR_LITE, PLANS.NASCAR_PRO, ...ALL_ACCESS];
+export const MLB_ALL    = [PLANS.MLB_LITE,    PLANS.MLB_PRO,    ...ALL_ACCESS];
+export const NFL_ALL    = [PLANS.NFL_LITE,    PLANS.NFL_PRO,    ...ALL_ACCESS];
+export const NBA_ALL    = [PLANS.NBA_LITE,    PLANS.NBA_PRO,    ...ALL_ACCESS];

@@ -1,0 +1,1644 @@
+{
+  "tables": [
+    {
+      "id": "t1",
+      "label": "Top 10 DK Projections",
+      "columns": [
+        "Driver",
+        "Qual",
+        "DK Sal",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Denny Hamlin",
+          "Qual": 4,
+          "DK Sal": "11.0k",
+          "Value": 71.9
+        },
+        {
+          "Driver": "Christopher Bell",
+          "Qual": 8,
+          "DK Sal": "10.8k",
+          "Value": 60.73
+        },
+        {
+          "Driver": "Kyle Larson",
+          "Qual": 30,
+          "DK Sal": "10.5k",
+          "Value": 55.25
+        },
+        {
+          "Driver": "Chase Elliott",
+          "Qual": 5,
+          "DK Sal": "10.0k",
+          "Value": 54.94
+        },
+        {
+          "Driver": "Joey Logano",
+          "Qual": 38,
+          "DK Sal": "9.7k",
+          "Value": 53.46
+        },
+        {
+          "Driver": "Ryan Blaney",
+          "Qual": 20,
+          "DK Sal": "10.2k",
+          "Value": 49.07
+        },
+        {
+          "Driver": "Brad Keselowski",
+          "Qual": 6,
+          "DK Sal": "9.2k",
+          "Value": 48.16
+        },
+        {
+          "Driver": "William Byron",
+          "Qual": 14,
+          "DK Sal": "10.4k",
+          "Value": 45.82
+        },
+        {
+          "Driver": "Tyler Reddick",
+          "Qual": 2,
+          "DK Sal": "8.7k",
+          "Value": 43.39
+        },
+        {
+          "Driver": "Ryan Preece",
+          "Qual": 1,
+          "DK Sal": "7.6k",
+          "Value": 43.1
+        }
+      ]
+    },
+    {
+      "id": "t2",
+      "label": "Top 10 FD Projections",
+      "columns": [
+        "Driver",
+        "Qual",
+        "FD Sal",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Denny Hamlin",
+          "Qual": 4,
+          "FD Sal": "14.0k",
+          "Value": 80.91
+        },
+        {
+          "Driver": "Kyle Larson",
+          "Qual": 30,
+          "FD Sal": "13.0k",
+          "Value": 80.64
+        },
+        {
+          "Driver": "Christopher Bell",
+          "Qual": 8,
+          "FD Sal": "13.5k",
+          "Value": 79.21
+        },
+        {
+          "Driver": "Joey Logano",
+          "Qual": 38,
+          "FD Sal": "11.5k",
+          "Value": 78.19
+        },
+        {
+          "Driver": "Chase Elliott",
+          "Qual": 5,
+          "FD Sal": "11.0k",
+          "Value": 76.5
+        },
+        {
+          "Driver": "Ryan Blaney",
+          "Qual": 20,
+          "FD Sal": "10.5k",
+          "Value": 76.36
+        },
+        {
+          "Driver": "William Byron",
+          "Qual": 14,
+          "FD Sal": "12.5k",
+          "Value": 75.28
+        },
+        {
+          "Driver": "Brad Keselowski",
+          "Qual": 6,
+          "FD Sal": "10.0k",
+          "Value": 74.37
+        },
+        {
+          "Driver": "Chase Briscoe",
+          "Qual": 19,
+          "FD Sal": "12.0k",
+          "Value": 73.95
+        },
+        {
+          "Driver": "Kyle Busch",
+          "Qual": 28,
+          "FD Sal": "7.8k",
+          "Value": 72.29
+        }
+      ]
+    },
+    {
+      "id": "t3",
+      "label": "Top 10 Win%",
+      "columns": [
+        "Driver",
+        "Qual",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Denny Hamlin",
+          "Qual": 4,
+          "Value": "18.4%"
+        },
+        {
+          "Driver": "Christopher Bell",
+          "Qual": 8,
+          "Value": "14.3%"
+        },
+        {
+          "Driver": "Chase Elliott",
+          "Qual": 5,
+          "Value": "11.4%"
+        },
+        {
+          "Driver": "Brad Keselowski",
+          "Qual": 6,
+          "Value": "8.5%"
+        },
+        {
+          "Driver": "Tyler Reddick",
+          "Qual": 2,
+          "Value": "8.2%"
+        },
+        {
+          "Driver": "William Byron",
+          "Qual": 14,
+          "Value": "6.6%"
+        },
+        {
+          "Driver": "Ryan Preece",
+          "Qual": 1,
+          "Value": "5.2%"
+        },
+        {
+          "Driver": "Ryan Blaney",
+          "Qual": 20,
+          "Value": "4.8%"
+        },
+        {
+          "Driver": "Kyle Larson",
+          "Qual": 30,
+          "Value": "4.4%"
+        },
+        {
+          "Driver": "Chase Briscoe",
+          "Qual": 19,
+          "Value": "3.8%"
+        }
+      ]
+    },
+    {
+      "id": "t4",
+      "label": "Top 10 DK Value",
+      "columns": [
+        "Driver",
+        "Qual",
+        "DK Sal",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Denny Hamlin",
+          "Qual": 4,
+          "DK Sal": "11.0k",
+          "Value": 6.54
+        },
+        {
+          "Driver": "Ryan Preece",
+          "Qual": 1,
+          "DK Sal": "7.6k",
+          "Value": 5.67
+        },
+        {
+          "Driver": "Christopher Bell",
+          "Qual": 8,
+          "DK Sal": "10.8k",
+          "Value": 5.62
+        },
+        {
+          "Driver": "Joey Logano",
+          "Qual": 38,
+          "DK Sal": "9.7k",
+          "Value": 5.51
+        },
+        {
+          "Driver": "Chase Elliott",
+          "Qual": 5,
+          "DK Sal": "10.0k",
+          "Value": 5.49
+        },
+        {
+          "Driver": "Kyle Larson",
+          "Qual": 30,
+          "DK Sal": "10.5k",
+          "Value": 5.26
+        },
+        {
+          "Driver": "Brad Keselowski",
+          "Qual": 6,
+          "DK Sal": "9.2k",
+          "Value": 5.23
+        },
+        {
+          "Driver": "Tyler Reddick",
+          "Qual": 2,
+          "DK Sal": "8.7k",
+          "Value": 4.99
+        },
+        {
+          "Driver": "Kyle Busch",
+          "Qual": 28,
+          "DK Sal": "8.5k",
+          "Value": 4.92
+        },
+        {
+          "Driver": "Ross Chastain",
+          "Qual": 33,
+          "DK Sal": "8.3k",
+          "Value": 4.81
+        }
+      ]
+    },
+    {
+      "id": "t5",
+      "label": "Top 10 FD Value",
+      "columns": [
+        "Driver",
+        "Qual",
+        "FD Sal",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Ty Dillon",
+          "Qual": 16,
+          "FD Sal": "2.0k",
+          "Value": 25.2
+        },
+        {
+          "Driver": "Cody Ware",
+          "Qual": 37,
+          "FD Sal": "2.0k",
+          "Value": 24.48
+        },
+        {
+          "Driver": "Ricky Stenhouse Jr",
+          "Qual": 36,
+          "FD Sal": "2.5k",
+          "Value": 21.32
+        },
+        {
+          "Driver": "Cole Custer",
+          "Qual": 24,
+          "FD Sal": "2.5k",
+          "Value": 21.25
+        },
+        {
+          "Driver": "Justin Haley",
+          "Qual": 25,
+          "FD Sal": "3.2k",
+          "Value": 16.28
+        },
+        {
+          "Driver": "Riley Herbst",
+          "Qual": 26,
+          "FD Sal": "3.0k",
+          "Value": 15.7
+        },
+        {
+          "Driver": "Shane Van Gisbergen",
+          "Qual": 27,
+          "FD Sal": "3.5k",
+          "Value": 14.16
+        },
+        {
+          "Driver": "AJ Allmendinger",
+          "Qual": 3,
+          "FD Sal": "4.2k",
+          "Value": 13.57
+        },
+        {
+          "Driver": "Zane Smith",
+          "Qual": 29,
+          "FD Sal": "4.0k",
+          "Value": 13.37
+        },
+        {
+          "Driver": "Jesse Love",
+          "Qual": 35,
+          "FD Sal": "3.8k",
+          "Value": 13.03
+        }
+      ]
+    },
+    {
+      "id": "t6",
+      "label": "Top 10 T3%",
+      "columns": [
+        "Driver",
+        "Qual",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Denny Hamlin",
+          "Qual": 4,
+          "Value": "41.5%"
+        },
+        {
+          "Driver": "Christopher Bell",
+          "Qual": 8,
+          "Value": "35.3%"
+        },
+        {
+          "Driver": "Chase Elliott",
+          "Qual": 5,
+          "Value": "31.1%"
+        },
+        {
+          "Driver": "Brad Keselowski",
+          "Qual": 6,
+          "Value": "25.3%"
+        },
+        {
+          "Driver": "Tyler Reddick",
+          "Qual": 2,
+          "Value": "24.1%"
+        },
+        {
+          "Driver": "William Byron",
+          "Qual": 14,
+          "Value": "20.3%"
+        },
+        {
+          "Driver": "Ryan Preece",
+          "Qual": 1,
+          "Value": "16.8%"
+        },
+        {
+          "Driver": "Ryan Blaney",
+          "Qual": 20,
+          "Value": "15.4%"
+        },
+        {
+          "Driver": "Kyle Larson",
+          "Qual": 30,
+          "Value": "14.9%"
+        },
+        {
+          "Driver": "Chase Briscoe",
+          "Qual": 19,
+          "Value": "12.7%"
+        }
+      ]
+    },
+    {
+      "id": "t7",
+      "label": "Top 10 DK Floor",
+      "columns": [
+        "Driver",
+        "Qual",
+        "DK Sal",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Kyle Larson",
+          "Qual": 30,
+          "DK Sal": "10.5k",
+          "Value": 27.09
+        },
+        {
+          "Driver": "Joey Logano",
+          "Qual": 38,
+          "DK Sal": "9.7k",
+          "Value": 26.96
+        },
+        {
+          "Driver": "Denny Hamlin",
+          "Qual": 4,
+          "DK Sal": "11.0k",
+          "Value": 22.14
+        },
+        {
+          "Driver": "Christopher Bell",
+          "Qual": 8,
+          "DK Sal": "10.8k",
+          "Value": 19.86
+        },
+        {
+          "Driver": "Ryan Blaney",
+          "Qual": 20,
+          "DK Sal": "10.2k",
+          "Value": 18.43
+        },
+        {
+          "Driver": "Chase Elliott",
+          "Qual": 5,
+          "DK Sal": "10.0k",
+          "Value": 15.7
+        },
+        {
+          "Driver": "Kyle Busch",
+          "Qual": 28,
+          "DK Sal": "8.5k",
+          "Value": 15.35
+        },
+        {
+          "Driver": "Ross Chastain",
+          "Qual": 33,
+          "DK Sal": "8.3k",
+          "Value": 15.07
+        },
+        {
+          "Driver": "Chase Briscoe",
+          "Qual": 19,
+          "DK Sal": "9.5k",
+          "Value": 14.91
+        },
+        {
+          "Driver": "William Byron",
+          "Qual": 14,
+          "DK Sal": "10.4k",
+          "Value": 14.78
+        }
+      ]
+    },
+    {
+      "id": "t8",
+      "label": "Top 10 FD Floor",
+      "columns": [
+        "Driver",
+        "Qual",
+        "FD Sal",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Denny Hamlin",
+          "Qual": 4,
+          "FD Sal": "14.0k",
+          "Value": 62.26
+        },
+        {
+          "Driver": "Kyle Larson",
+          "Qual": 30,
+          "FD Sal": "13.0k",
+          "Value": 62.06
+        },
+        {
+          "Driver": "Christopher Bell",
+          "Qual": 8,
+          "FD Sal": "13.5k",
+          "Value": 60.58
+        },
+        {
+          "Driver": "Joey Logano",
+          "Qual": 38,
+          "FD Sal": "11.5k",
+          "Value": 59.97
+        },
+        {
+          "Driver": "Chase Elliott",
+          "Qual": 5,
+          "FD Sal": "11.0k",
+          "Value": 58.15
+        },
+        {
+          "Driver": "Ryan Blaney",
+          "Qual": 20,
+          "FD Sal": "10.5k",
+          "Value": 57.65
+        },
+        {
+          "Driver": "William Byron",
+          "Qual": 14,
+          "FD Sal": "12.5k",
+          "Value": 56.49
+        },
+        {
+          "Driver": "Brad Keselowski",
+          "Qual": 6,
+          "FD Sal": "10.0k",
+          "Value": 55.79
+        },
+        {
+          "Driver": "Chase Briscoe",
+          "Qual": 19,
+          "FD Sal": "12.0k",
+          "Value": 55.57
+        },
+        {
+          "Driver": "Kyle Busch",
+          "Qual": 28,
+          "FD Sal": "7.8k",
+          "Value": 53.76
+        }
+      ]
+    },
+    {
+      "id": "t9",
+      "label": "Top 10 T5%",
+      "columns": [
+        "Driver",
+        "Qual",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Denny Hamlin",
+          "Qual": 4,
+          "Value": "57.5%"
+        },
+        {
+          "Driver": "Christopher Bell",
+          "Qual": 8,
+          "Value": "50.7%"
+        },
+        {
+          "Driver": "Chase Elliott",
+          "Qual": 5,
+          "Value": "46.4%"
+        },
+        {
+          "Driver": "Brad Keselowski",
+          "Qual": 6,
+          "Value": "39.3%"
+        },
+        {
+          "Driver": "Tyler Reddick",
+          "Qual": 2,
+          "Value": "38.2%"
+        },
+        {
+          "Driver": "William Byron",
+          "Qual": 14,
+          "Value": "32.9%"
+        },
+        {
+          "Driver": "Ryan Preece",
+          "Qual": 1,
+          "Value": "28.3%"
+        },
+        {
+          "Driver": "Ryan Blaney",
+          "Qual": 20,
+          "Value": "26.5%"
+        },
+        {
+          "Driver": "Kyle Larson",
+          "Qual": 30,
+          "Value": "26.0%"
+        },
+        {
+          "Driver": "Chase Briscoe",
+          "Qual": 19,
+          "Value": "22.9%"
+        }
+      ]
+    },
+    {
+      "id": "t10",
+      "label": "Top 10 DK Ceiling",
+      "columns": [
+        "Driver",
+        "Qual",
+        "DK Sal",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Denny Hamlin",
+          "Qual": 4,
+          "DK Sal": "11.0k",
+          "Value": 104.5
+        },
+        {
+          "Driver": "Christopher Bell",
+          "Qual": 8,
+          "DK Sal": "10.8k",
+          "Value": 90.98
+        },
+        {
+          "Driver": "Joey Logano",
+          "Qual": 38,
+          "DK Sal": "9.7k",
+          "Value": 88.12
+        },
+        {
+          "Driver": "Chase Elliott",
+          "Qual": 5,
+          "DK Sal": "10.0k",
+          "Value": 86.29
+        },
+        {
+          "Driver": "Kyle Larson",
+          "Qual": 30,
+          "DK Sal": "10.5k",
+          "Value": 84.17
+        },
+        {
+          "Driver": "Brad Keselowski",
+          "Qual": 6,
+          "DK Sal": "9.2k",
+          "Value": 81.18
+        },
+        {
+          "Driver": "Ryan Preece",
+          "Qual": 1,
+          "DK Sal": "7.6k",
+          "Value": 78.92
+        },
+        {
+          "Driver": "Ryan Blaney",
+          "Qual": 20,
+          "DK Sal": "10.2k",
+          "Value": 78.82
+        },
+        {
+          "Driver": "Kyle Busch",
+          "Qual": 28,
+          "DK Sal": "8.5k",
+          "Value": 75.81
+        },
+        {
+          "Driver": "William Byron",
+          "Qual": 14,
+          "DK Sal": "10.4k",
+          "Value": 74.25
+        }
+      ]
+    },
+    {
+      "id": "t11",
+      "label": "Top 10 FD Ceiling",
+      "columns": [
+        "Driver",
+        "Qual",
+        "FD Sal",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Joey Logano",
+          "Qual": 38,
+          "FD Sal": "11.5k",
+          "Value": 101.09
+        },
+        {
+          "Driver": "Kyle Larson",
+          "Qual": 30,
+          "FD Sal": "13.0k",
+          "Value": 98.48
+        },
+        {
+          "Driver": "Kyle Busch",
+          "Qual": 28,
+          "FD Sal": "7.8k",
+          "Value": 94.86
+        },
+        {
+          "Driver": "Ryan Blaney",
+          "Qual": 20,
+          "FD Sal": "10.5k",
+          "Value": 94.3
+        },
+        {
+          "Driver": "Denny Hamlin",
+          "Qual": 4,
+          "FD Sal": "14.0k",
+          "Value": 93.68
+        },
+        {
+          "Driver": "Ross Chastain",
+          "Qual": 33,
+          "FD Sal": "9.0k",
+          "Value": 92.98
+        },
+        {
+          "Driver": "Chase Briscoe",
+          "Qual": 19,
+          "FD Sal": "12.0k",
+          "Value": 92.95
+        },
+        {
+          "Driver": "Christopher Bell",
+          "Qual": 8,
+          "FD Sal": "13.5k",
+          "Value": 92.58
+        },
+        {
+          "Driver": "William Byron",
+          "Qual": 14,
+          "FD Sal": "12.5k",
+          "Value": 91.55
+        },
+        {
+          "Driver": "Josh Berry",
+          "Qual": 17,
+          "FD Sal": "8.2k",
+          "Value": 91.55
+        }
+      ]
+    },
+    {
+      "id": "t12",
+      "label": "Top 10 T10%",
+      "columns": [
+        "Driver",
+        "Qual",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Denny Hamlin",
+          "Qual": 4,
+          "Value": "80.8%"
+        },
+        {
+          "Driver": "Christopher Bell",
+          "Qual": 8,
+          "Value": "75.9%"
+        },
+        {
+          "Driver": "Chase Elliott",
+          "Qual": 5,
+          "Value": "72.7%"
+        },
+        {
+          "Driver": "Brad Keselowski",
+          "Qual": 6,
+          "Value": "66.1%"
+        },
+        {
+          "Driver": "Tyler Reddick",
+          "Qual": 2,
+          "Value": "64.5%"
+        },
+        {
+          "Driver": "William Byron",
+          "Qual": 14,
+          "Value": "59.5%"
+        },
+        {
+          "Driver": "Ryan Preece",
+          "Qual": 1,
+          "Value": "54.9%"
+        },
+        {
+          "Driver": "Kyle Larson",
+          "Qual": 30,
+          "Value": "52.7%"
+        },
+        {
+          "Driver": "Ryan Blaney",
+          "Qual": 20,
+          "Value": "52.4%"
+        },
+        {
+          "Driver": "Chase Briscoe",
+          "Qual": 19,
+          "Value": "48.2%"
+        }
+      ]
+    },
+    {
+      "id": "t13",
+      "label": "Top 10 DK pOwn%",
+      "columns": [
+        "Driver",
+        "Qual",
+        "DK Sal",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Denny Hamlin",
+          "Qual": 4,
+          "DK Sal": "11.0k",
+          "Value": 46.74
+        },
+        {
+          "Driver": "Kyle Busch",
+          "Qual": 28,
+          "DK Sal": "8.5k",
+          "Value": 39.19
+        },
+        {
+          "Driver": "Ryan Preece",
+          "Qual": 1,
+          "DK Sal": "7.6k",
+          "Value": 36.69
+        },
+        {
+          "Driver": "Joey Logano",
+          "Qual": 38,
+          "DK Sal": "9.7k",
+          "Value": 36.68
+        },
+        {
+          "Driver": "Ross Chastain",
+          "Qual": 33,
+          "DK Sal": "8.3k",
+          "Value": 36.3
+        },
+        {
+          "Driver": "Kyle Larson",
+          "Qual": 30,
+          "DK Sal": "10.5k",
+          "Value": 35.49
+        },
+        {
+          "Driver": "Christopher Bell",
+          "Qual": 8,
+          "DK Sal": "10.8k",
+          "Value": 32.49
+        },
+        {
+          "Driver": "Chase Elliott",
+          "Qual": 5,
+          "DK Sal": "10.0k",
+          "Value": 26.35
+        },
+        {
+          "Driver": "Todd Gilliland",
+          "Qual": 31,
+          "DK Sal": "5.6k",
+          "Value": 25.84
+        },
+        {
+          "Driver": "Josh Berry",
+          "Qual": 17,
+          "DK Sal": "8.0k",
+          "Value": 23.65
+        }
+      ]
+    },
+    {
+      "id": "t14",
+      "label": "Top 10 FD pOwn%",
+      "columns": [
+        "Driver",
+        "Qual",
+        "FD Sal",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Kyle Larson",
+          "Qual": 30,
+          "FD Sal": "13.0k",
+          "Value": 45.51
+        },
+        {
+          "Driver": "Denny Hamlin",
+          "Qual": 4,
+          "FD Sal": "14.0k",
+          "Value": 40.51
+        },
+        {
+          "Driver": "Joey Logano",
+          "Qual": 38,
+          "FD Sal": "11.5k",
+          "Value": 38.46
+        },
+        {
+          "Driver": "Christopher Bell",
+          "Qual": 8,
+          "FD Sal": "13.5k",
+          "Value": 37.22
+        },
+        {
+          "Driver": "Ryan Blaney",
+          "Qual": 20,
+          "FD Sal": "10.5k",
+          "Value": 32.84
+        },
+        {
+          "Driver": "Chase Elliott",
+          "Qual": 5,
+          "FD Sal": "11.0k",
+          "Value": 30.93
+        },
+        {
+          "Driver": "William Byron",
+          "Qual": 14,
+          "FD Sal": "12.5k",
+          "Value": 28.22
+        },
+        {
+          "Driver": "Brad Keselowski",
+          "Qual": 6,
+          "FD Sal": "10.0k",
+          "Value": 26.59
+        },
+        {
+          "Driver": "Chase Briscoe",
+          "Qual": 19,
+          "FD Sal": "12.0k",
+          "Value": 25.51
+        },
+        {
+          "Driver": "Kyle Busch",
+          "Qual": 28,
+          "FD Sal": "7.8k",
+          "Value": 25.21
+        }
+      ]
+    },
+    {
+      "id": "t15",
+      "label": "Top 10 Win Leverage%",
+      "columns": [
+        "Driver",
+        "Qual",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Tyler Reddick",
+          "Qual": 2,
+          "Value": 0.0199
+        },
+        {
+          "Driver": "William Byron",
+          "Qual": 14,
+          "Value": 0.01
+        },
+        {
+          "Driver": "Cody Ware",
+          "Qual": 37,
+          "Value": -0.0004
+        },
+        {
+          "Driver": "Ricky Stenhouse Jr",
+          "Qual": 36,
+          "Value": -0.0009
+        },
+        {
+          "Driver": "Riley Herbst",
+          "Qual": 26,
+          "Value": -0.001
+        },
+        {
+          "Driver": "Jesse Love",
+          "Qual": 35,
+          "Value": -0.001
+        },
+        {
+          "Driver": "Shane Van Gisbergen",
+          "Qual": 27,
+          "Value": -0.0013
+        },
+        {
+          "Driver": "Cole Custer",
+          "Qual": 24,
+          "Value": -0.0018
+        },
+        {
+          "Driver": "Zane Smith",
+          "Qual": 29,
+          "Value": -0.0018
+        },
+        {
+          "Driver": "Justin Haley",
+          "Qual": 25,
+          "Value": -0.0018
+        }
+      ]
+    },
+    {
+      "id": "t16",
+      "label": "Top 10 DK Opt%",
+      "columns": [
+        "Driver",
+        "Qual",
+        "DK Sal",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Ryan Preece",
+          "Qual": 1,
+          "DK Sal": "7.6k",
+          "Value": 52
+        },
+        {
+          "Driver": "Denny Hamlin",
+          "Qual": 4,
+          "DK Sal": "11.0k",
+          "Value": 46.3
+        },
+        {
+          "Driver": "Joey Logano",
+          "Qual": 38,
+          "DK Sal": "9.7k",
+          "Value": 33.72
+        },
+        {
+          "Driver": "Chase Elliott",
+          "Qual": 5,
+          "DK Sal": "10.0k",
+          "Value": 32.4
+        },
+        {
+          "Driver": "Brad Keselowski",
+          "Qual": 6,
+          "DK Sal": "9.2k",
+          "Value": 31.62
+        },
+        {
+          "Driver": "Todd Gilliland",
+          "Qual": 31,
+          "DK Sal": "5.6k",
+          "Value": 31.37
+        },
+        {
+          "Driver": "Kyle Busch",
+          "Qual": 28,
+          "DK Sal": "8.5k",
+          "Value": 30.68
+        },
+        {
+          "Driver": "Tyler Reddick",
+          "Qual": 2,
+          "DK Sal": "8.7k",
+          "Value": 30.57
+        },
+        {
+          "Driver": "Christopher Bell",
+          "Qual": 8,
+          "DK Sal": "10.8k",
+          "Value": 29.73
+        },
+        {
+          "Driver": "Ross Chastain",
+          "Qual": 33,
+          "DK Sal": "8.3k",
+          "Value": 28.37
+        }
+      ]
+    },
+    {
+      "id": "t17",
+      "label": "Top 10 FD Opt%",
+      "columns": [
+        "Driver",
+        "Qual",
+        "FD Sal",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Kyle Busch",
+          "Qual": 28,
+          "FD Sal": "7.8k",
+          "Value": 41.32
+        },
+        {
+          "Driver": "Ryan Preece",
+          "Qual": 1,
+          "FD Sal": "6.5k",
+          "Value": 41.24
+        },
+        {
+          "Driver": "Ryan Blaney",
+          "Qual": 20,
+          "FD Sal": "10.5k",
+          "Value": 38.66
+        },
+        {
+          "Driver": "Joey Logano",
+          "Qual": 38,
+          "FD Sal": "11.5k",
+          "Value": 38.32
+        },
+        {
+          "Driver": "Kyle Larson",
+          "Qual": 30,
+          "FD Sal": "13.0k",
+          "Value": 36.37
+        },
+        {
+          "Driver": "Chase Elliott",
+          "Qual": 5,
+          "FD Sal": "11.0k",
+          "Value": 34.75
+        },
+        {
+          "Driver": "Brad Keselowski",
+          "Qual": 6,
+          "FD Sal": "10.0k",
+          "Value": 34.17
+        },
+        {
+          "Driver": "Denny Hamlin",
+          "Qual": 4,
+          "FD Sal": "14.0k",
+          "Value": 28.18
+        },
+        {
+          "Driver": "Christopher Bell",
+          "Qual": 8,
+          "FD Sal": "13.5k",
+          "Value": 25.73
+        },
+        {
+          "Driver": "Tyler Reddick",
+          "Qual": 2,
+          "FD Sal": "9.5k",
+          "Value": 25.03
+        }
+      ]
+    },
+    {
+      "id": "t18",
+      "label": "Top 10 T3 Leverage%",
+      "columns": [
+        "Driver",
+        "Qual",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Denny Hamlin",
+          "Qual": 4,
+          "Value": 0.4153
+        },
+        {
+          "Driver": "Christopher Bell",
+          "Qual": 8,
+          "Value": 0.3526
+        },
+        {
+          "Driver": "Chase Elliott",
+          "Qual": 5,
+          "Value": 0.3111
+        },
+        {
+          "Driver": "Brad Keselowski",
+          "Qual": 6,
+          "Value": 0.2533
+        },
+        {
+          "Driver": "Tyler Reddick",
+          "Qual": 2,
+          "Value": 0.2408
+        },
+        {
+          "Driver": "William Byron",
+          "Qual": 14,
+          "Value": 0.2026
+        },
+        {
+          "Driver": "Ryan Preece",
+          "Qual": 1,
+          "Value": 0.168
+        },
+        {
+          "Driver": "Ryan Blaney",
+          "Qual": 20,
+          "Value": 0.1538
+        },
+        {
+          "Driver": "Kyle Larson",
+          "Qual": 30,
+          "Value": 0.1492
+        },
+        {
+          "Driver": "Chase Briscoe",
+          "Qual": 19,
+          "Value": 0.1271
+        }
+      ]
+    },
+    {
+      "id": "t19",
+      "label": "Top 10 DK Leverage",
+      "columns": [
+        "Driver",
+        "Qual",
+        "DK Sal",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Ryan Preece",
+          "Qual": 1,
+          "DK Sal": "7.6k",
+          "Value": 15.31
+        },
+        {
+          "Driver": "Tyler Reddick",
+          "Qual": 2,
+          "DK Sal": "8.7k",
+          "Value": 13.42
+        },
+        {
+          "Driver": "Brad Keselowski",
+          "Qual": 6,
+          "DK Sal": "9.2k",
+          "Value": 10.12
+        },
+        {
+          "Driver": "Chase Elliott",
+          "Qual": 5,
+          "DK Sal": "10.0k",
+          "Value": 6.05
+        },
+        {
+          "Driver": "Todd Gilliland",
+          "Qual": 31,
+          "DK Sal": "5.6k",
+          "Value": 5.53
+        },
+        {
+          "Driver": "Ty Gibbs",
+          "Qual": 23,
+          "DK Sal": "7.0k",
+          "Value": 5.37
+        },
+        {
+          "Driver": "John Hunter Nemechek",
+          "Qual": 34,
+          "DK Sal": "6.2k",
+          "Value": 2.47
+        },
+        {
+          "Driver": "Ricky Stenhouse Jr",
+          "Qual": 36,
+          "DK Sal": "5.5k",
+          "Value": 1.84
+        },
+        {
+          "Driver": "Cody Ware",
+          "Qual": 37,
+          "DK Sal": "4.8k",
+          "Value": 1.66
+        },
+        {
+          "Driver": "Bubba Wallace",
+          "Qual": 7,
+          "DK Sal": "7.5k",
+          "Value": 0.81
+        }
+      ]
+    },
+    {
+      "id": "t20",
+      "label": "Top 10 FD Leverage",
+      "columns": [
+        "Driver",
+        "Qual",
+        "FD Sal",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Ryan Preece",
+          "Qual": 1,
+          "FD Sal": "6.5k",
+          "Value": 22.51
+        },
+        {
+          "Driver": "Kyle Busch",
+          "Qual": 28,
+          "FD Sal": "7.8k",
+          "Value": 16.11
+        },
+        {
+          "Driver": "Brad Keselowski",
+          "Qual": 6,
+          "FD Sal": "10.0k",
+          "Value": 7.58
+        },
+        {
+          "Driver": "Ryan Blaney",
+          "Qual": 20,
+          "FD Sal": "10.5k",
+          "Value": 5.82
+        },
+        {
+          "Driver": "Josh Berry",
+          "Qual": 17,
+          "FD Sal": "8.2k",
+          "Value": 5.39
+        },
+        {
+          "Driver": "Tyler Reddick",
+          "Qual": 2,
+          "FD Sal": "9.5k",
+          "Value": 4
+        },
+        {
+          "Driver": "Ross Chastain",
+          "Qual": 33,
+          "FD Sal": "9.0k",
+          "Value": 3.83
+        },
+        {
+          "Driver": "Chase Elliott",
+          "Qual": 5,
+          "FD Sal": "11.0k",
+          "Value": 3.82
+        },
+        {
+          "Driver": "Bubba Wallace",
+          "Qual": 7,
+          "FD Sal": "8.0k",
+          "Value": 2.11
+        },
+        {
+          "Driver": "Ty Gibbs",
+          "Qual": 23,
+          "FD Sal": "7.2k",
+          "Value": 0.64
+        }
+      ]
+    },
+    {
+      "id": "t21",
+      "label": "Top 10 T5 Leverage%",
+      "columns": [
+        "Driver",
+        "Qual",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Denny Hamlin",
+          "Qual": 4,
+          "Value": 0.5752
+        },
+        {
+          "Driver": "Christopher Bell",
+          "Qual": 8,
+          "Value": 0.5075
+        },
+        {
+          "Driver": "Chase Elliott",
+          "Qual": 5,
+          "Value": 0.4638
+        },
+        {
+          "Driver": "Brad Keselowski",
+          "Qual": 6,
+          "Value": 0.3929
+        },
+        {
+          "Driver": "Tyler Reddick",
+          "Qual": 2,
+          "Value": 0.3819
+        },
+        {
+          "Driver": "William Byron",
+          "Qual": 14,
+          "Value": 0.329
+        },
+        {
+          "Driver": "Ryan Preece",
+          "Qual": 1,
+          "Value": 0.2834
+        },
+        {
+          "Driver": "Ryan Blaney",
+          "Qual": 20,
+          "Value": 0.2652
+        },
+        {
+          "Driver": "Kyle Larson",
+          "Qual": 30,
+          "Value": 0.2598
+        },
+        {
+          "Driver": "Chase Briscoe",
+          "Qual": 19,
+          "Value": 0.2292
+        }
+      ]
+    },
+    {
+      "id": "t22",
+      "label": "Top 10 DK Rating",
+      "columns": [
+        "Driver",
+        "Qual",
+        "DK Sal",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Denny Hamlin",
+          "Qual": 4,
+          "DK Sal": "11.0k",
+          "Value": 100
+        },
+        {
+          "Driver": "Christopher Bell",
+          "Qual": 8,
+          "DK Sal": "10.8k",
+          "Value": 81.25
+        },
+        {
+          "Driver": "Joey Logano",
+          "Qual": 38,
+          "DK Sal": "9.7k",
+          "Value": 76.27
+        },
+        {
+          "Driver": "Kyle Larson",
+          "Qual": 30,
+          "DK Sal": "10.5k",
+          "Value": 74.77
+        },
+        {
+          "Driver": "Chase Elliott",
+          "Qual": 5,
+          "DK Sal": "10.0k",
+          "Value": 74.26
+        },
+        {
+          "Driver": "Brad Keselowski",
+          "Qual": 6,
+          "DK Sal": "9.2k",
+          "Value": 65.41
+        },
+        {
+          "Driver": "Ryan Blaney",
+          "Qual": 20,
+          "DK Sal": "10.2k",
+          "Value": 64.04
+        },
+        {
+          "Driver": "Ryan Preece",
+          "Qual": 1,
+          "DK Sal": "7.6k",
+          "Value": 63.07
+        },
+        {
+          "Driver": "Kyle Busch",
+          "Qual": 28,
+          "DK Sal": "8.5k",
+          "Value": 58.59
+        },
+        {
+          "Driver": "Tyler Reddick",
+          "Qual": 2,
+          "DK Sal": "8.7k",
+          "Value": 57.43
+        }
+      ]
+    },
+    {
+      "id": "t23",
+      "label": "Top 10 FD Rating",
+      "columns": [
+        "Driver",
+        "Qual",
+        "FD Sal",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Kyle Larson",
+          "Qual": 30,
+          "FD Sal": "13.0k",
+          "Value": 100
+        },
+        {
+          "Driver": "Joey Logano",
+          "Qual": 38,
+          "FD Sal": "11.5k",
+          "Value": 97.1
+        },
+        {
+          "Driver": "Denny Hamlin",
+          "Qual": 4,
+          "FD Sal": "14.0k",
+          "Value": 93.65
+        },
+        {
+          "Driver": "Ryan Blaney",
+          "Qual": 20,
+          "FD Sal": "10.5k",
+          "Value": 89.68
+        },
+        {
+          "Driver": "Christopher Bell",
+          "Qual": 8,
+          "FD Sal": "13.5k",
+          "Value": 87.77
+        },
+        {
+          "Driver": "Chase Elliott",
+          "Qual": 5,
+          "FD Sal": "11.0k",
+          "Value": 86.09
+        },
+        {
+          "Driver": "Kyle Busch",
+          "Qual": 28,
+          "FD Sal": "7.8k",
+          "Value": 83.71
+        },
+        {
+          "Driver": "Brad Keselowski",
+          "Qual": 6,
+          "FD Sal": "10.0k",
+          "Value": 80.7
+        },
+        {
+          "Driver": "Ryan Preece",
+          "Qual": 1,
+          "FD Sal": "6.5k",
+          "Value": 74.9
+        },
+        {
+          "Driver": "William Byron",
+          "Qual": 14,
+          "FD Sal": "12.5k",
+          "Value": 73.4
+        }
+      ]
+    },
+    {
+      "id": "t24",
+      "label": "Top 10 T10 Leverage%",
+      "columns": [
+        "Driver",
+        "Qual",
+        "Value"
+      ],
+      "rows": [
+        {
+          "Driver": "Denny Hamlin",
+          "Qual": 4,
+          "Value": 0.8085
+        },
+        {
+          "Driver": "Christopher Bell",
+          "Qual": 8,
+          "Value": 0.7587
+        },
+        {
+          "Driver": "Chase Elliott",
+          "Qual": 5,
+          "Value": 0.7268
+        },
+        {
+          "Driver": "Brad Keselowski",
+          "Qual": 6,
+          "Value": 0.6609
+        },
+        {
+          "Driver": "Tyler Reddick",
+          "Qual": 2,
+          "Value": 0.6447
+        },
+        {
+          "Driver": "William Byron",
+          "Qual": 14,
+          "Value": 0.5948
+        },
+        {
+          "Driver": "Ryan Preece",
+          "Qual": 1,
+          "Value": 0.5493
+        },
+        {
+          "Driver": "Kyle Larson",
+          "Qual": 30,
+          "Value": 0.5267
+        },
+        {
+          "Driver": "Ryan Blaney",
+          "Qual": 20,
+          "Value": 0.524
+        },
+        {
+          "Driver": "Chase Briscoe",
+          "Qual": 19,
+          "Value": 0.4819
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "player":"Dak Prescott",
+    "dk_sal":"9000",
+    "fd_sal":"10800",
+    "pa_yards":"242.67",
+    "pa_att":"36.32",
+    "pa_comp":"22.80",
+    "pa_comp_pct":"62.8%%",
+    "pa_td":"1.45",
+    "int":"0.95",
+    "ypc":"4.43",
+    "ru_yards":"7.67",
+    "ru_td":"0.11",
+    "dk_proj":"17.24",
+    "dk_val":"1.92",
+    "fd_proj":"15.96",
+    "fd_val":"1.48"
+  },
+  {
+    "player":"Jalen Hurts",
+    "dk_sal":"11000",
+    "fd_sal":"12200",
+    "pa_yards":"212.45",
+    "pa_att":"26.95",
+    "pa_comp":"19.37",
+    "pa_comp_pct":"71.9%%",
+    "pa_td":"1.35",
+    "int":"0.57",
+    "ypc":"4.38",
+    "ru_yards":"39.52",
+    "ru_td":"0.72",
+    "dk_proj":"21.98",
+    "dk_val":"2.00",
+    "fd_proj":"21.61",
+    "fd_val":"1.77"
+  }
+]

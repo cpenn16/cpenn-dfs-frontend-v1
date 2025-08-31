@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* --- Menu styles --- */
+.nav-sport-link {
+  display:inline-block;
+  padding:6px 12px;
+  border-radius:8px;
+  font-weight:700;
+}
+.nav-sport-link:hover { background: rgba(255,255,255,0.1); }
+
+.group:hover > .dropdown,
+.group:focus-within > .dropdown {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.dropdown {
+  position:absolute;
+  left:0;
+  top:100%;
+  width: max-content;
+  background:#fff;
+  color:#111827;
+  border-radius:12px;
+  padding:12px;
+  margin-top:8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  opacity:0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+  z-index: 40;
+}
+.dropdown-col {
+  min-width: 220px;
+  padding:8px 12px;
+}
+.dropdown-header {
+  font-size:.85rem;
+  font-weight:800;
+  letter-spacing:.02em;
+  text-transform: uppercase;
+  color:#1f3a8a;
+  opacity:.9;
+  margin:6px 0 8px;
+}
+.dropdown-list { list-style:none; padding:0; margin:0; }
+.dropdown-link {
+  display:block;
+  padding:8px 10px;
+  border-radius:8px;
+  font-weight:600;
+}
+.dropdown-link:hover {
+  background:#eff6ff;
+  color:#1d4ed8;
+}
+/* --- Layout helpers --- */
+.container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+/* --- Pricing page --- */
+.page-hero {
+  background: linear-gradient(135deg, #143aa0 0%, #2360ea 100%);
+  color: #fff;
+  padding: 48px 0;
+  margin-bottom: 24px;
+}
+.hero_title { font-weight: 800; font-size: 32px; margin: 0 0 8px; }
+.hero_sub   { opacity: .95; margin: 0; }
+
+.pricing-section .container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 20px;  /* optional gutter */
+}
+
+/* Centered grid with fixed-ish columns */
+.plan-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(320px, 1fr)); /* 3 across on desktop */
+  gap: 24px;
+  max-width: 1100px;     /* 3 * 320 + gaps ≈ centered block */
+  margin: 0 auto;        /* center the grid block */
+  justify-items: stretch;
+}
+
+@media (max-width: 1100px) {
+  .plan-grid {
+    grid-template-columns: repeat(2, minmax(320px, 1fr));
+    max-width: 740px;
+  }
+}
+
+@media (max-width: 760px) {
+  .plan-grid {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+  }
+}
+
+
+/* Card */
+.plan-card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(10, 30, 80, .08);
+  padding: 18px 18px 16px;
+  border: 1px solid rgba(20,60,160,.08);
+}
+
+.plan_title { margin: 0 0 6px; font-weight: 800; }
+.plan_price { font-size: 22px; font-weight: 800; color: #111827; margin-bottom: 10px; }
+.plan_price .per { font-size: 14px; font-weight: 600; color: #6b7280; }
+
+.plan_features {
+  list-style: none; padding: 0; margin: 0 0 14px;
+  color: #344054; font-size: 14px; line-height: 1.45;
+}
+.plan_features li { margin: 6px 0; position: relative; padding-left: 14px; }
+.plan_features li::before {
+  content: "•"; position: absolute; left: 0; color: #1e3a8a; line-height: 1;
+}
+
+/* Button */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 10px 14px; border-radius: 10px; font-weight: 700;
+  text-decoration: none; border: 1px solid transparent;
+}
+.btn-primary {
+  background: #143aa0; color: #fff;
+}
+.btn-primary:hover { background: #1e4ed8; }
+
+/* Footer */
+.site-footer { margin: 48px 0 24px; color: #5b6475; font-size: 14px; }
