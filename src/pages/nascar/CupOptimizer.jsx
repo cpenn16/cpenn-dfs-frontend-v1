@@ -1,5 +1,6 @@
 // src/pages/nascar/CupOptimizer.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import API_BASE, { probeAndPostCup } from "../../utils/api";
 
 /* ----------------------------- helpers ----------------------------- */
 const clamp = (v, lo = 0, hi = 1e9) => Math.max(lo, Math.min(hi, v));
@@ -234,8 +235,6 @@ function downloadExposuresCSV(lineups, fname = "exposures.csv") {
   URL.revokeObjectURL(url);
 }
 
-import API_BASE from "../../utils/api";
-
 /* -------------------- CUP endpoints: auto-resolver ------------------ */
 const CUP_SSE_PATHS = [
   "nascar/cup/solve_stream",
@@ -261,42 +260,46 @@ async function fetchFirstOk(paths, init) {
 }
 
 /* ----------------------------- server calls ----------------------------- */
-async function solveStream(payload, onItem, onDone) {
-  const attempt = await fetchFirstOk(CUP_SSE_PATHS, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+async function solveStreamWithProbe(payload, onItem, onDone) {
+  // First try to find a streaming endpoint
+  const attempt = await probeAndPostCup(payload, { streaming: true });
 
-  if (!attempt || !attempt.res.body) {
-    throw new Error("No streaming endpoint");
-  }
-
-  const reader = attempt.res.body.getReader();
-  const decoder = new TextDecoder("utf-8");
-  let buf = "";
-
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buf += decoder.decode(value, { stream: true });
-    const parts = buf.split("\n\n");
-    buf = parts.pop();
-    for (const part of parts) {
-      if (!part.trim()) continue;
-      try {
-        const msg = JSON.parse(part);
-        if (msg.done) {
-          onDone && onDone(msg);
-        } else {
-          onItem && onItem(msg);
-        }
-      } catch (err) {
-        console.error("Cup stream parse error", err, part);
+  // If the server returned a stream, consume it
+  if (attempt.res.ok && attempt.res.body) {
+    const reader = attempt.res.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buf = "";
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const parts = buf.split("\n\n");
+      buf = parts.pop();
+      for (const part of parts) {
+        if (!part.trim()) continue;
+        try {
+          const msg = JSON.parse(part);
+          if (msg.done) {
+            onDone && onDone(msg);
+          } else {
+            onItem && onItem(msg);
+          }
+        } catch {}
       }
     }
+    return;
   }
+
+  // If streaming path didn’t work, fallback to non-streaming
+  const attempt2 = await probeAndPostCup(payload, { streaming: false });
+  if (!attempt2.res.ok) {
+    throw new Error(`Fallback solve failed with HTTP ${attempt2.res.status}`);
+  }
+  const j = await attempt2.res.json();
+  (j.lineups || []).forEach((L) => onItem && onItem(L));
+  onDone && onDone({ produced: (j.lineups || []).length, reason: "fallback-complete" });
 }
+
 
 /* --------- robust per-site build naming to avoid stale length ------- */
 function nextBuildNameForSite(site) {
@@ -574,111 +577,111 @@ export default function CupOptimizer() {
   };
 
   /* --------------------------- optimize (SSE) ------------------------ */
-  async function optimize() {
-    if (!rows.length) return;
+async function optimize() {
+  if (!rows.length) return;
 
-    setLineups([]);
-    setStopInfo(null);
-    setProgressActual(0);
-    setProgressUI(0);
-    setIsOptimizing(true);
+  setLineups([]);
+  setStopInfo(null);
+  setProgressActual(0);
+  setProgressUI(0);
+  setIsOptimizing(true);
 
-    const N = Math.max(1, Number(numLineups) || 1);
-    const payload = {
-      players: rows.map((r) => ({
-        driver: r.driver,
-        salary: Math.round(r.salary || 0),
-        proj: r.proj || 0,
-        floor: r.floor || 0,
-        ceil: r.ceil || 0,
-        pown: r.pown || 0,
-        opt: r.opt || 0,
-      })),
-      roster: cfg.roster,
-      cap: Math.min(cfg.cap, Number(maxSalary) || cfg.cap),
-      n: N,
-      objective: optBy,
-      locks: Array.from(locks),
-      excludes: Array.from(excls),
-      boosts: boost,
-      randomness: clamp(Number(randomness) || 0, 0, 100),
-      global_max_pct: clamp(Number(globalMax) || 100, 0, 100),
-      min_pct: Object.fromEntries(
-        Object.entries(minPct).map(([k, v]) => [k, clamp(Number(v) || 0, 0, 100)])
-      ),
-      max_pct: Object.fromEntries(
-        Object.entries(maxPct).map(([k, v]) => [k, clamp(Number(v) || 100, 0, 100)])
-      ),
-      min_diff: 1,
-      time_limit_ms: 1500,
-      groups: groups.map((g) => ({
-        mode: g.mode || "at_most", // at_most | at_least | exactly
-        count: Math.max(0, Number(g.count) || 0),
-        players: Array.isArray(g.players) ? g.players : [],
-      })),
-    };
+  const N = Math.max(1, Number(numLineups) || 1);
+  const payload = {
+    players: rows.map((r) => ({
+      driver: r.driver,
+      salary: Math.round(r.salary || 0),
+      proj: r.proj || 0,
+      floor: r.floor || 0,
+      ceil: r.ceil || 0,
+      pown: r.pown || 0,
+      opt: r.opt || 0,
+    })),
+    roster: cfg.roster,
+    cap: Math.min(cfg.cap, Number(maxSalary) || cfg.cap),
+    n: N,
+    objective: optBy,
+    locks: Array.from(locks),
+    excludes: Array.from(excls),
+    boosts: boost,
+    randomness: clamp(Number(randomness) || 0, 0, 100),
+    global_max_pct: clamp(Number(globalMax) || 100, 0, 100),
+    min_pct: Object.fromEntries(
+      Object.entries(minPct).map(([k, v]) => [k, clamp(Number(v) || 0, 0, 100)])
+    ),
+    max_pct: Object.fromEntries(
+      Object.entries(maxPct).map(([k, v]) => [k, clamp(Number(v) || 100, 0, 100)])
+    ),
+    min_diff: 1,
+    time_limit_ms: 1500,
+    groups: groups.map((g) => ({
+      mode: g.mode || "at_most",
+      count: Math.max(0, Number(g.count) || 0),
+      players: Array.isArray(g.players) ? g.players : [],
+    })),
+  };
 
-    const out = [];
-    try {
-      await solveStream(
-        payload,
-        (evt) => {
-          const chosen = evt.drivers
-            .map((name) => rows.find((r) => r.driver === name))
-            .filter(Boolean);
-          const L = {
-            drivers: evt.drivers,
-            salary: evt.salary,
-            total: evt.total,
-            chosen,
-          };
-          out.push(L);
-          setLineups((prev) => [...prev, L]);
-          setProgressActual(out.length);
-        },
-        (done) => {
-          if (done?.reason) setStopInfo(done);
-          setProgressActual(out.length || payload.n);
-          setProgressUI(out.length || payload.n); // snap full
-          setIsOptimizing(false);
-          clearInterval(tickRef.current);
-          saveBuild(nextBuildNameForSite(site), out);
-        }
-      );
-    } catch (e) {
-      // non-streaming fallback: try /nascar/cup/solve then /cup/solve
-      const attempt = await fetchFirstOk(CUP_POST_PATHS, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!attempt) {
-        alert("Solve failed: No working Cup endpoint found.");
+  const out = [];
+  try {
+    // 1) Try the streaming Cup endpoint first
+    await solveStream(
+      payload,
+      (evt) => {
+        const chosen = evt.drivers
+          .map((name) => rows.find((r) => r.driver === name))
+          .filter(Boolean);
+        const L = { drivers: evt.drivers, salary: evt.salary, total: evt.total, chosen };
+        out.push(L);
+        setLineups((prev) => [...prev, L]);
+        setProgressActual(out.length);
+      },
+      (done) => {
+        if (done?.reason) setStopInfo(done);
+        setProgressActual(out.length || payload.n);
+        setProgressUI(out.length || payload.n);
         setIsOptimizing(false);
         clearInterval(tickRef.current);
-        return;
+        saveBuild(nextBuildNameForSite(site), out);
       }
+    );
+  } catch (e) {
+    // 2) Fallback to non-streaming: try several POST endpoints
+    const attempt = await fetchFirstOk(CUP_POST_PATHS, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      // include series hint so generic /solve can route it
+      body: JSON.stringify({ ...payload, series: "cup" }),
+    });
 
-      const j = await attempt.res.json();
-      const out2 =
-        (j.lineups || []).map((L) => ({
-          drivers: L.drivers,
-          salary: L.salary,
-          total: L.total,
-          chosen: L.drivers.map((n) => rows.find((r) => r.driver === n)).filter(Boolean),
-        })) || [];
-      setLineups(out2);
-      setProgressActual(out2.length);
-      setProgressUI(out2.length);
+    if (!attempt) {
+      alert("Solve failed: No working Cup endpoint found.");
       setIsOptimizing(false);
       clearInterval(tickRef.current);
-      if ((j.produced || 0) < payload.n) {
-        setStopInfo({ produced: j.produced || 0, requested: payload.n, reason: "stopped_early" });
-      }
-      saveBuild(nextBuildNameForSite(site), out2);
+      return;
     }
+
+    const j = await attempt.res.json();
+    const out2 =
+      (j.lineups || []).map((L) => ({
+        drivers: L.drivers,
+        salary: L.salary,
+        total: L.total,
+        chosen: L.drivers.map((n) => rows.find((r) => r.driver === n)).filter(Boolean),
+      })) || [];
+
+    setLineups(out2);
+    setProgressActual(out2.length);
+    setProgressUI(out2.length);
+    setIsOptimizing(false);
+    clearInterval(tickRef.current);
+
+    if ((j.produced || 0) < payload.n) {
+      setStopInfo({ produced: j.produced || 0, requested: payload.n, reason: "stopped_early" });
+    }
+    saveBuild(nextBuildNameForSite(site), out2);
   }
+}
+
 
   /* -------------------------- builds (per site) ---------------------- */
   function saveBuild(name, data) {
