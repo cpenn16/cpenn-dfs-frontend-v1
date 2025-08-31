@@ -1,5 +1,6 @@
 // src/pages/nascar/CupOptimizer.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import API_BASE from "../../utils/api";
 
 /* ----------------------------- helpers ----------------------------- */
 const clamp = (v, lo = 0, hi = 1e9) => Math.max(lo, Math.min(hi, v));
@@ -38,19 +39,19 @@ const escapeCSV = (s) => {
 const normName = (s) =>
   String(s || "")
     .toLowerCase()
-    .replace(/\u2019/g, "'")      // smart apostrophe → '
-    .replace(/\./g, "")           // remove dots
-    .replace(/,\s*(jr|sr)\b/g, "")// remove ", Jr"/", Sr"
-    .replace(/\b(jr|sr)\b/g, "")  // remove trailing Jr/Sr
-    .replace(/[^a-z' -]/g, "")    // letters/'/-/space only
-    .replace(/\s+/g, " ")         // squeeze spaces
+    .replace(/\u2019/g, "'") // smart apostrophe → '
+    .replace(/\./g, "") // remove dots
+    .replace(/,\s*(jr|sr)\b/g, "") // remove ", Jr"/", Sr"
+    .replace(/\b(jr|sr)\b/g, "") // remove trailing Jr/Sr
+    .replace(/[^a-z' -]/g, "") // letters/'/-/space only
+    .replace(/\s+/g, " ") // squeeze spaces
     .trim();
 
 // Build a name→record index from site_ids
 function buildSiteIdIndex(siteIdsList) {
   const idx = new Map();
   for (const r of siteIdsList || []) {
-    const id  = String(r.id ?? r.ID ?? r.playerId ?? "").trim();
+    const id = String(r.id ?? r.ID ?? r.playerId ?? "").trim();
     const nm0 = r.name ?? r.player ?? r.Player ?? r.displayName ?? r.Name;
     if (!id || !nm0) continue;
     const key = normName(nm0);
@@ -66,19 +67,22 @@ function detectFdPrefix(siteIdsList) {
   const counts = new Map();
   for (const r of siteIdsList || []) {
     const px =
-      r.slateId ?? r.slate_id ??
-      r.groupId ?? r.group_id ??
-      r.lid ?? r.prefix ?? null;
+      r.slateId ??
+      r.slate_id ??
+      r.groupId ??
+      r.group_id ??
+      r.lid ??
+      r.prefix ??
+      null;
     if (px != null && px !== "") {
       const key = String(px);
       counts.set(key, (counts.get(key) || 0) + 1);
     }
   }
   if (counts.size === 1) return [...counts.keys()][0];
-  if (counts.size > 1) return [...counts.entries()].sort((a,b)=>b[1]-a[1])[0][0];
+  if (counts.size > 1) return [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0];
   return null; // no prefix found (ok)
 }
-
 
 /* ------------------------- sites & columns ------------------------- */
 const SITES = {
@@ -162,48 +166,31 @@ function downloadSiteLineupsCSV({
   fname = "lineups_site_ids.csv",
 }) {
   const siteKey = site === "fd" ? "fd" : "dk";
-  const list =
-    Array.isArray(siteIds?.[siteKey])
-      ? siteIds[siteKey]
-      : (siteIds?.sites?.[siteKey] ?? []); // support { sites: { dk:[], fd:[] } } too
+  const list = Array.isArray(siteIds?.[siteKey])
+    ? siteIds[siteKey]
+    : siteIds?.sites?.[siteKey] ?? []; // support { sites: { dk:[], fd:[] } } too
 
   // Build index + detect FD prefix
   const idIndex = buildSiteIdIndex(list);
   const fdPrefix = siteKey === "fd" ? detectFdPrefix(list) : null;
 
-  const header = [
-    "#",
-    "Salary",
-    "Total",
-    ...Array.from({ length: rosterSize }, (_, i) => `D${i + 1}`),
-  ].join(",");
+  const header = ["#", "Salary", "Total", ...Array.from({ length: rosterSize }, (_, i) => `D${i + 1}`)].join(",");
 
   const lines = (lineups || []).map((L, idx) => {
     const names = Array.isArray(L.drivers) ? L.drivers : [];
     const cells = names.slice(0, rosterSize).map((name) => {
       const rec = idIndex.get(normName(name));
-      if (!rec) {
-        // not found -> export raw name so DK templates still accept it
-        return escapeCSV(name);
-      }
+      if (!rec) return escapeCSV(name); // not found → export raw name
       if (siteKey === "fd") {
-        // FD wants prefix-id:DisplayName
         const outId = fdPrefix ? `${fdPrefix}-${rec.id}` : rec.id;
         const display = rec.nameFromSite || name;
         return escapeCSV(`${outId}:${display}`);
       }
-      // DK format
       return escapeCSV(`${name} (${rec.id})`);
     });
 
     while (cells.length < rosterSize) cells.push("");
-
-    return [
-      idx + 1,
-      L.salary ?? "",
-      Number.isFinite(L.total) ? L.total.toFixed(1) : "",
-      ...cells,
-    ].join(",");
+    return [idx + 1, L.salary ?? "", Number.isFinite(L.total) ? L.total.toFixed(1) : "", ...cells].join(",");
   });
 
   const csv = [header, ...lines].join("\n");
@@ -234,41 +221,108 @@ function downloadExposuresCSV(lineups, fname = "exposures.csv") {
   URL.revokeObjectURL(url);
 }
 
-import API_BASE from "../../utils/api";
+/* ----------------------------- server calls (robust) ----------------------------- */
+/**
+ * Try multiple endpoints for Cup and fallback from stream -> non-stream.
+ * Calls onItem({drivers, salary, total}) for each lineup and onDone({done:true,...}) at the end.
+ */
+async function tryCupSolve(payload, onItem, onDone) {
+  const candidates = [
+    { url: `${API_BASE}/cup/solve_stream`, stream: true },
+    { url: `${API_BASE}/nascar/cup/solve_stream`, stream: true },
+    { url: `${API_BASE}/cup/solve`, stream: false },
+    { url: `${API_BASE}/nascar/cup/solve`, stream: false },
+  ];
 
-/* ----------------------------- server calls ----------------------------- */
-async function solveStream(payload, onItem, onDone) {
-  const res = await fetch(`${API_BASE}/cup/solve_stream`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok || !res.body) throw new Error("Stream failed to start");
-
-  const reader = res.body.getReader();
-  const decoder = new TextDecoder("utf-8");
-  let buf = "";
-
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buf += decoder.decode(value, { stream: true });
-    const parts = buf.split("\n\n");
-    buf = parts.pop();
+  let lastErr;
+  const parseSSE = (chunk) => {
+    // Split SSE messages on blank line; accept either SSE "data:" lines or raw json
+    const parts = chunk.split("\n\n");
+    const out = [];
     for (const part of parts) {
-      if (!part.trim()) continue;
+      const trimmed = part.trim();
+      if (!trimmed) continue;
+      const dataLine = trimmed
+        .split("\n")
+        .map((l) => l.trim())
+        .find((l) => l.toLowerCase().startsWith("data:"));
+      const jsonStr = dataLine ? dataLine.replace(/^data:\s*/i, "") : trimmed;
       try {
-        const msg = JSON.parse(part);
-        if (msg.done) {
-          if (onDone) onDone(msg);
-        } else if (onItem) {
-          onItem(msg);
-        }
-      } catch (err) {
-        console.error("Stream parse error", err, part);
+        out.push(JSON.parse(jsonStr));
+      } catch {
+        // ignore non-json fragments
       }
     }
+    return out;
+  };
+
+  for (const c of candidates) {
+    try {
+      if (c.stream) {
+        // Streaming
+        const res = await fetch(c.url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          if (res.status === 404 || res.status === 405) continue; // try next
+          throw new Error(`${res.status} ${await res.text()}`);
+        }
+        if (!res.body) throw new Error("No stream body");
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let buf = "";
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buf += decoder.decode(value, { stream: true });
+
+          const lastDoubleNL = buf.lastIndexOf("\n\n");
+          if (lastDoubleNL === -1) continue;
+
+          const chunk = buf.slice(0, lastDoubleNL + 2);
+          buf = buf.slice(lastDoubleNL + 2);
+
+          for (const msg of parseSSE(chunk)) {
+            if (msg.done) onDone?.(msg);
+            else onItem?.(msg);
+          }
+        }
+        if (buf.trim()) {
+          for (const msg of parseSSE(buf)) {
+            if (msg.done) onDone?.(msg);
+            else onItem?.(msg);
+          }
+        }
+        return; // success
+      } else {
+        // Non-streaming
+        const res = await fetch(c.url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          if (res.status === 404 || res.status === 405) continue; // try next
+          throw new Error(`${res.status} ${await res.text()}`);
+        }
+        const j = await res.json();
+        for (const L of j.lineups || []) {
+          onItem?.({ drivers: L.drivers, salary: L.salary, total: L.total });
+        }
+        onDone?.({ produced: (j.lineups || []).length, done: true });
+        return; // success
+      }
+    } catch (e) {
+      lastErr = e;
+      // try next candidate
+    }
   }
+
+  throw lastErr || new Error("No working Cup endpoint found.");
 }
 
 /* --------- robust per-site build naming to avoid stale length ------- */
@@ -397,7 +451,7 @@ export default function CupOptimizer() {
     if (!lineups.length) return {};
     const m = new Map();
     for (const L of lineups) for (const d of L.drivers) m.set(d, (m.get(d) || 0) + 1);
-    const total = Math.max(1, lineups.length); // ← the "1" goes here
+    const total = Math.max(1, lineups.length);
     const out = {};
     for (const [driver, cnt] of m.entries()) out[driver] = (cnt / total) * 100;
     return out;
@@ -410,13 +464,12 @@ export default function CupOptimizer() {
   const tickRef = useRef(null);
 
   useEffect(() => {
-    // smooth UI ticks while optimizing
     if (!isOptimizing) return;
     clearInterval(tickRef.current);
     tickRef.current = setInterval(() => {
       setProgressUI((p) => {
         const N = Math.max(1, Number(numLineups) || 1);
-        const target = Math.max(progressActual, 1); // never look stuck at 0
+        const target = Math.max(progressActual, 1);
         const ceiling = N;
         const next = Math.min(Math.max(p + 1, target), ceiling);
         return next;
@@ -452,8 +505,7 @@ export default function CupOptimizer() {
         ceil: num(r[cfg.ceil]),
         pown: getPct(r, cfg.pown),
         opt: getPct(r, cfg.opt),
-        // val is computed dynamically using boosted proj; placeholder here is optional
-        val: 0,
+        val: 0, // computed dynamically using boosted proj
       }))
       .filter((r) => r.driver && r.salary > 0);
   }, [data, site]);
@@ -479,11 +531,12 @@ export default function CupOptimizer() {
     const needle = q.trim().toLowerCase();
     if (!needle) return base;
 
-    return base.filter((r) =>
-      r.driver.toLowerCase().includes(needle) ||
-      String(r.qual).includes(needle) ||
-      String(r.salary).includes(needle) ||
-      `${usagePct[r.driver] ?? ""}`.includes(needle)
+    return base.filter(
+      (r) =>
+        r.driver.toLowerCase().includes(needle) ||
+        String(r.qual).includes(needle) ||
+        String(r.salary).includes(needle) ||
+        `${usagePct[r.driver] ?? ""}`.includes(needle)
     );
   }, [rows, order, q, usagePct, boost]);
 
@@ -493,15 +546,14 @@ export default function CupOptimizer() {
   const setSort = (col) => {
     if (!sortable.has(col)) return;
 
-    const dir =
-      sortRef.current.col === col ? (sortRef.current.dir === "asc" ? "desc" : "asc") : "desc";
+    const dir = sortRef.current.col === col ? (sortRef.current.dir === "asc" ? "desc" : "asc") : "desc";
     sortRef.current = { col, dir };
     const mult = dir === "asc" ? 1 : -1;
 
     const sorted = [...displayRows].sort((a, b) => {
       const getVal = (r) => {
-        if (col === "usage") return usagePct[r.driver] ?? -Infinity; // computed Usage%
-        if (col === "pown" || col === "opt") return ((r[col] || 0) * 100); // convert 0..1 → %
+        if (col === "usage") return usagePct[r.driver] ?? -Infinity;
+        if (col === "pown" || col === "opt") return (r[col] || 0) * 100;
         if (col === "proj") return boostedProj(r);
         if (col === "val") {
           const salK = (r.salary || 0) / 1000;
@@ -520,8 +572,7 @@ export default function CupOptimizer() {
     setOrder(sorted.map((r) => r.driver));
   };
 
-  const sortArrow = (key) =>
-    sortRef.current.col === key ? (sortRef.current.dir === "asc" ? " ▲" : " ▼") : "";
+  const sortArrow = (key) => (sortRef.current.col === key ? (sortRef.current.dir === "asc" ? " ▲" : " ▼") : "");
 
   /* ----------------------------- actions ---------------------------- */
   const bumpBoost = (d, step) => setBoost((m) => ({ ...m, [d]: clamp((m[d] || 0) + step, -6, 6) }));
@@ -547,7 +598,7 @@ export default function CupOptimizer() {
     setGroups([]);
   };
 
-  /* --------------------------- optimize (SSE) ------------------------ */
+  /* --------------------------- optimize (uses robust solver) ------------------------ */
   async function optimize() {
     if (!rows.length) return;
 
@@ -585,8 +636,6 @@ export default function CupOptimizer() {
       ),
       min_diff: 1,
       time_limit_ms: 1500,
-
-      // NEW: player groups (backend you added will honor them)
       groups: groups.map((g) => ({
         mode: g.mode || "at_most", // at_most | at_least | exactly
         count: Math.max(0, Number(g.count) || 0),
@@ -596,18 +645,13 @@ export default function CupOptimizer() {
 
     const out = [];
     try {
-      await solveStream(
+      await tryCupSolve(
         payload,
         (evt) => {
           const chosen = evt.drivers
             .map((name) => rows.find((r) => r.driver === name))
             .filter(Boolean);
-          const L = {
-            drivers: evt.drivers,
-            salary: evt.salary,
-            total: evt.total,
-            chosen,
-          };
+          const L = { drivers: evt.drivers, salary: evt.salary, total: evt.total, chosen };
           out.push(L);
           setLineups((prev) => [...prev, L]);
           setProgressActual(out.length);
@@ -622,35 +666,9 @@ export default function CupOptimizer() {
         }
       );
     } catch (e) {
-      // non-streaming fallback
-      const res = await fetch(`${API_BASE}/cup/solve`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        alert(`Solve failed: ${await res.text()}`);
-        setIsOptimizing(false);
-        clearInterval(tickRef.current);
-        return;
-      }
-      const j = await res.json();
-      const out2 =
-        (j.lineups || []).map((L) => ({
-          drivers: L.drivers,
-          salary: L.salary,
-          total: L.total,
-          chosen: L.drivers.map((n) => rows.find((r) => r.driver === n)).filter(Boolean),
-        })) || [];
-      setLineups(out2);
-      setProgressActual(out2.length);
-      setProgressUI(out2.length);
+      alert(`Solve failed: ${String(e?.message || e)}`);
       setIsOptimizing(false);
       clearInterval(tickRef.current);
-      if ((j.produced || 0) < payload.n) {
-        setStopInfo({ produced: j.produced || 0, requested: payload.n, reason: "stopped_early" });
-      }
-      saveBuild(nextBuildNameForSite(site), out2);
     }
   }
 
@@ -705,15 +723,7 @@ export default function CupOptimizer() {
 
   /* ------------------------------- UI -------------------------------- */
   const metricLabel =
-    optBy === "proj"
-      ? "Proj"
-      : optBy === "floor"
-      ? "Floor"
-      : optBy === "ceil"
-      ? "Ceiling"
-      : optBy === "pown"
-      ? "pOWN%"
-      : "Opt%";
+    optBy === "proj" ? "Proj" : optBy === "floor" ? "Floor" : optBy === "ceil" ? "Ceiling" : optBy === "pown" ? "pOWN%" : "Opt%";
 
   // compact, center-aligned look
   const cell = "px-2 py-1 text-center";
@@ -728,7 +738,7 @@ export default function CupOptimizer() {
     { key: "driver", label: "Driver", sortable: false },
     { key: "salary", label: "Salary", sortable: true },
     { key: "proj", label: "Proj", sortable: true },
-    { key: "val",  label: "Val",  sortable: true },       // NEW
+    { key: "val", label: "Val", sortable: true },
     { key: "floor", label: "Floor", sortable: true },
     { key: "ceil", label: "Ceiling", sortable: true },
     { key: "pown", label: "pOWN%", sortable: true },
@@ -809,10 +819,11 @@ export default function CupOptimizer() {
             <div
               className="h-2 bg-blue-500 rounded transition-all duration-300"
               style={{
-                width: `${(Math.min(progressUI, Math.max(1, Number(numLineups) || 1)) / Math.max(
-                  1,
-                  Number(numLineups) || 1
-                )) * 100}%`,
+                width: `${
+                  (Math.min(progressUI, Math.max(1, Number(numLineups) || 1)) /
+                    Math.max(1, Number(numLineups) || 1)) *
+                  100
+                }%`,
               }}
             />
           </div>
@@ -853,7 +864,7 @@ export default function CupOptimizer() {
         </div>
       )}
 
-      {/* Player Groups (new searchable picker) */}
+      {/* Player Groups */}
       <section className="rounded-lg border bg-white p-3 mb-4">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-base font-semibold">Player Groups</h3>
@@ -875,9 +886,7 @@ export default function CupOptimizer() {
                   <select
                     value={g.mode || "at_most"}
                     onChange={(e) =>
-                      setGroups((Gs) =>
-                        Gs.map((gg, i) => (i === idx ? { ...gg, mode: e.target.value } : gg))
-                      )
+                      setGroups((Gs) => Gs.map((gg, i) => (i === idx ? { ...gg, mode: e.target.value } : gg)))
                     }
                     className="border rounded-md px-2 py-1 text-sm"
                     title="Group rule"
@@ -913,9 +922,7 @@ export default function CupOptimizer() {
                 <DriverMultiPicker
                   allDrivers={allDriverNames}
                   value={Array.isArray(g.players) ? g.players : []}
-                  onChange={(players) =>
-                    setGroups((Gs) => Gs.map((gg, i) => (i === idx ? { ...gg, players } : gg)))
-                  }
+                  onChange={(players) => setGroups((Gs) => Gs.map((gg, i) => (i === idx ? { ...gg, players } : gg)))}
                   placeholder="Type to search drivers and click to add…"
                 />
               </div>
@@ -970,7 +977,7 @@ export default function CupOptimizer() {
               !err &&
               displayRows.map((r) => {
                 const projBoosted = boostedProj(r);
-                const val = (r.salary > 0) ? projBoosted / (r.salary / 1000) : NaN;
+                const val = r.salary > 0 ? projBoosted / (r.salary / 1000) : NaN;
 
                 return (
                   <tr key={r.driver} className="odd:bg-white even:bg-gray-50 hover:bg-blue-50/60 transition-colors">
@@ -995,7 +1002,7 @@ export default function CupOptimizer() {
                     <td className={`${cell} whitespace-nowrap`}>{r.driver}</td>
                     <td className={`${cell} tabular-nums`}>{fmt0(r.salary)}</td>
                     <td className={`${cell} tabular-nums`}>{fmt1(projBoosted)}</td>
-                    <td className={`${cell} tabular-nums`}>{fmt1(val)}</td> {/* NEW Val */}
+                    <td className={`${cell} tabular-nums`}>{fmt1(val)}</td>
                     <td className={`${cell} tabular-nums`}>{fmt1(r.floor)}</td>
                     <td className={`${cell} tabular-nums`}>{fmt1(r.ceil)}</td>
                     <td className={`${cell} tabular-nums`}>{fmt1(r.pown * 100)}</td>
@@ -1006,7 +1013,9 @@ export default function CupOptimizer() {
                       <div className="inline-flex items-center gap-1">
                         <button
                           className="px-1.5 py-0.5 border rounded"
-                          onClick={() => setMinPct((m) => ({ ...m, [r.driver]: clamp((num(m[r.driver]) || 0) - 5, 0, 100) }))}
+                          onClick={() =>
+                            setMinPct((m) => ({ ...m, [r.driver]: clamp((num(m[r.driver]) || 0) - 5, 0, 100) }))
+                          }
                           title="-5%"
                         >
                           –
@@ -1019,7 +1028,9 @@ export default function CupOptimizer() {
                         />
                         <button
                           className="px-1.5 py-0.5 border rounded"
-                          onClick={() => setMinPct((m) => ({ ...m, [r.driver]: clamp((num(m[r.driver]) || 0) + 5, 0, 100) }))}
+                          onClick={() =>
+                            setMinPct((m) => ({ ...m, [r.driver]: clamp((num(m[r.driver]) || 0) + 5, 0, 100) }))
+                          }
                           title="+5%"
                         >
                           +
@@ -1032,7 +1043,9 @@ export default function CupOptimizer() {
                       <div className="inline-flex items-center gap-1">
                         <button
                           className="px-1.5 py-0.5 border rounded"
-                          onClick={() => setMaxPct((m) => ({ ...m, [r.driver]: clamp((num(m[r.driver]) || 100) - 5, 0, 100) }))}
+                          onClick={() =>
+                            setMaxPct((m) => ({ ...m, [r.driver]: clamp((num(m[r.driver]) || 100) - 5, 0, 100) }))
+                          }
                           title="-5%"
                         >
                           –
@@ -1045,7 +1058,9 @@ export default function CupOptimizer() {
                         />
                         <button
                           className="px-1.5 py-0.5 border rounded"
-                          onClick={() => setMaxPct((m) => ({ ...m, [r.driver]: clamp((num(m[r.driver]) || 100) + 5, 0, 100) }))}
+                          onClick={() =>
+                            setMaxPct((m) => ({ ...m, [r.driver]: clamp((num(m[r.driver]) || 100) + 5, 0, 100) }))
+                          }
                           title="+5%"
                         >
                           +
@@ -1053,10 +1068,8 @@ export default function CupOptimizer() {
                       </div>
                     </td>
 
-                    {/* Usage% (new column) */}
-                    <td className={cell}>
-                      {usagePct[r.driver] != null ? fmt1(usagePct[r.driver]) : "—"}
-                    </td>
+                    {/* Usage% */}
+                    <td className={cell}>{usagePct[r.driver] != null ? fmt1(usagePct[r.driver]) : "—"}</td>
                   </tr>
                 );
               })}
@@ -1142,7 +1155,7 @@ export default function CupOptimizer() {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
               {lineups.map((L, idx) => {
                 const chosenSorted = [...L.chosen].sort((a, b) => b.salary - a.salary);
-                const totalPownPct = chosenSorted.reduce((acc, r) => acc + (r.pown || 0) * 100, 0); // NEW total pOWN%
+                const totalPownPct = chosenSorted.reduce((acc, r) => acc + (r.pown || 0) * 100, 0);
 
                 return (
                   <div key={idx} className="rounded-lg border p-3 bg-white">
@@ -1166,16 +1179,14 @@ export default function CupOptimizer() {
                             <td className={cell}>{r.driver}</td>
                             <td className={`${cell} tabular-nums`}>{r.qual || "—"}</td>
                             <td className={`${cell} tabular-nums`}>{fmt1((r.pown || 0) * 100)}</td>
-                            <td className={`${cell} tabular-nums`}>
-                              {fmt1(r.proj * (1 + 0.03 * (boost[r.driver] || 0)))}
-                            </td>
+                            <td className={`${cell} tabular-nums`}>{fmt1(r.proj * (1 + 0.03 * (boost[r.driver] || 0)))}</td>
                             <td className={`${cell} tabular-nums`}>{fmt0(r.salary)}</td>
                           </tr>
                         ))}
                         <tr className="border-t">
                           <td className={`${cell} font-semibold`}>Totals</td>
                           <td className={cell} />
-                          <td className={`${cell} tabular-nums font-semibold`}>{fmt1(totalPownPct)}</td> {/* NEW total pOWN% */}
+                          <td className={`${cell} tabular-nums font-semibold`}>{fmt1(totalPownPct)}</td>
                           <td className={`${cell} tabular-nums font-semibold`}>{fmt1(L.total)}</td>
                           <td className={`${cell} tabular-nums font-semibold`}>{fmt0(L.salary)}</td>
                         </tr>
