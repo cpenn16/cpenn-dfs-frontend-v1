@@ -1,6 +1,6 @@
 // src/pages/nascar/CupOptimizer.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import API_BASE, { probeAndPostCup } from "../../utils/api";
+import API_BASE from "../../utils/api";
 
 /* ----------------------------- helpers ----------------------------- */
 const clamp = (v, lo = 0, hi = 1e9) => Math.max(lo, Math.min(hi, v));
@@ -260,35 +260,34 @@ async function fetchFirstOk(paths, init) {
 }
 
 /* ----------------------------- server calls ----------------------------- */
-async function solveStreamWithProbe(payload, onItem, onDone) {
-  // First try to find a streaming endpoint
-  const attempt = await probeAndPostCup({ ...payload, series: "cup" }, { streaming: true });
+async function solveStream(payload, onItem, onDone) {
+  const res = await fetch(`${API_BASE}/cup/solve_stream`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...payload, series: "cup" }), // harmless even if server ignores it
+  });
+  if (!res.ok || !res.body) throw new Error("Stream failed to start");
 
-  // If the server returned a stream, consume it
-  if (attempt.res.ok && attempt.res.body) {
-    const reader = attempt.res.body.getReader();
-    const decoder = new TextDecoder("utf-8");
-    let buf = "";
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buf += decoder.decode(value, { stream: true });
-      const parts = buf.split("\n\n");
-      buf = parts.pop();
-      for (const part of parts) {
-        if (!part.trim()) continue;
-        try {
-          const msg = JSON.parse(part);
-          if (msg.done) {
-            onDone && onDone(msg);
-          } else {
-            onItem && onItem(msg);
-          }
-        } catch {}
-      }
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder("utf-8");
+  let buf = "";
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    const parts = buf.split("\n\n");
+    buf = parts.pop();
+    for (const part of parts) {
+      if (!part.trim()) continue;
+      try {
+        const msg = JSON.parse(part);
+        if (msg.done) onDone && onDone(msg);
+        else onItem && onItem(msg);
+      } catch {}
     }
-    return;
   }
+
 
   // If streaming path didn’t work, fallback to non-streaming
   const attempt2 = await probeAndPostCup(payload, { streaming: false });
@@ -626,7 +625,7 @@ async function optimize() {
   const out = [];
   try {
     // 1) Try the streaming Cup endpoint first
-    await solveStreamWithProbe(
+    await solveStream(
       payload,
       (evt) => {
         const chosen = evt.drivers
