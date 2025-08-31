@@ -234,22 +234,20 @@ function downloadExposuresCSV(lineups, fname = "exposures.csv") {
   URL.revokeObjectURL(url);
 }
 
+/* ----------------------------- server calls ----------------------------- */
 import API_BASE from "../../utils/api";
 
-
-/* ----------------------------- server calls ----------------------------- */
 async function solveStream(payload, onItem, onDone) {
   const res = await fetch(`${API_BASE}/xfinity/solve_stream`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ ...payload, series: "xfinity" }), // explicit series
   });
   if (!res.ok || !res.body) throw new Error("Stream failed to start");
 
   const reader = res.body.getReader();
   const decoder = new TextDecoder("utf-8");
   let buf = "";
-
   while (true) {
     const { value, done } = await reader.read();
     if (done) break;
@@ -260,23 +258,17 @@ async function solveStream(payload, onItem, onDone) {
       if (!part.trim()) continue;
       try {
         const msg = JSON.parse(part);
-        if (msg.done) {
-          if (onDone) onDone(msg);
-        } else if (onItem) {
-          onItem(msg);
-        }
-      } catch (err) {
-        console.error("Stream parse error", err, part);
-      }
+        if (msg.done) onDone && onDone(msg);
+        else onItem && onItem(msg);
+      } catch {}
     }
   }
 }
 
-
 /* --------- robust per-site build naming to avoid stale length ------- */
 function nextBuildNameForSite(site) {
   try {
-    const raw = localStorage.getItem(`cupOpt.${site}.builds`);
+    const raw = localStorage.getItem(`xfiOpt.${site}.builds`);
     const arr = raw ? JSON.parse(raw) : [];
     const nums = arr
       .map((b) => (b?.name ? String(b.name).match(/^Build\s+(\d+)$/i) : null))
@@ -362,18 +354,18 @@ function DriverMultiPicker({ allDrivers, value, onChange, placeholder = "Add dri
 }
 
 /* ============================== page =============================== */
-export default function CupOptimizer() {
+export default function XfOptimizer() {
   const { data, err, loading } = useJson(SOURCE);
   const { data: siteIds } = useJson(SITE_IDS_SOURCE);
 
-  const [site, setSite] = useStickyState("cupOpt.site", "dk");
+  const [site, setSite] = useStickyState("xfiOpt.site", "dk");  // new prefix (lowercase)
   const cfg = SITES[site];
 
-  const [optBy, setOptBy] = useStickyState("cupOpt.optBy", "proj");
-  const [numLineups, setNumLineups] = useStickyState("cupOpt.N", 20);
-  const [maxSalary, setMaxSalary] = useStickyState("cupOpt.cap", 50000);
-  const [globalMax, setGlobalMax] = useStickyState("cupOpt.gmax", 100);
-  const [randomness, setRandomness] = useStickyState("cupOpt.rand", 0);
+  const [optBy, setOptBy] = useStickyState("xfiOpt.optBy", "proj");
+  const [numLineups, setNumLineups] = useStickyState("xfiOpt.N", 20);
+  const [maxSalary, setMaxSalary] = useStickyState("xfiOpt.cap", 50000);
+  const [globalMax, setGlobalMax] = useStickyState("xfiOpt.gmax", 100);
+  const [randomness, setRandomness] = useStickyState("xfiOpt.rand", 0);
 
   const [q, setQ] = useState("");
 
@@ -384,10 +376,10 @@ export default function CupOptimizer() {
   const [boost, setBoost] = useState(() => ({}));
 
   // NEW: player groups (persisted per site)
-  const [groups, setGroups] = useStickyState(`cupOpt.${site}.groups`, []);
+  const [groups, setGroups] = useStickyState(`xfiOpt.${site}.groups`, []);
 
   // Per-site builds (so DK builds don't appear on FD)
-  const buildsKey = (k) => `cupOpt.${site}.${k}`;
+  const buildsKey = (k) => `xfiOpt.${site}.${k}`;
   const [builds, setBuilds] = useStickyState(buildsKey("builds"), []);
   const [activeBuildId, setActiveBuildId] = useStickyState(buildsKey("active"), null);
 
@@ -588,7 +580,7 @@ export default function CupOptimizer() {
       min_diff: 1,
       time_limit_ms: 1500,
 
-      // NEW: player groups (backend you added will honor them)
+      // NEW: player groups (backend will honor them)
       groups: groups.map((g) => ({
         mode: g.mode || "at_most", // at_most | at_least | exactly
         count: Math.max(0, Number(g.count) || 0),
@@ -598,6 +590,7 @@ export default function CupOptimizer() {
 
     const out = [];
     try {
+      // Streaming first
       await solveStream(
         payload,
         (evt) => {
@@ -624,17 +617,27 @@ export default function CupOptimizer() {
         }
       );
     } catch (e) {
-      const res = await fetch(`${API_BASE}/xfinity/solve`, {
+      // Non-streaming fallback: try /xfinity/solve then generic /solve
+      let res = await fetch(`${API_BASE}/xfinity/solve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload, series: "xfinity" }),
       });
       if (!res.ok) {
-        alert(`Solve failed: ${await res.text()}`);
-        setIsOptimizing(false);
-        clearInterval(tickRef.current);
-        return;
+        const res2 = await fetch(`${API_BASE}/solve`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...payload, series: "xfinity" }),
+        });
+        if (!res2.ok) {
+          alert(`Solve failed: ${await res2.text()}`);
+          setIsOptimizing(false);
+          clearInterval(tickRef.current);
+          return;
+        }
+        res = res2;
       }
+
       const j = await res.json();
       const out2 =
         (j.lineups || []).map((L) => ({
