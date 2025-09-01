@@ -15,12 +15,11 @@ exports.handler = async (event) => {
       line_items: [{ price: priceId, quantity: 1 }],
       payment_method_collection: 'always',
 
-      // 👇 Force card-only (overrides config)
+      // Force card-only
       payment_method_types: ['card'],
 
-      // 👇 Helps banks/AVS & makes customer record consistent
+      // Helps AVS checks
       billing_address_collection: 'required',
-      customer_creation: 'always',
 
       allow_promotion_codes: true,
       ...(userId ? { client_reference_id: userId } : {}),
@@ -32,8 +31,7 @@ exports.handler = async (event) => {
       cancel_url: `${process.env.PUBLIC_URL}/pricing`,
     };
 
-    // Optional: if you set STRIPE_PMC_ID to a config with only Cards enabled,
-    // you can pin to it here to guarantee no Link/Klarna/Amazon Pay show up.
+    // Optional: pin to a payment method config with only Cards enabled
     if (process.env.STRIPE_PMC_ID) {
       payload.payment_method_configuration = process.env.STRIPE_PMC_ID;
     }
