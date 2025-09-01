@@ -1,4 +1,3 @@
-// netlify/functions/create-checkout-session.js
 const Stripe = require('stripe');
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -16,17 +15,10 @@ exports.handler = async (event) => {
       payment_method_collection: 'always',
       billing_address_collection: 'required',
       allow_promotion_codes: true,
-
-      // Pin to your Cards + Apple/Google Pay configuration (recommended)
-      // Create this config in Stripe and set STRIPE_PMC_ID=pmc_XXXX in Netlify
-      ...(process.env.STRIPE_PMC_ID
-        ? { payment_method_configuration: process.env.STRIPE_PMC_ID }
-        : {}), // if not set, Stripe will use your account default config
-
-      // Pass identity so your webhook can map access
+      // Pin to your Cards (+ Apple/Google Pay) configuration if you set it:
+      ...(process.env.STRIPE_PMC_ID ? { payment_method_configuration: process.env.STRIPE_PMC_ID } : {}),
       ...(userId ? { client_reference_id: userId } : {}),
       ...(email ? { customer_email: email } : {}),
-
       success_url: `${process.env.PUBLIC_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.PUBLIC_URL}/pricing`,
     };

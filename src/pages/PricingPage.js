@@ -35,38 +35,42 @@ function PlanCard({ title, price, period = "/ month", features = [], cta = "Join
 }
 
 /* ----------------------- Helper: Start Checkout Session ------------------- */
-// Calls your Netlify function to create a Stripe Checkout Session (no trial).
+// Calls your Netlify function to create a Stripe Checkout Session (NO trial).
 async function startCheckoutSession(priceId) {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user) {
-    window.location.href = "/login";
-    return;
-  }
+    if (!user) {
+      window.location.href = "/login";
+      return;
+    }
 
-  const res = await fetch("/.netlify/functions/create-checkout-session", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      priceId,
-      email: user.email,
-      userId: user.id,
-    }),
-  });
+    const res = await fetch("/.netlify/functions/create-checkout-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        priceId,
+        email: user.email,
+        userId: user.id,
+      }),
+    });
 
-  const data = await res.json();
-  if (data?.url) {
-    window.location.href = data.url;
-  } else {
-    alert(data?.error || "Unable to start checkout");
+    const data = await res.json();
+    if (res.ok && data?.url) {
+      window.location.href = data.url;
+    } else {
+      alert(data?.error || "Unable to start checkout");
+    }
+  } catch (err) {
+    alert(err?.message || "Something went wrong starting checkout.");
   }
 }
 
 /* ------------------------------- Page Body ------------------------------- */
 export default function PricingPage() {
-  // Map plan titles -> LIVE Stripe Price IDs (no trials on Prices).
+  // Map plan titles -> LIVE Stripe Price IDs (ensure these Prices have NO built-in trial).
   const PRICE_PLANS = {
     // LITE
     "MLB LITE Member":    { priceId: "price_1S1MSuRuMf2a9EBN2z4AhmHv" },
@@ -97,7 +101,7 @@ export default function PricingPage() {
         "Data Sheets",
         "Top Stacks",
         "Rankings",
-        "Floor/Ceiling Projecitons",
+        "Floor/Ceiling Projections",
         "Discord",
         "Does not include Optimizer (in PRO)",
       ],
