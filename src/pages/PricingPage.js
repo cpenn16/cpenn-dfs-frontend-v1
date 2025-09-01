@@ -34,11 +34,10 @@ function PlanCard({ title, price, period = "/ month", features = [], cta = "Join
   );
 }
 
-/* ----------------------- Helper: go to Stripe link ------------------------ */
-// Appends client_reference_id + prefilled_email so your webhook can upgrade the user.
-async function goToPaymentLink(baseUrl) {
-  if (!baseUrl) return;
-
+/* ----------------------- Helper: Start Checkout Session ------------------- */
+// Creates a Stripe Checkout Session via your Netlify function.
+// Preserves client_reference_id (user.id) and prefilled email for your webhook.
+async function startCheckoutSession(priceId, trialDays = 7) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -48,30 +47,46 @@ async function goToPaymentLink(baseUrl) {
     return;
   }
 
-  const url = new URL(baseUrl);
-  url.searchParams.set("client_reference_id", user.id);
-  if (user.email) url.searchParams.set("prefilled_email", user.email);
+  const res = await fetch("/.netlify/functions/create-checkout-session", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      priceId,
+      trialDays,
+      email: user.email,
+      userId: user.id,
+    }),
+  });
 
-  window.location.href = url.toString();
+  const data = await res.json();
+  if (data?.url) {
+    window.location.href = data.url;
+  } else {
+    alert(data?.error || "Unable to start checkout");
+  }
 }
 
 /* ------------------------------- Page Body ------------------------------- */
 export default function PricingPage() {
-  // Your Stripe Payment Links
-  const LINKS = {
-    "MLB LITE Member": "https://buy.stripe.com/9B64gBcsNdFXfVr8swaAw0a",
-    "NASCAR LITE Member": "https://buy.stripe.com/8x23cx3Wh0TbbFb248aAw09",
-    "NFL LITE Member": "https://buy.stripe.com/cNi6oJfEZgS9dNj4cgaAw08",
-    "NBA LITE Member": "https://buy.stripe.com/14A28t3Wh0Tb38F7osaAw07",
+  // Map plan titles -> Stripe Price IDs + trial length (days)
+  // (These are your live prices from the webhook PLAN_MAP.)
+  const PRICE_PLANS = {
+    // LITE
+    "MLB LITE Member":    { priceId: "price_1S1MSuRuMf2a9EBN2z4AhmHv", trialDays: 7 },
+    "NASCAR LITE Member": { priceId: "price_1S1MUZRuMf2a9EBNDbrh048G", trialDays: 7 },
+    "NFL LITE Member":    { priceId: "price_1S1MVBRuMf2a9EBN2oFSEa4o", trialDays: 7 },
+    "NBA LITE Member":    { priceId: "price_1S1MVmRuMf2a9EBNGyCBzKXh", trialDays: 7 },
 
-    "MLB PRO Member": "https://buy.stripe.com/fZu14pgJ30TbgZv4cgaAw06",
-    "NASCAR PRO Member": "https://buy.stripe.com/dRm00l50lbxP38FcIMaAw05",
-    "NFL PRO Member": "https://buy.stripe.com/aFa8wRcsN8lDdNj104aAw04",
-    "NBA PRO Member": "https://buy.stripe.com/14A8wR0K56dvcJf9wAaAw03",
+    // PRO
+    "MLB PRO Member":     { priceId: "price_1S1MWORuMf2a9EBN0sYILLhZ", trialDays: 7 },
+    "NASCAR PRO Member":  { priceId: "price_1S1MXJRuMf2a9EBN8gL43fpy", trialDays: 7 },
+    "NFL PRO Member":     { priceId: "price_1S1MXxRuMf2a9EBNKeyMFb1K", trialDays: 7 },
+    "NBA PRO Member":     { priceId: "price_1S1MYMRuMf2a9EBNKr7qBzmO", trialDays: 7 },
 
-    "Discord Access": "https://buy.stripe.com/14AfZj64p0TbgZv5gkaAw02",
-    "All Access LITE": "https://buy.stripe.com/fZucN72Sd6dv4cJcIMaAw01",
-    "All Access PRO": "https://buy.stripe.com/6oU14peAV8lD24B38caAw00",
+    // ALL-ACCESS & DISCORD
+    "All Access LITE":    { priceId: "price_1S1MZTRuMf2a9EBN5AgEsjhA", trialDays: 7 },
+    "All Access PRO":     { priceId: "price_1S1Ma8RuMf2a9EBNIiNqRFDk", trialDays: 7 },
+    "Discord Access":     { priceId: "price_1S1MadRuMf2a9EBNr0zxMsh4", trialDays: 0 }, // no trial
   };
 
   /* ---- LITE ---- */
@@ -142,10 +157,7 @@ export default function PricingPage() {
     {
       title: "NASCAR PRO Member",
       price: 40,
-      features: [
-        "Everything in NASCAR LITE",
-        "PLUS Optimizer",
-      ],
+      features: ["Everything in NASCAR LITE", "PLUS Optimizer"],
     },
     {
       title: "NFL PRO Member",
@@ -198,8 +210,11 @@ export default function PricingPage() {
             <PlanCard
               key={`lite-${i}`}
               {...p}
-              cta="Get Lite"
-              onClick={() => goToPaymentLink(LINKS[p.title])}
+              cta="Start 7-day free trial"
+              onClick={() => {
+                const cfg = PRICE_PLANS[p.title];
+                startCheckoutSession(cfg.priceId, cfg.trialDays);
+              }}
             />
           ))}
         </div>
@@ -216,8 +231,11 @@ export default function PricingPage() {
             <PlanCard
               key={`pro-${i}`}
               {...p}
-              cta="Go Pro"
-              onClick={() => goToPaymentLink(LINKS[p.title])}
+              cta="Start 7-day free trial"
+              onClick={() => {
+                const cfg = PRICE_PLANS[p.title];
+                startCheckoutSession(cfg.priceId, cfg.trialDays);
+              }}
             />
           ))}
         </div>
@@ -231,18 +249,27 @@ export default function PricingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           <PlanCard
             {...allAccess}
-            cta="Get All Access"
-            onClick={() => goToPaymentLink(LINKS["All Access PRO"])}
+            cta="Start 7-day free trial"
+            onClick={() => {
+              const cfg = PRICE_PLANS["All Access PRO"];
+              startCheckoutSession(cfg.priceId, cfg.trialDays);
+            }}
           />
-          <PlanCard
+        <PlanCard
             {...allAccessLite}
-            cta="Get Lite All Access"
-            onClick={() => goToPaymentLink(LINKS["All Access LITE"])}
+            cta="Start 7-day free trial"
+            onClick={() => {
+              const cfg = PRICE_PLANS["All Access LITE"];
+              startCheckoutSession(cfg.priceId, cfg.trialDays);
+            }}
           />
           <PlanCard
             {...discordOnly}
             cta="Join Discord"
-            onClick={() => goToPaymentLink(LINKS["Discord Access"])}
+            onClick={() => {
+              const cfg = PRICE_PLANS["Discord Access"];
+              startCheckoutSession(cfg.priceId, cfg.trialDays); // trialDays=0 -> charge now
+            }}
           />
         </div>
       </main>
