@@ -1,21 +1,41 @@
 // src/auth/plans.js
 export const PLANS = {
-  MLB_LITE: "MLB_LITE",
-  MLB_PRO: "MLB_PRO",
-  NASCAR_LITE: "NASCAR_LITE",
-  NASCAR_PRO: "NASCAR_PRO",
-  NFL_LITE: "NFL_LITE",
-  NFL_PRO: "NFL_PRO",
-  NBA_LITE: "NBA_LITE",
-  NBA_PRO: "NBA_PRO",
-  ALL_ACCESS_LITE: "ALL_ACCESS_LITE",
-  ALL_ACCESS_PRO: "ALL_ACCESS_PRO",
-  DISCORD: "DISCORD", // unused here, kept for completeness
+  FREE: 'free',
+  DISCORD_ONLY: 'discord_only',
+
+  NASCAR_LITE: 'nascar_lite',
+  NASCAR_PRO: 'nascar_pro',
+
+  MLB_LITE: 'mlb_lite',
+  MLB_PRO: 'mlb_pro',
+
+  NFL_LITE: 'nfl_lite',
+  NFL_PRO: 'nfl_pro',
+
+  NBA_LITE: 'nba_lite',
+  NBA_PRO: 'nba_pro',
+
+  ALL_ACCESS_LITE: 'all_access_lite',
+  ALL_ACCESS_PRO: 'all_access_pro',
 };
 
-export const ALL_ACCESS = [PLANS.ALL_ACCESS_LITE, PLANS.ALL_ACCESS_PRO];
+// Any of these should unlock /nascar (except optimizers, which are PRO-only rules)
+export const NASCAR_ALL = [
+  PLANS.NASCAR_LITE, PLANS.NASCAR_PRO,
+  PLANS.ALL_ACCESS_LITE, PLANS.ALL_ACCESS_PRO
+];
 
-export const NASCAR_ALL = [PLANS.NASCAR_LITE, PLANS.NASCAR_PRO, ...ALL_ACCESS];
-export const MLB_ALL    = [PLANS.MLB_LITE,    PLANS.MLB_PRO,    ...ALL_ACCESS];
-export const NFL_ALL    = [PLANS.NFL_LITE,    PLANS.NFL_PRO,    ...ALL_ACCESS];
-export const NBA_ALL    = [PLANS.NBA_LITE,    PLANS.NBA_PRO,    ...ALL_ACCESS];
+export const MLB_ALL = [
+  PLANS.MLB_LITE, PLANS.MLB_PRO,
+  PLANS.ALL_ACCESS_LITE, PLANS.ALL_ACCESS_PRO
+];
+
+export const NFL_ALL = [
+  PLANS.NFL_LITE, PLANS.NFL_PRO,
+  PLANS.ALL_ACCESS_LITE, PLANS.ALL_ACCESS_PRO
+];
+
+export const NBA_ALL = [
+  PLANS.NBA_LITE, PLANS.NBA_PRO,
+  PLANS.ALL_ACCESS_LITE, PLANS.ALL_ACCESS_PRO
+];
