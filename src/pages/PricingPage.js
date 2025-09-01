@@ -2,70 +2,109 @@
 import React, { useEffect, useRef } from "react";
 import { supabase } from "../supabaseClient";
 
-/* -------------------- PayPal loader & subscribe button -------------------- */
-const loadPayPalSdk = (clientId) =>
-  new Promise((resolve, reject) => {
+/* ------------------------------------------------------------------
+   PayPal SDK loader (robust)
+   - Fails if client-id missing
+   - Ensures only ONE script is on the page
+   - Replaces a previously-loaded script with the wrong client-id
+------------------------------------------------------------------ */
+const PAYPAL_SCRIPT_ID = "paypal-sdk";
+
+function loadPayPalSdk(clientId) {
+  return new Promise((resolve, reject) => {
+    if (!clientId) return reject(new Error("Missing REACT_APP_PAYPAL_LIVE_CLIENT_ID"));
+
+    const existing = document.getElementById(PAYPAL_SCRIPT_ID);
+    if (existing) {
+      // If the existing script has a different client-id, remove it and reset
+      if (!existing.src.includes(`client-id=${encodeURIComponent(clientId)}`)) {
+        existing.remove();
+        // eslint-disable-next-line no-undef
+        if (window.paypal) delete window.paypal;
+      }
+    }
+
+    // If paypal is already present with the right id, use it
+    // eslint-disable-next-line no-undef
     if (window.paypal) return resolve(window.paypal);
+
     const s = document.createElement("script");
+    s.id = PAYPAL_SCRIPT_ID;
     s.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(
       clientId
     )}&components=buttons&intent=subscription&vault=true`;
     s.async = true;
     s.onload = () => resolve(window.paypal);
-    s.onerror = reject;
+    s.onerror = () => reject(new Error("Failed to load PayPal SDK"));
     document.head.appendChild(s);
   });
+}
 
+/* ------------------------------------------------------------------
+   Single PayPal subscribe button
+   - Clears container before render
+   - Closes previous instance on cleanup
+   - Works around React 18 StrictMode double-invoke
+------------------------------------------------------------------ */
 function PayPalSubscribeButton({ planId, onApproved }) {
-  const ref = useRef(null);
+  const hostRef = useRef(null);
+  const buttonsRef = useRef(null); // keep instance to close on cleanup
 
   useEffect(() => {
-    let destroyed = false;
+    let cancelled = false;
 
     async function renderBtn() {
       try {
-        // (Optional) Ensure the user is logged in so you can map subscription->user
         const {
           data: { user },
         } = await supabase.auth.getUser();
 
-        // Load LIVE PayPal SDK
-        const paypal = await loadPayPalSdk(
-          process.env.REACT_APP_PAYPAL_LIVE_CLIENT_ID
-        );
-        if (destroyed || !ref.current) return;
+        const paypal = await loadPayPalSdk(process.env.REACT_APP_PAYPAL_LIVE_CLIENT_ID);
+        if (cancelled || !hostRef.current) return;
 
-        paypal
-          .Buttons({
-            style: { layout: "vertical", color: "gold", shape: "rect", label: "subscribe" },
-            createSubscription: (_data, actions) =>
-              actions.subscription.create({
-                plan_id: planId,
-                // Helpful for your webhook mapping:
-                custom_id: user?.id || undefined,
-              }),
-            onApprove: async (data) => {
-              // data.subscriptionID is the new PayPal subscription id
-              onApproved?.(data);
-            },
-            onError: (err) => {
-              console.error(err);
-              alert("Payment error. Please try again.");
-            },
-          })
-          .render(ref.current);
+        // Ensure a clean container (prevents duplicate stacks)
+        hostRef.current.innerHTML = "";
+
+        const instance = paypal.Buttons({
+          style: { layout: "vertical", color: "gold", shape: "rect", label: "subscribe" },
+          createSubscription: (_data, actions) =>
+            actions.subscription.create({
+              plan_id: planId,
+              custom_id: user?.id || undefined, // your webhook maps this back to Supabase
+              application_context: { user_action: "SUBSCRIBE_NOW" },
+            }),
+          onApprove: async (data) => {
+            onApproved?.(data);
+          },
+          onError: (err) => {
+            console.error("[PayPal] onError:", err);
+            alert("Payment error. Please try again.");
+          },
+        });
+
+        buttonsRef.current = instance;
+
+        // Render into the host element
+        await instance.render(hostRef.current);
       } catch (err) {
-        console.error("PayPal SDK load/render failed:", err);
+        console.error("[PayPal] SDK load/render failed:", err);
       }
     }
 
     renderBtn();
+
+    // Cleanup: close and clear so StrictMode remount doesn't duplicate
     return () => {
-      destroyed = true;
+      cancelled = true;
+      try {
+        buttonsRef.current?.close?.();
+      } catch {}
+      if (hostRef.current) hostRef.current.innerHTML = "";
+      buttonsRef.current = null;
     };
   }, [planId, onApproved]);
 
-  return <div ref={ref} />;
+  return <div ref={hostRef} />;
 }
 
 /* ----------------------------- UI card ----------------------------- */
@@ -97,7 +136,7 @@ function PlanCard({ title, price, period = "/ month", features = [], children })
 
 /* --------------------------- Pricing page --------------------------- */
 export default function PricingPage() {
-  // 🔒 Your LIVE PayPal plan IDs (from your message)
+  // 🔒 Your LIVE PayPal plan IDs
   const PLAN_IDS = {
     "Discord Access": "P-96N94697095892935NC23XXI",
 
@@ -116,7 +155,7 @@ export default function PricingPage() {
   };
 
   const handleApproved = () => {
-    // After PayPal approval, send them to Account; your PayPal webhook will flip the plan active.
+    // After approval, your webhook will flip access. Send them to Account.
     window.location.href = "/account";
   };
 
@@ -180,26 +219,10 @@ export default function PricingPage() {
 
   /* ---- PRO ---- */
   const proPlans = [
-    {
-      title: "MLB PRO Member",
-      price: 40,
-      features: ["Everything in MLB LITE", "PLUS Optimizer"],
-    },
-    {
-      title: "NASCAR PRO Member",
-      price: 40,
-      features: ["Everything in NASCAR LITE", "PLUS Optimizer"],
-    },
-    {
-      title: "NFL PRO Member",
-      price: 40,
-      features: ["Everything in NFL LITE", "PLUS Optimizer"],
-    },
-    {
-      title: "NBA PRO Member",
-      price: 40,
-      features: ["Everything in NBA LITE", "PLUS Optimizer"],
-    },
+    { title: "MLB PRO Member", price: 40, features: ["Everything in MLB LITE", "PLUS Optimizer"] },
+    { title: "NASCAR PRO Member", price: 40, features: ["Everything in NASCAR LITE", "PLUS Optimizer"] },
+    { title: "NFL PRO Member", price: 40, features: ["Everything in NFL LITE", "PLUS Optimizer"] },
+    { title: "NBA PRO Member", price: 40, features: ["Everything in NBA LITE", "PLUS Optimizer"] },
   ];
 
   /* ---- ALL ACCESS + DISCORD ---- */
@@ -239,10 +262,7 @@ export default function PricingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           {litePlans.map((p, i) => (
             <PlanCard key={`lite-${i}`} {...p}>
-              <PayPalSubscribeButton
-                planId={PLAN_IDS[p.title]}
-                onApproved={handleApproved}
-              />
+              <PayPalSubscribeButton planId={PLAN_IDS[p.title]} onApproved={handleApproved} />
             </PlanCard>
           ))}
         </div>
@@ -257,10 +277,7 @@ export default function PricingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           {proPlans.map((p, i) => (
             <PlanCard key={`pro-${i}`} {...p}>
-              <PayPalSubscribeButton
-                planId={PLAN_IDS[p.title]}
-                onApproved={handleApproved}
-              />
+              <PayPalSubscribeButton planId={PLAN_IDS[p.title]} onApproved={handleApproved} />
             </PlanCard>
           ))}
         </div>
@@ -273,24 +290,15 @@ export default function PricingPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           <PlanCard {...allAccess}>
-            <PayPalSubscribeButton
-              planId={PLAN_IDS["All Access PRO"]}
-              onApproved={handleApproved}
-            />
+            <PayPalSubscribeButton planId={PLAN_IDS["All Access PRO"]} onApproved={handleApproved} />
           </PlanCard>
 
           <PlanCard {...allAccessLite}>
-            <PayPalSubscribeButton
-              planId={PLAN_IDS["All Access LITE"]}
-              onApproved={handleApproved}
-            />
+            <PayPalSubscribeButton planId={PLAN_IDS["All Access LITE"]} onApproved={handleApproved} />
           </PlanCard>
 
           <PlanCard {...discordOnly}>
-            <PayPalSubscribeButton
-              planId={PLAN_IDS["Discord Access"]}
-              onApproved={handleApproved}
-            />
+            <PayPalSubscribeButton planId={PLAN_IDS["Discord Access"]} onApproved={handleApproved} />
           </PlanCard>
         </div>
       </main>
