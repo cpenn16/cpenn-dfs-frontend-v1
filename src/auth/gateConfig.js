@@ -14,13 +14,13 @@ export const PROMO_UNLOCKS = {
   "/nascar/cup": false,
   "/nascar/xfinity": false,
   "/nascar/trucks": false,
-  "/nascar": true,
+  "/nascar": false,
 
   // NFL
   "/nfl/classic/optimizer": false,
   "/nfl/showdown/optimizer": false,
   "/nfl/optimizer": false, // legacy shortcut
-  "/nfl": false,
+  "/nfl": true,
 
   // NBA
   "/nba/optimizer": false,
