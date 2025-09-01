@@ -22,7 +22,9 @@ exports.handler = async (event) => {
 
       // Help issuers approve: collect address + allow 3DS challenge when available
       billing_address_collection: 'required',
-      payment_method_options: { card: { request_three_d_secure: 'any' } },
+      // netlify/functions/create-checkout-session.js
+      payment_method_options: { card: { request_three_d_secure: 'automatic' } },
+
 
       success_url: `${process.env.PUBLIC_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.PUBLIC_URL}/pricing`,
