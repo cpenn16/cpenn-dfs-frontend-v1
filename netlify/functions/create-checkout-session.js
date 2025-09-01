@@ -8,7 +8,7 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { priceId, email, userId, trialDays = 7 } = JSON.parse(event.body || '{}');
+    const { priceId, email, userId } = JSON.parse(event.body || '{}');
 
     const payload = {
       mode: 'subscription',
@@ -17,17 +17,16 @@ exports.handler = async (event) => {
       billing_address_collection: 'required',
       allow_promotion_codes: true,
 
-      // If you set STRIPE_PMC_ID (cards-only config), use that; otherwise force types=['card']
+      // Pin to your Cards + Apple/Google Pay configuration (recommended)
+      // Create this config in Stripe and set STRIPE_PMC_ID=pmc_XXXX in Netlify
       ...(process.env.STRIPE_PMC_ID
         ? { payment_method_configuration: process.env.STRIPE_PMC_ID }
-        : { payment_method_types: ['card'] }),
+        : {}), // if not set, Stripe will use your account default config
 
-      // 🔐 Force 3DS to see if issuer approves when challenged
-      payment_method_options: { card: { request_three_d_secure: 'any' } },
-
+      // Pass identity so your webhook can map access
       ...(userId ? { client_reference_id: userId } : {}),
       ...(email ? { customer_email: email } : {}),
-      ...(Number(trialDays) > 0 ? { subscription_data: { trial_period_days: Number(trialDays) } } : {}),
+
       success_url: `${process.env.PUBLIC_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.PUBLIC_URL}/pricing`,
     };

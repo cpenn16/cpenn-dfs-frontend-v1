@@ -35,9 +35,8 @@ function PlanCard({ title, price, period = "/ month", features = [], cta = "Join
 }
 
 /* ----------------------- Helper: Start Checkout Session ------------------- */
-// Creates a Stripe Checkout Session via your Netlify function.
-// Preserves client_reference_id (user.id) and prefilled email for your webhook.
-async function startCheckoutSession(priceId, trialDays = 7) {
+// Calls your Netlify function to create a Stripe Checkout Session (no trial).
+async function startCheckoutSession(priceId) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -52,7 +51,6 @@ async function startCheckoutSession(priceId, trialDays = 7) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       priceId,
-      trialDays,
       email: user.email,
       userId: user.id,
     }),
@@ -68,25 +66,24 @@ async function startCheckoutSession(priceId, trialDays = 7) {
 
 /* ------------------------------- Page Body ------------------------------- */
 export default function PricingPage() {
-  // Map plan titles -> Stripe Price IDs + trial length (days)
-  // (These are your live prices from the webhook PLAN_MAP.)
+  // Map plan titles -> LIVE Stripe Price IDs (no trials on Prices).
   const PRICE_PLANS = {
     // LITE
-    "MLB LITE Member":    { priceId: "price_1S1MSuRuMf2a9EBN2z4AhmHv", trialDays: 7 },
-    "NASCAR LITE Member": { priceId: "price_1S1MUZRuMf2a9EBNDbrh048G", trialDays: 7 },
-    "NFL LITE Member":    { priceId: "price_1S1MVBRuMf2a9EBN2oFSEa4o", trialDays: 7 },
-    "NBA LITE Member":    { priceId: "price_1S1MVmRuMf2a9EBNGyCBzKXh", trialDays: 7 },
+    "MLB LITE Member":    { priceId: "price_1S1MSuRuMf2a9EBN2z4AhmHv" },
+    "NASCAR LITE Member": { priceId: "price_1S1MUZRuMf2a9EBNDbrh048G" },
+    "NFL LITE Member":    { priceId: "price_1S1MVBRuMf2a9EBN2oFSEa4o" },
+    "NBA LITE Member":    { priceId: "price_1S1MVmRuMf2a9EBNGyCBzKXh" },
 
     // PRO
-    "MLB PRO Member":     { priceId: "price_1S1MWORuMf2a9EBN0sYILLhZ", trialDays: 7 },
-    "NASCAR PRO Member":  { priceId: "price_1S1MXJRuMf2a9EBN8gL43fpy", trialDays: 7 },
-    "NFL PRO Member":     { priceId: "price_1S1MXxRuMf2a9EBNKeyMFb1K", trialDays: 7 },
-    "NBA PRO Member":     { priceId: "price_1S1MYMRuMf2a9EBNKr7qBzmO", trialDays: 7 },
+    "MLB PRO Member":     { priceId: "price_1S1MWORuMf2a9EBN0sYILLhZ" },
+    "NASCAR PRO Member":  { priceId: "price_1S1MXJRuMf2a9EBN8gL43fpy" },
+    "NFL PRO Member":     { priceId: "price_1S1MXxRuMf2a9EBNKeyMFb1K" },
+    "NBA PRO Member":     { priceId: "price_1S1MYMRuMf2a9EBNKr7qBzmO" },
 
     // ALL-ACCESS & DISCORD
-    "All Access LITE":    { priceId: "price_1S1MZTRuMf2a9EBN5AgEsjhA", trialDays: 7 },
-    "All Access PRO":     { priceId: "price_1S1Ma8RuMf2a9EBNIiNqRFDk", trialDays: 7 },
-    "Discord Access":     { priceId: "price_1S1MadRuMf2a9EBNr0zxMsh4", trialDays: 0 }, // no trial
+    "All Access LITE":    { priceId: "price_1S1MZTRuMf2a9EBN5AgEsjhA" },
+    "All Access PRO":     { priceId: "price_1S1Ma8RuMf2a9EBNIiNqRFDk" },
+    "Discord Access":     { priceId: "price_1S1MadRuMf2a9EBNr0zxMsh4" },
   };
 
   /* ---- LITE ---- */
@@ -210,10 +207,10 @@ export default function PricingPage() {
             <PlanCard
               key={`lite-${i}`}
               {...p}
-              cta="Start 7-day free trial"
+              cta="Start membership"
               onClick={() => {
                 const cfg = PRICE_PLANS[p.title];
-                startCheckoutSession(cfg.priceId, cfg.trialDays);
+                startCheckoutSession(cfg.priceId);
               }}
             />
           ))}
@@ -231,10 +228,10 @@ export default function PricingPage() {
             <PlanCard
               key={`pro-${i}`}
               {...p}
-              cta="Start 7-day free trial"
+              cta="Start membership"
               onClick={() => {
                 const cfg = PRICE_PLANS[p.title];
-                startCheckoutSession(cfg.priceId, cfg.trialDays);
+                startCheckoutSession(cfg.priceId);
               }}
             />
           ))}
@@ -249,18 +246,18 @@ export default function PricingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           <PlanCard
             {...allAccess}
-            cta="Start 7-day free trial"
+            cta="Start membership"
             onClick={() => {
               const cfg = PRICE_PLANS["All Access PRO"];
-              startCheckoutSession(cfg.priceId, cfg.trialDays);
+              startCheckoutSession(cfg.priceId);
             }}
           />
-        <PlanCard
+          <PlanCard
             {...allAccessLite}
-            cta="Start 7-day free trial"
+            cta="Start membership"
             onClick={() => {
               const cfg = PRICE_PLANS["All Access LITE"];
-              startCheckoutSession(cfg.priceId, cfg.trialDays);
+              startCheckoutSession(cfg.priceId);
             }}
           />
           <PlanCard
@@ -268,7 +265,7 @@ export default function PricingPage() {
             cta="Join Discord"
             onClick={() => {
               const cfg = PRICE_PLANS["Discord Access"];
-              startCheckoutSession(cfg.priceId, cfg.trialDays); // trialDays=0 -> charge now
+              startCheckoutSession(cfg.priceId);
             }}
           />
         </div>
