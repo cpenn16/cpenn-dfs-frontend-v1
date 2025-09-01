@@ -1,15 +1,19 @@
+// netlify/functions/stripe-webhook.js
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2024-06-20" });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2024-06-20",
+});
 
-// Service-role key so we can write to profiles server-side (RLS bypass)
+// Service-role key so we can update profiles server-side
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// === YOUR PLAN MAP (from your message) ===
+// ---- MAP YOUR LIVE PRICE IDs -> INTERNAL PLAN CODES ----
+// Make sure these exactly match your live prices and the plan strings your UI expects.
 const PLAN_MAP = {
   // LITE
   "price_1S1MSuRuMf2a9EBN2z4AhmHv": "MLB_LITE",
@@ -25,116 +29,136 @@ const PLAN_MAP = {
 
   // ALL-ACCESS & DISCORD
   "price_1S1MZTRuMf2a9EBN5AgEsjhA": "ALL_ACCESS_LITE",
-  "price_1S1Ma8RuMf2a9EBNIiNqRFDk": "ALL_ACCESS_PRO",
+  "price_1S1Ma8RuMf2a9EBNIiNqRFDk": "ALL_ACCESS_PRO",   // <- the one you used
   "price_1S1MadRuMf2a9EBNr0zxMsh4": "DISCORD",
 };
 
-function getRawBody(event) {
+function bufFromEvent(event) {
   return event.isBase64Encoded
-    ? Buffer.from(event.body, "base64").toString("utf8")
-    : event.body;
+    ? Buffer.from(event.body || "", "base64")
+    : Buffer.from(event.body || "");
 }
 
-async function planFromSubscription(sub) {
-  const priceId = sub?.items?.data?.[0]?.price?.id;
-  return { plan: PLAN_MAP[priceId] || "UNKNOWN", priceId };
-}
-
-async function updateProfileByUserId(userId, patch) {
+async function setProfileActiveByUserId({
+  userId,
+  plan,
+  stripeCustomerId,
+  stripeSubscriptionId,
+  currentPeriodEnd,
+}) {
   if (!userId) return;
-  await supabase.from("profiles").update(patch).eq("id", userId);
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      plan,
+      status: "active",
+      stripe_customer_id: stripeCustomerId,
+      stripe_subscription_id: stripeSubscriptionId,
+      current_period_end: currentPeriodEnd ? new Date(currentPeriodEnd * 1000).toISOString() : null,
+    })
+    .eq("id", userId)
+    .single();
+
+  if (error) console.error("Supabase update error:", error);
 }
 
-async function updateProfileByEmail(email, patch) {
-  if (!email) return;
-  await supabase.from("profiles").update(patch).eq("email", email);
+async function setProfileInactiveByStripeCustomerId({ stripeCustomerId }) {
+  if (!stripeCustomerId) return;
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      status: "inactive",
+      plan: "FREE",
+    })
+    .eq("stripe_customer_id", stripeCustomerId);
+
+  if (error) console.error("Supabase deactivate error:", error);
 }
 
 export const handler = async (event) => {
-  const sig = event.headers["stripe-signature"];
+  const signature = event.headers["stripe-signature"];
   let stripeEvent;
 
   try {
     stripeEvent = stripe.webhooks.constructEvent(
-      getRawBody(event),
-      sig,
+      bufFromEvent(event),
+      signature,
       process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err) {
-    return { statusCode: 400, body: `Webhook signature verification failed: ${err.message}` };
+    console.error("Signature verify failed:", err?.message);
+    return { statusCode: 400, body: `Webhook signature verification failed` };
   }
 
   try {
     switch (stripeEvent.type) {
-      // First purchase / payment link completion
       case "checkout.session.completed": {
+        // Fired right after the user completes Checkout
         const session = stripeEvent.data.object;
+        const userId = session.client_reference_id; // we passed this in from the site
+        const stripeCustomerId = session.customer;
+        const subscriptionId = session.subscription;
 
-        // From your Pricing page you append client_reference_id & prefilled_email
-        const userId = session.client_reference_id || null;
-        const email  = session.customer_details?.email || session.customer_email || null;
+        // Pull the subscription to get the price that was purchased
+        const sub = await stripe.subscriptions.retrieve(subscriptionId, {
+          expand: ["items.data.price"],
+        });
+        const firstItem = sub.items?.data?.[0];
+        const priceId = firstItem?.price?.id;
+        const plan = PLAN_MAP[priceId] || null;
 
-        // Save Stripe customer id so we can match future updates/deletions
-        const customerId = typeof session.customer === "string" ? session.customer : null;
-
-        // Pull sub → price → plan + status
-        const subId = session.subscription;
-        const sub   = subId ? await stripe.subscriptions.retrieve(subId) : null;
-        const { plan } = await planFromSubscription(sub);
-
-        const patch = {
-          plan:   plan === "UNKNOWN" ? "FREE" : plan,
-          status: sub?.status || "active", // 'active' | 'trialing' | 'past_due' ...
-          ...(customerId ? { stripe_customer_id: customerId } : {}),
-        };
-
-        if (userId)       await updateProfileByUserId(userId, patch);
-        else if (email)   await updateProfileByEmail(email, patch);
+        await setProfileActiveByUserId({
+          userId,
+          plan,
+          stripeCustomerId,
+          stripeSubscriptionId: sub.id,
+          currentPeriodEnd: sub.current_period_end,
+        });
         break;
       }
 
-      // Renewals, upgrades/downgrades, payment status changes
-      case "customer.subscription.updated": {
-        const sub = stripeEvent.data.object;
-        const { plan } = await planFromSubscription(sub);
-        const status = sub.status;
-
-        // Find user by stored Stripe customer id
-        const customerId = sub.customer;
-        const { data: rows } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("stripe_customer_id", customerId)
-          .limit(1);
-
-        if (rows && rows[0]?.id) {
-          await updateProfileByUserId(rows[0].id, {
-            plan: plan === "UNKNOWN" ? undefined : plan,
-            status,
-          });
-        }
-        break;
-      }
-
-      // Cancellations (at period end → event fires when it actually cancels)
+      case "customer.subscription.updated":
       case "customer.subscription.deleted": {
+        // Keep status in sync if the user cancels or payment fails later
         const sub = stripeEvent.data.object;
-        const customerId = sub.customer;
+        const stripeCustomerId = sub.customer;
 
-        const { data: rows } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("stripe_customer_id", customerId)
-          .limit(1);
+        if (sub.status === "canceled" || sub.status === "unpaid" || sub.status === "past_due") {
+          await setProfileInactiveByStripeCustomerId({ stripeCustomerId });
+        } else if (sub.status === "active" || sub.status === "trialing") {
+          const priceId = sub.items?.data?.[0]?.price?.id;
+          const plan = PLAN_MAP[priceId] || null;
 
-        if (rows && rows[0]?.id) {
-          await updateProfileByUserId(rows[0].id, { status: "canceled" });
+          // Find the user by stripe_customer_id and set active + plan
+          const { data: profiles, error } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("stripe_customer_id", stripeCustomerId)
+            .limit(1);
+
+          if (!error && profiles && profiles[0]) {
+            await setProfileActiveByUserId({
+              userId: profiles[0].id,
+              plan,
+              stripeCustomerId,
+              stripeSubscriptionId: sub.id,
+              currentPeriodEnd: sub.current_period_end,
+            });
+          }
         }
+        break;
+      }
+
+      // Optional: mark inactive if an invoice finally fails
+      case "invoice.payment_failed": {
+        const invoice = stripeEvent.data.object;
+        const stripeCustomerId = invoice.customer;
+        await setProfileInactiveByStripeCustomerId({ stripeCustomerId });
         break;
       }
 
       default:
-        // ignore everything else
+        // ignore other events
         break;
     }
 
@@ -145,4 +169,5 @@ export const handler = async (event) => {
   }
 };
 
+// Netlify function path
 export const config = { path: "/.netlify/functions/stripe-webhook" };
