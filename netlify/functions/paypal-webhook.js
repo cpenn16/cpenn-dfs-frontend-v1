@@ -1,34 +1,33 @@
 // netlify/functions/paypal-webhook.js
-// CommonJS for Netlify Functions
 const { createClient } = require("@supabase/supabase-js");
 
-// --- Supabase admin client (Service Role key) ---
+// --- Supabase admin (service role) ---
 const supabaseAdmin = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY,
   { auth: { persistSession: false } }
 );
 
-// --- Map PayPal plan_id -> your grants (add the rest as needed) ---
-const GRANTS = {
+// PayPal plan_id -> what to store in profiles.plan
+const PLAN_MAP = {
   // LITE
-  "P-5CH30718EJ5817631NC23TSI": { sport: "nascar", tier: "lite", profileFlag: "nascar_lite" },
-  "P-0DK27985LU908842VNC23VJQ": { sport: "mlb", tier: "lite", profileFlag: "mlb_lite" },
-  "P-9A079862R35074028NC23UOA": { sport: "nfl", tier: "lite", profileFlag: "nfl_lite" },
-  "P-8T5580076P393200FNC23WBI": { sport: "nba", tier: "lite", profileFlag: "nba_lite" },
+  "P-5CH30718EJ5817631NC23TSI": "nascar_lite",
+  "P-0DK27985LU908842VNC23VJQ": "mlb_lite",
+  "P-9A079862R35074028NC23UOA": "nfl_lite",
+  "P-8T5580076P393200FNC23WBI": "nba_lite",
   // PRO
-  "P-8G568744214719119NC23QEA": { sport: "nascar", tier: "pro", profileFlag: "nascar_pro" },
-  "P-83Y13089DD870461TNC23R3I": { sport: "mlb", tier: "pro", profileFlag: "mlb_pro" },
-  "P-7EV8463063412251LNC23Q6Y": { sport: "nfl", tier: "pro", profileFlag: "nfl_pro" },
-  "P-55W83452GH8917325NC23SVQ": { sport: "nba", tier: "pro", profileFlag: "nba_pro" },
+  "P-8G568744214719119NC23QEA": "nascar_pro",
+  "P-83Y13089DD870461TNC23R3I": "mlb_pro",
+  "P-7EV8463063412251LNC23Q6Y": "nfl_pro",
+  "P-55W83452GH8917325NC23SVQ": "nba_pro",
   // Bundles
-  "P-01112034F4978121RNC23PBY": { sport: "all", tier: "lite", profileFlag: "all_access_lite" },
-  "P-3NA07489RA706953DNC23NOI": { sport: "all", tier: "pro", profileFlag: "all_access_pro" },
+  "P-01112034F4978121RNC23PBY": "all_access_lite",
+  "P-3NA07489RA706953DNC23NOI": "all_access_pro",
   // Discord
-  "P-96N94697095892935NC23XXI": { sport: "discord", tier: "lite", profileFlag: "discord_only" },
+  "P-96N94697095892935NC23XXI": "discord_only",
 };
 
-// --- helper: log key fields while testing ---
+// ----- helpers -----
 function logEvent(body) {
   const r = body?.resource || {};
   console.log("[paypal]", body?.event_type, {
@@ -39,7 +38,6 @@ function logEvent(body) {
   });
 }
 
-// --- helper: verify PayPal signature ---
 async function verifySignature(req, body) {
   const auth = Buffer.from(
     `${process.env.PAYPAL_LIVE_CLIENT_ID}:${process.env.PAYPAL_LIVE_CLIENT_SECRET}`
@@ -63,51 +61,28 @@ async function verifySignature(req, body) {
   return json?.verification_status === "SUCCESS";
 }
 
-// --- helper: fallback user lookup by email when custom_id missing ---
-async function findUserIdByEmail(email) {
+// Prefer custom_id; fallback to Supabase user by email
+async function resolveUserId(resource) {
+  if (resource?.custom_id) return resource.custom_id;
+
+  const email = resource?.subscriber?.email_address;
   if (!email) return null;
-  const { data, error } = await supabaseAdmin
-    .from("profiles")
-    .select("id,email")
-    .ilike("email", email.toLowerCase())
-    .limit(1)
-    .maybeSingle();
+
+  const { data, error } = await supabaseAdmin.auth.admin.getUserByEmail(email);
   if (error) {
-    console.error("[webhook] profiles lookup error:", error);
+    console.error("[webhook] getUserByEmail error:", error);
     return null;
   }
-  return data?.id || null;
+  return data?.user?.id ?? null;
 }
 
-// --- helper: grant access (profile flag + memberships row) ---
-async function grantAccess(userId, planId, nextBillingTime) {
-  const grant = GRANTS[planId];
-  if (!grant) {
-    console.log("[webhook] unknown planId:", planId);
-    return;
-  }
+async function setPlan(userId, planValue) {
+  const { error } = await supabaseAdmin
+    .from("profiles")
+    .update({ plan: planValue })
+    .eq("id", userId);
 
-  // A) quick: flip a boolean on profiles
-  if (grant.profileFlag) {
-    const { error: profErr } = await supabaseAdmin
-      .from("profiles")
-      .upsert({ id: userId, [grant.profileFlag]: true })
-      .eq("id", userId);
-    if (profErr) console.error("[webhook] profiles upsert error:", profErr);
-  }
-
-  // B) normalized memberships record (ignore if table doesn't exist)
-  const { error: memErr } = await supabaseAdmin
-    .from("memberships")
-    .upsert({
-      user_id: userId,
-      sport: grant.sport,
-      tier: grant.tier,
-      plan_id: planId,
-      status: "active",
-      current_period_end: nextBillingTime ? new Date(nextBillingTime).toISOString() : null,
-    });
-  if (memErr) console.error("[webhook] memberships upsert error:", memErr);
+  if (error) console.error("[webhook] profiles.plan update error:", error);
 }
 
 exports.handler = async (event) => {
@@ -118,7 +93,7 @@ exports.handler = async (event) => {
 
     const body = JSON.parse(event.body || "{}");
 
-    // 1) Verify signature
+    // 1) Verify PayPal signature
     const ok = await verifySignature(event, body);
     if (!ok) {
       console.warn("[webhook] signature verify FAILED");
@@ -130,29 +105,37 @@ exports.handler = async (event) => {
     const type = body.event_type;
     const r = body.resource || {};
     const planId = r.plan_id;
-    const nextBillingTime = r?.billing_info?.next_billing_time || null;
+    const mappedPlan = PLAN_MAP[planId];
 
-    // Only act on relevant events
-    if (
-      type !== "BILLING.SUBSCRIPTION.ACTIVATED" &&
-      type !== "BILLING.SUBSCRIPTION.UPDATED" &&
-      type !== "PAYMENT.SALE.COMPLETED"
-    ) {
+    // 2) We care about these subscription lifecycle events
+    const ACTIVATION_EVENTS = new Set([
+      "BILLING.SUBSCRIPTION.ACTIVATED",
+      "BILLING.SUBSCRIPTION.UPDATED",
+      "PAYMENT.SALE.COMPLETED",
+    ]);
+    const DEACTIVATION_EVENTS = new Set([
+      "BILLING.SUBSCRIPTION.CANCELLED",
+      "BILLING.SUBSCRIPTION.SUSPENDED",
+      "BILLING.SUBSCRIPTION.EXPIRED",
+    ]);
+
+    if (!ACTIVATION_EVENTS.has(type) && !DEACTIVATION_EVENTS.has(type)) {
       return { statusCode: 200, body: JSON.stringify({ ok: true }) };
     }
 
-    // 2) Find the user: prefer custom_id from your PayPal button; else fallback by email
-    let userId = r.custom_id || null;
-    if (!userId) {
-      userId = await findUserIdByEmail(r?.subscriber?.email_address || null);
-    }
+    // 3) Resolve the user id
+    const userId = await resolveUserId(r);
     if (!userId) {
       console.warn("[webhook] no userId (custom_id/email) — cannot assign access");
       return { statusCode: 200, body: JSON.stringify({ ok: true }) };
     }
 
-    // 3) Grant access based on plan id (e.g., NASCAR LITE)
-    await grantAccess(userId, planId, nextBillingTime);
+    // 4) Update profiles.plan
+    if (ACTIVATION_EVENTS.has(type) && mappedPlan) {
+      await setPlan(userId, mappedPlan);
+    } else if (DEACTIVATION_EVENTS.has(type)) {
+      await setPlan(userId, "free");
+    }
 
     return { statusCode: 200, body: JSON.stringify({ ok: true }) };
   } catch (err) {
