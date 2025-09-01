@@ -16,7 +16,8 @@
     "react-dom": "18.2.0",
     "react-router-dom": "6.23.1",
     "react-scripts": "5.0.1",
-    "recharts": "^2.10.3"
+    "recharts": "^2.10.3",
+    "stripe": "^18.5.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.16",
@@ -24,16 +25,19 @@
     "postcss": "^8.4.31",
     "tailwindcss": "^3.4.1"
   },
-"eslintConfig": {
-  "extends": ["react-app", "react-app/jest"],
-  "rules": {
-    "jsx-a11y/alt-text": "off",
-    "jsx-a11y/label-has-associated-control": "off",
-    "jsx-a11y/no-autofocus": "off",
-    "jsx-a11y/click-events-have-key-events": "off",
-    "jsx-a11y/no-static-element-interactions": "off"
-  }
-},
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ],
+    "rules": {
+      "jsx-a11y/alt-text": "off",
+      "jsx-a11y/label-has-associated-control": "off",
+      "jsx-a11y/no-autofocus": "off",
+      "jsx-a11y/click-events-have-key-events": "off",
+      "jsx-a11y/no-static-element-interactions": "off"
+    }
+  },
   "browserslist": {
     "production": [
       ">0.2%",
