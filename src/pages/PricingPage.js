@@ -1,9 +1,75 @@
 // src/pages/PricingPage.js
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { supabase } from "../supabaseClient";
 
-/* ----------------------------- Reusable Card ----------------------------- */
-function PlanCard({ title, price, period = "/ month", features = [], cta = "Join", onClick }) {
+/* -------------------- PayPal loader & subscribe button -------------------- */
+const loadPayPalSdk = (clientId) =>
+  new Promise((resolve, reject) => {
+    if (window.paypal) return resolve(window.paypal);
+    const s = document.createElement("script");
+    s.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(
+      clientId
+    )}&components=buttons&intent=subscription&vault=true`;
+    s.async = true;
+    s.onload = () => resolve(window.paypal);
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+
+function PayPalSubscribeButton({ planId, onApproved }) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    let destroyed = false;
+
+    async function renderBtn() {
+      try {
+        // (Optional) Ensure the user is logged in so you can map subscription->user
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        // Load LIVE PayPal SDK
+        const paypal = await loadPayPalSdk(
+          process.env.REACT_APP_PAYPAL_LIVE_CLIENT_ID
+        );
+        if (destroyed || !ref.current) return;
+
+        paypal
+          .Buttons({
+            style: { layout: "vertical", color: "gold", shape: "rect", label: "subscribe" },
+            createSubscription: (_data, actions) =>
+              actions.subscription.create({
+                plan_id: planId,
+                // Helpful for your webhook mapping:
+                custom_id: user?.id || undefined,
+              }),
+            onApprove: async (data) => {
+              // data.subscriptionID is the new PayPal subscription id
+              onApproved?.(data);
+            },
+            onError: (err) => {
+              console.error(err);
+              alert("Payment error. Please try again.");
+            },
+          })
+          .render(ref.current);
+      } catch (err) {
+        console.error("PayPal SDK load/render failed:", err);
+      }
+    }
+
+    renderBtn();
+    return () => {
+      destroyed = true;
+    };
+  }, [planId, onApproved]);
+
+  return <div ref={ref} />;
+}
+
+/* ----------------------------- UI card ----------------------------- */
+function PlanCard({ title, price, period = "/ month", features = [], children }) {
   return (
     <div className="rounded-2xl shadow-lg ring-1 ring-black/5 bg-white p-6 md:p-8 flex flex-col justify-between">
       <div>
@@ -24,70 +90,34 @@ function PlanCard({ title, price, period = "/ month", features = [], cta = "Join
         </ul>
       </div>
 
-      <button
-        onClick={onClick}
-        className="mt-6 inline-flex items-center justify-center rounded-lg bg-blue-700 px-4 py-2 text-white font-semibold hover:bg-blue-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
-      >
-        {cta}
-      </button>
+      <div className="mt-6">{children}</div>
     </div>
   );
 }
 
-/* ----------------------- Helper: Start Checkout Session ------------------- */
-// Calls your Netlify function to create a Stripe Checkout Session (NO trial).
-async function startCheckoutSession(priceId) {
-  try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      window.location.href = "/login";
-      return;
-    }
-
-    const res = await fetch("/.netlify/functions/create-checkout-session", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        priceId,
-        email: user.email,
-        userId: user.id,
-      }),
-    });
-
-    const data = await res.json();
-    if (res.ok && data?.url) {
-      window.location.href = data.url;
-    } else {
-      alert(data?.error || "Unable to start checkout");
-    }
-  } catch (err) {
-    alert(err?.message || "Something went wrong starting checkout.");
-  }
-}
-
-/* ------------------------------- Page Body ------------------------------- */
+/* --------------------------- Pricing page --------------------------- */
 export default function PricingPage() {
-  // Map plan titles -> LIVE Stripe Price IDs (ensure these Prices have NO built-in trial).
-  const PRICE_PLANS = {
-    // LITE
-    "MLB LITE Member":    { priceId: "price_1S1MSuRuMf2a9EBN2z4AhmHv" },
-    "NASCAR LITE Member": { priceId: "price_1S1MUZRuMf2a9EBNDbrh048G" },
-    "NFL LITE Member":    { priceId: "price_1S1MVBRuMf2a9EBN2oFSEa4o" },
-    "NBA LITE Member":    { priceId: "price_1S1MVmRuMf2a9EBNGyCBzKXh" },
+  // 🔒 Your LIVE PayPal plan IDs (from your message)
+  const PLAN_IDS = {
+    "Discord Access": "P-96N94697095892935NC23XXI",
 
-    // PRO
-    "MLB PRO Member":     { priceId: "price_1S1MWORuMf2a9EBN0sYILLhZ" },
-    "NASCAR PRO Member":  { priceId: "price_1S1MXJRuMf2a9EBN8gL43fpy" },
-    "NFL PRO Member":     { priceId: "price_1S1MXxRuMf2a9EBNKeyMFb1K" },
-    "NBA PRO Member":     { priceId: "price_1S1MYMRuMf2a9EBNKr7qBzmO" },
+    "NBA LITE Member": "P-8T5580076P393200FNC23WBI",
+    "MLB LITE Member": "P-0DK27985LU908842VNC23VJQ",
+    "NFL LITE Member": "P-9A079862R35074028NC23UOA",
+    "NASCAR LITE Member": "P-5CH30718EJ5817631NC23TSI",
 
-    // ALL-ACCESS & DISCORD
-    "All Access LITE":    { priceId: "price_1S1MZTRuMf2a9EBN5AgEsjhA" },
-    "All Access PRO":     { priceId: "price_1S1Ma8RuMf2a9EBNIiNqRFDk" },
-    "Discord Access":     { priceId: "price_1S1MadRuMf2a9EBNr0zxMsh4" },
+    "NBA PRO Member": "P-55W83452GH8917325NC23SVQ",
+    "MLB PRO Member": "P-83Y13089DD870461TNC23R3I",
+    "NFL PRO Member": "P-7EV8463063412251LNC23Q6Y",
+    "NASCAR PRO Member": "P-8G568744214719119NC23QEA",
+
+    "All Access LITE": "P-01112034F4978121RNC23PBY",
+    "All Access PRO": "P-3NA07489RA706953DNC23NOI",
+  };
+
+  const handleApproved = () => {
+    // After PayPal approval, send them to Account; your PayPal webhook will flip the plan active.
+    window.location.href = "/account";
   };
 
   /* ---- LITE ---- */
@@ -101,7 +131,7 @@ export default function PricingPage() {
         "Data Sheets",
         "Top Stacks",
         "Rankings",
-        "Floor/Ceiling Projections",
+        "Floor/Ceiling Projecitons",
         "Discord",
         "Does not include Optimizer (in PRO)",
       ],
@@ -208,15 +238,12 @@ export default function PricingPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           {litePlans.map((p, i) => (
-            <PlanCard
-              key={`lite-${i}`}
-              {...p}
-              cta="Start membership"
-              onClick={() => {
-                const cfg = PRICE_PLANS[p.title];
-                startCheckoutSession(cfg.priceId);
-              }}
-            />
+            <PlanCard key={`lite-${i}`} {...p}>
+              <PayPalSubscribeButton
+                planId={PLAN_IDS[p.title]}
+                onApproved={handleApproved}
+              />
+            </PlanCard>
           ))}
         </div>
 
@@ -229,15 +256,12 @@ export default function PricingPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           {proPlans.map((p, i) => (
-            <PlanCard
-              key={`pro-${i}`}
-              {...p}
-              cta="Start membership"
-              onClick={() => {
-                const cfg = PRICE_PLANS[p.title];
-                startCheckoutSession(cfg.priceId);
-              }}
-            />
+            <PlanCard key={`pro-${i}`} {...p}>
+              <PayPalSubscribeButton
+                planId={PLAN_IDS[p.title]}
+                onApproved={handleApproved}
+              />
+            </PlanCard>
           ))}
         </div>
 
@@ -248,30 +272,26 @@ export default function PricingPage() {
         <h2 className="text-2xl font-bold text-center border-b-2 border-gray-200 pb-3 mb-8">All Access</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-          <PlanCard
-            {...allAccess}
-            cta="Start membership"
-            onClick={() => {
-              const cfg = PRICE_PLANS["All Access PRO"];
-              startCheckoutSession(cfg.priceId);
-            }}
-          />
-          <PlanCard
-            {...allAccessLite}
-            cta="Start membership"
-            onClick={() => {
-              const cfg = PRICE_PLANS["All Access LITE"];
-              startCheckoutSession(cfg.priceId);
-            }}
-          />
-          <PlanCard
-            {...discordOnly}
-            cta="Join Discord"
-            onClick={() => {
-              const cfg = PRICE_PLANS["Discord Access"];
-              startCheckoutSession(cfg.priceId);
-            }}
-          />
+          <PlanCard {...allAccess}>
+            <PayPalSubscribeButton
+              planId={PLAN_IDS["All Access PRO"]}
+              onApproved={handleApproved}
+            />
+          </PlanCard>
+
+          <PlanCard {...allAccessLite}>
+            <PayPalSubscribeButton
+              planId={PLAN_IDS["All Access LITE"]}
+              onApproved={handleApproved}
+            />
+          </PlanCard>
+
+          <PlanCard {...discordOnly}>
+            <PayPalSubscribeButton
+              planId={PLAN_IDS["Discord Access"]}
+              onApproved={handleApproved}
+            />
+          </PlanCard>
         </div>
       </main>
     </div>
