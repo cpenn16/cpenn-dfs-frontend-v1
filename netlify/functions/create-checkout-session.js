@@ -33,7 +33,7 @@ exports.handler = async (event) => {
       billing_address_collection: 'required',
       payment_method_options: { card: { request_three_d_secure: 'automatic' } },
 
-      success_url: `${process.env.PUBLIC_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${process.env.PUBLIC_URL}/account?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.PUBLIC_URL}/pricing`,
     };
 
