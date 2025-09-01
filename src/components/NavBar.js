@@ -413,6 +413,7 @@ export default function NavBar() {
 
                 {/* NFL (Classic + Showdown) */}
                 <AccordionItem title="NFL">
+                  {/* CLASSIC */}
                   <div className="px-4 py-1 text-xs font-bold tracking-widest text-slate-500">CLASSIC</div>
                   <MobileLink to="/nfl/classic/projections" onClick={closeMobile}>DFS Projections</MobileLink>
                   <MobileLink to="/nfl/classic/stacks" onClick={closeMobile}>Stacks</MobileLink>
@@ -421,13 +422,32 @@ export default function NavBar() {
                   <MobileLink to="/nfl/classic/rb-projections" onClick={closeMobile}>RB Projections</MobileLink>
                   <MobileLink to="/nfl/classic/wr-projections" onClick={closeMobile}>WR Projections</MobileLink>
                   <MobileLink to="/nfl/classic/te-projections" onClick={closeMobile}>TE Projections</MobileLink>
+
+                  {/* ✅ add the DATA links (these were missing on mobile) */}
+                  <MobileLink to="/nfl/classic/qb-data" onClick={closeMobile}>QB Data</MobileLink>
+                  <MobileLink to="/nfl/classic/rb-data" onClick={closeMobile}>RB Data</MobileLink>
+                  <MobileLink to="/nfl/classic/wr-data" onClick={closeMobile}>WR Data</MobileLink>
+                  <MobileLink to="/nfl/classic/te-data" onClick={closeMobile}>TE Data</MobileLink>
+
                   <MobileLink to="/nfl/classic/nfl-gameboard" onClick={closeMobile}>NFL Matchups</MobileLink>
                   <MobileLink to="/nfl/classic/optimizer" onClick={closeMobile}>Optimizer</MobileLink>
 
+                  {/* SHOWDOWN */}
                   <div className="px-4 pt-3 pb-1 text-xs font-bold tracking-widest text-slate-500">SHOWDOWN</div>
                   <MobileLink to="/nfl/showdown/projections" onClick={closeMobile}>DFS Projections</MobileLink>
                   <MobileLink to="/nfl/showdown/stacks" onClick={closeMobile}>Stacks</MobileLink>
                   <MobileLink to="/nfl/showdown/cheatsheets" onClick={closeMobile}>Cheat Sheets</MobileLink>
+                  <MobileLink to="/nfl/showdown/qb-projections" onClick={closeMobile}>QB Projections</MobileLink>
+                  <MobileLink to="/nfl/showdown/rb-projections" onClick={closeMobile}>RB Projections</MobileLink>
+                  <MobileLink to="/nfl/showdown/wr-projections" onClick={closeMobile}>WR Projections</MobileLink>
+                  <MobileLink to="/nfl/showdown/te-projections" onClick={closeMobile}>TE Projections</MobileLink>
+
+                  {/* ✅ add the DATA links (these were missing on mobile) */}
+                  <MobileLink to="/nfl/showdown/qb-data" onClick={closeMobile}>QB Data</MobileLink>
+                  <MobileLink to="/nfl/showdown/rb-data" onClick={closeMobile}>RB Data</MobileLink>
+                  <MobileLink to="/nfl/showdown/wr-data" onClick={closeMobile}>WR Data</MobileLink>
+                  <MobileLink to="/nfl/showdown/te-data" onClick={closeMobile}>TE Data</MobileLink>
+
                   <MobileLink to="/nfl/showdown/nfl-gameboard" onClick={closeMobile}>NFL Matchups</MobileLink>
                   <MobileLink to="/nfl/showdown/optimizer" onClick={closeMobile}>Optimizer</MobileLink>
                 </AccordionItem>
