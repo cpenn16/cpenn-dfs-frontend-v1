@@ -1,132 +1,113 @@
 // netlify/functions/paypal-webhook.js
-// Node 18 on Netlify has global fetch
-
+// CommonJS for Netlify Functions
 const { createClient } = require("@supabase/supabase-js");
 
-const PLAN_ID_TO_NAME = {
-  // ---- Your LIVE PayPal plans (from your message) ----
-  "P-96N94697095892935NC23XXI": "Discord Access",
+// --- Supabase admin client (Service Role key) ---
+const supabaseAdmin = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  { auth: { persistSession: false } }
+);
 
-  "P-8T5580076P393200FNC23WBI": "NBA LITE Member",
-  "P-0DK27985LU908842VNC23VJQ": "MLB LITE Member",
-  "P-9A079862R35074028NC23UOA": "NFL LITE Member",
-  "P-5CH30718EJ5817631NC23TSI": "NASCAR LITE Member",
-
-  "P-55W83452GH8917325NC23SVQ": "NBA PRO Member",
-  "P-83Y13089DD870461TNC23R3I": "MLB PRO Member",
-  "P-7EV8463063412251LNC23Q6Y": "NFL PRO Member",
-  "P-8G568744214719119NC23QEA": "NASCAR PRO Member",
-
-  "P-01112034F4978121RNC23PBY": "All Access LITE",
-  "P-3NA07489RA706953DNC23NOI": "All Access PRO",
+// --- Map PayPal plan_id -> your grants (add the rest as needed) ---
+const GRANTS = {
+  // LITE
+  "P-5CH30718EJ5817631NC23TSI": { sport: "nascar", tier: "lite", profileFlag: "nascar_lite" },
+  "P-0DK27985LU908842VNC23VJQ": { sport: "mlb", tier: "lite", profileFlag: "mlb_lite" },
+  "P-9A079862R35074028NC23UOA": { sport: "nfl", tier: "lite", profileFlag: "nfl_lite" },
+  "P-8T5580076P393200FNC23WBI": { sport: "nba", tier: "lite", profileFlag: "nba_lite" },
+  // PRO
+  "P-8G568744214719119NC23QEA": { sport: "nascar", tier: "pro", profileFlag: "nascar_pro" },
+  "P-83Y13089DD870461TNC23R3I": { sport: "mlb", tier: "pro", profileFlag: "mlb_pro" },
+  "P-7EV8463063412251LNC23Q6Y": { sport: "nfl", tier: "pro", profileFlag: "nfl_pro" },
+  "P-55W83452GH8917325NC23SVQ": { sport: "nba", tier: "pro", profileFlag: "nba_pro" },
+  // Bundles
+  "P-01112034F4978121RNC23PBY": { sport: "all", tier: "lite", profileFlag: "all_access_lite" },
+  "P-3NA07489RA706953DNC23NOI": { sport: "all", tier: "pro", profileFlag: "all_access_pro" },
+  // Discord
+  "P-96N94697095892935NC23XXI": { sport: "discord", tier: "lite", profileFlag: "discord_only" },
 };
 
-const FREE_PLAN = "FREE";
-
-// env
-const {
-  SUPABASE_URL,
-  SUPABASE_SERVICE_ROLE_KEY,
-  PAYPAL_LIVE_CLIENT_ID,
-  PAYPAL_LIVE_CLIENT_SECRET,
-  PAYPAL_WEBHOOK_ID, // from PayPal > Webhooks
-} = process.env;
-
-function supabaseAdmin() {
-  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { persistSession: false },
+// --- helper: log key fields while testing ---
+function logEvent(body) {
+  const r = body?.resource || {};
+  console.log("[paypal]", body?.event_type, {
+    planId: r.plan_id,
+    customId: r.custom_id,
+    email: r?.subscriber?.email_address,
+    nextBill: r?.billing_info?.next_billing_time,
   });
 }
 
-// PayPal API helpers (LIVE)
-const PAYPAL_API = "https://api-m.paypal.com";
-
-async function getPayPalAccessToken() {
-  const creds = Buffer.from(
-    `${PAYPAL_LIVE_CLIENT_ID}:${PAYPAL_LIVE_CLIENT_SECRET}`
+// --- helper: verify PayPal signature ---
+async function verifySignature(req, body) {
+  const auth = Buffer.from(
+    `${process.env.PAYPAL_LIVE_CLIENT_ID}:${process.env.PAYPAL_LIVE_CLIENT_SECRET}`
   ).toString("base64");
 
-  const res = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
+  const res = await fetch("https://api-m.paypal.com/v1/notifications/verify-webhook-signature", {
     method: "POST",
-    headers: {
-      Authorization: `Basic ${creds}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: "grant_type=client_credentials",
+    headers: { "Content-Type": "application/json", Authorization: `Basic ${auth}` },
+    body: JSON.stringify({
+      transmission_id: req.headers["paypal-transmission-id"],
+      transmission_time: req.headers["paypal-transmission-time"],
+      cert_url: req.headers["paypal-cert-url"],
+      auth_algo: req.headers["paypal-auth-algo"],
+      transmission_sig: req.headers["paypal-transmission-sig"],
+      webhook_id: process.env.PAYPAL_WEBHOOK_ID,
+      webhook_event: body,
+    }),
   });
 
-  if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`PayPal token error: ${res.status} ${t}`);
-  }
-  return res.json();
+  const json = await res.json();
+  return json?.verification_status === "SUCCESS";
 }
 
-async function verifyWebhookSignature(headers, bodyJson) {
-  const { access_token } = await getPayPalAccessToken();
-
-  const payload = {
-    auth_algo: headers["paypal-auth-algo"],
-    cert_url: headers["paypal-cert-url"],
-    transmission_id: headers["paypal-transmission-id"],
-    transmission_sig: headers["paypal-transmission-sig"],
-    transmission_time: headers["paypal-transmission-time"],
-    webhook_id: PAYPAL_WEBHOOK_ID,
-    webhook_event: bodyJson,
-  };
-
-  const res = await fetch(
-    `${PAYPAL_API}/v1/notifications/verify-webhook-signature`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    }
-  );
-
-  const data = await res.json();
-  if (data.verification_status !== "SUCCESS") {
-    throw new Error(
-      `Webhook signature verification failed: ${JSON.stringify(data)}`
-    );
+// --- helper: fallback user lookup by email when custom_id missing ---
+async function findUserIdByEmail(email) {
+  if (!email) return null;
+  const { data, error } = await supabaseAdmin
+    .from("profiles")
+    .select("id,email")
+    .ilike("email", email.toLowerCase())
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    console.error("[webhook] profiles lookup error:", error);
+    return null;
   }
-  return true;
+  return data?.id || null;
 }
 
-// Update your profiles table
-async function activateSubscription({ userId, planId, subscriptionId }) {
-  const planName = PLAN_ID_TO_NAME[planId] || null;
-  if (!planName) {
-    console.warn("Unknown planId:", planId);
+// --- helper: grant access (profile flag + memberships row) ---
+async function grantAccess(userId, planId, nextBillingTime) {
+  const grant = GRANTS[planId];
+  if (!grant) {
+    console.log("[webhook] unknown planId:", planId);
     return;
   }
 
-  const sb = supabaseAdmin();
-  // Assumes a 'profiles' table keyed by 'id' (user.id) with fields:
-  // plan (text), status (text), paypal_subscription_id (text)
-  await sb
-    .from("profiles")
-    .update({
-      plan: planName,
-      status: "active",
-      paypal_subscription_id: subscriptionId,
-    })
-    .eq("id", userId);
-}
+  // A) quick: flip a boolean on profiles
+  if (grant.profileFlag) {
+    const { error: profErr } = await supabaseAdmin
+      .from("profiles")
+      .upsert({ id: userId, [grant.profileFlag]: true })
+      .eq("id", userId);
+    if (profErr) console.error("[webhook] profiles upsert error:", profErr);
+  }
 
-async function deactivateSubscription({ userId }) {
-  const sb = supabaseAdmin();
-  await sb
-    .from("profiles")
-    .update({
-      plan: FREE_PLAN,
-      status: "inactive",
-      paypal_subscription_id: null,
-    })
-    .eq("id", userId);
+  // B) normalized memberships record (ignore if table doesn't exist)
+  const { error: memErr } = await supabaseAdmin
+    .from("memberships")
+    .upsert({
+      user_id: userId,
+      sport: grant.sport,
+      tier: grant.tier,
+      plan_id: planId,
+      status: "active",
+      current_period_end: nextBillingTime ? new Date(nextBillingTime).toISOString() : null,
+    });
+  if (memErr) console.error("[webhook] memberships upsert error:", memErr);
 }
 
 exports.handler = async (event) => {
@@ -135,69 +116,47 @@ exports.handler = async (event) => {
       return { statusCode: 405, body: "Method Not Allowed" };
     }
 
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      throw new Error("Supabase env not set");
-    }
-    if (!PAYPAL_LIVE_CLIENT_ID || !PAYPAL_LIVE_CLIENT_SECRET || !PAYPAL_WEBHOOK_ID) {
-      throw new Error("PayPal webhook env not set");
-    }
+    const body = JSON.parse(event.body || "{}");
 
-    // Parse JSON once (keep the string for reference if needed)
-    const bodyJson = JSON.parse(event.body || "{}");
-
-    // Verify signature using PayPal API
-    const headers = {
-      "paypal-auth-algo": event.headers["paypal-auth-algo"],
-      "paypal-cert-url": event.headers["paypal-cert-url"],
-      "paypal-transmission-id": event.headers["paypal-transmission-id"],
-      "paypal-transmission-sig": event.headers["paypal-transmission-sig"],
-      "paypal-transmission-time": event.headers["paypal-transmission-time"],
-    };
-
-    await verifyWebhookSignature(headers, bodyJson);
-
-    const { event_type: type, resource } = bodyJson || {};
-    // resource fields depend on type; for subscriptions:
-    //   resource.id (subscriptionId), resource.plan_id, resource.custom_id, resource.status
-    // We put the Supabase user.id into custom_id during createSubscription.
-
-    const subscriptionId = resource?.id;
-    const planId = resource?.plan_id;
-    const userId = resource?.custom_id || null;
-
-    // If custom_id missing, you *can* try fallback via email:
-    // const email = resource?.subscriber?.email_address;
-
-    switch (type) {
-      case "BILLING.SUBSCRIPTION.ACTIVATED":
-      case "BILLING.SUBSCRIPTION.UPDATED":
-        if (userId && planId) {
-          await activateSubscription({ userId, planId, subscriptionId });
-        }
-        break;
-
-      case "BILLING.SUBSCRIPTION.CANCELLED":
-      case "BILLING.SUBSCRIPTION.SUSPENDED":
-        if (userId) {
-          await deactivateSubscription({ userId });
-        }
-        break;
-
-      // Optional: handle payment events if you want to log them
-      // case "PAYMENT.SALE.COMPLETED":
-      // case "BILLING.SUBSCRIPTION.PAYMENT.FAILED":
-      //   break;
-
-      default:
-        // Ignore other events
-        break;
+    // 1) Verify signature
+    const ok = await verifySignature(event, body);
+    if (!ok) {
+      console.warn("[webhook] signature verify FAILED");
+      return { statusCode: 400, body: "Bad signature" };
     }
 
-    return { statusCode: 200, body: "OK" };
+    logEvent(body);
+
+    const type = body.event_type;
+    const r = body.resource || {};
+    const planId = r.plan_id;
+    const nextBillingTime = r?.billing_info?.next_billing_time || null;
+
+    // Only act on relevant events
+    if (
+      type !== "BILLING.SUBSCRIPTION.ACTIVATED" &&
+      type !== "BILLING.SUBSCRIPTION.UPDATED" &&
+      type !== "PAYMENT.SALE.COMPLETED"
+    ) {
+      return { statusCode: 200, body: JSON.stringify({ ok: true }) };
+    }
+
+    // 2) Find the user: prefer custom_id from your PayPal button; else fallback by email
+    let userId = r.custom_id || null;
+    if (!userId) {
+      userId = await findUserIdByEmail(r?.subscriber?.email_address || null);
+    }
+    if (!userId) {
+      console.warn("[webhook] no userId (custom_id/email) — cannot assign access");
+      return { statusCode: 200, body: JSON.stringify({ ok: true }) };
+    }
+
+    // 3) Grant access based on plan id (e.g., NASCAR LITE)
+    await grantAccess(userId, planId, nextBillingTime);
+
+    return { statusCode: 200, body: JSON.stringify({ ok: true }) };
   } catch (err) {
-    console.error("paypal-webhook error:", err);
-    // Respond 200 to avoid repeated retries if *your* code throws,
-    // but 400 will make PayPal retry. While debugging, 400 is OK.
-    return { statusCode: 400, body: String(err.message || err) };
+    console.error("[webhook] error:", err);
+    return { statusCode: 500, body: "Server error" };
   }
 };
