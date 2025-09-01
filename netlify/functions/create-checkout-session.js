@@ -14,13 +14,7 @@ exports.handler = async (event) => {
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
       payment_method_collection: 'always',
-
-      // Force card-only
-      payment_method_types: ['card'],
-
-      // Helps AVS checks
       billing_address_collection: 'required',
-
       allow_promotion_codes: true,
       ...(userId ? { client_reference_id: userId } : {}),
       ...(email ? { customer_email: email } : {}),
@@ -31,9 +25,12 @@ exports.handler = async (event) => {
       cancel_url: `${process.env.PUBLIC_URL}/pricing`,
     };
 
-    // Optional: pin to a payment method config with only Cards enabled
+    // EITHER pin a configuration…
     if (process.env.STRIPE_PMC_ID) {
       payload.payment_method_configuration = process.env.STRIPE_PMC_ID;
+    } else {
+      // …OR explicitly set types (cards only) if no config is pinned
+      payload.payment_method_types = ['card'];
     }
 
     const session = await stripe.checkout.sessions.create(payload);
