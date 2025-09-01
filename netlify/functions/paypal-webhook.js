@@ -1,15 +1,12 @@
 // netlify/functions/paypal-webhook.js
-// CommonJS (Netlify Functions)
 const { createClient } = require("@supabase/supabase-js");
 
-// --- Supabase admin (service role) ---
 const supabaseAdmin = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY,
   { auth: { persistSession: false } }
 );
 
-// PayPal plan_id -> what to store in profiles.plan (must match your app's PLANS strings)
 const PLAN_MAP = {
   // LITE
   "P-5CH30718EJ5817631NC23TSI": "nascar_lite",
@@ -28,7 +25,6 @@ const PLAN_MAP = {
   "P-96N94697095892935NC23XXI": "discord_only",
 };
 
-// ----- helpers -----
 function logEvent(body) {
   const r = body?.resource || {};
   console.log("[paypal]", body?.event_type, {
@@ -62,13 +58,10 @@ async function verifySignature(req, body) {
   return json?.verification_status === "SUCCESS";
 }
 
-// Prefer custom_id; fallback to Supabase user by email (auth.users)
 async function resolveUserId(resource) {
   if (resource?.custom_id) return resource.custom_id;
-
   const email = resource?.subscriber?.email_address;
   if (!email) return null;
-
   const { data, error } = await supabaseAdmin.auth.admin.getUserByEmail(email);
   if (error) {
     console.error("[webhook] getUserByEmail error:", error);
@@ -77,14 +70,14 @@ async function resolveUserId(resource) {
   return data?.user?.id ?? null;
 }
 
-async function setPlan(userId, planValue) {
+async function setPlanAndStatus(userId, planValue, statusValue) {
   const { error } = await supabaseAdmin
     .from("profiles")
-    .update({ plan: planValue })
+    .update({ plan: planValue, status: statusValue })
     .eq("id", userId);
 
-  if (error) console.error("[webhook] profiles.plan update error:", error);
-  else console.log("[grant] set plan:", planValue, "for user:", userId);
+  if (error) console.error("[webhook] profiles update error:", error);
+  else console.log("[grant] set plan:", planValue, "status:", statusValue, "for user:", userId);
 }
 
 exports.handler = async (event) => {
@@ -95,7 +88,6 @@ exports.handler = async (event) => {
 
     const body = JSON.parse(event.body || "{}");
 
-    // 1) Verify PayPal signature
     const ok = await verifySignature(event, body);
     if (!ok) {
       console.warn("[webhook] signature verify FAILED");
@@ -109,7 +101,6 @@ exports.handler = async (event) => {
     const planId = r.plan_id;
     const mappedPlan = PLAN_MAP[planId];
 
-    // 2) Subscription lifecycle events we care about
     const ACTIVATION_EVENTS = new Set([
       "BILLING.SUBSCRIPTION.ACTIVATED",
       "BILLING.SUBSCRIPTION.RE-ACTIVATED",
@@ -120,33 +111,30 @@ exports.handler = async (event) => {
       "BILLING.SUBSCRIPTION.CANCELLED",
       "BILLING.SUBSCRIPTION.SUSPENDED",
       "BILLING.SUBSCRIPTION.EXPIRED",
-      "BILLING.SUBSCRIPTION.PAYMENT.FAILED", // optional: treat as lock
+      "BILLING.SUBSCRIPTION.PAYMENT.FAILED",
     ]);
 
     if (!ACTIVATION_EVENTS.has(type) && !DEACTIVATION_EVENTS.has(type)) {
       return { statusCode: 200, body: JSON.stringify({ ok: true, ignored: type }) };
     }
 
-    // 3) Resolve the user id
     const userId = await resolveUserId(r);
     if (!userId) {
       console.warn("[webhook] no userId (custom_id/email) — cannot assign access");
       return { statusCode: 200, body: JSON.stringify({ ok: true, noUser: true }) };
     }
 
-    // 4) Update profiles.plan
     if (ACTIVATION_EVENTS.has(type)) {
       if (!mappedPlan) {
         console.warn("[grant] unknown planId on activation:", planId);
       } else {
-        await setPlan(userId, mappedPlan);
+        await setPlanAndStatus(userId, mappedPlan, "active");
       }
     } else if (DEACTIVATION_EVENTS.has(type)) {
-      // Only clear if this planId is one we manage
       if (!mappedPlan) {
         console.warn("[grant] unknown planId on deactivation (no change):", planId);
       } else {
-        await setPlan(userId, "free");
+        await setPlanAndStatus(userId, "free", "inactive");
       }
     }
 
