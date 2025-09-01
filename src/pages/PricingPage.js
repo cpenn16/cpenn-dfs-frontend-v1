@@ -1,12 +1,10 @@
 // src/pages/PricingPage.js
 import React, { useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
 /* ------------------------------------------------------------------
-   PayPal SDK loader (robust)
-   - Fails if client-id missing
-   - Ensures only ONE script is on the page
-   - Replaces a previously-loaded script with the wrong client-id
+   PayPal SDK loader (robust & StrictMode-safe)
 ------------------------------------------------------------------ */
 const PAYPAL_SCRIPT_ID = "paypal-sdk";
 
@@ -16,16 +14,12 @@ function loadPayPalSdk(clientId) {
 
     const existing = document.getElementById(PAYPAL_SCRIPT_ID);
     if (existing) {
-      // If the existing script has a different client-id, remove it and reset
       if (!existing.src.includes(`client-id=${encodeURIComponent(clientId)}`)) {
         existing.remove();
-        // eslint-disable-next-line no-undef
         if (window.paypal) delete window.paypal;
       }
     }
 
-    // If paypal is already present with the right id, use it
-    // eslint-disable-next-line no-undef
     if (window.paypal) return resolve(window.paypal);
 
     const s = document.createElement("script");
@@ -42,13 +36,10 @@ function loadPayPalSdk(clientId) {
 
 /* ------------------------------------------------------------------
    Single PayPal subscribe button
-   - Clears container before render
-   - Closes previous instance on cleanup
-   - Works around React 18 StrictMode double-invoke
 ------------------------------------------------------------------ */
 function PayPalSubscribeButton({ planId, onApproved }) {
   const hostRef = useRef(null);
-  const buttonsRef = useRef(null); // keep instance to close on cleanup
+  const buttonsRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -62,7 +53,6 @@ function PayPalSubscribeButton({ planId, onApproved }) {
         const paypal = await loadPayPalSdk(process.env.REACT_APP_PAYPAL_LIVE_CLIENT_ID);
         if (cancelled || !hostRef.current) return;
 
-        // Ensure a clean container (prevents duplicate stacks)
         hostRef.current.innerHTML = "";
 
         const instance = paypal.Buttons({
@@ -70,7 +60,7 @@ function PayPalSubscribeButton({ planId, onApproved }) {
           createSubscription: (_data, actions) =>
             actions.subscription.create({
               plan_id: planId,
-              custom_id: user?.id || undefined, // your webhook maps this back to Supabase
+              custom_id: user?.id || undefined, // webhook maps this back to Supabase
               application_context: { user_action: "SUBSCRIBE_NOW" },
             }),
           onApprove: async (data) => {
@@ -83,8 +73,6 @@ function PayPalSubscribeButton({ planId, onApproved }) {
         });
 
         buttonsRef.current = instance;
-
-        // Render into the host element
         await instance.render(hostRef.current);
       } catch (err) {
         console.error("[PayPal] SDK load/render failed:", err);
@@ -93,7 +81,6 @@ function PayPalSubscribeButton({ planId, onApproved }) {
 
     renderBtn();
 
-    // Cleanup: close and clear so StrictMode remount doesn't duplicate
     return () => {
       cancelled = true;
       try {
@@ -108,9 +95,15 @@ function PayPalSubscribeButton({ planId, onApproved }) {
 }
 
 /* ----------------------------- UI card ----------------------------- */
-function PlanCard({ title, price, period = "/ month", features = [], children }) {
+function PlanCard({ title, price, period = "/ month", features = [], children, highlight = false, innerRef }) {
   return (
-    <div className="rounded-2xl shadow-lg ring-1 ring-black/5 bg-white p-6 md:p-8 flex flex-col justify-between">
+    <div
+      ref={innerRef}
+      className={
+        "rounded-2xl shadow-lg ring-1 ring-black/5 bg-white p-6 md:p-8 flex flex-col justify-between transition " +
+        (highlight ? "ring-2 ring-blue-600 shadow-xl" : "")
+      }
+    >
       <div>
         <h3 className="text-lg font-extrabold tracking-tight text-gray-900">{title}</h3>
 
@@ -134,8 +127,36 @@ function PlanCard({ title, price, period = "/ month", features = [], children })
   );
 }
 
+/* --------------------------- helpers --------------------------- */
+// Map a card title to a slug used in ?plan=
+function titleToSlug(title) {
+  const t = title.toLowerCase();
+  // order matters (check more specific first)
+  if (t.includes("all access") && t.includes("pro")) return "all_access_pro";
+  if (t.includes("all access") && t.includes("lite")) return "all_access_lite";
+  if (t.includes("discord")) return "discord_only";
+
+  if (t.includes("nascar") && t.includes("pro")) return "nascar_pro";
+  if (t.includes("nascar") && t.includes("lite")) return "nascar_lite";
+
+  if (t.includes("mlb") && t.includes("pro")) return "mlb_pro";
+  if (t.includes("mlb") && t.includes("lite")) return "mlb_lite";
+
+  if (t.includes("nfl") && t.includes("pro")) return "nfl_pro";
+  if (t.includes("nfl") && t.includes("lite")) return "nfl_lite";
+
+  if (t.includes("nba") && t.includes("pro")) return "nba_pro";
+  if (t.includes("nba") && t.includes("lite")) return "nba_lite";
+
+  return "";
+}
+
 /* --------------------------- Pricing page --------------------------- */
 export default function PricingPage() {
+  const { search } = useLocation();
+  const selectedPlan = new URLSearchParams(search).get("plan") || ""; // e.g., "nascar_pro"
+  const planRefs = useRef({});
+
   // 🔒 Your LIVE PayPal plan IDs
   const PLAN_IDS = {
     "Discord Access": "P-96N94697095892935NC23XXI",
@@ -155,9 +176,21 @@ export default function PricingPage() {
   };
 
   const handleApproved = () => {
-    // After approval, your webhook will flip access. Send them to Account.
     window.location.href = "/account";
   };
+
+  useEffect(() => {
+    if (!selectedPlan) return;
+    const el = planRefs.current[selectedPlan];
+    if (el && el.scrollIntoView) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      // optional small flash after scroll (already ringed via highlight)
+      el.classList.add("ring-2", "ring-blue-600", "shadow-xl");
+      setTimeout(() => {
+        el.classList.remove("ring-2", "ring-blue-600", "shadow-xl");
+      }, 1800);
+    }
+  }, [selectedPlan]);
 
   /* ---- LITE ---- */
   const litePlans = [
@@ -208,12 +241,7 @@ export default function PricingPage() {
     {
       title: "NBA LITE Member",
       price: 30,
-      features: [
-        "Projections & Ownership",
-        "Cheat Sheets",
-        "Discord",
-        "Does not include Optimizer (in PRO)",
-      ],
+      features: ["Projections & Ownership", "Cheat Sheets", "Discord", "Does not include Optimizer (in PRO)"],
     },
   ];
 
@@ -260,11 +288,21 @@ export default function PricingPage() {
         <p className="text-center text-gray-600 mb-8">Sport-specific access without the Optimizer.</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-          {litePlans.map((p, i) => (
-            <PlanCard key={`lite-${i}`} {...p}>
-              <PayPalSubscribeButton planId={PLAN_IDS[p.title]} onApproved={handleApproved} />
-            </PlanCard>
-          ))}
+          {litePlans.map((p, i) => {
+            const slug = titleToSlug(p.title);
+            return (
+              <PlanCard
+                key={`lite-${i}`}
+                {...p}
+                highlight={selectedPlan === slug}
+                innerRef={(el) => {
+                  if (el) planRefs.current[slug] = el;
+                }}
+              >
+                <PayPalSubscribeButton planId={PLAN_IDS[p.title]} onApproved={handleApproved} />
+              </PlanCard>
+            );
+          })}
         </div>
 
         {/* divider */}
@@ -275,11 +313,21 @@ export default function PricingPage() {
         <p className="text-center text-gray-600 mb-8">Everything in Lite plus Optimizer, Ownership, and more.</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-          {proPlans.map((p, i) => (
-            <PlanCard key={`pro-${i}`} {...p}>
-              <PayPalSubscribeButton planId={PLAN_IDS[p.title]} onApproved={handleApproved} />
-            </PlanCard>
-          ))}
+          {proPlans.map((p, i) => {
+            const slug = titleToSlug(p.title);
+            return (
+              <PlanCard
+                key={`pro-${i}`}
+                {...p}
+                highlight={selectedPlan === slug}
+                innerRef={(el) => {
+                  if (el) planRefs.current[slug] = el;
+                }}
+              >
+                <PayPalSubscribeButton planId={PLAN_IDS[p.title]} onApproved={handleApproved} />
+              </PlanCard>
+            );
+          })}
         </div>
 
         {/* divider */}
@@ -289,15 +337,36 @@ export default function PricingPage() {
         <h2 className="text-2xl font-bold text-center border-b-2 border-gray-200 pb-3 mb-8">All Access</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-          <PlanCard {...allAccess}>
+          {/* All Access PRO */}
+          <PlanCard
+            {...allAccess}
+            highlight={selectedPlan === "all_access_pro"}
+            innerRef={(el) => {
+              if (el) planRefs.current["all_access_pro"] = el;
+            }}
+          >
             <PayPalSubscribeButton planId={PLAN_IDS["All Access PRO"]} onApproved={handleApproved} />
           </PlanCard>
 
-          <PlanCard {...allAccessLite}>
+          {/* All Access LITE */}
+          <PlanCard
+            {...allAccessLite}
+            highlight={selectedPlan === "all_access_lite"}
+            innerRef={(el) => {
+              if (el) planRefs.current["all_access_lite"] = el;
+            }}
+          >
             <PayPalSubscribeButton planId={PLAN_IDS["All Access LITE"]} onApproved={handleApproved} />
           </PlanCard>
 
-          <PlanCard {...discordOnly}>
+          {/* Discord */}
+          <PlanCard
+            {...discordOnly}
+            highlight={selectedPlan === "discord_only"}
+            innerRef={(el) => {
+              if (el) planRefs.current["discord_only"] = el;
+            }}
+          >
             <PayPalSubscribeButton planId={PLAN_IDS["Discord Access"]} onApproved={handleApproved} />
           </PlanCard>
         </div>
