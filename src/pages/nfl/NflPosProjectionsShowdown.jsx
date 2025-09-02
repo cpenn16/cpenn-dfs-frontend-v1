@@ -17,10 +17,9 @@ const num = (v) => { const n = Number(String(v ?? "").replace(/[,%\s]/g, "")); r
 const pct = (v) => {
   if (v == null || v === "") return "";
   const s = String(v).trim();
-  // If there's already a %, just collapse any duplicates (e.g., "26.2%%" -> "26.2%")
-  if (/%/.test(s)) return s.replace(/%+$/,"%");
+  if (/%/.test(s)) return s.replace(/%+$/, "%"); // collapse “%%” → “%”
   const n = num(s);
-  return n == null ? "" : (Math.abs(n) <= 1 ? (n*100).toFixed(1) : n.toFixed(1)) + "%";
+  return n == null ? "" : (Math.abs(n) <= 1 ? (n * 100).toFixed(1) : n.toFixed(1)) + "%";
 };
 const smart1 = (v) => { const n = num(v); return n == null ? "" : (Number.isInteger(n) ? String(n) : n.toFixed(1)); };
 const int0 = (v) => { const n = num(v); return n == null ? "" : Math.round(n).toLocaleString(); };
@@ -35,17 +34,17 @@ const normalizeName = (s) =>
     .replace(/\s+/g, " ")
     .trim();
 
-/* canonicalize header keys */
-const canonKey = (s="") =>
+/* canonicalize header keys (more forgiving for variations) */
+const canonKey = (s = "") =>
   String(s)
-    .replace(/\u00A0|\u202F/g, " ")
+    .replace(/\u00A0|\u202F/g, " ")   // NBSP → space
     .toLowerCase()
-    .replace(/\s+/g, " ")
+    .replace(/[()]/g, "")            // strip parentheses
+    .replace(/[%]/g, "")             // drop percent signs
+    .replace(/[_\.]/g, " ")          // underscores/dots → space
+    .replace(/\s+/g, " ")            // collapse spaces
     .trim()
-    .replace(/[%]/g, "")
-    .replace(/_/g, " ")
-    .replace(/[.]/g, "")
-    .replace(/\s+/g, "");
+    .replace(/\s+/g, "");            // compact key (no spaces)
 
 const buildKeyMap = (row) => { const m = {}; for (const [k,v] of Object.entries(row)) m[canonKey(k)] = v; return m; };
 const getVal = (kmap, ...cands) => { for (const c of cands) { const v = kmap[canonKey(c)]; if (v !== undefined) return v; } return ""; };
@@ -62,8 +61,7 @@ function useJson(url){
   return { rows,loading,err };
 }
 
-/* ---------------- column sets ---------------- */
-// Common columns, no ownership columns
+/* ---------------- column sets (no ownership cols) ---------------- */
 const COLS_COMMON = [
   { id:"player", label:"Player", type:"text",  w:"min-w-[12rem] text-left" },
   { id:"team",   label:"Team",   type:"team",  w:"min-w-[4.5rem]" },
@@ -71,7 +69,6 @@ const COLS_COMMON = [
   { id:"fd_sal", label:"FD Sal", type:"money", w:"min-w-[4.25rem]" },
 ];
 
-// QB includes Ru Att (rush attempts)
 const COLS_QB = [
   ...COLS_COMMON,
   { id:"pa_yards", label:"Pa Yards", type:"num1" },
@@ -80,7 +77,7 @@ const COLS_QB = [
   { id:"pa_pct",   label:"Comp%",    type:"pct"  },
   { id:"pa_td",    label:"Pa TD",    type:"num1" },
   { id:"int",      label:"INT",      type:"num1" },
-  { id:"ru_att",   label:"Ru Att",   type:"num1" }, // <-- ensure visible
+  { id:"ru_att",   label:"Ru Att",   type:"num1" }, // ensure visible
   { id:"ypc",      label:"YPC",      type:"num1" },
   { id:"ru_yds",   label:"Ru Yds",   type:"num1" },
   { id:"ru_td",    label:"Ru TD",    type:"num1" },
@@ -97,7 +94,7 @@ const COLS_RB = [
   { id:"ru_yds",   label:"Ru Yards",    type:"num1" },
   { id:"ru_td",    label:"Ru TD",       type:"num1" },
   { id:"targets",  label:"Targets",     type:"num1" },
-  { id:"tgt_share",label:"Tgt Share",   type:"pct"  }, // %% fix comes from pct()
+  { id:"tgt_share",label:"Tgt Share",   type:"pct"  },
   { id:"rec",      label:"Rec",         type:"num1" },
   { id:"rec_yds",  label:"Rec Yards",   type:"num1" },
   { id:"rec_td",   label:"Rec TD",      type:"num1" },
@@ -110,7 +107,7 @@ const COLS_RB = [
 const COLS_TE = [
   ...COLS_COMMON,
   { id:"targets",  label:"Targets",   type:"num1" },
-  { id:"tgt_share",label:"Tgt Share", type:"pct"  }, // %% fix
+  { id:"tgt_share",label:"Tgt Share", type:"pct"  },
   { id:"rec",      label:"Rec",       type:"num1" },
   { id:"rec_yds",  label:"Rec Yards", type:"num1" },
   { id:"rec_td",   label:"Rec TD",    type:"num1" },
@@ -182,21 +179,24 @@ export default function NflPosProjections({ pos="QB" }){
     }
 
     // salaries
-    const dk_sal = getVal(k, "dk sal","dk_sal","dk\u00a0sal");
-    const fd_sal = getVal(k, "fd sal","fd_sal","fd\u00a0sal");
+    const dk_sal = getVal(k, "dk sal","dksal","dk_sal","dk sal");
+    const fd_sal = getVal(k, "fd sal","fdsal","fd_sal","fd sal");
 
     // passing
     const pa_yards = getVal(k, "pa yards","pass yards","pa_yards");
     const pa_att   = getVal(k, "pa att","pass attempts","pa attempts","pa_att");
     const pa_comp  = getVal(k, "pa comp","pass comp","pa_comp");
-    // Comp%: prefer the explicit percentage field
     const pa_pct   = getVal(k, "pa_comp_pct","comp%","completion%","pass comp%","pa comp%");
     const pa_td    = getVal(k, "pa td","pa_td");
     const int      = getVal(k, "int");
 
     // rushing / receiving
-    const ru_att   = getVal(k,
-      "ru_att","ru attempts","ru\u00A0attempts","ru att","rush attempts","rush att","rushing attempts"
+    const ru_att = getVal(
+      k,
+      // common + variations (covers “Ru Att”, “Ru Atts”, “Rush Attempts”, “Carries”, etc.)
+      "ru att", "ru_att", "ru attempts", "ru atts", "ru attempts.",
+      "rush attempts", "rush atts", "rush att", "rushing attempts", "rushing att",
+      "carries", "rushes", "rush", "rsh att", "rsh attempts"
     );
     const ypc      = getVal(k, "ypc");
     const ru_yds   = getVal(k, "ru yards","ru_yards","ru_yds","rush yards");
@@ -205,14 +205,14 @@ export default function NflPosProjections({ pos="QB" }){
     const targets  = getVal(k, "targets");
     const tgt_share= getVal(k, "tgt share","target share","tgt_share");
     const rec      = getVal(k, "rec");
-    const rec_yds  = getVal(k, "rec yards","rec\u00A0yards","rec_yards","rec_yds","receiving yards","rec yds");
+    const rec_yds  = getVal(k, "rec yards","rec yards","rec_yards","rec_yds","receiving yards","rec yds");
     const rec_td   = getVal(k, "rec td","rec_td");
 
     // DFS site stats
-    const dk_proj  = getVal(k, "dk proj","dk_proj","dk\u00a0proj");
-    const dk_val   = getVal(k, "dk val","dk_val","dk\u00a0val");
-    const fd_proj  = getVal(k, "fd proj","fd_proj","fd\u00a0proj");
-    const fd_val   = getVal(k, "fd val","fd_val","fd\u00a0val");
+    const dk_proj  = getVal(k, "dk proj","dk_proj","dk proj");
+    const dk_val   = getVal(k, "dk val","dk_val","dk val");
+    const fd_proj  = getVal(k, "fd proj","fd_proj","fd proj");
+    const fd_val   = getVal(k, "fd val","fd_val","fd val");
 
     return {
       player, team, dk_sal, fd_sal,
