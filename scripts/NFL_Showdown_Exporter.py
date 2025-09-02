@@ -1,14 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-NFL_Showdown_Exporter.py
-- Exports workbook sheets per JSON config (tasks/cheatsheets/gameboard)
-- Builds site_ids.json for DK (FLEX & CPT) and FD (single ID)
-- Merges DK/FD salaries + IDs + kickoff time into projections.json
+NFL_Showdown_Exporter.py  (lean version, no Site IDs scraping)
 
-Usage:
-  python scripts/NFL_Showdown_Exporter.py --xlsm "C:\\path\\NFL.xlsm" \
-      --project "." --config "scripts\\configs\\nfl_showdown.json"
+- Exports workbook sheets per JSON config (tasks / cheatsheets / gameboard)
+- (Optional) Merges existing DK/FD IDs + salaries + kickoff time from site_ids.json
+  into projections.json (fast JSON-to-JSON pass; no Excel reading)
+
+Run one-time IDs job:
+  python NFL_Showdown_SiteIDs.py --xlsm "C:\\path\\NFL.xlsm" --project "." --config "scripts\\configs\\nfl_showdown.json"
+
+Then use this fast exporter for frequent updates:
+  python scripts/NFL_Showdown_Exporter.py --xlsm "C:\\path\\NFL.xlsm" --project "." --config "scripts\\configs\\nfl_showdown.json"
+
+Skip merge if you don’t want to touch projections:
+  ... --no-merge
 """
 
 from __future__ import annotations
@@ -20,11 +26,10 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 from openpyxl import load_workbook
-from openpyxl.worksheet.worksheet import Worksheet
 
-# ---------- defaults (adjust if you like) ----------
+# ---------- defaults ----------
 THIS = Path(__file__).resolve()
-ROOT = THIS.parents[1]
+ROOT = THIS.parents[1] if (len(THIS.parents) > 1) else THIS.parent
 DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\NFL\NFL TNF Showdown Cowboys vs Eagles.xlsm"
 DEFAULT_PROJ   = str(ROOT)
 DEFAULT_CONFIG = str(ROOT / "scripts" / "configs" / "nfl_showdown.json")
@@ -92,6 +97,15 @@ def _resolve_col(df: pd.DataFrame, name: str) -> Optional[str]:
         return name
     low_map = {c.lower(): c for c in df.columns}
     return low_map.get((name or "").lower())
+
+# --------- light normalization (defensive: trims "%%" etc.) ----------
+_PCT_LIKE = re.compile(r"%{2,}")
+def normalize_df(df: pd.DataFrame) -> pd.DataFrame:
+    out = df.copy()
+    for c in out.columns:
+        if out[c].dtype == object:
+            out[c] = out[c].map(lambda v: _PCT_LIKE.sub("%", v) if isinstance(v, str) else v)
+    return out
 
 def read_literal_table(xlsm_path: Path, sheet: str,
                        header_row: Optional[int],
@@ -204,6 +218,9 @@ def run_task(xlsm_path: Path, project_root: Path, task: Dict[str, Any]) -> None:
     df = maybe_apply_column_mapping(df, task.get("column_mapping"))
     df = reorder_columns_if_all_present(df, task.get("column_order"))
     df = _apply_filters(df, task.get("filters"))
+
+    # Light normalization for safety (removes "%%")
+    df = normalize_df(df)
 
     out_rel = (task.get("out_rel") or "").lstrip(r"\/")
     fmt = str(task.get("format", "json")).lower()
@@ -327,7 +344,7 @@ def run_gameboard(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> N
                     m = title_re.match(txt)
                     if not m: continue
                     away, home = m.group(1), m.group(2)
-                    # naive: grab next 6–12 lines as blocks (kept minimal here)
+                    # naive: grab next lines as blocks (kept minimal)
                     g = {"away": away, "home": home, "lines": []}
                     k = r+1
                     blanks=0
@@ -347,100 +364,7 @@ def run_gameboard(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> N
     finally:
         wb.close()
 
-# --------- site_ids (DK/FD) + kickoff time helpers ----------
-_TIME_RE = re.compile(r"(\d{1,2})\s*:\s*(\d{2})\s*([AP])\.?\s*M", re.I)
-def _normalize_time(s: str | None) -> str | None:
-    if not s: return None
-    m = _TIME_RE.search(str(s))
-    if not m: return None
-    h = int(m.group(1)); mm = m.group(2).zfill(2)
-    ampm = "AM" if m.group(3).lower() == "a" else "PM"
-    return f"{h}:{mm} {ampm}"
-
-def _read_site_ids_showdown(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> Tuple[List[dict], List[dict]]:
-    si = cfg.get("site_ids") or {}
-    out_rel = (si.get("out_rel") or "").lstrip(r"\/")
-    if not out_rel:
-        return [], []
-    dk_sheet = si.get("dk_sheet") or "DK Salaries"
-    fd_sheet = si.get("fd_sheet") or "FD Salaries"
-
-    # letters → 0-based indices
-    dk_c = _excel_col_to_idx(si.get("dk_name_col" , "C"))
-    dk_d = _excel_col_to_idx(si.get("dk_id_col"   , "D"))
-    dk_e = _excel_col_to_idx(si.get("dk_pos_col"  , "E"))
-    dk_f = _excel_col_to_idx(si.get("dk_sal_col"  , "F"))
-    dk_g = _excel_col_to_idx(si.get("dk_game_col" , "G"))
-    dk_h = _excel_col_to_idx(si.get("dk_team_col" , "H"))
-
-    fd_d = _excel_col_to_idx(si.get("fd_name_col"     , "D"))
-    fd_a = _excel_col_to_idx(si.get("fd_id_col"       , "A"))
-    fd_b = _excel_col_to_idx(si.get("fd_pos_col"      , "B"))
-    fd_h = _excel_col_to_idx(si.get("fd_sal_col"      , "H"))
-    fd_i = _excel_col_to_idx(si.get("fd_mvp_sal_col"  , "I"))
-    fd_j = _excel_col_to_idx(si.get("fd_game_col"     , "J"))
-    fd_k = _excel_col_to_idx(si.get("fd_team_col"     , "K"))
-
-    wb = load_workbook(xlsm_path, data_only=True, read_only=True, keep_links=False)
-    dk_rows: List[dict] = []
-    fd_rows: List[dict] = []
-    try:
-        # DK
-        if dk_sheet in wb.sheetnames:
-            ws = wb[dk_sheet]
-            for r in range(2, ws.max_row + 1):
-                name = _format_cell(ws.cell(r, dk_c+1))
-                pid  = _format_cell(ws.cell(r, dk_d+1))
-                pos  = (_format_cell(ws.cell(r, dk_e+1)) or "").upper()  # FLEX or CPT
-                sal  = _format_cell(ws.cell(r, dk_f+1))
-                game = _format_cell(ws.cell(r, dk_g+1))
-                team = (_format_cell(ws.cell(r, dk_h+1)) or "").upper()
-                if not name or not pid: 
-                    continue
-                dk_rows.append({
-                    "name": name,
-                    "id": pid,
-                    "team": team,
-                    "pos": pos,         # FLEX or CPT
-                    "salary": sal,
-                    "game": game,
-                    "time": _normalize_time(game)
-                })
-
-        # FD
-        if fd_sheet in wb.sheetnames:
-            ws = wb[fd_sheet]
-            for r in range(2, ws.max_row + 1):
-                name = _format_cell(ws.cell(r, fd_d+1))
-                pid  = _format_cell(ws.cell(r, fd_a+1))
-                pos  = (_format_cell(ws.cell(r, fd_b+1)) or "").upper()
-                salF = _format_cell(ws.cell(r, fd_h+1))  # flex
-                salM = _format_cell(ws.cell(r, fd_i+1))  # MVP
-                game = _format_cell(ws.cell(r, fd_j+1))
-                team = (_format_cell(ws.cell(r, fd_k+1)) or "").upper()
-                if not name or not pid:
-                    continue
-                fd_rows.append({
-                    "name": name,
-                    "id": pid,
-                    "team": team,
-                    "pos": pos,
-                    "salary_flex": salF,
-                    "salary_mvp":  salM,
-                    "game": game,
-                    "time": _normalize_time(game)
-                })
-    finally:
-        wb.close()
-
-    # write file
-    out_path = (project_root / "public" / Path(out_rel)).with_suffix(".json")
-    ensure_parent(out_path)
-    out_path.write_text(json.dumps({"dk": dk_rows, "fd": fd_rows}, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"✔ JSON → {out_path}  (dk: {len(dk_rows)} | fd: {len(fd_rows)})")
-    return dk_rows, fd_rows
-
-# ---------- merge salaries + ids + time into projections ----------
+# ---------- (Optional) merge site_ids.json into projections ----------
 def _load_json(p: Path):
     try:
         return json.loads(p.read_text(encoding="utf-8-sig"))
@@ -475,6 +399,14 @@ def _num(n: str | None) -> Optional[float]:
     except Exception:
         return None
 
+def _int_from_any(v) -> Optional[int]:
+    if v is None: return None
+    s = str(v).replace(",", "").replace("$", "").strip()
+    try:
+        return int(float(s))
+    except Exception:
+        return None
+
 def merge_showdown_into_projections(project_root: Path, cfg: Dict[str, Any]) -> None:
     out_rel = "data/nfl/showdown/latest/projections"
     proj_path = (project_root / "public" / out_rel).with_suffix(".json")
@@ -484,54 +416,65 @@ def merge_showdown_into_projections(project_root: Path, cfg: Dict[str, Any]) -> 
     raw = _load_json(proj_path)
     rows, shape = _to_rows_shape(raw)
 
-    # read site_ids (we just wrote it)
+    # read site_ids.json (created by the standalone script)
     si_rel = (cfg.get("site_ids") or {}).get("out_rel") or "data/nfl/showdown/latest/site_ids"
     si_path = (project_root / "public" / Path(si_rel)).with_suffix(".json")
     si = _load_json(si_path) or {}
-    dk = si.get("dk", [])
-    fd = si.get("fd", [])
+    dk_rows = si.get("dk", [])
+    fd_rows = si.get("fd", [])
+    dk_joined = si.get("dk_joined", {})  # preferred
 
-    # build maps
     dk_flex_id  : Dict[str, str] = {}
     dk_cpt_id   : Dict[str, str] = {}
     dk_flex_sal : Dict[str, float] = {}
     dk_cpt_sal  : Dict[str, float] = {}
+    kickoff_map : Dict[str, str] = {}
+
+    if dk_joined:
+        for k, v in dk_joined.items():
+            kickoff_map.setdefault(k, v.get("time"))
+            if v.get("flex", {}).get("id"):
+                dk_flex_id[k] = v["flex"]["id"]
+                dk_flex_sal[k] = _num(v["flex"].get("salary"))
+            if v.get("cpt", {}).get("id"):
+                dk_cpt_id[k] = v["cpt"]["id"]
+                dk_cpt_sal[k] = _num(v["cpt"].get("salary"))
+    else:
+        for r in dk_rows:
+            k = _key(r.get("name",""), r.get("team",""))
+            kickoff_map.setdefault(k, r.get("time"))
+            if (r.get("pos") or "").upper() == "CPT":
+                dk_cpt_id[k]  = r.get("id","")
+                dk_cpt_sal[k] = _num(r.get("salary"))
+            else:
+                dk_flex_id[k]  = r.get("id","")
+                dk_flex_sal[k] = _num(r.get("salary"))
+
     fd_id_map   : Dict[str, str] = {}
     fd_flex_sal : Dict[str, float] = {}
     fd_mvp_sal  : Dict[str, float] = {}
-    kickoff_map : Dict[str, str] = {}
-
-    for r in dk:
-        k = _key(r.get("name",""), r.get("team",""))
-        kickoff_map.setdefault(k, r.get("time"))
-        if (r.get("pos") or "").upper() == "CPT":
-            dk_cpt_id[k]  = r.get("id","")
-            dk_cpt_sal[k] = _num(r.get("salary"))
-        else:
-            dk_flex_id[k]  = r.get("id","")
-            dk_flex_sal[k] = _num(r.get("salary"))
-
-    for r in fd:
+    for r in fd_rows:
         k = _key(r.get("name",""), r.get("team",""))
         kickoff_map.setdefault(k, r.get("time"))
         fd_id_map[k]   = r.get("id","")
         fd_flex_sal[k] = _num(r.get("salary_flex"))
         fd_mvp_sal[k]  = _num(r.get("salary_mvp"))
 
-    upd = dkf=dkc=fdf=fdm=t_hits=0
+    upd = dkf=dkc=fdf=t_hits=0
     for r in rows:
         player = r.get("player") or r.get("Player") or r.get("Player Name")
         team   = r.get("team")   or r.get("Team")   or r.get("TeamAbbrev")
         key    = _key(player, team)
 
         # IDs
-        if key in dk_flex_id:
+        if key in dk_flex_id and dk_flex_id[key]:
             r["dk_flex_id"] = dk_flex_id[key]; dkf += 1
-        if key in dk_cpt_id:
+        if key in dk_cpt_id and dk_cpt_id[key]:
             r["dk_cpt_id"]  = dk_cpt_id[key];  dkc += 1
-        if key in fd_id_map:
-            r["fd_id"]      = fd_id_map[key];  # single id
-        # Salaries (printable strings + raw)
+        if key in fd_id_map and fd_id_map[key]:
+            r["fd_id"]      = fd_id_map[key];  fdf += 1
+
+        # Salaries (printable strings)
         if key in dk_flex_sal and dk_flex_sal[key] is not None:
             r["DK Flex Sal"] = f"{int(dk_flex_sal[key]):,}"
         if key in dk_cpt_sal and dk_cpt_sal[key] is not None:
@@ -545,15 +488,28 @@ def merge_showdown_into_projections(project_root: Path, cfg: Dict[str, Any]) -> 
         if not r.get("time") and key in kickoff_map and kickoff_map[key]:
             r["time"] = kickoff_map[key]; t_hits += 1
 
-        if key in dk_flex_id or key in dk_cpt_id or key in fd_id_map:
+        # Fallback: compute CPT salary from DK Sal if still missing
+        if not r.get("DK CPT Sal"):
+            base = r.get("DK Sal") or r.get("dk_sal")
+            base_num = _int_from_any(base)
+            if base_num:
+                r["DK CPT Sal"] = f"{int(base_num * 1.5):,}"
+
+        # DK "MVP" aliases (display consistency)
+        if r.get("dk_cpt_id") and not r.get("dk_mvp_id"):
+            r["dk_mvp_id"] = r["dk_cpt_id"]
+        if r.get("DK CPT Sal") and not r.get("DK MVP Sal"):
+            r["DK MVP Sal"] = r["DK CPT Sal"]
+
+        if (key in dk_flex_id) or (key in dk_cpt_id) or (key in fd_id_map):
             upd += 1
 
     _write_json(proj_path, rows if shape[0]=="array" else (shape[1] | {"rows": rows}))
     print("\n=== MERGE SHOWDOWN SALARIES/IDs INTO projections.json ===")
     print(f"• Projections updated: {upd}")
     print(f"• DK FLEX ids:        {dkf}")
-    print(f"• DK CPT ids:         {dkc}")
-    print(f"• FD ids:             {len(fd_id_map)}")
+    print(f"• DK CPT  ids:        {dkc}")
+    print(f"• FD ids:             {fdf}")
     print(f"• Time hits:          {t_hits}")
     print(f"• Output:             {proj_path}")
 
@@ -572,6 +528,7 @@ def main():
     ap.add_argument("--xlsm",    default=DEFAULT_XLSM)
     ap.add_argument("--project", default=DEFAULT_PROJ)
     ap.add_argument("--config",  default=DEFAULT_CONFIG)
+    ap.add_argument("--no-merge", action="store_true", help="Skip merging site_ids.json into projections.json")
     args = ap.parse_args()
 
     xlsm_path = Path(args.xlsm).resolve()
@@ -604,18 +561,12 @@ def main():
         try: run_gameboard(staged, project_root, cfg)
         except Exception as e: print(f"⚠ gameboard failed: {e}")
 
-        # site ids
-        print("\n=== SITE IDS (DK/FD) ===")
-        try:
-            _read_site_ids_showdown(staged, project_root, cfg)
-        except Exception as e:
-            print(f"⚠ site_ids failed: {e}")
-
-        # merge back into projections
-        try:
-            merge_showdown_into_projections(project_root, cfg)
-        except Exception as e:
-            print(f"⚠ merge failed: {e}")
+        # optional: merge IDs/salaries/time from JSON (no Excel; fast)
+        if not args.no_merge:
+            try:
+                merge_showdown_into_projections(project_root, cfg)
+            except Exception as e:
+                print(f"⚠ merge failed: {e}")
 
         print("\nDone.")
     finally:
