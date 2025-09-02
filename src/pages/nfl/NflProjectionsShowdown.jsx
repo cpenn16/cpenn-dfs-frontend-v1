@@ -3,9 +3,8 @@ import React, { useEffect, useMemo, useState } from "react";
 
 /* ------------------------------------------------------------------
    Unified showdown table (single table, compact like classic)
-   - DK/FD site toggle
-   - Slot toggle (Flex vs CPT for DK, Flex vs MVP for FD)
-   - Auto-multiplies salary + projection for CPT/MVP (1.5x)
+   - DK/FD toggle + Flex/CPT/MVP toggle
+   - Auto-multiplies salary & projection for CPT/MVP (1.5x)
    - Sortable headers, search, CSV export
    - Reads from /data/nfl/showdown/latest/projections.json
 ------------------------------------------------------------------- */
@@ -32,18 +31,18 @@ const toNum = (v) => {
   const n = Number(String(v ?? "").replace(/[,$%\s]/g, ""));
   return Number.isFinite(n) ? n : null;
 };
-const fmt0 = (v) => {                 // 49,500
+const fmt0 = (v) => {
   const n = toNum(v);
   return n == null ? "" : n.toLocaleString();
 };
-const fmt1 = (v) => {                 // 1 decimal
+const fmt1 = (v) => {
   const n = toNum(v);
   return n == null ? "" : n.toFixed(1);
 };
 const fmtPct = (v) => {
   if (v == null || v === "") return "";
   const s = String(v).trim();
-  if (/%$/.test(s)) return s.replace(/%+$/, "%"); // collapse %% → %
+  if (/%$/.test(s)) return s.replace(/%+$/, "%"); // keep provided percent symbols
   const n = toNum(s);
   return n == null ? "" : `${n.toFixed(1)}%`;
 };
@@ -55,8 +54,13 @@ const computeVal = (proj, sal) => {
   const p = toNum(proj);
   const s = toNum(sal);
   if (p == null || s == null || s === 0) return "";
-  // Value as points per $1k (common convention)
-  return (p / (s / 1000)).toFixed(1);
+  return (p / (s / 1000)).toFixed(1); // points per $1k
+};
+const dstShort = (team) => {
+  const full = TEAM_FULL[team];
+  if (!full) return team;
+  const parts = full.split(" ");
+  return parts[parts.length - 1]; // "Eagles"
 };
 
 /* fetch with cache-bust during dev */
@@ -119,7 +123,7 @@ export default function NflProjectionsShowdown() {
 
   // site + slot state
   const [site, setSite] = useState("dk");            // "dk" | "fd"
-  const [slot, setSlot] = useState("flex");          // "flex" | "cpt" (dk) or "flex" | "mvp" (fd)
+  const [slot, setSlot] = useState("flex");          // "flex" | "cpt" (dk) | "mvp" (fd)
   const [q, setQ] = useState("");                    // search
 
   // normalize rows
@@ -129,9 +133,9 @@ export default function NflProjectionsShowdown() {
       const team = r.team ?? r.Team ?? "";
       const opp  = r.opp ?? r.Opp ?? r.OPP ?? "";
 
-      // projections
-      const dk_proj = pick(r, ["DK Proj", "dk_proj", "dk_projection"]);
-      const fd_proj = pick(r, ["FD Proj", "fd_proj", "fd_projection"]);
+      // projections (prefer proper-cased headers first)
+      const dk_proj = pick(r, ["DK Proj", "dk_proj", "dk_flex_proj", "DK Flex Proj"]);
+      const fd_proj = pick(r, ["FD Proj", "fd_proj", "fd_flex_proj", "FD Flex Proj"]);
 
       // salaries (prefer explicit flex/cpt/mvp if present)
       const dk_sal = pick(r, ["DK Sal", "dk_sal", "DK Flex Sal", "dk_flex_sal"]);
@@ -140,23 +144,28 @@ export default function NflProjectionsShowdown() {
       const fd_sal = pick(r, ["FD Sal", "fd_sal", "FD Flex Sal", "fd_flex_sal"]);
       const fd_mvp_sal = pick(r, ["FD MVP Sal", "fd_mvp_sal"]);
 
-      // ownership / opt
-      const dk_flex_pown = pick(r, ["DK Flex pOWN%", "dk_flex_pown", "dk_pown", "dk_flex_own"]);
-      const dk_cpt_pown  = pick(r, ["DK CPT pOWN%", "dk_cpt_pown", "dk_capt_pown", "dk_cpt_own", "dk_capt_own"]);
-      const dk_flex_opt  = pick(r, ["DK Flex Opt%", "dk_flex_opt", "dk_opt"]);
-      const dk_cpt_opt   = pick(r, ["DK Cap Opt%", "DK CPT Opt%", "dk_cpt_opt", "dk_capt_opt"]);
+      // ownership / opt — accept multiple spellings/aliases
+      const dk_flex_pown = pick(r, [
+        "dk_flex_pown","DK Flex pOWN%","DK Flex pOWN","dk_flex_pown_pct","dk_pown","dk_flex_own"
+      ]);
+      const dk_cpt_pown  = pick(r, [
+        "dk_cpt_pown","DK CPT pOWN%","DK CPT pOWN","DK Cap pOWN%","dk_capt_pown","dk_cpt_own","dk_capt_own"
+      ]);
+      const dk_flex_opt  = pick(r, ["dk_flex_opt","DK Flex Opt%","DK Flex Opt","dk_opt"]);
+      const dk_cpt_opt   = pick(r, ["dk_cpt_opt","DK CPT Opt%","DK Cap Opt%","dk_capt_opt"]);
 
-      const fd_flex_pown = pick(r, ["FD Flex pOWN%", "fd_flex_pown", "fd_pown", "fd_flex_own"]);
-      const fd_mvp_pown  = pick(r, ["FD MVP pOWN%", "fd_mvp_pown", "fd_mvp_own"]);
-      const fd_flex_opt  = pick(r, ["FD Flex Opt%", "fd_flex_opt", "fd_opt"]);
-      const fd_mvp_opt   = pick(r, ["FD MVP Opt%", "fd_mvp_opt"]);
+      const fd_flex_pown = pick(r, [
+        "fd_flex_pown","FD Flex pOWN%","FD Flex pOWN","fd_pown","fd_flex_own"
+      ]);
+      const fd_mvp_pown  = pick(r, ["fd_mvp_pown","FD MVP pOWN%","FD MVP pOWN","fd_mvp_own"]);
+      const fd_flex_opt  = pick(r, ["fd_flex_opt","FD Flex Opt%","FD Flex Opt","fd_opt"]);
+      const fd_mvp_opt   = pick(r, ["fd_mvp_opt","FD MVP Opt%","FD MVP Opt"]);
 
-      // DST display name: show full team name
+      // Base player label (handle DST differently per site later)
       const basePlayer = r.player ?? r.Player ?? "";
-      const player = String(pos).toUpperCase() === "DST" && TEAM_FULL[team] ? TEAM_FULL[team] : basePlayer;
 
       return {
-        player, pos, team, opp,
+        basePlayer, pos, team, opp,
         dk_proj, dk_sal, dk_cpt_sal,
         dk_flex_pown, dk_cpt_pown, dk_flex_opt, dk_cpt_opt,
         fd_proj, fd_sal, fd_mvp_sal,
@@ -170,7 +179,7 @@ export default function NflProjectionsShowdown() {
     const s = q.trim().toLowerCase();
     if (!s) return rows;
     return rows.filter((r) =>
-      `${r.player} ${r.pos} ${r.team} ${r.opp}`.toLowerCase().includes(s)
+      `${r.basePlayer} ${r.pos} ${r.team} ${r.opp}`.toLowerCase().includes(s)
     );
   }, [rows, q]);
 
@@ -181,6 +190,11 @@ export default function NflProjectionsShowdown() {
     const mult = useCptOrMvp ? 1.5 : 1.0;
 
     return filtered.map((r) => {
+      // DST naming: DK shows short ("Eagles"), FD shows full ("Philadelphia Eagles")
+      const player = String(r.pos).toUpperCase() === "DST"
+        ? (isDK ? dstShort(r.team) : (TEAM_FULL[r.team] || r.basePlayer))
+        : r.basePlayer;
+
       if (isDK) {
         const baseSal = r.dk_sal;
         const cptSal  = r.dk_cpt_sal || (toNum(baseSal) != null ? String(Math.round(toNum(baseSal) * 1.5)) : "");
@@ -189,15 +203,7 @@ export default function NflProjectionsShowdown() {
         const val = computeVal(proj, sal);
         const pOwn = useCptOrMvp ? r.dk_cpt_pown : r.dk_flex_pown;
         const opt  = useCptOrMvp ? r.dk_cpt_opt  : r.dk_flex_opt;
-        return {
-          ...r,
-          sal, proj, val,
-          pOwn, opt,
-          salLabel: useCptOrMvp ? "DK CPT Sal" : "DK Sal",
-          projLabel: useCptOrMvp ? "DK CPT Proj" : "DK Proj",
-          pOwnLabel: useCptOrMvp ? "DK CPT pOWN%" : "DK Flex pOWN%",
-          optLabel:  useCptOrMvp ? "DK CPT Opt%"  : "DK Flex Opt%",
-        };
+        return { ...r, player, sal, proj, val, pOwn, opt };
       } else {
         const baseSal = r.fd_sal;
         const mvpSal  = r.fd_mvp_sal || (toNum(baseSal) != null ? String(Math.round(toNum(baseSal) * 1.5)) : "");
@@ -206,15 +212,7 @@ export default function NflProjectionsShowdown() {
         const val = computeVal(proj, sal);
         const pOwn = useCptOrMvp ? r.fd_mvp_pown : r.fd_flex_pown;
         const opt  = useCptOrMvp ? r.fd_mvp_opt  : r.fd_flex_opt;
-        return {
-          ...r,
-          sal, proj, val,
-          pOwn, opt,
-          salLabel: useCptOrMvp ? "FD MVP Sal" : "FD Sal",
-          projLabel: useCptOrMvp ? "FD MVP Proj" : "FD Proj",
-          pOwnLabel: useCptOrMvp ? "FD MVP pOWN%" : "FD Flex pOWN%",
-          optLabel:  useCptOrMvp ? "FD MVP Opt%"  : "FD Flex Opt%",
-        };
+        return { ...r, player, sal, proj, val, pOwn, opt };
       }
     });
   }, [filtered, site, slot]);
@@ -236,7 +234,7 @@ export default function NflProjectionsShowdown() {
       { key: "proj",   label: proj,      type: "num1"  },
       { key: "val",    label: isDK ? "DK Val" : "FD Val", type: "num1" },
       { key: "pOwn",   label: pown,      type: "pct"   },
-      { key: "opt",    label: opt,       type: "pct"   },
+      { key: "opt",    label: opt,       type: "pct"   }
     ];
   }, [site, slot]);
 
@@ -268,126 +266,129 @@ export default function NflProjectionsShowdown() {
     });
   };
 
-  const textSz = "text-[12px]";
-  const cell = "px-2 py-1 text-center";
-  const header = "px-2 py-1 font-semibold text-center";
+  // compact styles and layout
+  const textSz = "text-[11px]";                 // tighter text
+  const cell = "px-1.5 py-1 text-center";        // tighter padding
+  const header = "px-1.5 py-1 font-semibold text-center";
 
   return (
-    <div className="px-4 md:px-6 py-5">
-      <div className="flex items-center justify-between gap-3 mb-2">
-        <h1 className="text-2xl md:text-3xl font-extrabold mb-0.5">NFL — DFS Projections (Showdown)</h1>
-        <div className="flex items-center gap-2">
-          {/* Site toggle */}
-          <div className="inline-flex items-center gap-1 rounded-xl bg-gray-100 p-1">
-            {["dk", "fd"].map((k) => (
-              <button
-                key={k}
-                onClick={() => setSite(k)}
-                className={`px-3 py-1.5 rounded-lg text-sm inline-flex items-center gap-1 ${
-                  site === k ? "bg-white shadow font-semibold" : "text-gray-700"
-                }`}
-                title="Toggle site"
-              >
-                {k === "dk" ? <img src="/logos/dk.png" alt="DK" className="w-4 h-4" /> : <img src="/logos/fd.png" alt="FD" className="w-4 h-4" />}
-                <span>{k.toUpperCase()}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Slot toggle */}
-          <div className="inline-flex items-center gap-1 rounded-xl bg-gray-100 p-1">
-            {site === "dk" ? (
-              <>
+    <div className="px-3 py-4">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <h1 className="text-xl font-extrabold mb-0.5">NFL — DFS Projections (Showdown)</h1>
+          <div className="flex items-center gap-2">
+            {/* Site toggle */}
+            <div className="inline-flex items-center gap-1 rounded-xl bg-gray-100 p-1">
+              {["dk", "fd"].map((k) => (
                 <button
-                  className={`px-3 py-1.5 rounded-lg text-sm ${slot === "flex" ? "bg-white shadow font-semibold" : "text-gray-700"}`}
-                  onClick={() => setSlot("flex")}
-                >DK Flex</button>
-                <button
-                  className={`px-3 py-1.5 rounded-lg text-sm ${slot === "cpt" ? "bg-white shadow font-semibold" : "text-gray-700"}`}
-                  onClick={() => setSlot("cpt")}
-                >DK CPT</button>
-              </>
-            ) : (
-              <>
-                <button
-                  className={`px-3 py-1.5 rounded-lg text-sm ${slot === "flex" ? "bg-white shadow font-semibold" : "text-gray-700"}`}
-                  onClick={() => setSlot("flex")}
-                >FD Flex</button>
-                <button
-                  className={`px-3 py-1.5 rounded-lg text-sm ${slot === "mvp" ? "bg-white shadow font-semibold" : "text-gray-700"}`}
-                  onClick={() => setSlot("mvp")}
-                >FD MVP</button>
-              </>
-            )}
-          </div>
-
-          {/* search */}
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search player / team / opp…"
-            className="px-3 py-2 rounded-lg border w-64"
-          />
-
-          {/* export */}
-          <button
-            className="ml-1 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700"
-            onClick={() => downloadCSV(sorted, columns)}
-          >
-            Export CSV
-          </button>
-        </div>
-      </div>
-
-      {/* table */}
-      <div className="rounded-xl border bg-white shadow-sm overflow-auto">
-        <table className={`w-full border-separate ${textSz}`} style={{ borderSpacing: 0 }}>
-          <thead className="bg-gray-50 sticky top-0 z-10">
-            <tr>
-              {columns.map((c) => (
-                <th
-                  key={c.key}
-                  className={`${header} whitespace-nowrap cursor-pointer select-none`}
-                  onClick={() => onSort(c)}
-                  title="Click to sort"
+                  key={k}
+                  onClick={() => setSite(k)}
+                  className={`px-3 py-1.5 rounded-lg text-xs inline-flex items-center gap-1 ${
+                    site === k ? "bg-white shadow font-semibold" : "text-gray-700"
+                  }`}
+                  title="Toggle site"
                 >
-                  <div className="inline-flex items-center gap-1">
-                    <span>{c.label}</span>
-                    {sort.key === c.key ? (
-                      <span className="text-gray-400">{sort.dir === "desc" ? "▼" : "▲"}</span>
-                    ) : (
-                      <span className="text-gray-300">▲</span>
-                    )}
-                  </div>
-                </th>
+                  {k === "dk" ? <img src="/logos/dk.png" alt="DK" className="w-4 h-4" /> : <img src="/logos/fd.png" alt="FD" className="w-4 h-4" />}
+                  <span>{k.toUpperCase()}</span>
+                </button>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {loading && (
+            </div>
+
+            {/* Slot toggle */}
+            <div className="inline-flex items-center gap-1 rounded-xl bg-gray-100 p-1">
+              {site === "dk" ? (
+                <>
+                  <button
+                    className={`px-3 py-1.5 rounded-lg text-xs ${slot === "flex" ? "bg-white shadow font-semibold" : "text-gray-700"}`}
+                    onClick={() => setSlot("flex")}
+                  >DK Flex</button>
+                  <button
+                    className={`px-3 py-1.5 rounded-lg text-xs ${slot === "cpt" ? "bg-white shadow font-semibold" : "text-gray-700"}`}
+                    onClick={() => setSlot("cpt")}
+                  >DK CPT</button>
+                </>
+              ) : (
+                <>
+                  <button
+                    className={`px-3 py-1.5 rounded-lg text-xs ${slot === "flex" ? "bg-white shadow font-semibold" : "text-gray-700"}`}
+                    onClick={() => setSlot("flex")}
+                  >FD Flex</button>
+                  <button
+                    className={`px-3 py-1.5 rounded-lg text-xs ${slot === "mvp" ? "bg-white shadow font-semibold" : "text-gray-700"}`}
+                    onClick={() => setSlot("mvp")}
+                  >FD MVP</button>
+                </>
+              )}
+            </div>
+
+            {/* search */}
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search player / team / opp…"
+              className="px-3 py-1.5 rounded-lg border w-64 text-sm"
+            />
+
+            {/* export */}
+            <button
+              className="ml-1 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs hover:bg-blue-700"
+              onClick={() => downloadCSV(sorted, columns)}
+            >
+              Export CSV
+            </button>
+          </div>
+        </div>
+
+        {/* table */}
+        <div className="rounded-xl border bg-white shadow-sm overflow-auto">
+          <table className={`w-full border-separate ${textSz}`} style={{ borderSpacing: 0 }}>
+            <thead className="bg-gray-50 sticky top-0 z-10">
               <tr>
-                <td className={`${cell} text-gray-500`} colSpan={columns.length}>Loading…</td>
+                {columns.map((c) => (
+                  <th
+                    key={c.key}
+                    className={`${header} whitespace-nowrap cursor-pointer select-none`}
+                    onClick={() => onSort(c)}
+                    title="Click to sort"
+                  >
+                    <div className="inline-flex items-center gap-1">
+                      <span>{c.label}</span>
+                      {sort.key === c.key ? (
+                        <span className="text-gray-400">{sort.dir === "desc" ? "▼" : "▲"}</span>
+                      ) : (
+                        <span className="text-gray-300">▲</span>
+                      )}
+                    </div>
+                  </th>
+                ))}
               </tr>
-            )}
-            {err && (
-              <tr>
-                <td className={`${cell} text-red-600`} colSpan={columns.length}>Failed to load: {err}</td>
-              </tr>
-            )}
-            {!loading && !err && sorted.map((r, i) => (
-              <tr key={`${r.player}-${i}`} className="odd:bg-white even:bg-gray-50">
-                {columns.map((c) => {
-                  const cls = c.type === "text" ? "px-2 py-1 text-left whitespace-nowrap" : `${cell} tabular-nums`;
-                  let val = r[c.key];
-                  if (c.type === "money") val = fmt0(val);
-                  if (c.type === "num1")  val = fmt1(val);
-                  if (c.type === "pct")   val = fmtPct(val);
-                  return <td key={c.key} className={cls}>{val ?? ""}</td>;
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {loading && (
+                <tr>
+                  <td className={`${cell} text-gray-500`} colSpan={columns.length}>Loading…</td>
+                </tr>
+              )}
+              {err && (
+                <tr>
+                  <td className={`${cell} text-red-600`} colSpan={columns.length}>Failed to load: {err}</td>
+                </tr>
+              )}
+              {!loading && !err && sorted.map((r, i) => (
+                <tr key={`${r.player}-${i}`} className="odd:bg-white even:bg-gray-50">
+                  {columns.map((c) => {
+                    const cls = c.type === "text" ? "px-1.5 py-1 text-left whitespace-nowrap" : `${cell} tabular-nums`;
+                    let val = r[c.key];
+                    if (c.type === "money") val = fmt0(val);
+                    if (c.type === "num1")  val = fmt1(val);
+                    if (c.type === "pct")   val = fmtPct(val);
+                    return <td key={c.key} className={cls}>{val ?? ""}</td>;
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
