@@ -303,8 +303,19 @@ export default function NflPosData({ pos = "QB" }) {
     });
   }, [data, q, selected]);
 
-  // sorting (header text acts as the sort key)
-  const [sort, setSort] = useState({ key: columns[0] || "Player", dir: "asc" });
+// start with dummy, update once we know columns
+const [sort, setSort] = useState({ key: "Player", dir: "asc" });
+
+useEffect(() => {
+  if (!columns || columns.length === 0) return;
+  // try to find DK Sal column
+  const dkSalKey = columns.find((c) => /\bdk\s*sal(ary)?\b/i.test(String(c)));
+  if (dkSalKey) {
+    setSort({ key: dkSalKey, dir: "desc" }); // highest → lowest
+  } else {
+    setSort({ key: columns[0], dir: "asc" }); // fallback
+  }
+}, [columns]);
   const onSort = (keyName) => {
     setSort((prev) =>
       prev.key === keyName ? { key: keyName, dir: prev.dir === "asc" ? "desc" : "asc" } : { key: keyName, dir: "desc" }
