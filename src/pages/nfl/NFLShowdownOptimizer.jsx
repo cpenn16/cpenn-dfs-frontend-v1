@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API_BASE from "../../utils/api";
 
-/* ----------------------------- helpers ----------------------------- */
+/* ----------------------- small utils ----------------------- */
 const clamp = (v, lo = 0, hi = 1e9) => Math.max(lo, Math.min(hi, v));
 const num = (v) => {
   if (v == null) return 0;
@@ -11,6 +11,12 @@ const num = (v) => {
   const n = Number(s);
   return Number.isFinite(n) ? n : 0;
 };
+const pct = (v) => {
+  if (v == null) return 0;
+  const s = String(v).replace(/[%\s]/g, "");
+  const n = Number(s);
+  return Number.isFinite(n) ? n / 100 : 0;
+};
 const fmt0 = (n) => (Number.isFinite(n) ? n.toLocaleString() : "—");
 const fmt1 = (n) => (Number.isFinite(n) ? n.toFixed(1) : "—");
 const escapeCSV = (s) => {
@@ -18,23 +24,12 @@ const escapeCSV = (s) => {
   return /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
 };
 
-function useStickyState(key, init) {
-  const [v, setV] = useState(init);
-  useEffect(() => {
-    try { setV(JSON.parse(localStorage.getItem(key)) ?? init); } catch { setV(init); }
-  }, [key]);
-  useEffect(() => {
-    try { localStorage.setItem(key, JSON.stringify(v)); } catch {}
-  }, [key, v]);
-  return [v, setV];
-}
-
+/* ---------------------- data loaders ----------------------- */
 function useJson(url) {
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    if (!url) { setData(null); setErr(null); setLoading(false); return; }
     let alive = true;
     (async () => {
       try {
@@ -52,37 +47,74 @@ function useJson(url) {
   return { data, err, loading };
 }
 
-/* ----------------------------- sites ------------------------------- */
+/* ---------------------- constants -------------------------- */
+const SOURCE = "/data/nfl/showdown/latest/projections.json";
+const SITE_IDS_SOURCE = "/data/nfl/showdown/latest/site_ids.json";
+
+// we’ll use a single internal “cap pos” to gate the dedicated slot
+const CAP_POS = "CPT_POS"; // internal only; not shown in UI
+
 const SITES = {
   dk: {
     key: "dk",
     label: "DraftKings",
     cap: 50000,
-    boostedTag: "CPT",
-    projMult: 1.5,
-    salMult: 1.5,
-    slots: ["CPT", "FLEX", "FLEX", "FLEX", "FLEX", "FLEX"],
-    salaryKey: (r) => r["DK Sal"] ?? r.dk_sal ?? r.Salary ?? r.salary,
-    projKey:   (r) => r["DK Proj"] ?? r.dk_proj ?? r.Projection ?? r.Points,
+    capLabel: "CPT",
+    // 1 CPT + 5 FLEX
+    slots: [
+      { name: "CPT", eligible: [CAP_POS] },
+      { name: "FLEX1", eligible: ["QB","RB","WR","TE","DST","K"] },
+      { name: "FLEX2", eligible: ["QB","RB","WR","TE","DST","K"] },
+      { name: "FLEX3", eligible: ["QB","RB","WR","TE","DST","K"] },
+      { name: "FLEX4", eligible: ["QB","RB","WR","TE","DST","K"] },
+      { name: "FLEX5", eligible: ["QB","RB","WR","TE","DST","K"] },
+    ],
+    logo: "/logos/dk.png",
   },
   fd: {
     key: "fd",
     label: "FanDuel",
     cap: 60000,
-    boostedTag: "MVP",
-    projMult: 1.5,
-    salMult: 1.5,
-    slots: ["MVP", "FLEX", "FLEX", "FLEX", "FLEX", "FLEX"],
-    salaryKey: (r) => r["FD Sal"] ?? r.fd_sal ?? r.Salary ?? r.salary,
-    projKey:   (r) => r["FD Proj"] ?? r.fd_proj ?? r.Projection ?? r.Points,
+    capLabel: "MVP",
+    // per your note: FD updated to match DK style (no STAR/PRO),
+    // so 1 MVP + 4 FLEX
+    slots: [
+      { name: "MVP", eligible: [CAP_POS] },
+      { name: "FLEX1", eligible: ["QB","RB","WR","TE","DST","K"] },
+      { name: "FLEX2", eligible: ["QB","RB","WR","TE","DST","K"] },
+      { name: "FLEX3", eligible: ["QB","RB","WR","TE","DST","K"] },
+      { name: "FLEX4", eligible: ["QB","RB","WR","TE","DST","K"] },
+    ],
+    logo: "/logos/fd.png",
   },
 };
 
-const SOURCE = "/data/nfl/showdown/latest/projections.json";
+/* ------------------ team chip helpers (optional) ------------- */
+const TEAM_COLORS = {
+  ARI: "#97233F", ATL: "#A71930", BAL: "#241773", BUF: "#00338D", CAR: "#0085CA",
+  CHI: "#0B162A", CIN: "#FB4F14", CLE: "#311D00", DAL: "#041E42", DEN: "#FB4F14",
+  DET: "#0076B6", GB: "#203731", HOU: "#03202F", IND: "#002C5F", JAX: "#006778",
+  KC: "#E31837", LAC: "#0080C6", LAR: "#003594", LV: "#000000", MIA: "#008E97",
+  MIN: "#4F2683", NE: "#002244", NO: "#D3BC8D", NYG: "#0B2265", NYJ: "#125740",
+  PHI: "#004C54", PIT: "#FFB612", SEA: "#002244", SF: "#AA0000", TB: "#D50A0A",
+  TEN: "#0C2340", WAS: "#5A1414",
+};
+const readableText = (hex) => {
+  const h = (hex || "#888").replace("#", "");
+  const v = parseInt(h, 16);
+  const r = (v >> 16) & 255, g = (v >> 8) & 255, b = v & 255;
+  const L = 0.2126*r + 0.7152*g + 0.0722*b;
+  return L < 140 ? "#FFFFFF" : "#111111";
+};
+const TeamPill = ({ abbr }) => {
+  const bg = TEAM_COLORS[abbr] || "#E5E7EB";
+  const fg = readableText(bg);
+  return <span className="px-2 py-0.5 rounded" style={{ background: bg, color: fg }}>{abbr || "—"}</span>;
+};
 
-/* --------------------------- server (SSE) -------------------------- */
-async function solveStreamShowdown(payload, onItem, onDone) {
-  const res = await fetch(`${API_BASE}/solve_showdown_stream`, {
+/* --------------------- API (SSE) ---------------------- */
+async function solveStreamNFL(payload, onItem, onDone) {
+  const res = await fetch(`${API_BASE}/solve_nfl_stream`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -100,444 +132,592 @@ async function solveStreamShowdown(payload, onItem, onDone) {
     for (const chunk of parts) {
       const line = chunk.split("\n").find((l) => l.startsWith("data: "));
       if (!line) continue;
-      try {
-        const evt = JSON.parse(line.slice(6));
-        if (evt.done) onDone?.(evt);
-        else onItem?.(evt);
-      } catch {}
+      const evt = JSON.parse(line.slice(6));
+      if (evt.done) onDone?.(evt);
+      else onItem?.(evt);
     }
   }
 }
 
-/* ----------------------- pool expansion helpers -------------------- */
-const ALL_POS = ["QB", "RB", "WR", "TE", "DST", "K"];
-const normPos = (s) => {
-  const raw = (s || "").toUpperCase().replace("/FLEX","").trim();
-  if (["D","DEF","DEFENSE"].includes(raw) || raw.includes("D/ST") || raw === "DST") return "DST";
-  return raw;
-};
-function mapBaseRow(raw) {
-  const name = raw.player ?? raw.Player ?? raw.Name ?? raw.name ?? "";
-  const team = raw.team ?? raw.Team ?? raw.Tm ?? raw.team_abbr ?? "";
-  const opp  = raw.opp  ?? raw.Opp  ?? raw.OPP ?? raw.Opponent ?? "";
-  const pos  = normPos(raw.pos ?? raw.Pos ?? raw.POS ?? raw.Position ?? raw.position ?? "");
-  return { name, team, opp, pos, __raw: raw };
-}
-function expandPool(base, siteCfg) {
-  const out = [];
-  for (const r0 of base) {
-    const r = mapBaseRow(r0);
-    if (!r.name || !r.pos) continue;
-    const baseId = r0.id ?? `${r.name}|${r.team}`; // pairs boosted vs flex
-    const salary = num(siteCfg.salaryKey(r0));
-    const proj   = num(siteCfg.projKey(r0));
-    if (!Number.isFinite(proj) || !salary) continue;
-
-    // FLEX entry
-    out.push({
-      uid: `${siteCfg.key}|${baseId}|FLEX`,
-      base_id: baseId,
-      name: r.name,
-      team: r.team,
-      opp: r.opp,
-      pos: r.pos,
-      tag: "FLEX",
-      salary,
-      proj,
-    });
-    // Boosted entry (CPT/MVP)
-    out.push({
-      uid: `${siteCfg.key}|${baseId}|${siteCfg.boostedTag}`,
-      base_id: baseId,
-      name: r.name,
-      team: r.team,
-      opp: r.opp,
-      pos: r.pos,
-      tag: siteCfg.boostedTag,
-      salary: Math.round(salary * siteCfg.salMult),
-      proj: proj * siteCfg.projMult,
-    });
-  }
-  return out;
-}
-
-/* ----------------------------- CSV export -------------------------- */
-function lineupToOrderedCells(siteCfg, lineup) {
-  // ensure boosted first, then the 5 FLEX (any order)
-  const boosted = (lineup.players || []).find((p) => p.tag !== "FLEX");
-  const flex = (lineup.players || []).filter((p) => p.tag === "FLEX");
-  const names = [
-    boosted ? `${boosted.tag}: ${boosted.name}` : "",
-    ...flex.map((f, i) => `FLEX${i+1}: ${f.name}`).slice(0,5),
-  ];
-  while (names.length < 6) names.push("");
-  return names;
-}
-function toPlainCSV(siteCfg, lineups) {
-  const hdr = [siteCfg.boostedTag, "FLEX1","FLEX2","FLEX3","FLEX4","FLEX5","Salary","Proj","Mix","Majority"].join(",");
-  const rows = lineups.map((L) => {
-    const cells = lineupToOrderedCells(siteCfg, L);
-    return [
-      ...cells,
-      L.total_salary ?? "",
-      (L.total_proj ?? 0).toFixed(2),
-      L.config?.mix ?? "",
-      L.config?.majority ?? "",
-    ].map(escapeCSV).join(",");
-  });
-  return [hdr, ...rows].join("\n");
-}
-function downloadCSV(siteKey, lineups, fname = "showdown_lineups.csv") {
-  const csv = toPlainCSV(SITES[siteKey], lineups);
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = fname; a.click();
-  URL.revokeObjectURL(url);
-}
-
-/* --------------------------- IF→THEN Rule UI ----------------------- */
-function RuleRow({ siteKey, value, onChange, onDelete }) {
-  const boosted = SITES[siteKey].boostedTag;
-  const flip = (arr, v) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
-  return (
-    <div className="grid grid-cols-12 gap-2 items-center border rounded p-2">
-      <div className="col-span-12 md:col-span-5 flex items-center gap-2">
-        <span className="text-xs font-medium">IF</span>
-        <select
-          className="border rounded px-2 py-1 text-sm"
-          value={value.trigger.slot}
-          onChange={(e) => onChange({ ...value, trigger: { ...value.trigger, slot: e.target.value } })}
-        >
-          <option value="boosted">{boosted}</option>
-          <option value="flex">FLEX</option>
-        </select>
-        <span className="text-xs">is</span>
-        <div className="flex flex-wrap gap-1">
-          {ALL_POS.map((p) => (
-            <button
-              key={p}
-              className={"px-2 py-0.5 border rounded text-xs " + (value.trigger.positions.includes(p) ? "bg-blue-600 text-white" : "bg-white")}
-              onClick={() => onChange({ ...value, trigger: { ...value.trigger, positions: flip(value.trigger.positions, p) } })}
-              type="button"
-            >
-              {p}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="col-span-12 md:col-span-7 flex items-center gap-2">
-        <span className="text-xs font-medium">THEN require at least</span>
-        <input
-          type="number" min={0}
-          className="w-16 border rounded px-2 py-1 text-sm"
-          value={value.require.min_count}
-          onChange={(e) => onChange({ ...value, require: { ...value.require, min_count: Math.max(0, Number(e.target.value)||0) } })}
-        />
-        <select
-          className="border rounded px-2 py-1 text-sm"
-          value={value.require.slots}
-          onChange={(e) => onChange({ ...value, require: { ...value.require, slots: e.target.value } })}
-        >
-          <option value="flex">FLEX</option>
-          <option value="boosted">{boosted}</option>
-          <option value="any">ANY</option>
-        </select>
-        <span className="text-xs">from</span>
-        <div className="flex flex-wrap gap-1">
-          {ALL_POS.map((p) => (
-            <button
-              key={p}
-              className={"px-2 py-0.5 border rounded text-xs " + (value.require.positions.includes(p) ? "bg-emerald-600 text-white" : "bg-white")}
-              onClick={() => onChange({ ...value, require: { ...value.require, positions: flip(value.require.positions, p) } })}
-              type="button"
-            >
-              {p}
-            </button>
-          ))}
-        </div>
-        <button type="button" className="ml-auto px-2 py-1 text-xs border rounded hover:bg-red-50" onClick={onDelete}>Delete</button>
-      </div>
-    </div>
-  );
-}
-
-/* ============================== page =============================== */
+/* =============== page ================= */
 export default function NFLShowdownOptimizer() {
-  const { data, err, loading } = useJson(SOURCE);
-
-  const [site, setSite] = useStickyState("sd.site", "dk");
+  const [site, setSite] = useState("dk"); // dk | fd
   const cfg = SITES[site];
 
-  const [numLineups, setNumLineups] = useStickyState("sd.N", 20);
-  const [cap, setCap] = useStickyState(`sd.cap.${site}`, cfg.cap);
-  useEffect(() => { setCap(SITES[site].cap); }, [site]);
+  const { data, err, loading } = useJson(SOURCE);
+  const { data: siteIds } = useJson(SITE_IDS_SOURCE);
 
-  const [view, setView] = useStickyState("sd.view", "all"); // all | boosted | flex
-  const [maxOverlap, setMaxOverlap] = useStickyState("sd.maxOverlap", 5); // 0..5 (6 slots total)
-  const [rules, setRules] = useStickyState("sd.rules", [
-    { id: "r1", trigger: { slot: "boosted", positions: ["QB"] }, require: { min_count: 1, slots: "flex", positions: ["WR","TE"] } },
+  // controls
+  const [numLineups, setNumLineups] = useState(20);
+  const [maxSalary, setMaxSalary] = useState(cfg.cap);
+  const [maxOverlap, setMaxOverlap] = useState(5); // “how many players 2 lineups can share”
+  useEffect(() => setMaxSalary(SITES[site].cap), [site]);
+
+  // rules (global + team override)
+  // each rule: { ifTag: "CPT"|"FLEX", ifPos: Set(...), thenN: 1, thenTag: "FLEX"|"CPT",
+  //              thenPos: Set(...), scope: "same"|"opp"|"any", team: "" (optional override) }
+  const [rules, setRules] = useState([
+    { ifTag: "CPT", ifPos: new Set(["QB"]), thenN: 1, thenTag: "FLEX", thenPos: new Set(["WR","TE","RB"]), scope: "same", team: "" },
   ]);
 
-  const [lineups, setLineups] = useState([]);
-  const [loadingSolve, setLoadingSolve] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const progressTick = useRef(null);
+  // rows (CPT/MVP + FLEX)
+  const rows = useMemo(() => {
+    if (!data) return [];
+    const arr = Array.isArray(data?.rows)
+      ? data.rows
+      : Array.isArray(data?.players)
+      ? data.players
+      : Array.isArray(data)
+      ? data
+      : [];
 
-  /* ------------------------------ rows ------------------------------ */
-  const baseRows = useMemo(() => {
-    const arr = Array.isArray(data?.rows) ? data.rows
-      : Array.isArray(data?.players) ? data.players
-      : Array.isArray(data) ? data : [];
-    return arr;
-  }, [data]);
+    // normalize one row per player
+    const base = arr.map((r) => {
+      const name = r.player ?? r.Player ?? r.Name ?? r.playerName ?? r.name ?? "";
+      const pos  = String(r.pos ?? r.Pos ?? r.position ?? "").toUpperCase();
+      const team = r.team ?? r.Team ?? r.team_abbr ?? "";
+      const opp  = r.opp ?? r.Opp ?? r.opponent ?? "";
+      const time = r.time ?? r["Time ET"] ?? r.Start ?? "";
 
-  const expanded = useMemo(() => expandPool(baseRows, cfg), [baseRows, cfg]);
-  const displayRows = useMemo(() => {
-    if (view === "all") return expanded;
-    if (view === "boosted") return expanded.filter((r) => r.tag === cfg.boostedTag);
-    return expanded.filter((r) => r.tag === "FLEX");
-  }, [expanded, view, cfg]);
+      // DK & FD special showdown keys (present in your feed screenshot)
+      return {
+        name, pos, team, opp, time,
+        // base projections (we’ll still 1.5x for CPT/MVP if needed)
+        baseProj:  num(r.dk_proj ?? r.fd_proj ?? r.Projection ?? r.proj),
+        baseFloor: num(r.dk_floor ?? r.fd_floor ?? r.Floor ?? r.floor),
+        baseCeil:  num(r.dk_ceil  ?? r.fd_ceil  ?? r.Ceiling ?? r.ceil),
 
-  const teams = useMemo(() => {
+        dkFlexSal: num(r["DK Flex Sal"] ?? r.dk_flex_sal),
+        dkCptSal:  num(r["DK CPT Sal"]  ?? r.dk_cpt_sal),
+        dkFlexId:  String(r.dk_flex_id ?? r["DK Flex ID"] ?? ""),
+        dkCptId:   String(r.dk_cpt_id  ?? r["DK CPT ID"]  ?? ""),
+        dkFlexP:   pct(r["dk_flex_pown%"] ?? r.dk_flex_pown),
+        dkCptP:    pct(r["dk_cpt_pown%"]  ?? r.dk_cpt_pown),
+        dkFlexO:   pct(r["dk_flex_opt%"]  ?? r.dk_flex_opt),
+        dkCptO:    pct(r["dk_cpt_opt%"]   ?? r.dk_cpt_opt),
+
+        fdFlexSal: num(r["FD Flex Sal"] ?? r.fd_flex_sal),
+        fdMvpSal:  num(r["FD MVP Sal"]  ?? r.fd_mvp_sal),
+        fdFlexId:  String(r.fd_flex_id ?? r["FD Flex ID"] ?? ""),
+        fdMvpId:   String(r.fd_mvp_id  ?? r["FD MVP ID"]  ?? ""),
+        fdFlexP:   pct(r["fd_flex_pown%"] ?? r.fd_flex_pown),
+        fdMvpP:    pct(r["fd_mvp_pown%"]  ?? r.fd_mvp_pown),
+        fdFlexO:   pct(r["fd_flex_opt%"]  ?? r.fd_flex_opt),
+        fdMvpO:    pct(r["fd_mvp_opt%"]   ?? r.fd_mvp_opt),
+      };
+    });
+
+    const isDK = site === "dk";
+    const capLabel = cfg.capLabel; // "CPT" | "MVP"
+    const out = [];
+
+    for (const b of base) {
+      if (isDK) {
+        // CAPTAIN (1.5x proj, 1.5x salary — but feed already has CPT sal)
+        out.push({
+          uid: b.dkCptId,
+          tag: capLabel, isCaptain: true,
+          name: `${b.name} (${capLabel})`,
+          displayName: b.name,
+          pos: CAP_POS, // internal gating
+          dispPos: `${capLabel} • ${b.pos}`,
+          team: b.team, opp: b.opp, time: b.time,
+          salary: b.dkCptSal || Math.round((b.dkFlexSal || 0) * 1.5),
+          proj: (b.baseProj || 0) * 1.5,
+          floor: (b.baseFloor || 0) * 1.5,
+          ceil: (b.baseCeil || 0) * 1.5,
+          pown: b.dkCptP ?? 0,
+          opt:  b.dkCptO ?? 0,
+          baseName: b.name,
+          basePos: b.pos,
+        });
+        // FLEX
+        out.push({
+          uid: b.dkFlexId,
+          tag: "FLEX", isCaptain: false,
+          name: b.name,
+          displayName: b.name,
+          pos: b.pos,  // normal pos for flex eligibility
+          dispPos: b.pos,
+          team: b.team, opp: b.opp, time: b.time,
+          salary: b.dkFlexSal,
+          proj: b.baseProj, floor: b.baseFloor, ceil: b.baseCeil,
+          pown: b.dkFlexP ?? 0,
+          opt:  b.dkFlexO ?? 0,
+          baseName: b.name,
+          basePos: b.pos,
+        });
+      } else {
+        // FD MVP (feed provides MVP salary; projections 1.5x)
+        out.push({
+          uid: b.fdMvpId,
+          tag: capLabel, isCaptain: true,
+          name: `${b.name} (${capLabel})`,
+          displayName: b.name,
+          pos: CAP_POS,
+          dispPos: `${capLabel} • ${b.pos}`,
+          team: b.team, opp: b.opp, time: b.time,
+          salary: b.fdMvpSal || Math.round((b.fdFlexSal || 0) * 1.5),
+          proj: (b.baseProj || 0) * 1.5,
+          floor: (b.baseFloor || 0) * 1.5,
+          ceil: (b.baseCeil || 0) * 1.5,
+          pown: b.fdMvpP ?? 0,
+          opt:  b.fdMvpO ?? 0,
+          baseName: b.name,
+          basePos: b.pos,
+        });
+        // FLEX
+        out.push({
+          uid: b.fdFlexId,
+          tag: "FLEX", isCaptain: false,
+          name: b.name,
+          displayName: b.name,
+          pos: b.pos,
+          dispPos: b.pos,
+          team: b.team, opp: b.opp, time: b.time,
+          salary: b.fdFlexSal,
+          proj: b.baseProj, floor: b.baseFloor, ceil: b.baseCeil,
+          pown: b.fdFlexP ?? 0,
+          opt:  b.fdFlexO ?? 0,
+          baseName: b.name,
+          basePos: b.pos,
+        });
+      }
+    }
+
+    // drop empties / 0 salary
+    return out.filter(r => r.name && r.pos && Number.isFinite(r.salary) && r.salary > 0);
+  }, [data, site, cfg.capLabel]);
+
+  // quick maps
+  const byName = useMemo(() => new Map(rows.map(r => [r.name, r])), [rows]);
+  const allTeams = useMemo(() => {
     const s = new Set();
-    for (const r of expanded) { if (r.team) s.add(r.team); if (r.opp) s.add(r.opp); }
+    for (const r of rows) { if (r.team) s.add(r.team); if (r.opp) s.add(r.opp); }
     return [...s].sort();
-  }, [expanded]);
+  }, [rows]);
 
-  /* --------------------------- optimize (SSE) ------------------------ */
+  /* -------------------- optimizing ------------------------ */
+  const [lineups, setLineups] = useState([]);
+  const [working, setWorking] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const progressTimer = useRef(null);
+
+  // IF/THEN evaluation on a built lineup (client-side filter)
+  function satisfiesRules(names) {
+    const chosen = names.map(n => byName.get(n)).filter(Boolean);
+    const chosenByTag = (tag) => chosen.filter(p => (tag === cfg.capLabel ? p.isCaptain : !p.isCaptain));
+    const hasIF = (rule) => {
+      const tagCheck = rule.ifTag === cfg.capLabel ? (p) => p.isCaptain : (p) => !p.isCaptain;
+      return chosen.some(p => tagCheck(p) && rule.ifPos.has(p.basePos));
+    };
+    const countTHEN = (rule) => {
+      // which pool to count from — CPT/MVP or FLEX?
+      const pool = rule.thenTag === cfg.capLabel ? chosenByTag(cfg.capLabel) : chosenByTag("FLEX");
+      // scope: same team with IF anchor, opponent, or any
+      if (rule.scope === "any") {
+        return pool.filter(p => rule.thenPos.has(p.basePos)).length;
+      }
+      // get all IF anchors to determine teams/opp
+      const anchors = chosen.filter(p => (rule.ifTag === cfg.capLabel ? p.isCaptain : !p.isCaptain) && rule.ifPos.has(p.basePos));
+      if (!anchors.length) return 0;
+
+      let total = 0;
+      for (const a of anchors) {
+        if (rule.scope === "same") {
+          total = Math.max(total, pool.filter(p => p.team === a.team && rule.thenPos.has(p.basePos)).length);
+        } else if (rule.scope === "opp") {
+          total = Math.max(total, pool.filter(p => p.team === a.opp && rule.thenPos.has(p.basePos)).length);
+        }
+      }
+      return total;
+    };
+
+    // optional team override: if rule.team is set, only trigger when the IF anchor's team == rule.team
+    for (const r of rules) {
+      if (!hasIF(r)) continue;
+      if (r.team) {
+        const anchors = chosen.filter(p => (r.ifTag === cfg.capLabel ? p.isCaptain : !p.isCaptain) && r.ifPos.has(p.basePos));
+        if (anchors.every(a => a.team !== r.team)) continue; // ignore if team doesn't match
+      }
+      if (countTHEN(r) < (Number(r.thenN) || 0)) return false;
+    }
+    return true;
+  }
+
+  // create groups to prevent (Player CPT) + (Player FLEX) duplicates
+  const noDupGroups = useMemo(() => {
+    // group by baseName
+    const m = new Map();
+    for (const r of rows) {
+      const k = r.baseName || r.displayName || r.name.replace(/\s+\((CPT|MVP)\)$/i, "");
+      const list = m.get(k) || [];
+      list.push(r.name);
+      m.set(k, list);
+    }
+    // only keep where there are >= 2 entries
+    const groups = [];
+    for (const list of m.values()) {
+      if (list.length >= 2) groups.push({ mode: "at_most", count: 1, players: list });
+    }
+    return groups;
+  }, [rows]);
+
   async function optimize() {
-    if (!expanded.length) return;
-    setLineups([]); setLoadingSolve(true); setProgress(0);
-    clearInterval(progressTick.current);
-    progressTick.current = setInterval(() =>
-      setProgress((p) => Math.min(p + 1, Math.max(1, Number(numLineups)||1))), 250);
+    if (!rows.length) return;
+    setLineups([]); setWorking(true); setProgress(0);
+    clearInterval(progressTimer.current);
+    progressTimer.current = setInterval(() => setProgress((p) => p + 1), 250);
 
+    // solver slots
+    const slots = cfg.slots;
+    const roster = slots.length;
+
+    // convert “max overlap” to server’s min_diff:
+    // min_diff = roster_size - max_overlap
+    const min_diff = Math.max(1, roster - clamp(Number(maxOverlap) || 0, 0, roster-1));
+
+    // payload players (use the visible names; they’re unique: “Name (CPT)” vs “Name”)
     const payload = {
       site,
-      cap: Math.min(cfg.cap, Number(cap) || cfg.cap),
-      slots: cfg.slots,                 // e.g., ["CPT","FLEX","FLEX","FLEX","FLEX","FLEX"]
-      boosted_tag: cfg.boostedTag,
-      min_teams: 2,
-      max_overlap: clamp(Number(maxOverlap)||0, 0, 5),
-      num_lineups: Math.max(1, Number(numLineups)||1),
-      // pool to server
-      pool: expanded.map((r) => ({
-        uid: r.uid,
-        base_id: r.base_id,
-        name: r.name,
+      slots,
+      players: rows.map(r => ({
+        name: r.name,        // unique choice ID
+        pos: r.pos,          // CPT_POS or QB/RB/...
         team: r.team,
         opp: r.opp,
-        pos: r.pos,
-        tag: r.tag,
-        salary: r.salary,
-        proj: r.proj,
+        salary: Math.round(r.salary || 0),
+        proj: r.proj || 0,
+        floor: r.floor || 0,
+        ceil: r.ceil || 0,
+        pown: r.pown || 0,
+        opt:  r.opt  || 0,
       })),
-      // IF→THEN rules
-      rules,
-      time_limit_ms: 2000,
+      n: Math.max(1, Number(numLineups) || 1),
+      cap: Math.min(cfg.cap, Number(maxSalary) || cfg.cap),
+      objective: "proj",
+      locks: [],
+      excludes: [],
+      boosts: {},
+      randomness: 0,
+      global_max_pct: 100,
+      min_pct: {},
+      max_pct: {},
+      min_diff,              // ← derived from Max Overlap
+      time_limit_ms: 1500,
+      groups: noDupGroups,   // forbid “same player CPT + FLEX” dup
+      qb_stack_min: 0, stack_allow_rb: true, bringback_min: 0, // no stacks in Showdown
+      avoid_rb_vs_opp_dst: false, avoid_offense_vs_opp_dst: false,
+      team_stack_rules: [],
+      team_max_pct: {},
     };
 
     const out = [];
+    const namesToPown = (names) => names.reduce((s,n)=>s+((byName.get(n)?.pown||0)*100),0);
+
     try {
-      await solveStreamShowdown(
+      await solveStreamNFL(
         payload,
         (evt) => {
-          if (!evt.players) return;
-          out.push(evt);
-          setLineups((L) => [...L, evt]);
-          setProgress(out.length);
+          const names = evt.drivers;
+          // enforce IF/THEN client-side
+          if (!satisfiesRules(names)) return;
+
+          // satisfied — push lineup
+          const L = {
+            names,
+            salary: evt.salary,
+            total: evt.total,
+            totalPown: namesToPown(names),
+          };
+          out.push(L);
+          setLineups((prev) => [...prev, L]);
         },
         () => {
-          setLoadingSolve(false);
-          clearInterval(progressTick.current);
+          clearInterval(progressTimer.current);
+          setWorking(false);
+          setProgress(out.length);
         }
       );
     } catch (e) {
-      // non-SSE fallback
-      try {
-        const res = await fetch(`${API_BASE}/solve_showdown`, {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error(await res.text());
-        const j = await res.json();
-        const arr = Array.isArray(j.lineups) ? j.lineups : [];
-        setLineups(arr);
-      } catch (e2) {
-        alert(`Showdown solve failed: ${String(e2?.message || e2)}`);
-      } finally {
-        setLoadingSolve(false);
-        clearInterval(progressTick.current);
-        setProgress((p) => p);
-      }
+      // fallback to batch endpoint
+      const res = await fetch(`${API_BASE}/solve_nfl`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const j = await res.json();
+      const raw = (j.lineups || []).map(L => ({
+        names: L.drivers,
+        salary: L.salary,
+        total: L.total,
+        totalPown: namesToPown(L.drivers),
+      }));
+      const filtered = raw.filter(L => satisfiesRules(L.names));
+      setLineups(filtered);
+      clearInterval(progressTimer.current);
+      setWorking(false);
+      setProgress(filtered.length);
     }
   }
 
-  /* ----------------------------- exposures -------------------------- */
-  const exposures = useMemo(() => {
-    const map = new Map();
-    const cfgs = new Map();
+  /* --------------------- UI helpers ---------------------- */
+  const header = "px-2 py-1 font-semibold text-center";
+  const cell = "px-2 py-1 text-center";
+  const small = "text-[12px]";
+
+  // lineup config exposure  (e.g., 3-3 / 4-2 by team)
+  const lineupConfigs = useMemo(() => {
+    if (!lineups.length) return [];
+    const buildKey = (names) => {
+      const tCounts = {};
+      names.map(n => byName.get(n)).filter(Boolean).forEach(r => tCounts[r.team] = (tCounts[r.team] || 0) + 1);
+      const arr = Object.entries(tCounts).sort((a,b)=>b[1]-a[1]); // team,count
+      if (arr.length < 2) return `${arr[0]?.[1] || 0}-0 ${arr[0]?.[0] || ""}`;
+      const [tA,cA] = arr[0], [tB,cB] = arr[1];
+      // name the side with more players first
+      return `${cA}-${cB} (${tA} over ${tB})`;
+    };
+    const m = new Map();
     for (const L of lineups) {
-      for (const p of (L.players||[])) map.set(p.name, (map.get(p.name)||0)+1);
-      const key = `${L.config?.mix||""} ${L.config?.majority||""}`.trim();
-      if (key) cfgs.set(key, (cfgs.get(key)||0)+1);
+      const k = buildKey(L.names);
+      m.set(k, (m.get(k) || 0) + 1);
     }
-    const total = Math.max(1, lineups.length);
-    const playerRows = [...map.entries()].map(([name,cnt]) => ({ name, count: cnt, pct: (cnt/total)*100 }))
-      .sort((a,b)=> b.count - a.count || a.name.localeCompare(b.name));
-    const configRows = [...cfgs.entries()].map(([mix,cnt])=>({ mix, count: cnt, pct:(cnt/total)*100 }))
-      .sort((a,b)=> b.count - a.count || a.mix.localeCompare(b.mix));
-    return { playerRows, configRows, total };
-  }, [lineups]);
+    const total = lineups.length || 1;
+    return [...m.entries()].map(([k,c]) => ({ shape: k, count: c, pct: (c/total)*100 }))
+      .sort((a,b)=>b.count-a.count);
+  }, [lineups, byName]);
+
+  // CSV (IDs) export, CPT/MVP first
+  function downloadCSVWithIds() {
+    const siteKey = site;
+    const idsRoot = Array.isArray(siteIds?.sites?.[siteKey]) ? siteIds.sites[siteKey] :
+                    Array.isArray(siteIds?.[siteKey]) ? siteIds[siteKey] : [];
+    // build index name->id (our row.name is unique)
+    const idIndex = new Map();
+    for (const r of rows) {
+      if (!r.uid) continue;
+      idIndex.set(r.name, String(r.uid));
+    }
+    const header = ["#", "Salary", "Total", ...cfg.slots.map((_,i)=>`D${i+1}`)];
+    const lines = lineups.map((L, idx) => {
+      // order: CPT/MVP first, then any order for FLEX
+      const cap = L.names.find(n => byName.get(n)?.isCaptain);
+      const flex = L.names.filter(n => n !== cap);
+      const ordered = [cap, ...flex];
+      const cells = ordered.map((n) => {
+        const row = byName.get(n);
+        const id = idIndex.get(n) || "";
+        const disp = row?.displayName || n;
+        if (site === "fd") {
+          return escapeCSV(`${id}:${disp}`);
+        }
+        // dk -> "Name (ID)"
+        return escapeCSV(`${disp} (${id})`);
+      });
+      return [idx+1, L.salary, fmt1(L.total), ...cells].join(",");
+    });
+    const blob = new Blob([[header.join(",")].concat(lines).join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `NFL_showdown_${site}_ids.csv`; a.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <div className="px-4 md:px-6 py-5">
-      <h1 className="text-2xl md:text-3xl font-extrabold mb-1">NFL — Showdown Optimizer</h1>
+      <h1 className="text-2xl md:text-3xl font-extrabold mb-3">NFL — Showdown Optimizer</h1>
 
-      {/* Site / View / Controls */}
+      {/* site toggle & key inputs */}
       <div className="mb-3 flex flex-wrap gap-2 items-end">
-        <div className="flex gap-2">
-          {["dk","fd"].map((s) => (
-            <button
-              key={s}
-              onClick={() => setSite(s)}
-              className={`px-3 py-1.5 rounded-full border text-sm ${site===s ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300 text-gray-700"}`}
-            >
-              {SITES[s].label}
-            </button>
-          ))}
-        </div>
+        {["dk","fd"].map((s) => (
+          <button
+            key={s}
+            onClick={() => setSite(s)}
+            className={`px-3 py-1.5 rounded-full border text-sm inline-flex items-center gap-2 ${
+              site === s ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300 text-gray-700"
+            }`}
+          >
+            <img src={SITES[s].logo} alt="" className="w-4 h-4" />
+            <span>{SITES[s].label}</span>
+          </button>
+        ))}
 
         <div className="ml-2">
           <label className="block text-[11px] text-gray-600 mb-1">View</label>
-          <select className="border rounded-md px-2 py-1.5 text-sm" value={view} onChange={(e)=>setView(e.target.value)}>
-            <option value="all">All</option>
-            <option value="boosted">{cfg.boostedTag}</option>
-            <option value="flex">Flex only</option>
+          <select className="border rounded-md px-2 py-1 text-sm">
+            <option>All</option>
           </select>
         </div>
 
-        <div className="ml-2">
+        <div>
           <label className="block text-[11px] text-gray-600 mb-1">Lineups</label>
-          <input className="border rounded-md px-2 py-1.5 text-sm w-24" value={numLineups} onChange={(e)=>setNumLineups(e.target.value)} />
+          <input className="border rounded-md px-2 py-1 text-sm w-20" value={numLineups} onChange={(e)=>setNumLineups(e.target.value)} />
         </div>
 
-        <div className="ml-2">
+        <div>
           <label className="block text-[11px] text-gray-600 mb-1">Max salary</label>
-          <input className="border rounded-md px-2 py-1.5 text-sm w-28" value={cap} onChange={(e)=>setCap(e.target.value)} />
+          <input className="border rounded-md px-2 py-1 text-sm w-24" value={maxSalary} onChange={(e)=>setMaxSalary(e.target.value)} />
         </div>
 
-        <div className="ml-2">
+        <div>
           <label className="block text-[11px] text-gray-600 mb-1">Max Overlap</label>
-          <input className="border rounded-md px-2 py-1.5 text-sm w-24" value={maxOverlap} onChange={(e)=>setMaxOverlap(e.target.value)} />
+          <input
+            className="border rounded-md px-2 py-1 text-sm w-16"
+            value={maxOverlap}
+            onChange={(e)=>setMaxOverlap(e.target.value)}
+            title="Two lineups will share at most this many players (CPT/MVP counts as one of the players)."
+          />
         </div>
 
-        <button className="ml-auto px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
-          onClick={optimize} disabled={loading || expanded.length===0 || loadingSolve}>
-          {loadingSolve ? "Optimizing…" : `Optimize ${numLineups}`}
+        <button className="ml-auto px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700" onClick={optimize} disabled={working}>
+          {working ? "Optimizing…" : `Optimize ${numLineups}`}
         </button>
-
-        {lineups.length > 0 && (
-          <button className="px-3 py-2 rounded border" onClick={()=>downloadCSV(site, lineups, `showdown_${site}.csv`)}>
-            Export CSV
-          </button>
-        )}
       </div>
 
-      {/* IF→THEN rules */}
+      {/* Conditional Rules */}
       <div className="rounded-md border p-2 mb-3">
-        <div className="flex items-center justify-between">
-          <div className="text-[11px] text-gray-600">Conditional Rules (IF → THEN)</div>
-          <button
-            className="px-2 py-1 text-sm rounded-md border hover:bg-gray-50"
-            onClick={() => setRules((rs)=>[
-              ...rs,
-              { id: `r${Math.random().toString(36).slice(2,8)}`, trigger: { slot: "boosted", positions: ["QB"] }, require: { min_count: 1, slots: "flex", positions: ["WR"] } }
-            ])}
-          >
-            + Add Rule
-          </button>
-        </div>
-        <div className="mt-2 space-y-2">
-          {rules.map((r) => (
-            <RuleRow
-              key={r.id}
-              siteKey={site}
-              value={r}
-              onChange={(nv)=>setRules((rs)=>rs.map((x)=>x.id===r.id?nv:x))}
-              onDelete={()=>setRules((rs)=>rs.filter((x)=>x.id!==r.id))}
-            />
+        <div className="text-[11px] text-gray-600 mb-1">Conditional Rules (IF → THEN)</div>
+        <div className="space-y-2">
+          {rules.map((r, i) => (
+            <div key={i} className="flex flex-wrap items-center gap-2">
+              <span>IF</span>
+              <select className="border rounded px-2 py-1 text-sm"
+                value={r.ifTag}
+                onChange={(e)=>setRules(R => R.map((x,j)=>j===i?{...x,ifTag:e.target.value}:x))}
+              >
+                <option value={cfg.capLabel}>{cfg.capLabel}</option>
+                <option value="FLEX">FLEX</option>
+              </select>
+              <span>is</span>
+              {["QB","RB","WR","TE","DST","K"].map(p => (
+                <button
+                  key={p}
+                  onClick={()=>setRules(R=>R.map((x,j)=>j===i?{...x, ifPos:new Set([...x.ifPos ^ 0, ...(x.ifPos.has(p)?[]:[p])].filter(y=>y!==p || !x.ifPos.has(p))).has?x.ifPos: (x.ifPos.has(p)? new Set([...x.ifPos].filter(z=>z!==p)) : new Set([...x.ifPos, p]))}:x))}
+                  className={`px-2 py-1 rounded border text-sm ${r.ifPos.has(p)?"bg-blue-600 text-white border-blue-600":"bg-white"}`}
+                >
+                  {p}
+                </button>
+              ))}
+              <span className="ml-2">THEN require at least</span>
+              <input
+                className="w-14 border rounded px-2 py-1 text-sm"
+                value={r.thenN}
+                onChange={(e)=>setRules(R=>R.map((x,j)=>j===i?{...x, thenN:e.target.value}:x))}
+              />
+              <select className="border rounded px-2 py-1 text-sm"
+                value={r.thenTag}
+                onChange={(e)=>setRules(R=>R.map((x,j)=>j===i?{...x, thenTag:e.target.value}:x))}
+              >
+                <option value="FLEX">FLEX</option>
+                <option value={cfg.capLabel}>{cfg.capLabel}</option>
+              </select>
+              <span>from</span>
+              {["QB","RB","WR","TE","DST","K"].map(p => (
+                <button
+                  key={p}
+                  onClick={()=>setRules(R=>R.map((x,j)=>j===i?{...x, thenPos:(x.thenPos.has(p)? new Set([...x.thenPos].filter(z=>z!==p)) : new Set([...x.thenPos, p]))}:x))}
+                  className={`px-2 py-1 rounded border text-sm ${r.thenPos.has(p)?"bg-green-600 text-white border-green-600":"bg-white"}`}
+                >
+                  {p}
+                </button>
+              ))}
+              <select
+                className="border rounded px-2 py-1 text-sm"
+                title="Scope of the THEN players relative to the IF anchor"
+                value={r.scope}
+                onChange={(e)=>setRules(R=>R.map((x,j)=>j===i?{...x, scope:e.target.value}:x))}
+              >
+                <option value="same">same team</option>
+                <option value="opp">opponent</option>
+                <option value="any">any team</option>
+              </select>
+
+              {/* optional team override (leave blank for global) */}
+              <span className="ml-2">Team override</span>
+              <select
+                className="border rounded px-2 py-1 text-sm"
+                value={r.team}
+                onChange={(e)=>setRules(R=>R.map((x,j)=>j===i?{...x, team:e.target.value}:x))}
+              >
+                <option value="">—</option>
+                {allTeams.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+
+              <button className="ml-auto px-2 py-1 text-sm border rounded" onClick={()=>setRules(R=>R.filter((_,j)=>j!==i))}>Delete</button>
+            </div>
           ))}
         </div>
+        <button className="mt-2 px-2 py-1 text-sm border rounded" onClick={()=>setRules(R=>[...R,{ ifTag:"CPT", ifPos:new Set(["QB"]), thenN:1, thenTag:"FLEX", thenPos:new Set(["WR","TE"]), scope:"same", team:""}])}>
+          + Add Rule
+        </button>
       </div>
 
-      {/* Player table */}
-      <div className="rounded-xl border bg-white shadow-sm overflow-auto mb-6 max-h-[650px]">
-        <table className="w-full text-[12px] border-separate" style={{ borderSpacing: 0 }}>
+      {/* table of players */}
+      <div className="rounded-xl border bg-white shadow-sm overflow-auto mb-4 max-h-[560px]">
+        <table className={`w-full border-separate ${small}`} style={{ borderSpacing: 0 }}>
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
-              <th className="px-2 py-1 text-left">Tag</th>
-              <th className="px-2 py-1 text-left">Player</th>
-              <th className="px-2 py-1 text-center">Team</th>
-              <th className="px-2 py-1 text-center">Pos</th>
-              <th className="px-2 py-1 text-right">Salary</th>
-              <th className="px-2 py-1 text-right">Proj</th>
-              <th className="px-2 py-1 text-left">UID</th>
+              <th className={header}>Tag</th>
+              <th className={header}>Player</th>
+              <th className={header}>Team</th>
+              <th className={header}>Pos</th>
+              <th className={header}>Salary</th>
+              <th className={header}>Proj</th>
+              <th className={header}>UID</th>
             </tr>
           </thead>
           <tbody>
-            {loading && (
-              <tr><td className="px-2 py-2 text-center text-gray-500" colSpan={7}>Loading…</td></tr>
-            )}
-            {!loading && err && (
-              <tr><td className="px-2 py-2 text-center text-red-600" colSpan={7}>Failed to load: {String(err)}</td></tr>
-            )}
-            {!loading && !err && displayRows.map((r)=>(
-              <tr key={r.uid} className="odd:bg-white even:bg-gray-50">
-                <td className="px-2 py-1">{r.tag}</td>
-                <td className="px-2 py-1">{r.name}</td>
-                <td className="px-2 py-1 text-center">{r.team}</td>
-                <td className="px-2 py-1 text-center">{r.pos}</td>
-                <td className="px-2 py-1 text-right">{fmt0(r.salary)}</td>
-                <td className="px-2 py-1 text-right">{fmt1(r.proj)}</td>
-                <td className="px-2 py-1">{r.uid}</td>
+            {loading && <tr><td className={cell} colSpan={7}>Loading…</td></tr>}
+            {err && <tr><td className={cell} colSpan={7} style={{color:"#c00"}}>{String(err)}</td></tr>}
+            {!loading && !err && rows.map((r, i) => (
+              <tr key={`${r.name}-${i}`} className="odd:bg-white even:bg-gray-50">
+                <td className={cell}>{r.isCaptain ? cfg.capLabel : "FLEX"}</td>
+                <td className={`${cell} text-left`}>{r.displayName}</td>
+                <td className={cell}><TeamPill abbr={r.team} /></td>
+                <td className={cell}>{r.dispPos}</td>
+                <td className={`${cell} tabular-nums`}>{fmt0(r.salary)}</td>
+                <td className={`${cell} tabular-nums`}>{fmt1(r.proj)}</td>
+                <td className={`${cell} tabular-nums`}>{r.uid || "—"}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      {/* Results + exposures */}
+      {/* results */}
       {!!lineups.length && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           <section className="lg:col-span-8 rounded-lg border bg-white p-3">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-base font-bold">Lineups ({lineups.length})</h2>
+              <div className="flex items-center gap-2">
+                <button className="px-3 py-1.5 border rounded text-sm" onClick={downloadCSVWithIds}>Export CSV (IDs)</button>
+              </div>
             </div>
-            <div className="overflow-auto max-h-[500px]">
+            <div className="overflow-auto max-h-[420px]">
               <table className="min-w-full text-[12px] border-separate" style={{ borderSpacing: 0 }}>
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-2 py-1">#</th>
-                    <th className="px-2 py-1">Salary</th>
-                    <th className="px-2 py-1">Proj</th>
-                    <th className="px-2 py-1">Mix</th>
-                    <th className="px-2 py-1">Players (CPT/MVP first)</th>
+                    <th className={header}>#</th>
+                    <th className={header}>Salary</th>
+                    <th className={header}>Total Proj</th>
+                    <th className={header}>Total pOWN%</th>
+                    <th className={header}>Players</th>
                   </tr>
                 </thead>
                 <tbody>
                   {lineups.map((L, i) => {
-                    const boosted = L.players.find((p)=>p.tag!=="FLEX");
-                    const flex = L.players.filter((p)=>p.tag==="FLEX");
-                    const names = [boosted ? `${boosted.tag}: ${boosted.name}` : "", ...flex.map((f)=>`FLEX: ${f.name}`)];
+                    const cap = L.names.find(n => byName.get(n)?.isCaptain);
+                    const flex = L.names.filter(n => n !== cap);
+                    const ordered = [cap, ...flex].map(n => byName.get(n)?.displayName || n);
                     return (
                       <tr key={i} className="odd:bg-white even:bg-gray-50">
-                        <td className="px-2 py-1">{i+1}</td>
-                        <td className="px-2 py-1 tabular-nums">{fmt0(L.total_salary)}</td>
-                        <td className="px-2 py-1 tabular-nums">{fmt1(L.total_proj)}</td>
-                        <td className="px-2 py-1">{`${L.config.mix} ${L.config.majority}`}</td>
-                        <td className="px-2 py-1">{names.join(" • ")}</td>
+                        <td className={cell}>{i+1}</td>
+                        <td className={`${cell} tabular-nums`}>{fmt0(L.salary)}</td>
+                        <td className={`${cell} tabular-nums`}>{fmt1(L.total)}</td>
+                        <td className={`${cell} tabular-nums`}>{fmt1(L.totalPown)}</td>
+                        <td className={`${cell} text-left`}>{ordered.join(" • ")}</td>
                       </tr>
                     );
                   })}
@@ -546,47 +726,23 @@ export default function NFLShowdownOptimizer() {
             </div>
           </section>
 
+          {/* lineup config exposure (3-3 / 4-2, etc.) */}
           <section className="lg:col-span-4 rounded-lg border bg-white p-3">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-base font-semibold">Exposure</h3>
-              <div className="text-xs text-gray-500">Total lineups: {exposures.total}</div>
-            </div>
-            <div className="border rounded max-h-[240px] overflow-auto">
-              <table className="min-w-full text-[12px]">
-                <thead className="bg-gray-50"><tr><th className="px-2 py-1">Player</th><th className="px-2 py-1">Count</th><th className="px-2 py-1">%</th></tr></thead>
-                <tbody>
-                  {exposures.playerRows.map((r)=>(
-                    <tr key={r.name} className="odd:bg-white even:bg-gray-50">
-                      <td className="px-2 py-1">{r.name}</td>
-                      <td className="px-2 py-1 text-right">{fmt0(r.count)}</td>
-                      <td className="px-2 py-1 text-right">{fmt1(r.pct)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <h3 className="text-base font-semibold mt-4 mb-1">Team Mix (5-1 / 4-2 / 3-3)</h3>
-            <div className="border rounded max-h-[240px] overflow-auto">
-              <table className="min-w-full text-[12px]">
-                <thead className="bg-gray-50"><tr><th className="px-2 py-1">Mix</th><th className="px-2 py-1">Count</th><th className="px-2 py-1">%</th></tr></thead>
-                <tbody>
-                  {exposures.configRows.map((r)=>(
-                    <tr key={r.mix} className="odd:bg-white even:bg-gray-50">
-                      <td className="px-2 py-1">{r.mix}</td>
-                      <td className="px-2 py-1 text-right">{fmt0(r.count)}</td>
-                      <td className="px-2 py-1 text-right">{fmt1(r.pct)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <h3 className="text-base font-semibold mb-2">Lineup Configs</h3>
+            <table className="min-w-full text-[12px]">
+              <thead><tr><th className={header}>Shape</th><th className={header}>Count</th><th className={header}>%</th></tr></thead>
+              <tbody>
+                {lineupConfigs.map((r, idx) => (
+                  <tr key={idx} className="odd:bg-white even:bg-gray-50">
+                    <td className={cell}>{r.shape}</td>
+                    <td className={`${cell} tabular-nums`}>{fmt0(r.count)}</td>
+                    <td className={`${cell} tabular-nums`}>{fmt1(r.pct)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </section>
         </div>
-      )}
-
-      {teams.length === 2 && (
-        <div className="mt-3 text-xs text-gray-500">Teams detected: {teams.join(" vs ")}</div>
       )}
     </div>
   );
