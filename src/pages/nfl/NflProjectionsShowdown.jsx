@@ -130,8 +130,8 @@ export default function NflProjectionsShowdown() {
       const opp  = r.opp ?? r.Opp ?? r.OPP ?? "";
 
       // projections
-      const dk_proj = pick(r, ["dk_proj", "DK Proj", "dk_projection"]);
-      const fd_proj = pick(r, ["fd_proj", "FD Proj", "fd_projection"]);
+      const dk_proj = pick(r, ["DK Proj", "dk_proj", "dk_projection"]);
+      const fd_proj = pick(r, ["FD Proj", "fd_proj", "fd_projection"]);
 
       // salaries (prefer explicit flex/cpt/mvp if present)
       const dk_sal = pick(r, ["DK Sal", "dk_sal", "DK Flex Sal", "dk_flex_sal"]);
