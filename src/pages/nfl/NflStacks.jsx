@@ -194,18 +194,17 @@ const asNum = (v) => {
   return m ? parseFloat(m[0]) : null;
 };
 
-// Percent parser: if the original had "%", use the number as-is;
-// otherwise treat 0..1 as a fraction and scale to percent.
+// Percent parser: scale only if it's a true fraction (0 < |n| < 1)
 const asPct = (v) => {
   if (v === null || v === undefined || v === "") return null;
   let s = String(v).trim();
-  const hadPercent = s.endsWith("%");
+  const hadPercent = /%$/.test(s);
   if (hadPercent) s = s.slice(0, -1);
 
   const n = asNum(s);
   if (n === null) return null;
 
-  return hadPercent ? n : (Math.abs(n) <= 1.5 ? n * 100 : n);
+  return hadPercent ? n : (Math.abs(n) > 0 && Math.abs(n) < 1 ? n * 100 : n);
 };
 
 const METRICS = {
@@ -457,14 +456,17 @@ export default function NflStacks() {
 
   /* sorting (default DK Total desc) */
   const [sort, setSort] = useState({ key: ["dk_total", "dkTotal", "DK Total"], dir: "desc" });
-  const toPctNumber = (v) => {
-    if (v === "" || v === null || v === undefined) return null;
-    const raw = String(v).trim();
-    if (raw.endsWith("%")) return num(raw.slice(0, -1));
-    let n = num(raw);
+  // Percent parser: scale only if it's a true fraction (0 < |n| < 1)
+  const asPct = (v) => {
+    if (v === null || v === undefined || v === "") return null;
+    let s = String(v).trim();
+    const hadPercent = /%$/.test(s);
+    if (hadPercent) s = s.slice(0, -1);
+
+    const n = asNum(s);
     if (n === null) return null;
-    if (Math.abs(n) <= 1) n *= 100;
-    return n;
+
+    return hadPercent ? n : (Math.abs(n) > 0 && Math.abs(n) < 1 ? n * 100 : n);
   };
 
   const sorted = useMemo(() => {
