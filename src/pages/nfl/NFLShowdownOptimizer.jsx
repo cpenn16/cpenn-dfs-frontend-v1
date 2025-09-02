@@ -73,6 +73,10 @@ const TeamPill = ({ abbr, title }) => {
   return <span className="px-2 py-0.5 rounded" style={{backgroundColor:bg,color:fg}} title={title || abbr}>{abbr||"—"}</span>;
 };
 
+/* --------- tag normalization for DK CPT vs FD MVP (state keys) ----- */
+const normCapTag = (t) => (t === "FLEX" ? "FLEX" : "CPT"); // treat MVP as CPT for keys/state
+const tagKey = (name, tag) => `${name}::${normCapTag(tag)}`;
+
 /* ------------------------------ data IO ---------------------------- */
 const SOURCE = "/data/nfl/showdown/latest/projections.json";
 const SITE_IDS_SOURCE = "/data/nfl/showdown/latest/site_ids.json";
@@ -236,7 +240,7 @@ export default function NFLShowdownOptimizer() {
       const team = (r.team ?? r.Team ?? r.Tm ?? r.TEAM ?? r.team_abbr ?? r.TeamAbbrev ?? "").toUpperCase();
       const opp  = (r.opp  ?? r.Opp  ?? r.OPP ?? r.Opponent ?? r.opponent ?? "").toUpperCase();
 
-      // FLEX metrics (robust)
+      // FLEX metrics (robust) — expanded variants for FD/DST salary issues
       const flex_proj = num(pick(r, [`${siteKey} proj`, `${cfg.flexFieldPrefix} proj`, "proj","projection","points"], 0));
       const flex_floor = num(pick(r, [`${siteKey} floor`, `${cfg.flexFieldPrefix} floor`, "floor"], 0));
       const flex_ceil  = num(pick(r, [`${siteKey} ceil`, `${cfg.flexFieldPrefix} ceil`, "ceiling","ceil"], 0));
@@ -245,23 +249,27 @@ export default function NFLShowdownOptimizer() {
       const flex_sal   = num(
         pick(r, [
           `${siteKey} sal`, `${cfg.flexFieldPrefix} sal`, "salary", "sal",
-          // a few common alternates seen in your feeds
-          `${siteKey}_sal`, `${siteKey} flex sal`, `${siteKey}_flex_sal`
+          `${siteKey} salary`, `${cfg.flexFieldPrefix} salary`,
+          `${siteKey}_sal`, `${siteKey}_salary`,
+          `${siteKey} flex sal`, `${siteKey} flex salary`,
+          `${siteKey}_flex_sal`, `${siteKey}_flex_salary`,
         ], 0)
       );
 
-      // CAP/MVP metrics (read explicit fields; otherwise 1.5× flex)
+      // CAP/MVP metrics (prefer explicit fields; otherwise 1.5× flex)
       const cap_proj = num(pick(r, [`${siteKey} ${capTag.toLowerCase()} proj`, `${cfg.mvpFieldPrefix} proj`, `${siteKey}_${capTag.toLowerCase()}_proj`], flex_proj * 1.5));
       const cap_floor = num(pick(r, [`${siteKey} ${capTag.toLowerCase()} floor`, `${cfg.mvpFieldPrefix} floor`, `${siteKey}_${capTag.toLowerCase()}_floor`], flex_floor * 1.5));
       const cap_ceil  = num(pick(r, [`${siteKey} ${capTag.toLowerCase()} ceil`, `${cfg.mvpFieldPrefix} ceil`, `${siteKey}_${capTag.toLowerCase()}_ceil`], flex_ceil * 1.5));
       const cap_pown  = num(pick(r, [`${siteKey} ${capTag.toLowerCase()} pown%`, `${cfg.mvpFieldPrefix} pown%`, `${siteKey}_${capTag.toLowerCase()}_pown%`], flex_pown * 100)) / 100;
       const cap_opt   = num(pick(r, [`${siteKey} ${capTag.toLowerCase()} opt%`, `${cfg.mvpFieldPrefix} opt%`, `${siteKey}_${capTag.toLowerCase()}_opt%`], flex_opt * 100)) / 100;
 
-      // **Important FD/DST salary fix**: try explicit MVP/CPT sal; else 1.5× FLEX sal; all positions inc. DST/K
+      // Captain salary (explicit if present, else 1.5x FLEX)
       const cap_sal   = num(
         pick(r, [
           `${siteKey} ${capTag.toLowerCase()} sal`, `${cfg.mvpFieldPrefix} sal`,
           `${siteKey}_${capTag.toLowerCase()}_sal`,
+          `${siteKey} ${capTag.toLowerCase()} salary`, `${cfg.mvpFieldPrefix} salary`,
+          `${siteKey}_${capTag.toLowerCase()}_salary`,
         ], 0)
       ) || Math.round(flex_sal * 1.5);
 
@@ -305,7 +313,7 @@ export default function NFLShowdownOptimizer() {
     const capTag = cfg.capTag;
     const res = [];
     for (const r of rows) {
-      res.push({ ...r, tag: capTag, projDisplay: r.cap_proj, floorDisplay: r.cap_floor, ceilDisplay: r.cap_ceil, pownDisplay: r.cap_pown, optDisplay: r.cap_opt, salaryDisplay: r.cap_salary, key: r.name + "::CPT" });
+      res.push({ ...r, tag: "CPT", projDisplay: r.cap_proj, floorDisplay: r.cap_floor, ceilDisplay: r.cap_ceil, pownDisplay: r.cap_pown, optDisplay: r.cap_opt, salaryDisplay: r.cap_salary, key: r.name + "::CPT" });
       res.push({ ...r, tag: "FLEX", projDisplay: r.proj, floorDisplay: r.floor, ceilDisplay: r.ceil, pownDisplay: r.pown, optDisplay: r.opt, salaryDisplay: r.salary, key: r.name + "::FLEX" });
     }
     return res;
@@ -313,7 +321,7 @@ export default function NFLShowdownOptimizer() {
 
   const displayRows = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    const okTag = (t) => tagFilter === "ALL" ? true : t === tagFilter;
+    const okTag = (t) => tagFilter === "ALL" ? true : (t === "FLEX" ? "FLEX" : cfg.capTag) === tagFilter;
     const filtered = expandedRows.filter((r) =>
       okTag(r.tag) &&
       (
@@ -330,7 +338,7 @@ export default function NFLShowdownOptimizer() {
     const withKnown = filtered.filter((r) => ids.has(r.key));
     const others = filtered.filter((r) => !ids.has(r.key));
     return [...withKnown, ...others];
-  }, [expandedRows, order, q, tagFilter]);
+  }, [expandedRows, order, q, tagFilter, cfg.capTag]);
 
   const sortable = new Set(["tag","pos","team","opp","salary","proj","floor","ceil","pown","opt","usage"]);
   const setSort = (col) => {
@@ -364,7 +372,6 @@ export default function NFLShowdownOptimizer() {
   const sortArrow = (key) => sortRef.current.col === key ? (sortRef.current.dir === "asc" ? " ▲" : " ▼") : "";
 
   /* ------------------------------ actions ---------------------------- */
-  const tagKey = (name, tag) => `${name}::${tag}`;
   const toggleLock = (name, tag) => setLocks((s) => { const k = tagKey(name, tag); const n = new Set(s); n.has(k) ? n.delete(k) : n.add(k); return n; });
   const toggleExcl = (name, tag) => setExcls((s) => { const k = tagKey(name, tag); const n = new Set(s); n.has(k) ? n.delete(k) : n.add(k); return n; });
   const bumpBoost = (name, step) => setBoost((m) => ({ ...m, [name]: clamp((m[name] || 0) + step, -6, 6) }));
@@ -477,6 +484,12 @@ export default function NFLShowdownOptimizer() {
     { key: "max",    label: "Max%" },
     { key: "usage",  label: "Usage%", sortable: true },
   ];
+
+  const totalLabel =
+    optBy === "proj" ? "Proj" :
+    optBy === "floor" ? "Floor" :
+    optBy === "ceil" ? "Ceil" :
+    optBy === "pown" ? "pOWN%" : "Opt%";
 
   /* --------------------------- rendering ---------------------------- */
   const cell = "px-2 py-1 text-center";
@@ -642,45 +655,61 @@ export default function NFLShowdownOptimizer() {
             {err && (
               <tr><td className={`${cell} text-red-600`} colSpan={TABLE_COLS.length}>Failed to load: {String(err)}</td></tr>
             )}
-            {!loading && !err && displayRows.map((r) => (
-              <tr key={r.key} className="odd:bg-white even:bg-gray-50 hover:bg-blue-50/60 transition-colors">
-                <td className={cell}><input type="checkbox" checked={locks.has(tagKey(r.name, r.tag==="CPT"?"CPT":"FLEX"))} onChange={() => toggleLock(r.name, r.tag==="CPT"?"CPT":"FLEX")} /></td>
-                <td className={cell}><input type="checkbox" checked={excls.has(tagKey(r.name, r.tag==="CPT"?"CPT":"FLEX"))} onChange={() => toggleExcl(r.name, r.tag==="CPT"?"CPT":"FLEX")} /></td>
-                <td className={cell}>
-                  <div className="inline-flex items-center gap-1">
-                    <button className="px-1.5 py-0.5 border rounded" title="+3%" onClick={() => bumpBoost(r.name, +1)}>▲</button>
-                    <span className="w-5 text-center">{boost[r.name] || 0}</span>
-                    <button className="px-1.5 py-0.5 border rounded" title="-3%" onClick={() => bumpBoost(r.name, -1)}>▼</button>
-                  </div>
-                </td>
-                <td className={cell}>{r.tag}</td>
-                <td className={`${cell} whitespace-nowrap`}>{r.name}</td>
-                <td className={cell}><TeamPill abbr={r.team} /></td>
-                <td className={cell}><TeamPill abbr={r.opp} /></td>
-                <td className={cell}>{r.pos}</td>
-                <td className={`${cell} tabular-nums`}>{fmt0(r.salaryDisplay)}</td>
-                <td className={`${cell} tabular-nums`}>{fmt1(r.projDisplay * (1 + 0.03 * (boost[r.name] || 0)))}</td>
-                <td className={`${cell} tabular-nums`}>{fmt1(r.floorDisplay)}</td>
-                <td className={`${cell} tabular-nums`}>{fmt1(r.ceilDisplay)}</td>
-                <td className={`${cell} tabular-nums`}>{fmt1(r.pownDisplay * 100)}</td>
-                <td className={`${cell} tabular-nums`}>{fmt1(r.optDisplay * 100)}</td>
-                <td className={cell}>
-                  <div className="inline-flex items-center gap-1">
-                    <button className="px-1.5 py-0.5 border rounded" onClick={() => setMinPct((m) => ({ ...m, [r.name]: clamp((num(m[r.name]) || 0) - 5, 0, 100) }))} title="-5%">–</button>
-                    <input className="w-12 border rounded px-1.5 py-0.5 text-center" value={String(minPct[r.name] ?? "")} onChange={(e) => setMinPct((m) => ({ ...m, [r.name]: e.target.value }))} placeholder="—" />
-                    <button className="px-1.5 py-0.5 border rounded" onClick={() => setMinPct((m) => ({ ...m, [r.name]: clamp((num(m[r.name]) || 0) + 5, 0, 100) }))} title="+5%">+</button>
-                  </div>
-                </td>
-                <td className={cell}>
-                  <div className="inline-flex items-center gap-1">
-                    <button className="px-1.5 py-0.5 border rounded" onClick={() => setMaxPct((m) => ({ ...m, [r.name]: clamp((num(m[r.name]) || 100) - 5, 0, 100) }))} title="-5%">–</button>
-                    <input className="w-12 border rounded px-1.5 py-0.5 text-center" value={String(maxPct[r.name] ?? "")} onChange={(e) => setMaxPct((m) => ({ ...m, [r.name]: e.target.value }))} placeholder="—" />
-                    <button className="px-1.5 py-0.5 border rounded" onClick={() => setMaxPct((m) => ({ ...m, [r.name]: clamp((num(m[r.name]) || 100) + 5, 0, 100) }))} title="+5%">+</button>
-                  </div>
-                </td>
-                <td className={`${cell} tabular-nums`}>{usagePct[r.key] != null ? fmt1(usagePct[r.key]) : "—"}</td>
-              </tr>
-            ))}
+            {!loading && !err && displayRows.map((r) => {
+              const teamTitle = `${NFL_TEAMS[r.team]?.city ?? r.team} ${NFL_TEAMS[r.team]?.nickname ?? ""}`.trim();
+              const oppTitle  = `${NFL_TEAMS[r.opp]?.city ?? r.opp} ${NFL_TEAMS[r.opp]?.nickname ?? ""}`.trim();
+              return (
+                <tr key={r.key} className="odd:bg-white even:bg-gray-50 hover:bg-blue-50/60 transition-colors">
+                  <td className={cell}>
+                    <input
+                      type="checkbox"
+                      checked={locks.has(tagKey(r.name, r.tag))}
+                      onChange={() => toggleLock(r.name, r.tag)}
+                    />
+                  </td>
+                  <td className={cell}>
+                    <input
+                      type="checkbox"
+                      checked={excls.has(tagKey(r.name, r.tag))}
+                      onChange={() => toggleExcl(r.name, r.tag)}
+                    />
+                  </td>
+                  <td className={cell}>
+                    <div className="inline-flex items-center gap-1">
+                      <button className="px-1.5 py-0.5 border rounded" title="+3%" onClick={() => bumpBoost(r.name, +1)}>▲</button>
+                      <span className="w-5 text-center">{boost[r.name] || 0}</span>
+                      <button className="px-1.5 py-0.5 border rounded" title="-3%" onClick={() => bumpBoost(r.name, -1)}>▼</button>
+                    </div>
+                  </td>
+                  <td className={cell}>{r.tag === "FLEX" ? "FLEX" : cfg.capTag}</td>
+                  <td className={`${cell} whitespace-nowrap`}>{r.name}</td>
+                  <td className={cell}><TeamPill abbr={r.team} title={teamTitle} /></td>
+                  <td className={cell}><TeamPill abbr={r.opp} title={oppTitle} /></td>
+                  <td className={cell}>{r.pos}</td>
+                  <td className={`${cell} tabular-nums`}>{fmt0(r.salaryDisplay)}</td>
+                  <td className={`${cell} tabular-nums`}>{fmt1(r.projDisplay * (1 + 0.03 * (boost[r.name] || 0)))}</td>
+                  <td className={`${cell} tabular-nums`}>{fmt1(r.floorDisplay)}</td>
+                  <td className={`${cell} tabular-nums`}>{fmt1(r.ceilDisplay)}</td>
+                  <td className={`${cell} tabular-nums`}>{fmt1(r.pownDisplay * 100)}</td>
+                  <td className={`${cell} tabular-nums`}>{fmt1(r.optDisplay * 100)}</td>
+                  <td className={cell}>
+                    <div className="inline-flex items-center gap-1">
+                      <button className="px-1.5 py-0.5 border rounded" onClick={() => setMinPct((m) => ({ ...m, [r.name]: clamp((num(m[r.name]) || 0) - 5, 0, 100) }))} title="-5%">–</button>
+                      <input className="w-12 border rounded px-1.5 py-0.5 text-center" value={String(minPct[r.name] ?? "")} onChange={(e) => setMinPct((m) => ({ ...m, [r.name]: e.target.value }))} placeholder="—" />
+                      <button className="px-1.5 py-0.5 border rounded" onClick={() => setMinPct((m) => ({ ...m, [r.name]: clamp((num(m[r.name]) || 0) + 5, 0, 100) }))} title="+5%">+</button>
+                    </div>
+                  </td>
+                  <td className={cell}>
+                    <div className="inline-flex items-center gap-1">
+                      <button className="px-1.5 py-0.5 border rounded" onClick={() => setMaxPct((m) => ({ ...m, [r.name]: clamp((num(m[r.name]) || 100) - 5, 0, 100) }))} title="-5%">–</button>
+                      <input className="w-12 border rounded px-1.5 py-0.5 text-center" value={String(maxPct[r.name] ?? "")} onChange={(e) => setMaxPct((m) => ({ ...m, [r.name]: e.target.value }))} placeholder="—" />
+                      <button className="px-1.5 py-0.5 border rounded" onClick={() => setMaxPct((m) => ({ ...m, [r.name]: clamp((num(m[r.name]) || 100) + 5, 0, 100) }))} title="+5%">+</button>
+                    </div>
+                  </td>
+                  <td className={`${cell} tabular-nums`}>{usagePct[r.key] != null ? fmt1(usagePct[r.key]) : "—"}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -700,7 +729,7 @@ export default function NFLShowdownOptimizer() {
                 <tr>
                   <th className={header}>#</th>
                   <th className={header}>Salary</th>
-                  <th className={header}>Total {optBy === "pown" || optBy === "opt" ? "Projection" : optBy==="proj"?"Proj":optBy==="floor"?"Floor":"Ceil"}</th>
+                  <th className={header}>Total {totalLabel}</th>
                   <th className={header}>Players</th>
                 </tr>
               </thead>
@@ -810,7 +839,7 @@ function downloadSiteLineupsCSV({ lineups, site, rows, siteIds, cfg, fname = "nf
         const outId = fdPrefix ? `${fdPrefix}-${rec.id}` : rec.id;
         return escapeCSV(`${outId}:${rec.nameFromSite || name}`);
       }
-      // DK: CPT row must use CPT id if available
+      // DK: CPT row must use CPT id if available — keep "Name (ID)"
       const isCaptain = (i === 0);
       const outId = isCaptain && rec.capId ? rec.capId : rec.id;
       return escapeCSV(`${name} (${outId})`);
