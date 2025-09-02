@@ -1,5 +1,5 @@
 // src/pages/nfl/NflProjections.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useLayoutEffect, useRef } from "react";
 
 /* ------------------------------- config ------------------------------- */
 const SOURCE = "/data/nfl/classic/latest/projections.json";
@@ -261,6 +261,22 @@ export default function NflProjections() {
     });
   };
 
+  /* --- NEW: measure Player column width to offset Team's sticky left --- */
+  const playerThRef = useRef(null);
+  const [playerColWidth, setPlayerColWidth] = useState(0);
+
+  useLayoutEffect(() => {
+    const calc = () => {
+      if (playerThRef.current) {
+        const w = playerThRef.current.getBoundingClientRect().width;
+        setPlayerColWidth(w);
+      }
+    };
+    calc();
+    window.addEventListener("resize", calc);
+    return () => window.removeEventListener("resize", calc);
+  }, [columns, sorted]);
+
   /* styling */
   const cell = "px-2 py-1 text-center";
   const header = "px-2 py-1 font-semibold text-center";
@@ -344,7 +360,15 @@ export default function NflProjections() {
               {columns.map((c) => (
                 <th
                   key={c.key}
-                  className={`${header} whitespace-nowrap cursor-pointer select-none ${c.w || ""}`}
+                  ref={c.key === "player" ? playerThRef : undefined}  // ← NEW: measure Player header width
+                  className={`${header} whitespace-nowrap cursor-pointer select-none ${c.w || ""} ${
+                    c.key === "player"
+                      ? "sticky left-0 z-20 bg-gray-50"
+                      : c.key === "team"
+                      ? "sticky z-20 bg-gray-50"
+                      : ""
+                  }`}
+                  style={c.key === "team" ? { left: playerColWidth } : undefined} // ← NEW: dynamic offset for Team
                   onClick={() => onSort(c)}
                   title="Click to sort"
                 >
@@ -382,7 +406,12 @@ export default function NflProjections() {
                   {columns.map((c) => {
                     if (c.key === "player") {
                       return (
-                        <td key={c.key} className="px-2 py-1 text-left">
+                        <td
+                          key={c.key}
+                          className={`px-2 py-1 text-left sticky left-0 z-10 ${
+                            i % 2 === 0 ? "bg-white" : "bg-gray-50"
+                          } shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)]`}
+                        >
                           <div className="flex items-center gap-2">
                             {/* team logo */}
                             <img
@@ -396,6 +425,21 @@ export default function NflProjections() {
                         </td>
                       );
                     }
+
+                    if (c.key === "team") {
+                      return (
+                        <td
+                          key={c.key}
+                          className={`px-2 py-1 text-center sticky z-10 ${
+                            i % 2 === 0 ? "bg-white" : "bg-gray-50"
+                          } shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)]`}
+                          style={{ left: playerColWidth }} // ← NEW: dynamic offset matching Player col width
+                        >
+                          {r.team}
+                        </td>
+                      );
+                    }
+
                     const cls = c.type === "text" ? "px-2 py-1 text-center" : `${cell} tabular-nums`;
                     let val = r[c.key];
                     if (c.type === "num1-force") val = fmt1(val);
