@@ -5,297 +5,144 @@
       "header_row": 1,
       "data_start_row": 2,
       "limit_to_col": "T",
+
       "keep_columns_sheet_order": [
-        "Pos",
-        "Player Name",
-        "Team",
-        "Opp",
-        "DK Proj",
-        "DK Val",
-        "FD Proj",
-        "FD Val",
-        "DK Flex Proj",
-        "DK Flex Val",
-        "DK Flex pOWN",
-        "DK Flex pOWN%",
-        "DK Flex Opt%",
-        "DK Flex Lev%",
-        "DK Flex Rtg",
-        "DK CPT Proj",
-        "DK CPT Val",
-        "DK CPT pOWN",
-        "DK CPT pOWN%",
-        "DK CPT Opt%",
-        "DK CPT Lev%",
-        "DK CPT Rtg",
-        "FD Flex Proj",
-        "FD Flex Val",
-        "FD Flex pOWN",
-        "FD Flex pOWN%",
-        "FD Flex Opt%",
-        "FD Flex Lev%",
-        "FD Flex Rtg",
-        "FD MVP Proj",
-        "FD MVP Val",
-        "FD MVP pOWN",
-        "FD MVP pOWN%",
-        "FD MVP Opt%",
-        "FD MVP Lev%",
-        "FD MVP Rtg",
-        "DK\u00A0Proj",
-        "DK\u00A0Val",
-        "FD\u00A0Proj",
-        "FD\u00A0Val",
-        "DK\u00A0Flex Proj",
-        "DK\u00A0Flex Val",
-        "DK\u00A0Flex pOWN",
-        "DK\u00A0Flex pOWN%",
-        "DK\u00A0Flex Opt%",
-        "DK\u00A0Flex Lev%",
-        "DK\u00A0Flex Rtg",
-        "DK\u00A0CPT Proj",
-        "DK\u00A0CPT Val",
-        "DK\u00A0CPT pOWN",
-        "DK\u00A0CPT pOWN%",
-        "DK\u00A0CPT Opt%",
-        "DK\u00A0CPT Lev%",
-        "DK\u00A0CPT Rtg",
-        "FD\u00A0Flex Proj",
-        "FD\u00A0Flex Val",
-        "FD\u00A0Flex pOWN",
-        "FD\u00A0Flex pOWN%",
-        "FD\u00A0Flex Opt%",
-        "FD\u00A0Flex Lev%",
-        "FD\u00A0Flex Rtg",
-        "FD\u00A0MVP Proj",
-        "FD\u00A0MVP Val",
-        "FD\u00A0MVP pOWN",
-        "FD\u00A0MVP pOWN%",
-        "FD\u00A0MVP Opt%",
-        "FD\u00A0MVP Lev%",
-        "FD\u00A0MVP Rtg"
+        "Pos", "Player Name", "Team", "Opp",
+
+        "DK Flex Proj", "DK Flex Val", "DK Flex pOWN", "DK Flex pOWN%", "DK Flex Opt%", "DK Flex Lev%", "DK Flex Rtg",
+        "DK CPT Proj",  "DK CPT Val",  "DK CPT pOWN",  "DK CPT pOWN%",  "DK CPT Opt%",  "DK CPT Lev%",  "DK CPT Rtg",
+
+        "FD Flex Proj", "FD Flex Val", "FD Flex pOWN", "FD Flex pOWN%", "FD Flex Opt%", "FD Flex Lev%", "FD Flex Rtg",
+        "FD MVP Proj",  "FD MVP Val",  "FD MVP pOWN",  "FD MVP pOWN%",  "FD MVP Opt%",  "FD MVP Lev%",  "FD MVP Rtg"
       ],
+
       "column_mapping": {
         "Pos": "pos",
         "Player Name": "player",
         "Team": "team",
         "Opp": "opp",
-        "DK Proj": "dk_proj",
-        "DK Val": "dk_val",
-        "FD Proj": "fd_proj",
-        "FD Val": "fd_val",
+
         "DK Flex Proj": "dk_flex_proj",
-        "DK Flex Val": "dk_flex_val",
+        "DK Flex Val":  "dk_flex_val",
         "DK Flex pOWN": "dk_flex_pown",
-        "DK Flex pOWN%": "dk_flex_pown",
+        "DK Flex pOWN%":"dk_flex_pown",
         "DK Flex Opt%": "dk_flex_opt",
         "DK Flex Lev%": "dk_flex_lev",
-        "DK Flex Rtg": "dk_flex_rtg",
-        "DK CPT Proj": "dk_cpt_proj",
-        "DK CPT Val": "dk_cpt_val",
-        "DK CPT pOWN": "dk_cpt_pown",
+        "DK Flex Rtg":  "dk_flex_rtg",
+
+        "DK CPT Proj":  "dk_cpt_proj",
+        "DK CPT Val":   "dk_cpt_val",
+        "DK CPT pOWN":  "dk_cpt_pown",
         "DK CPT pOWN%": "dk_cpt_pown",
-        "DK CPT Opt%": "dk_cpt_opt",
-        "DK CPT Lev%": "dk_cpt_lev",
-        "DK CPT Rtg": "dk_cpt_rtg",
+        "DK CPT Opt%":  "dk_cpt_opt",
+        "DK CPT Lev%":  "dk_cpt_lev",
+        "DK CPT Rtg":   "dk_cpt_rtg",
+
         "FD Flex Proj": "fd_flex_proj",
-        "FD Flex Val": "fd_flex_val",
+        "FD Flex Val":  "fd_flex_val",
         "FD Flex pOWN": "fd_flex_pown",
-        "FD Flex pOWN%": "fd_flex_pown",
+        "FD Flex pOWN%":"fd_flex_pown",
         "FD Flex Opt%": "fd_flex_opt",
         "FD Flex Lev%": "fd_flex_lev",
-        "FD Flex Rtg": "fd_flex_rtg",
-        "FD MVP Proj": "fd_mvp_proj",
-        "FD MVP Val": "fd_mvp_val",
-        "FD MVP pOWN": "fd_mvp_pown",
+        "FD Flex Rtg":  "fd_flex_rtg",
+
+        "FD MVP Proj":  "fd_mvp_proj",
+        "FD MVP Val":   "fd_mvp_val",
+        "FD MVP pOWN":  "fd_mvp_pown",
         "FD MVP pOWN%": "fd_mvp_pown",
-        "FD MVP Opt%": "fd_mvp_opt",
-        "FD MVP Lev%": "fd_mvp_lev",
-        "FD MVP Rtg": "fd_mvp_rtg",
-        "DK\u00A0Proj": "dk_proj",
-        "DK\u00A0Val": "dk_val",
-        "FD\u00A0Proj": "fd_proj",
-        "FD\u00A0Val": "fd_val",
+        "FD MVP Opt%":  "fd_mvp_opt",
+        "FD MVP Lev%":  "fd_mvp_lev",
+        "FD MVP Rtg":   "fd_mvp_rtg",
+
         "DK\u00A0Flex Proj": "dk_flex_proj",
-        "DK\u00A0Flex Val": "dk_flex_val",
+        "DK\u00A0Flex Val":  "dk_flex_val",
         "DK\u00A0Flex pOWN": "dk_flex_pown",
-        "DK\u00A0Flex pOWN%": "dk_flex_pown",
+        "DK\u00A0Flex pOWN%":"dk_flex_pown",
         "DK\u00A0Flex Opt%": "dk_flex_opt",
         "DK\u00A0Flex Lev%": "dk_flex_lev",
-        "DK\u00A0Flex Rtg": "dk_flex_rtg",
-        "DK\u00A0CPT Proj": "dk_cpt_proj",
-        "DK\u00A0CPT Val": "dk_cpt_val",
-        "DK\u00A0CPT pOWN": "dk_cpt_pown",
+        "DK\u00A0Flex Rtg":  "dk_flex_rtg",
+
+        "DK\u00A0CPT Proj":  "dk_cpt_proj",
+        "DK\u00A0CPT Val":   "dk_cpt_val",
+        "DK\u00A0CPT pOWN":  "dk_cpt_pown",
         "DK\u00A0CPT pOWN%": "dk_cpt_pown",
-        "DK\u00A0CPT Opt%": "dk_cpt_opt",
-        "DK\u00A0CPT Lev%": "dk_cpt_lev",
-        "DK\u00A0CPT Rtg": "dk_cpt_rtg",
+        "DK\u00A0CPT Opt%":  "dk_cpt_opt",
+        "DK\u00A0CPT Lev%":  "dk_cpt_lev",
+        "DK\u00A0CPT Rtg":   "dk_cpt_rtg",
+
         "FD\u00A0Flex Proj": "fd_flex_proj",
-        "FD\u00A0Flex Val": "fd_flex_val",
+        "FD\u00A0Flex Val":  "fd_flex_val",
         "FD\u00A0Flex pOWN": "fd_flex_pown",
-        "FD\u00A0Flex pOWN%": "fd_flex_pown",
+        "FD\u00A0Flex pOWN%":"fd_flex_pown",
         "FD\u00A0Flex Opt%": "fd_flex_opt",
         "FD\u00A0Flex Lev%": "fd_flex_lev",
-        "FD\u00A0Flex Rtg": "fd_flex_rtg",
-        "FD\u00A0MVP Proj": "fd_mvp_proj",
-        "FD\u00A0MVP Val": "fd_mvp_val",
-        "FD\u00A0MVP pOWN": "fd_mvp_pown",
+        "FD\u00A0Flex Rtg":  "fd_flex_rtg",
+
+        "FD\u00A0MVP Proj":  "fd_mvp_proj",
+        "FD\u00A0MVP Val":   "fd_mvp_val",
+        "FD\u00A0MVP pOWN":  "fd_mvp_pown",
         "FD\u00A0MVP pOWN%": "fd_mvp_pown",
-        "FD\u00A0MVP Opt%": "fd_mvp_opt",
-        "FD\u00A0MVP Lev%": "fd_mvp_lev",
-        "FD\u00A0MVP Rtg": "fd_mvp_rtg"
+        "FD\u00A0MVP Opt%":  "fd_mvp_opt",
+        "FD\u00A0MVP Lev%":  "fd_mvp_lev",
+        "FD\u00A0MVP Rtg":   "fd_mvp_rtg"
       },
+
       "column_order": [
-        "player",
-        "pos",
-        "team",
-        "opp",
-        "dk_proj",
-        "dk_val",
-        "fd_proj",
-        "fd_val",
-        "dk_flex_proj",
-        "dk_flex_val",
-        "dk_flex_pown",
-        "dk_flex_opt",
-        "dk_flex_lev",
-        "dk_flex_rtg",
-        "dk_cpt_proj",
-        "dk_cpt_val",
-        "dk_cpt_pown",
-        "dk_cpt_opt",
-        "dk_cpt_lev",
-        "dk_cpt_rtg",
-        "fd_flex_proj",
-        "fd_flex_val",
-        "fd_flex_pown",
-        "fd_flex_opt",
-        "fd_flex_lev",
-        "fd_flex_rtg",
-        "fd_mvp_proj",
-        "fd_mvp_val",
-        "fd_mvp_pown",
-        "fd_mvp_opt",
-        "fd_mvp_lev",
-        "fd_mvp_rtg"
+        "player","pos","team","opp",
+
+        "dk_flex_proj","dk_flex_val","dk_flex_pown","dk_flex_opt","dk_flex_lev","dk_flex_rtg",
+        "dk_cpt_proj","dk_cpt_val","dk_cpt_pown","dk_cpt_opt","dk_cpt_lev","dk_cpt_rtg",
+
+        "fd_flex_proj","fd_flex_val","fd_flex_pown","fd_flex_opt","fd_flex_lev","fd_flex_rtg",
+        "fd_mvp_proj","fd_mvp_val","fd_mvp_pown","fd_mvp_opt","fd_mvp_lev","fd_mvp_rtg"
       ],
-      "filters": [
-        {
-          "column": "Player Name",
-          "op": "nonempty"
-        }
-      ],
+
+      "filters": [{ "column": "Player Name", "op": "nonempty" }],
       "format": "json",
       "out_rel": "data/nfl/showdown/latest/projections"
     },
-    {
-      "sheet": "QB",
-      "header_row": 2,
-      "data_start_row": 3,
-      "filters": [
-        {
-          "column": "Player",
-          "op": "nonempty"
-        }
-      ],
-      "format": "json",
-      "out_rel": "data/nfl/showdown/latest/qb_data"
-    },
-    {
-      "sheet": "RB",
-      "header_row": 2,
-      "data_start_row": 3,
-      "filters": [
-        {
-          "column": "Player",
-          "op": "nonempty"
-        }
-      ],
-      "format": "json",
-      "out_rel": "data/nfl/showdown/latest/rb_data"
-    },
-    {
-      "sheet": "WR",
-      "header_row": 2,
-      "data_start_row": 3,
-      "filters": [
-        {
-          "column": "Player",
-          "op": "nonempty"
-        }
-      ],
-      "format": "json",
-      "out_rel": "data/nfl/showdown/latest/wr_data"
-    },
-    {
-      "sheet": "TE",
-      "header_row": 2,
-      "data_start_row": 3,
-      "filters": [
-        {
-          "column": "Player",
-          "op": "nonempty"
-        }
-      ],
-      "format": "json",
-      "out_rel": "data/nfl/showdown/latest/te_data"
-    },
-    {
-      "sheet": "DST",
-      "header_row": 2,
-      "data_start_row": 3,
-      "filters": [
-        {
-          "column": "Team",
-          "op": "nonempty"
-        }
-      ],
-      "format": "json",
-      "out_rel": "data/nfl/showdown/latest/dst_data"
-    }
+
+    { "sheet": "QB",  "header_row": 2, "data_start_row": 3, "filters": [{ "column": "Player", "op": "nonempty" }], "format": "json", "out_rel": "data/nfl/showdown/latest/qb_data" },
+    { "sheet": "RB",  "header_row": 2, "data_start_row": 3, "filters": [{ "column": "Player", "op": "nonempty" }], "format": "json", "out_rel": "data/nfl/showdown/latest/rb_data" },
+    { "sheet": "WR",  "header_row": 2, "data_start_row": 3, "filters": [{ "column": "Player", "op": "nonempty" }], "format": "json", "out_rel": "data/nfl/showdown/latest/wr_data" },
+    { "sheet": "TE",  "header_row": 2, "data_start_row": 3, "filters": [{ "column": "Player", "op": "nonempty" }], "format": "json", "out_rel": "data/nfl/showdown/latest/te_data" },
+    { "sheet": "DST", "header_row": 2, "data_start_row": 3, "filters": [{ "column": "Team",   "op": "nonempty" }], "format": "json", "out_rel": "data/nfl/showdown/latest/dst_data" }
   ],
+
   "cheatsheets": {
     "sheet": "Cheat Sheet",
     "out_rel": "data/nfl/showdown/latest/cheatsheets",
     "title_match_ci": true,
     "limit_rows": 12,
     "tables": [
-      {
-        "title": "Top 10 All DK Flex Proj",
-        "width": 3
-      },
-      {
-        "title": "Top 10 All DK CPT Proj",
-        "width": 3
-      },
-      {
-        "title": "Top 10 All FD Flex Proj",
-        "width": 3
-      },
-      {
-        "title": "Top 10 All FD MVP Proj",
-        "width": 3
-      }
+      { "title": "Top 10 All DK Flex Proj", "width": 3 },
+      { "title": "Top 10 All DK CPT Proj",  "width": 3 },
+      { "title": "Top 10 All FD Flex Proj", "width": 3 },
+      { "title": "Top 10 All FD MVP Proj",  "width": 3 }
     ]
   },
+
   "site_ids": {
     "out_rel": "data/nfl/showdown/latest/site_ids",
+
     "dk_sheet": "DK Salaries",
     "dk_name_col": "C",
-    "dk_id_col": "D",
-    "dk_pos_col": "E",
-    "dk_sal_col": "F",
+    "dk_id_col":   "D",
+    "dk_pos_col":  "E",
+    "dk_sal_col":  "F",
     "dk_game_col": "G",
     "dk_team_col": "H",
+
     "fd_sheet": "FD Salaries",
-    "fd_name_col": "D",
-    "fd_id_col": "A",
-    "fd_pos_col": "B",
-    "fd_sal_col": "H",
-    "fd_mvp_sal_col": "I",
-    "fd_game_col": "J",
-    "fd_team_col": "K"
+    "fd_name_col":     "D",
+    "fd_id_col":       "A",
+    "fd_pos_col":      "B",
+    "fd_sal_col":      "H",
+    "fd_mvp_sal_col":  "I",
+    "fd_game_col":     "J",
+    "fd_team_col":     "K"
   },
+
   "name_xwalk": {
     "out_rel": "data/nfl/showdown/latest/name_xwalk",
     "projections_sheet": "Projections",
@@ -305,20 +152,11 @@
     "team_field": "Team",
     "pos_field": "Pos"
   },
+
   "gameboard": {
-    "sheet": [
-      "NFL Dashboard",
-      "NFL Game Dashboard",
-      "Game Dashboard"
-    ],
+    "sheet": ["NFL Dashboard", "NFL Game Dashboard", "Game Dashboard"],
     "out_rel": "data/nfl/showdown/latest/nfl_gameboard",
     "title_regex": "^\\s*([A-Z]{2,4})\\s*@\\s*([A-Z]{2,4})\\s*$",
-    "header_yellow_rgb": [
-      "FFFFE699",
-      "FFFFF2CC",
-      "FFFFFF00",
-      "FFFDE9D9",
-      "FFEEE8AA"
-    ]
+    "header_yellow_rgb": ["FFFFE699","FFFFF2CC","FFFFFF00","FFFDE9D9","FFEEE8AA"]
   }
 }
