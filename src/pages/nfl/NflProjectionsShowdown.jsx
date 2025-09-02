@@ -2,16 +2,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 
 /* ------------------------------------------------------------------
-   Unified showdown table (single table, compact like classic)
+   Unified showdown table (single, compact table)
    - DK/FD site toggle
-   - Slot toggle (Flex vs CPT for DK, Flex vs MVP for FD)
-   - Auto-multiplies salary + projection for CPT/MVP (1.5x)
-   - Sortable headers, search, CSV export
-   - Team logos in the Player column (like Classic)
-   - DST naming:
-       • DK shows nickname only ("Eagles")
-       • FD shows full team name ("Philadelphia Eagles")
-   - Reads from /data/nfl/showdown/latest/projections.json
+   - Flex vs CPT (DK) / Flex vs MVP (FD)
+   - Auto 1.5x for CPT/MVP (and robust salary backfill Flex <-> CPT/MVP)
+   - Sort, search, CSV export
+   - Logos (PNG) and DST naming fixes (DK = nickname, FD = full)
+   - Reads /data/nfl/showdown/latest/projections.json
 ------------------------------------------------------------------- */
 
 const SOURCE = "/data/nfl/showdown/latest/projections.json";
@@ -31,19 +28,13 @@ const TEAM_FULL = {
   TEN: "Tennessee Titans", WAS: "Washington Commanders",
 };
 
-/* ------------------------------ helpers ------------------------------- */
+/* ---------- helpers ---------- */
 const toNum = (v) => {
   const n = Number(String(v ?? "").replace(/[,$%\s]/g, ""));
   return Number.isFinite(n) ? n : null;
 };
-const fmt0 = (v) => {
-  const n = toNum(v);
-  return n == null ? "" : n.toLocaleString();
-};
-const fmt1 = (v) => {
-  const n = toNum(v);
-  return n == null ? "" : n.toFixed(1);
-};
+const fmt0 = (v) => (toNum(v) == null ? "" : toNum(v).toLocaleString());
+const fmt1 = (v) => (toNum(v) == null ? "" : toNum(v).toFixed(1));
 const fmtPct = (v) => {
   if (v == null || v === "") return "";
   const s = String(v).trim();
@@ -59,7 +50,7 @@ const computeVal = (proj, sal) => {
   const p = toNum(proj);
   const s = toNum(sal);
   if (p == null || s == null || s === 0) return "";
-  // value = points per $1k
+  // value as points per $1k
   return (p / (s / 1000)).toFixed(1);
 };
 const isDSTPos = (pos) => /^(DST|D\/ST|DEF|DEFENSE)$/i.test(String(pos).trim());
@@ -70,11 +61,11 @@ const nickname = (abbr) => {
   return parts[parts.length - 1]; // "Eagles"
 };
 
-// put right under TEAM_FULL
+/* PNG logos */
 const logoSrc    = (abbr) => `/logos/nfl/${String(abbr || "").toUpperCase()}.png`;
 const logoSrcAlt = (abbr) => `/logos/${String(abbr || "").toUpperCase()}.png`;
 
-/* fetch with cache-bust during dev */
+/* fetch with cache-bust */
 function useJson(url) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -101,26 +92,22 @@ function useJson(url) {
   return { rows, loading, err };
 }
 
-/* CSV export (only visible columns) */
+/* CSV */
 const escapeCSV = (s) => {
   const v = String(s ?? "");
   return /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
 };
 function downloadCSV(rows, cols, fname = "nfl_showdown_projections.csv") {
   const header = cols.map((c) => c.label).join(",");
-  const body = rows
-    .map((r) =>
-      cols
-        .map((c) => {
-          let val = r[c.key];
-          if (c.type === "money") val = fmt0(val);
-          if (c.type === "num1")  val = fmt1(val);
-          if (c.type === "pct")   val = fmtPct(val);
-          return escapeCSV(val ?? "");
-        })
-        .join(",")
-    )
-    .join("\n");
+  const body = rows.map((r) =>
+    cols.map((c) => {
+      let val = r[c.key];
+      if (c.type === "money") val = fmt0(val);
+      if (c.type === "num1")  val = fmt1(val);
+      if (c.type === "pct")   val = fmtPct(val);
+      return escapeCSV(val ?? "");
+    }).join(",")
+  ).join("\n");
   const blob = new Blob([header + "\n" + body], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -132,30 +119,28 @@ function downloadCSV(rows, cols, fname = "nfl_showdown_projections.csv") {
 export default function NflProjectionsShowdown() {
   const { rows: raw, loading, err } = useJson(SOURCE);
 
-  // site + slot state
   const [site, setSite] = useState("dk");   // "dk" | "fd"
-  const [slot, setSlot] = useState("flex"); // "flex" | "cpt" (dk) or "flex" | "mvp" (fd)
-  const [q, setQ] = useState("");           // search
+  const [slot, setSlot] = useState("flex"); // "flex" | "cpt" (dk) | "mvp" (fd)
+  const [q, setQ] = useState("");
 
-  // normalize rows (we read lots of possible column spellings)
+  /* normalize rows + DST display by site (DK nickname, FD full) */
   const rows = useMemo(() => {
     return raw.map((r) => {
       const pos  = r.pos ?? r.Pos ?? "";
       const team = r.team ?? r.Team ?? "";
       const opp  = r.opp ?? r.Opp ?? r.OPP ?? "";
 
-      // projections (prefer generic “DK Proj” / “FD Proj” if present)
+      // projections (allow multiple spellings)
       const dk_proj = pick(r, ["DK Proj", "dk_proj", "dk_flex_proj", "DK Flex Proj", "dk_projection"]);
       const fd_proj = pick(r, ["FD Proj", "fd_proj", "fd_flex_proj", "FD Flex Proj", "fd_projection"]);
 
-      // salaries (prefer explicit flex/cpt/mvp if present)
+      // salaries
       const dk_sal     = pick(r, ["DK Sal", "dk_sal", "DK Flex Sal", "dk_flex_sal"]);
       const dk_cpt_sal = pick(r, ["DK CPT Sal", "dk_cpt_sal"]);
-
       const fd_sal     = pick(r, ["FD Sal", "fd_sal", "FD Flex Sal", "fd_flex_sal"]);
       const fd_mvp_sal = pick(r, ["FD MVP Sal", "fd_mvp_sal"]);
 
-      // ownership/opt
+      // ownership / opt (various spellings)
       const dk_flex_pown = pick(r, ["DK Flex pOWN%", "DK Flex pOWN", "dk_flex_pown", "dk_flex_own", "dk_pown"]);
       const dk_cpt_pown  = pick(r, ["DK CPT pOWN%", "DK CPT pOWN", "DK Cap pOWN%", "dk_cpt_pown", "dk_capt_pown", "dk_cpt_own", "dk_capt_own"]);
       const dk_flex_opt  = pick(r, ["DK Flex Opt%", "DK Flex Opt", "dk_flex_opt", "dk_opt"]);
@@ -166,12 +151,11 @@ export default function NflProjectionsShowdown() {
       const fd_flex_opt  = pick(r, ["FD Flex Opt%", "FD Flex Opt", "fd_flex_opt", "fd_opt"]);
       const fd_mvp_opt   = pick(r, ["FD MVP Opt%", "FD MVP Opt", "fd_mvp_opt"]);
 
-      // Player display name — DST special-casing per site
+      // player display (DST special case depends on active site)
       const basePlayer = r.player ?? r.Player ?? "";
-      let player = basePlayer;
-      if (isDSTPos(pos) && TEAM_FULL[team]) {
-        player = site === "dk" ? nickname(team) : TEAM_FULL[team];
-      }
+      const player = isDSTPos(pos)
+        ? (site === "dk" ? nickname(team) : TEAM_FULL[team] || basePlayer)
+        : basePlayer;
 
       return {
         player, pos, team, opp,
@@ -183,7 +167,7 @@ export default function NflProjectionsShowdown() {
     });
   }, [raw, site]);
 
-  // filter by search
+  /* search filter */
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
     if (!s) return rows;
@@ -192,7 +176,7 @@ export default function NflProjectionsShowdown() {
     );
   }, [rows, q]);
 
-  // apply site/slot (and CPT/MVP 1.5x logic)
+  /* apply site/slot + robust salary backfill (Flex <-> CPT/MVP) */
   const modeRows = useMemo(() => {
     const isDK = site === "dk";
     const useCptOrMvp = slot !== "flex";
@@ -200,34 +184,44 @@ export default function NflProjectionsShowdown() {
 
     return filtered.map((r) => {
       if (isDK) {
-        const baseSal = r.dk_sal;
-        const cptSal  = r.dk_cpt_sal || (toNum(baseSal) != null ? String(Math.round(toNum(baseSal) * 1.5)) : "");
-        const sal = useCptOrMvp ? cptSal || baseSal : baseSal;
+        let baseSalNum = toNum(r.dk_sal);      // Flex
+        let cptSalNum  = toNum(r.dk_cpt_sal);  // CPT
+
+        if ((cptSalNum ?? 0) <= 0 && (baseSalNum ?? 0) > 0) cptSalNum  = Math.round(baseSalNum * 1.5);
+        if ((baseSalNum ?? 0) <= 0 && (cptSalNum  ?? 0) > 0) baseSalNum = Math.round(cptSalNum / 1.5);
+
+        const salNum = useCptOrMvp ? (cptSalNum ?? baseSalNum) : baseSalNum;
+
         const proj = toNum(r.dk_proj) == null ? "" : (toNum(r.dk_proj) * mult);
-        const val = computeVal(proj, sal);
+        const val  = computeVal(proj, salNum);
         const pOwn = useCptOrMvp ? r.dk_cpt_pown : r.dk_flex_pown;
         const opt  = useCptOrMvp ? r.dk_cpt_opt  : r.dk_flex_opt;
+
         return {
           ...r,
-          sal, proj, val,
-          pOwn, opt,
+          sal: salNum, proj, val, pOwn, opt,
           salLabel: useCptOrMvp ? "DK CPT Sal" : "DK Sal",
           projLabel: useCptOrMvp ? "DK CPT Proj" : "DK Proj",
           pOwnLabel: useCptOrMvp ? "DK CPT pOWN%" : "DK Flex pOWN%",
           optLabel:  useCptOrMvp ? "DK CPT Opt%"  : "DK Flex Opt%",
         };
       } else {
-        const baseSal = r.fd_sal;
-        const mvpSal  = r.fd_mvp_sal || (toNum(baseSal) != null ? String(Math.round(toNum(baseSal) * 1.5)) : "");
-        const sal = useCptOrMvp ? mvpSal || baseSal : baseSal;
+        let baseSalNum = toNum(r.fd_sal);      // Flex
+        let mvpSalNum  = toNum(r.fd_mvp_sal);  // MVP
+
+        if ((mvpSalNum  ?? 0) <= 0 && (baseSalNum ?? 0) > 0) mvpSalNum  = Math.round(baseSalNum * 1.5);
+        if ((baseSalNum ?? 0) <= 0 && (mvpSalNum  ?? 0) > 0) baseSalNum = Math.round(mvpSalNum / 1.5);
+
+        const salNum = useCptOrMvp ? (mvpSalNum ?? baseSalNum) : baseSalNum;
+
         const proj = toNum(r.fd_proj) == null ? "" : (toNum(r.fd_proj) * mult);
-        const val = computeVal(proj, sal);
+        const val  = computeVal(proj, salNum);
         const pOwn = useCptOrMvp ? r.fd_mvp_pown : r.fd_flex_pown;
         const opt  = useCptOrMvp ? r.fd_mvp_opt  : r.fd_flex_opt;
+
         return {
           ...r,
-          sal, proj, val,
-          pOwn, opt,
+          sal: salNum, proj, val, pOwn, opt,
           salLabel: useCptOrMvp ? "FD MVP Sal" : "FD Sal",
           projLabel: useCptOrMvp ? "FD MVP Proj" : "FD Proj",
           pOwnLabel: useCptOrMvp ? "FD MVP pOWN%" : "FD Flex pOWN%",
@@ -237,7 +231,7 @@ export default function NflProjectionsShowdown() {
     });
   }, [filtered, site, slot]);
 
-  // columns (compact single-table)
+  /* columns */
   const columns = useMemo(() => {
     const isDK = site === "dk";
     const sal  = isDK ? (slot === "flex" ? "DK Sal"      : "DK CPT Sal")
@@ -254,15 +248,15 @@ export default function NflProjectionsShowdown() {
       { key: "pos",    label: "Pos",    type: "text" },
       { key: "team",   label: "Team",   type: "text" },
       { key: "opp",    label: "Opp",    type: "text" },
-      { key: "sal",    label: sal,      type: "money" },
-      { key: "proj",   label: proj,     type: "num1"  },
+      { key: "sal",    label: sal,  type: "money" },
+      { key: "proj",   label: proj, type: "num1"  },
       { key: "val",    label: isDK ? "DK Val" : "FD Val", type: "num1" },
-      { key: "pOwn",   label: pown,     type: "pct"   },
-      { key: "opt",    label: opt,      type: "pct"   },
+      { key: "pOwn",   label: pown, type: "pct"   },
+      { key: "opt",    label: opt,  type: "pct"   },
     ];
   }, [site, slot]);
 
-  // sorting
+  /* sort */
   const [sort, setSort] = useState({ key: "proj", dir: "desc" });
   useEffect(() => { setSort({ key: "proj", dir: "desc" }); }, [site, slot]);
 
@@ -290,7 +284,7 @@ export default function NflProjectionsShowdown() {
     });
   };
 
-  // compact table sizing (matches your classic page feel)
+  /* compact look */
   const textSz = "text-[12px]";
   const cell   = "px-2 py-1 text-center";
   const header = "px-2 py-1 font-semibold text-center";
@@ -400,7 +394,6 @@ export default function NflProjectionsShowdown() {
             {!loading && !err && sorted.map((r, i) => (
               <tr key={`${r.player}-${i}`} className="odd:bg-white even:bg-gray-50">
                 {columns.map((c) => {
-                  // Player cell with logo
                   if (c.key === "player") {
                     return (
                       <td key={c.key} className="px-2 py-1 text-left whitespace-nowrap">
@@ -416,7 +409,6 @@ export default function NflProjectionsShowdown() {
                       </td>
                     );
                   }
-
                   const cls = c.type === "text" ? "px-2 py-1 text-left whitespace-nowrap" : `${cell} tabular-nums`;
                   let val = r[c.key];
                   if (c.type === "money") val = fmt0(val);
