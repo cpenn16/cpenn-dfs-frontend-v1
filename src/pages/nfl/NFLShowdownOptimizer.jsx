@@ -1,11 +1,15 @@
 // src/pages/nfl/NFLShowdownOptimizer.jsx
-// FULL DROP‑IN — v3.1
-// Fixes:
-// 1) DK CSV now outputs "Player (ID)" correctly by matching DK site_ids entries
-//    using the site_ids `pos` field which is "FLEX" or "CPT" per-slot.
-// 2) FD DST salary shows correctly on load by leniently matching
-//    "Philadelphia Eagles" (FD) to "Eagles" (optimizer) when salary was 0.
-//    (Export behavior unchanged: still uses FD's full DST name.)
+// FULL DROP‑IN — v3.2
+// Adds:
+// - DK CSV reliably outputs "Player (ID)" using DK site_ids FLEX/CPT entries
+// - FD DST salary load is lenient (handles "Philadelphia Eagles" → "Eagles")
+// - Tag filter buttons duplicated under Team Max% (per your layout request)
+// - Team‑specific IF→THEN rules that override global rules (UI + payload)
+// - Rename CPT/MVP header column to "ID"
+//
+// NOTE: Team‑specific rules are carried to the solver as {team_only: "PHI"}
+// which should take precedence server‑side; if not supported, you can
+// handle it in your solver by scoping the rule to players with team==team_only.
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API_BASE from "../../utils/api";
@@ -103,9 +107,9 @@ async function solveStreamShowdown(payload, onItem, onDone) {
     const { done, value } = await reader.read();
     if (done) break;
     buf += decoder.decode(value, { stream: true });
-    const parts = buf.split("\n\n"); buf = parts.pop() ?? "";
+    const parts = buf.split("\\n\\n"); buf = parts.pop() ?? "";
     for (const chunk of parts) {
-      const line = chunk.split("\n").find((l) => l.startsWith("data: "));
+      const line = chunk.split("\\n").find((l) => l.startsWith("data: "));
       if (!line) continue;
       try {
         const evt = JSON.parse(line.slice(6));
@@ -135,7 +139,7 @@ function pick(obj, variants, fallback = 0) {
 }
 
 /* --------------------- name/pos/team normalization ----------------- */
-function normName(s){return String(s||"").toLowerCase().replace(/\u2019/g,"'").replace(/\./g,"").replace(/,\s*(jr|sr)\b/g,"").replace(/\b(jr|sr)\b/g,"").replace(/[^a-z' -]/g,"").replace(/\s+/g," ").trim();}
+function normName(s){return String(s||"").toLowerCase().replace(/\\u2019/g,"'").replace(/\\./g,"").replace(/,\\s*(jr|sr)\\b/g,"").replace(/\\b(jr|sr)\\b/g,"").replace(/[^a-z' -]/g,"").replace(/\\s+/g," ").trim();}
 function normTeam(s){return (s||"").toUpperCase().trim();}
 function normPosRaw(s){return (s||"").toUpperCase().trim();}
 function normPos(s){ const p = normPosRaw(s); return (p === "D" || p === "DEF") ? "DST" : p; }
@@ -175,8 +179,11 @@ export default function NFLShowdownOptimizer() {
   // team override per slate team
   const [teamMaxPct, setTeamMaxPct] = useStickyState(`sd.${site}.teamMax`, {});
 
-  // IF→THEN rules — add toggle for IF {MVP|FLEX}
+  // IF→THEN rules (global)
   const [rules, setRules] = useStickyState(`sd.${site}.rules`, []);
+
+  // Team‑specific IF→THEN rules map: { PHI:[...], DAL:[...] }
+  const [teamRules, setTeamRules] = useStickyState(`sd.${site}.teamRules`, {});
 
   // CPT/MVP vs FLEX table filter
   const [tagFilter, setTagFilter] = useStickyState(`sd.${site}.tagFilter`, "ALL");
@@ -205,8 +212,6 @@ export default function NFLShowdownOptimizer() {
     const arr = Array.isArray(data?.rows) ? data.rows : Array.isArray(data?.players) ? data.players : Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
 
     const siteKey = cfg.key; // dk|fd
-
-    // pull FD list once
     const fdList = Array.isArray(siteIds?.fd) ? siteIds.fd : (siteIds?.sites?.fd ?? []);
 
     const mapped = arr.map((r) => {
@@ -282,7 +287,7 @@ export default function NFLShowdownOptimizer() {
   const toggleExcl = (name, tag) => setExcls((s) => { const k = tagKey(name, tag); const n = new Set(s); n.has(k) ? n.delete(k) : n.add(k); return n; });
   const bumpBoost = (name, step) => setBoost((m) => ({ ...m, [name]: clamp((m[name] || 0) + step, -6, 6) }));
 
-  const resetConstraints = () => { setLocks(new Set()); setExcls(new Set()); setBoost({}); setMinPct({}); setMaxPct({}); setRules([]); setTeamMaxPct({}); };
+  const resetConstraints = () => { setLocks(new Set()); setExcls(new Set()); setBoost({}); setMinPct({}); setMaxPct({}); setRules([]); setTeamMaxPct({}); setTeamRules({}); };
 
   /* --------------------------- optimize (SSE) ------------------------ */
   async function optimize() {
@@ -291,18 +296,28 @@ export default function NFLShowdownOptimizer() {
 
     const players = rows.map((r) => ({ name: r.name, pos: r.pos, team: r.team, opp: r.opp, salary: Math.round(r.salary || 0), proj: r.proj || 0, floor: r.floor || 0, ceil: r.ceil || 0, pown: r.pown || 0, opt: r.opt || 0, cap_salary: Math.round(r.cap_salary || Math.round(r.salary * 1.5)), cap_proj: r.cap_proj, cap_floor: r.cap_floor, cap_ceil: r.cap_ceil, cap_pown: r.cap_pown, cap_opt: r.cap_opt }));
 
-    const apiRules = (rules || []).map((r) => ({ if_slot: r.if_slot || (cfg.capTag), if_pos: r.if_pos || ["QB"], then_at_least: Math.max(0, Number(r.then_at_least) || 0), from_pos: r.from_pos || ["WR","TE"], team_scope: r.team_scope || "same_team" }));
+    const baseRule = (r) => ({ if_slot: r.if_slot || (cfg.capTag), if_pos: r.if_pos || ["QB"], then_at_least: Math.max(0, Number(r.then_at_least) || 0), from_pos: r.from_pos || ["WR","TE"], team_scope: r.team_scope || "same_team" });
+
+    // global rules
+    const rulesGlobal = (rules || []).map(baseRule);
+
+    // team‑specific overrides -> add {team_only}
+    const rulesByTeam = {};
+    for (const tm of Object.keys(teamRules||{})) {
+      if (!teamRules[tm]?.length) continue;
+      rulesByTeam[tm] = teamRules[tm].map((r) => ({ ...baseRule(r), team_only: tm }));
+    }
 
     // prepare team max overrides (only provided teams)
     const teamMax = {}; for (const tm of slateTeams) { const v = clamp(Number(teamMaxPct[tm]) || 0, 0, 100); if (String(teamMaxPct[tm] ?? "").trim() !== "") teamMax[tm] = v; }
 
-    const payload = { site, slots, players, n: Math.max(1, Number(numLineups) || 1), cap: Math.min(cfg.cap, Number(maxSalary) || cfg.cap), objective: optBy, locks: Array.from(locks), excludes: Array.from(excls), boosts: boost, randomness: clamp(Number(randomness) || 0, 0, 100), global_max_pct: clamp(Number(globalMax) || 100, 0, 100), team_max_pct: teamMax, min_pct: Object.fromEntries(Object.entries(minPct).map(([k, v]) => [k, clamp(Number(v) || 0, 0, 100)])), max_pct: Object.fromEntries(Object.entries(maxPct).map(([k, v]) => [k, clamp(Number(v) || 100, 0, 100)])), time_limit_ms: 1500, max_overlap: clamp(Number(maxOverlap) || 0, 0, 5), lineup_pown_max: String(lineupPownCap).trim() === "" ? null : clamp(Number(lineupPownCap) || 0, 0, 100), rules: apiRules };
+    const payload = { site, slots, players, n: Math.max(1, Number(numLineups) || 1), cap: Math.min(cfg.cap, Number(maxSalary) || cfg.cap), objective: optBy, locks: Array.from(locks), excludes: Array.from(excls), boosts: boost, randomness: clamp(Number(randomness) || 0, 0, 100), global_max_pct: clamp(Number(globalMax) || 100, 0, 100), team_max_pct: teamMax, min_pct: Object.fromEntries(Object.entries(minPct).map(([k, v]) => [k, clamp(Number(v) || 0, 0, 100)])), max_pct: Object.fromEntries(Object.entries(maxPct).map(([k, v]) => [k, clamp(Number(v) || 100, 0, 100)])), time_limit_ms: 1500, max_overlap: clamp(Number(maxOverlap) || 0, 0, 5), lineup_pown_max: String(lineupPownCap).trim() === "" ? null : clamp(Number(lineupPownCap) || 0, 0, 100), rules: rulesGlobal, rules_by_team: rulesByTeam };
 
     const out = []; try { await solveStreamShowdown(payload, (evt) => { const L = { players: evt.drivers, salary: evt.salary, total: evt.total }; out.push(L); setLineups((prev) => [...prev, L]); setProgressActual(out.length); }, () => { setProgressActual(out.length || payload.n); setProgressUI(out.length || payload.n); setIsOptimizing(false); clearInterval(tickRef.current); }); } catch (e) { alert(`Solve failed: ${String(e?.message || e)}`); setIsOptimizing(false); clearInterval(tickRef.current); }
   }
 
   /* --------------------------- table schema ------------------------- */
-  const TABLE_COLS = [ { key: "lock", label: "Lock" }, { key: "excl", label: "Excl" }, { key: "boosts", label: "Boosts" }, { key: "tag", label: cfg.capTag, sortable: true }, { key: "name", label: "Player" }, { key: "team", label: "Tm", sortable: true }, { key: "opp", label: "Opp", sortable: true }, { key: "pos", label: "Pos", sortable: true }, { key: "salary", label: "Salary", sortable: true }, { key: "proj", label: "Proj", sortable: true }, { key: "floor", label: "Floor", sortable: true }, { key: "ceil", label: "Ceiling", sortable: true }, { key: "pown", label: "pOWN%", sortable: true }, { key: "opt", label: "Opt%", sortable: true }, { key: "min", label: "Min%" }, { key: "max", label: "Max%" }, { key: "usage", label: "Usage%", sortable: true } ];
+  const TABLE_COLS = [ { key: "lock", label: "Lock" }, { key: "excl", label: "Excl" }, { key: "boosts", label: "Boosts" }, { key: "tag", label: "ID", sortable: true }, { key: "name", label: "Player" }, { key: "team", label: "Tm", sortable: true }, { key: "opp", label: "Opp", sortable: true }, { key: "pos", label: "Pos", sortable: true }, { key: "salary", label: "Salary", sortable: true }, { key: "proj", label: "Proj", sortable: true }, { key: "floor", label: "Floor", sortable: true }, { key: "ceil", label: "Ceiling", sortable: true }, { key: "pown", label: "pOWN%", sortable: true }, { key: "opt", label: "Opt%", sortable: true }, { key: "min", label: "Min%" }, { key: "max", label: "Max%" }, { key: "usage", label: "Usage%", sortable: true } ];
 
   const totalLabel = optBy === "proj" ? "Proj" : optBy === "floor" ? "Floor" : optBy === "ceil" ? "Ceil" : optBy === "pown" ? "pOWN%" : "Opt%";
   const cell = "px-2 py-1 text-center"; const header = "px-2 py-1 font-semibold text-center"; const textSz = "text-[12px]";
@@ -371,10 +386,10 @@ export default function NFLShowdownOptimizer() {
         <input className="border rounded-md px-3 py-1.5 w-80 text-sm ml-auto" placeholder="Search player / team / pos…" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
 
-      {/* IF → THEN rules + IF SLOT (MVP/FLEX) */}
+      {/* IF → THEN rules (GLOBAL) */}
       <div className="mb-3 rounded-md border p-2">
         <div className="flex items-center justify-between mb-2">
-          <div className="text-[11px] text-gray-600">Conditional Rules (IF → THEN)</div>
+          <div className="text-[11px] text-gray-600">Conditional Rules — Global (IF → THEN)</div>
           <button className="px-2 py-1 text-sm rounded-md border hover:bg-gray-50" onClick={() => setRules((R) => [...R, { if_slot: cfg.capTag, if_pos:["QB"], then_at_least:1, from_pos:["WR","TE"], team_scope:"same_team" }])}>+ Add Rule</button>
         </div>
         {rules.length === 0 ? (
@@ -393,7 +408,7 @@ export default function NFLShowdownOptimizer() {
                 {["QB","RB","WR","TE","DST","K"].map((p) => (
                   <button key={p} className={`px-2 py-1 rounded border text-sm ${r.if_pos?.includes(p) ? "bg-blue-600 text-white" : "bg-white"}`} onClick={() => setRules((R) => { const copy=[...R]; const cur=new Set(copy[i].if_pos||[]); cur.has(p)?cur.delete(p):cur.add(p); copy[i]={...copy[i], if_pos:[...cur]}; return copy; })}>{p}</button>
                 ))}
-                <span className="text-sm">THEN require at least</span>
+                <span className="text-sm">THEN at least</span>
                 <input className="w-14 border rounded-md px-2 py-1 text-sm" value={r.then_at_least ?? 1} onChange={(e) => setRules((R)=>{const c=[...R]; c[i]={...c[i], then_at_least:e.target.value}; return c;})}/>
                 <span className="text-sm">from</span>
                 {["QB","RB","WR","TE","DST","K"].map((p) => (
@@ -411,7 +426,7 @@ export default function NFLShowdownOptimizer() {
         )}
       </div>
 
-      {/* Team Max% Overrides — only slate teams */}
+      {/* Team Max% Overrides — only slate teams + tag toggle row underneath */}
       <div className="mb-3 rounded-md border p-2">
         <div className="text-[11px] text-gray-600 mb-2">Team Max% Overrides (blank = use Global Max)</div>
         <div className="flex flex-wrap gap-3">
@@ -422,6 +437,61 @@ export default function NFLShowdownOptimizer() {
             </div>
           ))}
         </div>
+        {/* duplicated tag filter controls */}
+        <div className="mt-2 inline-flex rounded-full border overflow-hidden">
+          {["ALL", cfg.capTag, "FLEX"].map((t) => (
+            <button key={t} onClick={() => setTagFilter(t)} className={`px-2 py-1 text-xs ${tagFilter===t ? "bg-blue-600 text-white" : "bg-white"}`}>{t}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Team‑specific IF → THEN rules (override global) */}
+      <div className="mb-3 rounded-md border p-2">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-[11px] text-gray-600">Conditional Rules — Team Overrides (IF a team has rules, they override global for that team)</div>
+        </div>
+        {slateTeams.length ? (
+          slateTeams.map((tm) => (
+            <div key={tm} className="mb-3 border rounded-md p-2">
+              <div className="flex items-center gap-2 mb-2">
+                <TeamPill abbr={tm} />
+                <button className="ml-auto px-2 py-1 text-sm rounded-md border hover:bg-gray-50" onClick={() => setTeamRules((M)=>{ const arr = Array.isArray(M?.[tm]) ? [...M[tm]] : []; arr.push({ if_slot: cfg.capTag, if_pos:["QB"], then_at_least:1, from_pos:["WR","TE"], team_scope:"same_team" }); return { ...M, [tm]: arr }; })}>+ Add Rule</button>
+              </div>
+              {!(teamRules?.[tm]?.length) ? (
+                <div className="text-xs text-gray-500">No team‑specific rules for {tm}.</div>
+              ) : (
+                <div className="space-y-2">
+                  {teamRules[tm].map((r, i) => (
+                    <div key={i} className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm">IF</span>
+                      <div className="inline-flex rounded-md overflow-hidden border">
+                        {[cfg.capTag, "FLEX"].map((slot) => (
+                          <button key={slot} className={`px-2 py-1 text-sm ${ (r.if_slot||cfg.capTag)===slot ? "bg-blue-600 text-white" : "bg-white" }`} onClick={()=>setTeamRules((M)=>{ const arr=[...(M?.[tm]||[])]; arr[i]={...arr[i], if_slot:slot}; return { ...M, [tm]:arr }; })}>{slot}</button>
+                        ))}
+                      </div>
+                      <span className="text-sm">is</span>
+                      {["QB","RB","WR","TE","DST","K"].map((p) => (
+                        <button key={p} className={`px-2 py-1 rounded border text-sm ${r.if_pos?.includes(p) ? "bg-blue-600 text-white" : "bg-white"}`} onClick={() => setTeamRules((M) => { const arr=[...(M?.[tm]||[])]; const cur=new Set(arr[i].if_pos||[]); cur.has(p)?cur.delete(p):cur.add(p); arr[i]={...arr[i], if_pos:[...cur]}; return { ...M, [tm]: arr }; })}>{p}</button>
+                      ))}
+                      <span className="text-sm">THEN at least</span>
+                      <input className="w-14 border rounded-md px-2 py-1 text-sm" value={r.then_at_least ?? 1} onChange={(e) => setTeamRules((M)=>{ const arr=[...(M?.[tm]||[])]; arr[i]={...arr[i], then_at_least:e.target.value}; return { ...M, [tm]:arr }; })}/>
+                      <span className="text-sm">from</span>
+                      {["QB","RB","WR","TE","DST","K"].map((p) => (
+                        <button key={p} className={`px-2 py-1 rounded border text-sm ${r.from_pos?.includes(p) ? "bg-green-600 text-white" : "bg-white"}`} onClick={() => setTeamRules((M) => { const arr=[...(M?.[tm]||[])]; const cur=new Set(arr[i].from_pos||[]); cur.has(p)?cur.delete(p):cur.add(p); arr[i]={...arr[i], from_pos:[...cur]}; return { ...M, [tm]:arr }; })}>{p}</button>
+                      ))}
+                      <select className="border rounded-md px-2 py-1 text-sm" value={r.team_scope || "any"} onChange={(e)=>setTeamRules((M)=>{ const arr=[...(M?.[tm]||[])]; arr[i]={...arr[i], team_scope:e.target.value}; return { ...M, [tm]:arr }; })}>
+                        <option value="same_team">same team</option>
+                        <option value="opp_team">opp team</option>
+                        <option value="any">any team</option>
+                      </select>
+                      <button className="ml-auto px-2 py-1 text-sm rounded-md border hover:bg-gray-50" onClick={()=>setTeamRules((M)=>{ const arr=[...(M?.[tm]||[])]; arr.splice(i,1); return { ...M, [tm]:arr }; })}>Delete</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))
+        ) : null}
       </div>
 
       {/* progress bar */}
@@ -587,11 +657,9 @@ function downloadSiteLineupsCSV({ lineups, site, rows, siteIds, cfg, fname = "nf
     if (siteKey === "dk") {
       if (posOrSlot === "CPT") dkCPT.set(keyDK(nameFromSite, team, "CPT"), { id: baseId, nameFromSite, team });
       else dkFLEX.set(keyDK(nameFromSite, team, "FLEX"), { id: baseId, nameFromSite, team });
-      // also add DST aliases for safety (Eagles vs Philadelphia Eagles won't apply to DK, DK uses "Eagles")
     } else {
       const pos = normPos(posOrSlot); // map D/DEF → DST
       fdAny.set(keyFD(nameFromSite, team, pos), { id: baseId, nameFromSite, team, pos });
-      // DST team aliases
       const meta = NFL_TEAMS[team];
       if (pos === "DST" && meta) {
         fdAny.set(keyFD(`${meta.city} ${meta.nickname}`, team, pos), { id: baseId, nameFromSite, team, pos });
@@ -604,17 +672,14 @@ function downloadSiteLineupsCSV({ lineups, site, rows, siteIds, cfg, fname = "nf
   const header = ["#", "Salary", "Total", "D1","D2","D3","D4","D5","D6"];
 
   const findDK = (name, team, slot) => {
-    // try strict key with original site name variants
     let rec = dkCPT.get(keyDK(name, team, slot)) || dkFLEX.get(keyDK(name, team, slot));
     if (rec) return rec;
-    // try normalized variants (DST nicknames etc. — DK already uses "Eagles"/"Cowboys")
     const meta = NFL_TEAMS[team];
     if (meta) {
       rec = (slot==="CPT"?dkCPT:dkFLEX).get(keyDK(meta.nickname, team, slot)) ||
             (slot==="CPT"?dkCPT:dkFLEX).get(keyDK(`${meta.city} ${meta.nickname}`, team, slot));
       if (rec) return rec;
     }
-    // final fallback: ignore team (rare) — match by name only
     for (const [k,v] of (slot==="CPT"?dkCPT:dkFLEX).entries()) {
       if (k.startsWith(`${normName(name)}|`) ) return v;
     }
@@ -645,7 +710,7 @@ function downloadSiteLineupsCSV({ lineups, site, rows, siteIds, cfg, fname = "nf
     return [idx + 1, L.salary, L.total.toFixed(1), ...cells].join(",");
   });
 
-  const csv = [header.join(","), ...lines].join("\n");
+  const csv = [header.join(","), ...lines].join("\\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = fname; a.click(); URL.revokeObjectURL(url);
 }
