@@ -439,27 +439,31 @@ useEffect(() => {
               </tr>
               {/* column headers */}
               <tr className="bg-blue-50">
-                {columns.map((c, i) => (
-                  <th
-                    key={c}
-                    className={[
-                      headerCls,
-                      bands.some((b) => b.start + b.span - 1 === i) ? "border-r-2 border-blue-300" : "border-r border-blue-200",
-                      c === "Player" ? "text-left" : "",
-                    ].join(" ")}
-                    onClick={() => onSort(c)}
-                    title="Click to sort"
-                  >
-                    <span className="inline-flex items-center gap-1">
-                      <span>{c}</span>
-                      {sort.key === c ? (
-                        <span className="text-gray-500">{sort.dir === "desc" ? "▼" : "▲"}</span>
-                      ) : (
-                        <span className="text-gray-300">▲</span>
-                      )}
-                    </span>
-                  </th>
-                ))}
+                {columns.map((c, i) => {
+                  const isBandEnd = bands.some((b) => b.start + b.span - 1 === i);
+                  return (
+                    <th
+                      key={c}
+                      className={[
+                        headerCls,
+                        isBandEnd ? "border-r-2 border-blue-300" : "border-r border-blue-200",
+                        c === "Player" ? "text-left" : "",
+                        i === 1 ? "sticky left-0 z-20 bg-blue-50" : "", // ← freeze 2nd header cell
+                      ].join(" ")}
+                      onClick={() => onSort(c)}
+                      title="Click to sort"
+                    >
+                      <span className="inline-flex items-center gap-1">
+                        <span>{c}</span>
+                        {sort.key === c ? (
+                          <span className="text-gray-500">{sort.dir === "desc" ? "▼" : "▲"}</span>
+                        ) : (
+                          <span className="text-gray-300">▲</span>
+                        )}
+                      </span>
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
           )}
@@ -488,18 +492,38 @@ useEffect(() => {
                     const isTeam = keynorm(c) === keynorm("Team");
                     const isOpp = keynorm(c) === keynorm("OPP");
                     const isPlayer = keynorm(c) === keynorm("Player");
+
+                    const content = isTeam || isOpp ? <TeamWithLogo code={raw} /> : fmtCellValue(c, raw);
+                    const borders =
+                      bands.some((b) => b.start + b.span - 1 === i)
+                        ? "border-r-2 border-blue-300"
+                        : "border-r border-blue-200";
+
+                    // Freeze the 2nd column (i === 1) with a sticky inner div
+                    if (i === 1) {
+                      return (
+                        <td
+                          key={`${c}-${rIdx}`}
+                          className={[cellCls, isPlayer ? "text-left font-medium" : "text-center", borders].join(" ")}
+                        >
+                          <div
+                            className={`sticky left-0 z-10 ${
+                              rIdx % 2 ? "bg-gray-50/40" : "bg-white"
+                            } -ml-2 pl-2 pr-2 shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)]`}
+                          >
+                            {content}
+                          </div>
+                        </td>
+                      );
+                    }
+
+                    // All other columns unchanged
                     return (
                       <td
                         key={`${c}-${rIdx}`}
-                        className={[
-                          cellCls,
-                          isPlayer ? "text-left font-medium" : "text-center",
-                          bands.some((b) => b.start + b.span - 1 === i)
-                            ? "border-r-2 border-blue-300"
-                            : "border-r border-blue-200",
-                        ].join(" ")}
+                        className={[cellCls, isPlayer ? "text-left font-medium" : "text-center", borders].join(" ")}
                       >
-                        {isTeam || isOpp ? <TeamWithLogo code={raw} /> : fmtCellValue(c, raw)}
+                        {content}
                       </td>
                     );
                   })}
