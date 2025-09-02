@@ -559,12 +559,14 @@ export default function NflStacks() {
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
               {columns.map((c) => (
-                <th
-                  key={Array.isArray(c.key) ? c.key.join("|") : c.key}
-                  className={`${header} whitespace-nowrap cursor-pointer select-none ${c.w || ""}`}
-                  onClick={() => onSort(c)}
-                  title="Click to sort"
-                >
+            <th
+              key={Array.isArray(c.key) ? c.key.join("|") : c.key}
+              className={`${header} whitespace-nowrap cursor-pointer select-none ${c.w || ""} ${
+                (Array.isArray(c.key) ? c.key[0] : c.key) === "team" ? "sticky left-0 z-20 bg-gray-50" : ""
+              }`}
+              onClick={() => onSort(c)}
+              title="Click to sort"
+            >
                   <div className="inline-flex items-center gap-1">
                     <span>{c.label}</span>
                     {Array.isArray(sort.key) ? (
