@@ -1,3 +1,4 @@
+// src/pages/nfl/NflPosProjectionsShowdown.jsx
 import React, { useEffect, useMemo, useState } from "react";
 
 /* ---------------- data sources ---------------- */
@@ -16,7 +17,8 @@ const num = (v) => { const n = Number(String(v ?? "").replace(/[,%\s]/g, "")); r
 const pct = (v) => {
   if (v == null || v === "") return "";
   const s = String(v).trim();
-  if (s.endsWith("%")) return s;
+  // If there's already a %, just collapse any duplicates (e.g., "26.2%%" -> "26.2%")
+  if (/%/.test(s)) return s.replace(/%+$/,"%");
   const n = num(s);
   return n == null ? "" : (Math.abs(n) <= 1 ? (n*100).toFixed(1) : n.toFixed(1)) + "%";
 };
@@ -60,7 +62,8 @@ function useJson(url){
   return { rows,loading,err };
 }
 
-/* ---------------- column sets (match your sheet labels) ---------------- */
+/* ---------------- column sets ---------------- */
+// Common columns, no ownership columns
 const COLS_COMMON = [
   { id:"player", label:"Player", type:"text",  w:"min-w-[12rem] text-left" },
   { id:"team",   label:"Team",   type:"team",  w:"min-w-[4.5rem]" },
@@ -68,6 +71,7 @@ const COLS_COMMON = [
   { id:"fd_sal", label:"FD Sal", type:"money", w:"min-w-[4.25rem]" },
 ];
 
+// QB includes Ru Att (rush attempts)
 const COLS_QB = [
   ...COLS_COMMON,
   { id:"pa_yards", label:"Pa Yards", type:"num1" },
@@ -76,16 +80,14 @@ const COLS_QB = [
   { id:"pa_pct",   label:"Comp%",    type:"pct"  },
   { id:"pa_td",    label:"Pa TD",    type:"num1" },
   { id:"int",      label:"INT",      type:"num1" },
-  { id:"ru_att",   label:"Ru Att",   type:"num1" },
+  { id:"ru_att",   label:"Ru Att",   type:"num1" }, // <-- ensure visible
   { id:"ypc",      label:"YPC",      type:"num1" },
   { id:"ru_yds",   label:"Ru Yds",   type:"num1" },
   { id:"ru_td",    label:"Ru TD",    type:"num1" },
   { id:"dk_proj",  label:"DK Proj",  type:"num1" },
   { id:"dk_val",   label:"DK Val",   type:"num1" },
-  { id:"dk_pown",  label:"DK pOWN%", type:"pct"  },
   { id:"fd_proj",  label:"FD Proj",  type:"num1" },
   { id:"fd_val",   label:"FD Val",   type:"num1" },
-  { id:"fd_pown",  label:"FD pOWN%", type:"pct"  },
 ];
 
 const COLS_RB = [
@@ -95,31 +97,27 @@ const COLS_RB = [
   { id:"ru_yds",   label:"Ru Yards",    type:"num1" },
   { id:"ru_td",    label:"Ru TD",       type:"num1" },
   { id:"targets",  label:"Targets",     type:"num1" },
-  { id:"tgt_share",label:"Tgt Share",   type:"pct"  },
+  { id:"tgt_share",label:"Tgt Share",   type:"pct"  }, // %% fix comes from pct()
   { id:"rec",      label:"Rec",         type:"num1" },
   { id:"rec_yds",  label:"Rec Yards",   type:"num1" },
   { id:"rec_td",   label:"Rec TD",      type:"num1" },
   { id:"dk_proj",  label:"DK Proj",     type:"num1" },
   { id:"dk_val",   label:"DK Val",      type:"num1" },
-  { id:"dk_pown",  label:"DK pOWN%",    type:"pct"  },
   { id:"fd_proj",  label:"FD Proj",     type:"num1" },
   { id:"fd_val",   label:"FD Val",      type:"num1" },
-  { id:"fd_pown",  label:"FD pOWN%",    type:"pct"  },
 ];
 
 const COLS_TE = [
   ...COLS_COMMON,
   { id:"targets",  label:"Targets",   type:"num1" },
-  { id:"tgt_share",label:"Tgt Share", type:"pct"  },
+  { id:"tgt_share",label:"Tgt Share", type:"pct"  }, // %% fix
   { id:"rec",      label:"Rec",       type:"num1" },
   { id:"rec_yds",  label:"Rec Yards", type:"num1" },
   { id:"rec_td",   label:"Rec TD",    type:"num1" },
   { id:"dk_proj",  label:"DK Proj",   type:"num1" },
   { id:"dk_val",   label:"DK Val",    type:"num1" },
-  { id:"dk_pown",  label:"DK pOWN%",  type:"pct"  },
   { id:"fd_proj",  label:"FD Proj",   type:"num1" },
   { id:"fd_val",   label:"FD Val",    type:"num1" },
-  { id:"fd_pown",  label:"FD pOWN%",  type:"pct"  },
 ];
 
 const COLS_WR = COLS_RB;
@@ -213,17 +211,15 @@ export default function NflPosProjections({ pos="QB" }){
     // DFS site stats
     const dk_proj  = getVal(k, "dk proj","dk_proj","dk\u00a0proj");
     const dk_val   = getVal(k, "dk val","dk_val","dk\u00a0val");
-    const dk_pown  = getVal(k, "dk pown%","dk pown","dk_pown","dk pown %","dk_pown_pct","dk own%","dk\u00a0own%");
     const fd_proj  = getVal(k, "fd proj","fd_proj","fd\u00a0proj");
     const fd_val   = getVal(k, "fd val","fd_val","fd\u00a0val");
-    const fd_pown  = getVal(k, "fd pown%","fd pown","fd_pown","fd pown %","fd_pown_pct","fd own%","fd\u00a0own%");
 
     return {
       player, team, dk_sal, fd_sal,
       pa_yards, pa_att, pa_comp, pa_pct, pa_td, int,
       ru_att, ypc, ru_yds, ru_td,
       targets, tgt_share, rec, rec_yds, rec_td,
-      dk_proj, dk_val, dk_pown, fd_proj, fd_val, fd_pown
+      dk_proj, dk_val, fd_proj, fd_val
     };
   }),[rawRows, nameToTeam, pos]);
 
@@ -238,9 +234,9 @@ export default function NflPosProjections({ pos="QB" }){
   const sorted = useMemo(()=>{
     const {key,dir}=sort, sgn=dir==="asc"?1:-1; const out=[...filtered];
     out.sort((a,b)=>{
-      const isPct = key.endsWith("pown") || key==="pa_pct" || key==="tgt_share";
-      const av = isPct ? num(String(a[key]).replace("%","")) : num(a[key]);
-      const bv = isPct ? num(String(b[key]).replace("%","")) : num(b[key]);
+      const isPct = key==="pa_pct" || key==="tgt_share";
+      const av = isPct ? num(String(a[key]).replace(/%+$/,"")) : num(a[key]);
+      const bv = isPct ? num(String(b[key]).replace(/%+$/,"")) : num(b[key]);
       const aa = av==null ? -Infinity : av; const bb = bv==null ? -Infinity : bv;
       return (aa-bb)*sgn;
     });
@@ -248,7 +244,7 @@ export default function NflPosProjections({ pos="QB" }){
   },[filtered,sort]);
   const onSort = (col) => setSort(prev => prev.key===col.id ? { key:col.id, dir: prev.dir==="desc"?"asc":"desc"} : { key:col.id, dir:"desc" });
 
-  // COMPACT STYLE
+  // COMPACT STYLE + sticky first column
   const cell="px-3 py-1 text-center";
   const header="px-3 py-1 font-semibold text-center";
   const small="text-[12px] md:text-[13px]";
@@ -271,9 +267,13 @@ export default function NflPosProjections({ pos="QB" }){
         <table className={`w-full border-separate ${small}`} style={{ borderSpacing:0 }}>
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
-              {cols.map(c=>(
-                <th key={c.id} className={`${header} whitespace-nowrap cursor-pointer select-none ${c.w||""}`}
-                    title="Click to sort" onClick={()=>onSort(c)}>
+              {cols.map((c, idx)=>(
+                <th
+                  key={c.id}
+                  className={`${header} whitespace-nowrap cursor-pointer select-none ${c.w||""} ${idx===0 ? "sticky left-0 z-20 bg-gray-50" : ""}`}
+                  title="Click to sort"
+                  onClick={()=>onSort(c)}
+                >
                   <div className="inline-flex items-center gap-1">
                     <span>{c.label}</span>
                     <span className="text-gray-400">{sort.key===c.id ? (sort.dir==="desc"?"▼":"▲") : "▲"}</span>
@@ -287,11 +287,11 @@ export default function NflPosProjections({ pos="QB" }){
             {err && <tr><td className={`${cell} text-red-600`} colSpan={cols.length}>Failed to load: {err}</td></tr>}
             {!loading && !err && sorted.map((r,i)=>(
               <tr key={`${r.player||i}-${i}`} className="odd:bg-white even:bg-gray-50">
-                {cols.map(c=>{
+                {cols.map((c, idx)=>{
                   if(c.type==="team"){
                     const abbr=String(r.team||"").toUpperCase();
                     return (
-                      <td key={c.id} className={`${cell} whitespace-nowrap`}>
+                      <td key={c.id} className={`${cell} whitespace-nowrap ${idx===0 ? "sticky left-0 z-10 bg-white text-left" : ""}`}>
                         <div className="inline-flex items-center gap-2 justify-center">
                           {abbr && <img src={teamLogo(abbr)} alt={abbr} className="h-4 w-4 object-contain" />}
                           <span>{abbr}</span>
@@ -304,7 +304,14 @@ export default function NflPosProjections({ pos="QB" }){
                   else if(c.type==="pct") val=pct(val);
                   else if(c.type==="num1") val=smart1(val);
                   const left = c.id==="player";
-                  return <td key={c.id} className={`${cell} ${left?"text-left":"text-center"} tabular-nums whitespace-nowrap`} title={String(val)}>{val}</td>;
+                  const stickyCls = idx===0 ? "sticky left-0 z-10 bg-white" : "";
+                  return (
+                    <td key={c.id}
+                        className={`${cell} ${left?"text-left":"text-center"} tabular-nums whitespace-nowrap ${stickyCls}`}
+                        title={String(val)}>
+                      {val}
+                    </td>
+                  );
                 })}
               </tr>
             ))}
