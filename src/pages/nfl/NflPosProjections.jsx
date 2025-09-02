@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useLayoutEffect, useRef } from "react";
 
 /* ---------------- data sources ---------------- */
 const POS_TO_SRC = {
@@ -18,7 +18,8 @@ const pct = (v) => {
   const s = String(v).trim();
   if (s.endsWith("%")) return s;
   const n = num(s);
-  return n == null ? "" : (Math.abs(n) <= 1 ? (n*100).toFixed(1) : n.toFixed(1)) + "%";
+  // scale only if true fraction
+  return n == null ? "" : (Math.abs(n) > 0 && Math.abs(n) < 1 ? (n*100).toFixed(1) : n.toFixed(1)) + "%";
 };
 const smart1 = (v) => { const n = num(v); return n == null ? "" : (Number.isInteger(n) ? String(n) : n.toFixed(1)); };
 const int0 = (v) => { const n = num(v); return n == null ? "" : Math.round(n).toLocaleString(); };
@@ -248,6 +249,21 @@ export default function NflPosProjections({ pos="QB" }){
   },[filtered,sort]);
   const onSort = (col) => setSort(prev => prev.key===col.id ? { key:col.id, dir: prev.dir==="desc"?"asc":"desc"} : { key:col.id, dir:"desc" });
 
+  // measure Player column width to offset Team sticky
+  const playerThRef = useRef(null);
+  const [playerColWidth, setPlayerColWidth] = useState(0);
+  useLayoutEffect(() => {
+    const calc = () => {
+      if (playerThRef.current) {
+        const w = playerThRef.current.getBoundingClientRect().width;
+        setPlayerColWidth(w);
+      }
+    };
+    calc();
+    window.addEventListener("resize", calc);
+    return () => window.removeEventListener("resize", calc);
+  }, [cols, sorted]);
+
   // COMPACT STYLE
   const cell="px-3 py-1 text-center";
   const header="px-3 py-1 font-semibold text-center";
@@ -272,8 +288,20 @@ export default function NflPosProjections({ pos="QB" }){
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
               {cols.map(c=>(
-                <th key={c.id} className={`${header} whitespace-nowrap cursor-pointer select-none ${c.w||""}`}
-                    title="Click to sort" onClick={()=>onSort(c)}>
+                <th
+                  key={c.id}
+                  ref={c.id === "player" ? playerThRef : undefined}
+                  className={`${header} whitespace-nowrap cursor-pointer select-none ${c.w||""} ${
+                    c.id === "player"
+                      ? "sticky left-0 z-20 bg-gray-50"
+                      : c.id === "team"
+                      ? "sticky z-20 bg-gray-50"
+                      : ""
+                  }`}
+                  style={c.id === "team" ? { left: playerColWidth } : undefined}
+                  title="Click to sort"
+                  onClick={()=>onSort(c)}
+                >
                   <div className="inline-flex items-center gap-1">
                     <span>{c.label}</span>
                     <span className="text-gray-400">{sort.key===c.id ? (sort.dir==="desc"?"▼":"▲") : "▲"}</span>
@@ -291,11 +319,28 @@ export default function NflPosProjections({ pos="QB" }){
                   if(c.type==="team"){
                     const abbr=String(r.team||"").toUpperCase();
                     return (
-                      <td key={c.id} className={`${cell} whitespace-nowrap`}>
+                      <td
+                        key={c.id}
+                        className={`px-3 py-1 text-center sticky z-10 ${i%2===0?"bg-white":"bg-gray-50"} shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)] whitespace-nowrap`}
+                        style={{ left: playerColWidth }}
+                        title={abbr}
+                      >
                         <div className="inline-flex items-center gap-2 justify-center">
                           {abbr && <img src={teamLogo(abbr)} alt={abbr} className="h-4 w-4 object-contain" />}
                           <span>{abbr}</span>
                         </div>
+                      </td>
+                    );
+                  }
+                  if(c.id==="player"){
+                    const val = r[c.id] ?? "";
+                    return (
+                      <td
+                        key={c.id}
+                        className={`px-3 py-1 text-left sticky left-0 z-10 ${i%2===0?"bg-white":"bg-gray-50"} shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)] whitespace-nowrap`}
+                        title={String(val)}
+                      >
+                        {val}
                       </td>
                     );
                   }
