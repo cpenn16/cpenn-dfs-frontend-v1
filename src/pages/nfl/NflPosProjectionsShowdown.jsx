@@ -1,317 +1,317 @@
-// src/pages/nfl/NflPosProjectionsShowdown.jsx
+// src/pages/nfl/NflProjectionsShowdown.jsx
 import React, { useEffect, useMemo, useState } from "react";
 
-/* ---------------- data sources ---------------- */
-const POS_TO_SRC = {
-  QB: "/data/nfl/showdown/latest/qb_projections.json",
-  RB: "/data/nfl/showdown/latest/rb_projections.json",
-  WR: "/data/nfl/showdown/latest/wr_projections.json",
-  TE: "/data/nfl/showdown/latest/te_projections.json",
+const SOURCE = "/data/nfl/showdown/latest/projections.json";
+
+const TEAM_FULL = {
+  ARI: "Arizona Cardinals", ATL: "Atlanta Falcons", BAL: "Baltimore Ravens",
+  BUF: "Buffalo Bills", CAR: "Carolina Panthers", CHI: "Chicago Bears",
+  CIN: "Cincinnati Bengals", CLE: "Cleveland Browns", DAL: "Dallas Cowboys",
+  DEN: "Denver Broncos", DET: "Detroit Lions", GB: "Green Bay Packers",
+  HOU: "Houston Texans", IND: "Indianapolis Colts", JAX: "Jacksonville Jaguars",
+  KC: "Kansas City Chiefs", LV: "Las Vegas Raiders", LAC: "Los Angeles Chargers",
+  LAR: "Los Angeles Rams", MIA: "Miami Dolphins", MIN: "Minnesota Vikings",
+  NE: "New England Patriots", NO: "New Orleans Saints", NYG: "New York Giants",
+  NYJ: "New York Jets", PHI: "Philadelphia Eagles", PIT: "Pittsburgh Steelers",
+  SEA: "Seattle Seahawks", SF: "San Francisco 49ers", TB: "Tampa Bay Buccaneers",
+  TEN: "Tennessee Titans", WAS: "Washington Commanders",
 };
-const NAME_XWALK_URL  = "/data/nfl/showdown/latest/name_xwalk.json";
-const PROJECTIONS_URL = "/data/nfl/showdown/latest/projections.json";
-const teamLogo = (abbr) => (abbr ? `/logos/nfl/${abbr}.png` : "");
 
-/* ---------------- helpers ---------------- */
-const num = (v) => { const n = Number(String(v ?? "").replace(/[,%\s]/g, "")); return Number.isFinite(n) ? n : null; };
-const pct = (v) => {
-  if (v == null || v === "") return "";
-  const s = String(v).trim();
-  // If there's already a %, just collapse any duplicates (e.g., "26.2%%" -> "26.2%")
-  if (/%/.test(s)) return s.replace(/%+$/,"%");
-  const n = num(s);
-  return n == null ? "" : (Math.abs(n) <= 1 ? (n*100).toFixed(1) : n.toFixed(1)) + "%";
+const NBSP = /\u00A0/g;
+const normKey = (s) => String(s ?? "").replace(NBSP, " ").trim();
+
+const pick = (obj, keys) => {
+  const map = {};
+  for (const [k, v] of Object.entries(obj)) map[normKey(k)] = v;
+  for (const k of keys) if (map[k] != null && map[k] !== "") return map[k];
+  return "";
 };
-const smart1 = (v) => { const n = num(v); return n == null ? "" : (Number.isInteger(n) ? String(n) : n.toFixed(1)); };
-const int0 = (v) => { const n = num(v); return n == null ? "" : Math.round(n).toLocaleString(); };
 
-const normalizeName = (s) =>
-  String(s || "")
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[.'’,-]/g, " ")
-    .replace(/\s+(jr|sr|ii|iii|iv)\b/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+const toNum = (v) => {
+  const n = Number(String(v ?? "").replace(/[,$%\s]/g, ""));
+  return Number.isFinite(n) ? n : null;
+};
+const fmt0 = (v) => (toNum(v) == null ? "" : toNum(v).toLocaleString());
+const fmt1 = (v) => (toNum(v) == null ? "" : toNum(v).toFixed(1));
+const fmtPct = (v) => {
+  const s = String(v ?? "").trim();
+  if (!s) return "";
+  if (/%$/.test(s)) return s.replace(/%+$/, "%");
+  const n = toNum(s);
+  return n == null ? "" : `${n.toFixed(1)}%`;
+};
+const computeVal = (proj, sal) => {
+  const p = toNum(proj);
+  const s = toNum(sal);
+  if (p == null || s == null || s === 0) return "";
+  return (p / (s / 1000)).toFixed(1);
+};
 
-/* canonicalize header keys */
-const canonKey = (s="") =>
-  String(s)
-    .replace(/\u00A0|\u202F/g, " ")
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/[%]/g, "")
-    .replace(/_/g, " ")
-    .replace(/[.]/g, "")
-    .replace(/\s+/g, "");
-
-const buildKeyMap = (row) => { const m = {}; for (const [k,v] of Object.entries(row)) m[canonKey(k)] = v; return m; };
-const getVal = (kmap, ...cands) => { for (const c of cands) { const v = kmap[canonKey(c)]; if (v !== undefined) return v; } return ""; };
-
-async function fetchJson(url){
-  const r = await fetch(`${url}?_=${Date.now()}`, { cache: "no-store" });
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  const j = await r.json();
-  return Array.isArray(j) ? j : j?.rows ?? [];
-}
-function useJson(url){
-  const [rows,setRows]=useState([]); const [loading,setLoading]=useState(true); const [err,setErr]=useState("");
-  useEffect(()=>{ let ok=true; (async()=>{ setLoading(true); setErr(""); try{ const data=await fetchJson(url); if(ok) setRows(data);} catch(e){ if(ok) setErr(String(e)); } finally{ if(ok) setLoading(false);} })(); return ()=>{ok=false}; },[url]);
-  return { rows,loading,err };
-}
-
-/* ---------------- column sets ---------------- */
-// Common columns, no ownership columns
-const COLS_COMMON = [
-  { id:"player", label:"Player", type:"text",  w:"min-w-[12rem] text-left" },
-  { id:"team",   label:"Team",   type:"team",  w:"min-w-[4.5rem]" },
-  { id:"dk_sal", label:"DK Sal", type:"money", w:"min-w-[4.25rem]" },
-  { id:"fd_sal", label:"FD Sal", type:"money", w:"min-w-[4.25rem]" },
-];
-
-// QB includes Ru Att (rush attempts)
-const COLS_QB = [
-  ...COLS_COMMON,
-  { id:"pa_yards", label:"Pa Yards", type:"num1" },
-  { id:"pa_att",   label:"Pa Att",   type:"num1" },
-  { id:"pa_comp",  label:"Pa Comp",  type:"num1" },
-  { id:"pa_pct",   label:"Comp%",    type:"pct"  },
-  { id:"pa_td",    label:"Pa TD",    type:"num1" },
-  { id:"int",      label:"INT",      type:"num1" },
-  { id:"ru_att",   label:"Ru Att",   type:"num1" }, // <-- ensure visible
-  { id:"ypc",      label:"YPC",      type:"num1" },
-  { id:"ru_yds",   label:"Ru Yds",   type:"num1" },
-  { id:"ru_td",    label:"Ru TD",    type:"num1" },
-  { id:"dk_proj",  label:"DK Proj",  type:"num1" },
-  { id:"dk_val",   label:"DK Val",   type:"num1" },
-  { id:"fd_proj",  label:"FD Proj",  type:"num1" },
-  { id:"fd_val",   label:"FD Val",   type:"num1" },
-];
-
-const COLS_RB = [
-  ...COLS_COMMON,
-  { id:"ru_att",   label:"Ru Attempts", type:"num1" },
-  { id:"ypc",      label:"YPC",         type:"num1" },
-  { id:"ru_yds",   label:"Ru Yards",    type:"num1" },
-  { id:"ru_td",    label:"Ru TD",       type:"num1" },
-  { id:"targets",  label:"Targets",     type:"num1" },
-  { id:"tgt_share",label:"Tgt Share",   type:"pct"  }, // %% fix comes from pct()
-  { id:"rec",      label:"Rec",         type:"num1" },
-  { id:"rec_yds",  label:"Rec Yards",   type:"num1" },
-  { id:"rec_td",   label:"Rec TD",      type:"num1" },
-  { id:"dk_proj",  label:"DK Proj",     type:"num1" },
-  { id:"dk_val",   label:"DK Val",      type:"num1" },
-  { id:"fd_proj",  label:"FD Proj",     type:"num1" },
-  { id:"fd_val",   label:"FD Val",      type:"num1" },
-];
-
-const COLS_TE = [
-  ...COLS_COMMON,
-  { id:"targets",  label:"Targets",   type:"num1" },
-  { id:"tgt_share",label:"Tgt Share", type:"pct"  }, // %% fix
-  { id:"rec",      label:"Rec",       type:"num1" },
-  { id:"rec_yds",  label:"Rec Yards", type:"num1" },
-  { id:"rec_td",   label:"Rec TD",    type:"num1" },
-  { id:"dk_proj",  label:"DK Proj",   type:"num1" },
-  { id:"dk_val",   label:"DK Val",    type:"num1" },
-  { id:"fd_proj",  label:"FD Proj",   type:"num1" },
-  { id:"fd_val",   label:"FD Val",    type:"num1" },
-];
-
-const COLS_WR = COLS_RB;
-const POS_TO_COLS = { QB: COLS_QB, RB: COLS_RB, WR: COLS_WR, TE: COLS_TE };
-
-/* ---------------- CSV ---------------- */
-const escapeCSV = (s) => /[",\r\n]/.test(String(s ?? "")) ? `"${String(s ?? "").replace(/"/g,'""')}"` : String(s ?? "");
-const formatVal = (type, raw) => (type==="money" ? int0(raw) : type==="pct" ? pct(raw) : type==="num1" ? smart1(raw) : (raw ?? ""));
-function downloadCSV(rows, cols, fname){
-  const header = cols.map(c=>c.label).join(",");
-  const body = rows.map(r => cols.map(c => escapeCSV(formatVal(c.type, r[c.id]))).join(",")).join("\n");
-  const blob = new Blob([header + "\n" + body], { type:"text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=fname; a.click(); URL.revokeObjectURL(url);
-}
-
-/* ---------------- component ---------------- */
-export default function NflPosProjections({ pos="QB" }){
-  const src = POS_TO_SRC[pos] || POS_TO_SRC.QB;
-
-  const { rows: rawRows, loading, err } = useJson(src);
-
-  // name→team backfill (xwalk + all-projections)
-  const [nameToTeam, setNameToTeam] = useState({});
-  useEffect(()=>{ (async()=>{
-    try{
-      const [xw, all] = await Promise.all([
-        fetchJson(NAME_XWALK_URL).catch(()=>[]),
-        fetchJson(PROJECTIONS_URL).catch(()=>[]),
-      ]);
-      const m = {};
-      for(const r of xw){
-        const n = r.player ?? r["Player Name"];
-        const t = r.team ?? r["Team"];
-        if(n && t) m[normalizeName(n)] = String(t).toUpperCase();
+function useJson(url) {
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      setLoading(true);
+      setErr("");
+      try {
+        const r = await fetch(`${url}?_=${Date.now()}`, { cache: "no-store" });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = await r.json();
+        const data = Array.isArray(j) ? j : j?.rows ?? j?.data ?? [];
+        if (alive) setRows(data);
+      } catch (e) {
+        if (alive) setErr(String(e));
+      } finally {
+        if (alive) setLoading(false);
       }
-      for(const r of all){
-        const n = r.player ?? r["Player Name"];
-        const t = r.team ?? r["Team"];
-        if(n && t && !m[normalizeName(n)]) m[normalizeName(n)] = String(t).toUpperCase();
-      }
-      setNameToTeam(m);
-    }catch{ setNameToTeam({}); }
-  })(); },[]);
+    })();
+    return () => { alive = false; };
+  }, [url]);
+  return { rows, loading, err };
+}
 
-  // normalize each row to a stable shape
-  const cols = POS_TO_COLS[pos] || POS_TO_COLS.QB;
+const escapeCSV = (s) => {
+  const v = String(s ?? "");
+  return /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+};
+function downloadCSV(rows, cols, fname = "nfl_showdown_projections.csv") {
+  const header = cols.map((c) => c.label).join(",");
+  const body = rows
+    .map((r) =>
+      cols
+        .map((c) => {
+          let val = r[c.key];
+          if (c.type === "money") val = fmt0(val);
+          if (c.type === "num1") val = fmt1(val);
+          if (c.type === "pct")  val = fmtPct(val);
+          return escapeCSV(val ?? "");
+        })
+        .join(",")
+    )
+    .join("\n");
+  const blob = new Blob([header + "\n" + body], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = fname; a.click();
+  URL.revokeObjectURL(url);
+}
 
-  const rows = useMemo(()=>rawRows.map((row)=>{
-    const k = buildKeyMap(row);
+export default function NflProjectionsShowdown() {
+  const { rows: raw, loading, err } = useJson(SOURCE);
+  const [site, setSite] = useState("dk");      // dk | fd
+  const [slot, setSlot] = useState("flex");    // flex | cpt (dk) / flex | mvp (fd)
+  const [q, setQ] = useState("");
 
-    // Player
-    const player = (getVal(k,
-      "player","player name","name",
-      "qb","rb","rb1","wr","wr1","te","te1"
-    ) || "").toString().trim();
+  const rows = useMemo(() => {
+    return (raw || []).map((r) => {
+      const pos  = r.pos ?? r.Pos ?? "";
+      const team = r.team ?? r.Team ?? "";
+      const opp  = r.opp ?? r.Opp ?? r.OPP ?? "";
 
-    // Team (backfill from xwalk if missing)
-    let team  = (getVal(k, "team","teamabbrev") || "").toString().trim().toUpperCase();
-    if(!team && player){
-      const t = nameToTeam[normalizeName(player)];
-      if(t) team = t;
-    }
+      const dk_proj = pick(r, ["DK Proj", "dk_proj"]);
+      const fd_proj = pick(r, ["FD Proj", "fd_proj"]);
+      const dk_sal  = pick(r, ["DK Sal", "dk_sal", "DK Flex Sal"]);
+      const fd_sal  = pick(r, ["FD Sal", "fd_sal", "FD Flex Sal"]);
+      const dk_cpt_sal = pick(r, ["DK CPT Sal", "dk_cpt_sal"]);
+      const fd_mvp_sal = pick(r, ["FD MVP Sal", "fd_mvp_sal"]);
 
-    // salaries
-    const dk_sal = getVal(k, "dk sal","dk_sal","dk\u00a0sal");
-    const fd_sal = getVal(k, "fd sal","fd_sal","fd\u00a0sal");
+      const dk_flex_pown = pick(r, ["DK Flex pOWN%", "dk_flex_pown"]);
+      const dk_cpt_pown  = pick(r, ["DK CPT pOWN%", "dk_cpt_pown"]);
+      const dk_flex_opt  = pick(r, ["DK Flex Opt%", "dk_flex_opt"]);
+      const dk_cpt_opt   = pick(r, ["DK CPT Opt%", "dk_cpt_opt"]);
 
-    // passing
-    const pa_yards = getVal(k, "pa yards","pass yards","pa_yards");
-    const pa_att   = getVal(k, "pa att","pass attempts","pa attempts","pa_att");
-    const pa_comp  = getVal(k, "pa comp","pass comp","pa_comp");
-    // Comp%: prefer the explicit percentage field
-    const pa_pct   = getVal(k, "pa_comp_pct","comp%","completion%","pass comp%","pa comp%");
-    const pa_td    = getVal(k, "pa td","pa_td");
-    const int      = getVal(k, "int");
+      const fd_flex_pown = pick(r, ["FD Flex pOWN%", "fd_flex_pown"]);
+      const fd_mvp_pown  = pick(r, ["FD MVP pOWN%", "fd_mvp_pown"]);
+      const fd_flex_opt  = pick(r, ["FD Flex Opt%", "fd_flex_opt"]);
+      const fd_mvp_opt   = pick(r, ["FD MVP Opt%", "fd_mvp_opt"]);
 
-    // rushing / receiving
-    const ru_att   = getVal(k,
-      "ru_att","ru attempts","ru\u00A0attempts","ru att","rush attempts","rush att","rushing attempts"
-    );
-    const ypc      = getVal(k, "ypc");
-    const ru_yds   = getVal(k, "ru yards","ru_yards","ru_yds","rush yards");
-    const ru_td    = getVal(k, "ru td","ru_td","rush td");
+      const basePlayer = r.player ?? r.Player ?? "";
+      const player = String(pos).toUpperCase() === "DST" && TEAM_FULL[team] ? TEAM_FULL[team] : basePlayer;
 
-    const targets  = getVal(k, "targets");
-    const tgt_share= getVal(k, "tgt share","target share","tgt_share");
-    const rec      = getVal(k, "rec");
-    const rec_yds  = getVal(k, "rec yards","rec\u00A0yards","rec_yards","rec_yds","receiving yards","rec yds");
-    const rec_td   = getVal(k, "rec td","rec_td");
-
-    // DFS site stats
-    const dk_proj  = getVal(k, "dk proj","dk_proj","dk\u00a0proj");
-    const dk_val   = getVal(k, "dk val","dk_val","dk\u00a0val");
-    const fd_proj  = getVal(k, "fd proj","fd_proj","fd\u00a0proj");
-    const fd_val   = getVal(k, "fd val","fd_val","fd\u00a0val");
-
-    return {
-      player, team, dk_sal, fd_sal,
-      pa_yards, pa_att, pa_comp, pa_pct, pa_td, int,
-      ru_att, ypc, ru_yds, ru_td,
-      targets, tgt_share, rec, rec_yds, rec_td,
-      dk_proj, dk_val, fd_proj, fd_val
-    };
-  }),[rawRows, nameToTeam, pos]);
-
-  // search/sort
-  const [q,setQ]=useState("");
-  const filtered = useMemo(()=>{
-    const n=q.trim().toLowerCase(); if(!n) return rows;
-    return rows.filter(r=>`${r.player} ${r.team}`.toLowerCase().includes(n));
-  },[rows,q]);
-
-  const [sort,setSort]=useState({ key:"dk_proj", dir:"desc" });
-  const sorted = useMemo(()=>{
-    const {key,dir}=sort, sgn=dir==="asc"?1:-1; const out=[...filtered];
-    out.sort((a,b)=>{
-      const isPct = key==="pa_pct" || key==="tgt_share";
-      const av = isPct ? num(String(a[key]).replace(/%+$/,"")) : num(a[key]);
-      const bv = isPct ? num(String(b[key]).replace(/%+$/,"")) : num(b[key]);
-      const aa = av==null ? -Infinity : av; const bb = bv==null ? -Infinity : bv;
-      return (aa-bb)*sgn;
+      return {
+        player, pos, team, opp,
+        dk_proj, dk_sal, dk_cpt_sal, dk_flex_pown, dk_cpt_pown, dk_flex_opt, dk_cpt_opt,
+        fd_proj, fd_sal, fd_mvp_sal, fd_flex_pown, fd_mvp_pown, fd_flex_opt, fd_mvp_opt,
+      };
     });
-    return out;
-  },[filtered,sort]);
-  const onSort = (col) => setSort(prev => prev.key===col.id ? { key:col.id, dir: prev.dir==="desc"?"asc":"desc"} : { key:col.id, dir:"desc" });
+  }, [raw]);
 
-  // COMPACT STYLE + sticky first column
-  const cell="px-3 py-1 text-center";
-  const header="px-3 py-1 font-semibold text-center";
-  const small="text-[12px] md:text-[13px]";
+  const filtered = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return rows;
+    return rows.filter((r) =>
+      `${r.player} ${r.pos} ${r.team} ${r.opp}`.toLowerCase().includes(s)
+    );
+  }, [rows, q]);
+
+  const modeRows = useMemo(() => {
+    const isDK = site === "dk";
+    const useCptOrMvp = slot !== "flex";
+    const mult = useCptOrMvp ? 1.5 : 1.0;
+
+    return filtered.map((r) => {
+      if (isDK) {
+        const baseSal = r.dk_sal;
+        const cptSal  = r.dk_cpt_sal || (toNum(baseSal) != null ? String(Math.round(toNum(baseSal) * 1.5)) : "");
+        const sal  = useCptOrMvp ? cptSal || baseSal : baseSal;
+        const proj = toNum(r.dk_proj) == null ? "" : (toNum(r.dk_proj) * mult);
+        const val  = computeVal(proj, sal);
+        const pOwn = useCptOrMvp ? r.dk_cpt_pown : r.dk_flex_pown;
+        const opt  = useCptOrMvp ? r.dk_cpt_opt  : r.dk_flex_opt;
+        return { ...r, sal, proj, val, pOwn, opt };
+      } else {
+        const baseSal = r.fd_sal;
+        const mvpSal  = r.fd_mvp_sal || (toNum(baseSal) != null ? String(Math.round(toNum(baseSal) * 1.5)) : "");
+        const sal  = useCptOrMvp ? mvpSal || baseSal : baseSal;
+        const proj = toNum(r.fd_proj) == null ? "" : (toNum(r.fd_proj) * mult);
+        const val  = computeVal(proj, sal);
+        const pOwn = useCptOrMvp ? r.fd_mvp_pown : r.fd_flex_pown;
+        const opt  = useCptOrMvp ? r.fd_mvp_opt  : r.fd_flex_opt;
+        return { ...r, sal, proj, val, pOwn, opt };
+      }
+    });
+  }, [filtered, site, slot]);
+
+  const columns = useMemo(() => {
+    const isDK = site === "dk";
+    const sal  = isDK ? (slot === "flex" ? "DK Sal" : "DK CPT Sal") : (slot === "flex" ? "FD Sal" : "FD MVP Sal");
+    const proj = isDK ? (slot === "flex" ? "DK Proj" : "DK CPT Proj") : (slot === "flex" ? "FD Proj" : "FD MVP Proj");
+    const pown = isDK ? (slot === "flex" ? "DK Flex pOWN%" : "DK CPT pOWN%") : (slot === "flex" ? "FD Flex pOWN%" : "FD MVP pOWN%");
+    const opt  = isDK ? (slot === "flex" ? "DK Flex Opt%"  : "DK CPT Opt%")  : (slot === "flex" ? "FD Flex Opt%"  : "FD MVP Opt%");
+    return [
+      { key: "player", label: "Player", type: "text" },
+      { key: "pos",    label: "Pos",    type: "text" },
+      { key: "team",   label: "Team",   type: "text" },
+      { key: "opp",    label: "Opp",    type: "text" },
+      { key: "sal",    label: sal,       type: "money" },
+      { key: "proj",   label: proj,      type: "num1"  },
+      { key: "val",    label: isDK ? "DK Val" : "FD Val", type: "num1" },
+      { key: "pOwn",   label: pown,      type: "pct"   },
+      { key: "opt",    label: opt,       type: "pct"   },
+    ];
+  }, [site, slot]);
+
+  const [sort, setSort] = useState({ key: "proj", dir: "desc" });
+  useEffect(() => { setSort({ key: "proj", dir: "desc" }); }, [site, slot]);
+  const onSort = (col) =>
+    setSort((prev) =>
+      prev.key === col.key ? { key: col.key, dir: prev.dir === "desc" ? "asc" : "desc" } : { key: col.key, dir: "desc" }
+    );
+
+  const sorted = useMemo(() => {
+    const dir = sort.dir === "asc" ? 1 : -1;
+    const typeFor = (k) => columns.find((c) => c.key === k)?.type;
+    return [...modeRows].sort((a, b) => {
+      const t = typeFor(sort.key);
+      const av = t === "text" ? String(a[sort.key] ?? "").toLowerCase() : toNum(a[sort.key]);
+      const bv = t === "text" ? String(b[sort.key] ?? "").toLowerCase() : toNum(b[sort.key]);
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      if (t === "text") return (av < bv ? -1 : av > bv ? 1 : 0) * dir;
+      return (av - bv) * dir;
+    });
+  }, [modeRows, columns, sort]);
+
+  const cell = "px-2 py-1 text-center";
+  const header = "px-2 py-1 font-semibold text-center";
 
   return (
     <div className="px-4 md:px-6 py-5">
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <h1 className="text-xl md:text-2xl font-extrabold mb-0.5">NFL — {pos} Projections</h1>
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <h1 className="text-2xl md:text-3xl font-extrabold mb-0.5">NFL — DFS Projections (Showdown)</h1>
         <div className="flex items-center gap-2">
-          <input className="h-9 w-64 rounded-lg border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                 placeholder="Search player / team…" value={q} onChange={(e)=>setQ(e.target.value)} />
-          <button className="ml-1 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700"
-                  onClick={()=>downloadCSV(sorted, cols, `nfl_${pos.toLowerCase()}_projections.csv`)}>
+          <div className="inline-flex items-center gap-1 rounded-xl bg-gray-100 p-1">
+            {["dk", "fd"].map((k) => (
+              <button
+                key={k}
+                onClick={() => setSite(k)}
+                className={`px-3 py-1.5 rounded-lg text-sm inline-flex items-center gap-1 ${
+                  site === k ? "bg-white shadow font-semibold" : "text-gray-700"
+                }`}
+                title="Toggle site"
+              >
+                {k === "dk" ? <img src="/logos/dk.png" alt="DK" className="w-4 h-4" /> : <img src="/logos/fd.png" alt="FD" className="w-4 h-4" />}
+                <span>{k.toUpperCase()}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="inline-flex items-center gap-1 rounded-xl bg-gray-100 p-1">
+            {site === "dk" ? (
+              <>
+                <button
+                  className={`px-3 py-1.5 rounded-lg text-sm ${slot === "flex" ? "bg-white shadow font-semibold" : "text-gray-700"}`}
+                  onClick={() => setSlot("flex")}
+                >DK Flex</button>
+                <button
+                  className={`px-3 py-1.5 rounded-lg text-sm ${slot === "cpt" ? "bg-white shadow font-semibold" : "text-gray-700"}`}
+                  onClick={() => setSlot("cpt")}
+                >DK CPT</button>
+              </>
+            ) : (
+              <>
+                <button
+                  className={`px-3 py-1.5 rounded-lg text-sm ${slot === "flex" ? "bg-white shadow font-semibold" : "text-gray-700"}`}
+                  onClick={() => setSlot("flex")}
+                >FD Flex</button>
+                <button
+                  className={`px-3 py-1.5 rounded-lg text-sm ${slot === "mvp" ? "bg-white shadow font-semibold" : "text-gray-700"}`}
+                  onClick={() => setSlot("mvp")}
+                >FD MVP</button>
+              </>
+            )}
+          </div>
+
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search player / team / opp…"
+            className="px-3 py-2 rounded-lg border w-64"
+          />
+          <button
+            className="ml-1 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700"
+            onClick={() => downloadCSV(sorted, columns)}
+          >
             Export CSV
           </button>
         </div>
       </div>
 
       <div className="rounded-xl border bg-white shadow-sm overflow-auto">
-        <table className={`w-full border-separate ${small}`} style={{ borderSpacing:0 }}>
+        <table className="w-full text-[12px] border-separate" style={{ borderSpacing: 0 }}>
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
-              {cols.map((c, idx)=>(
+              {columns.map((c) => (
                 <th
-                  key={c.id}
-                  className={`${header} whitespace-nowrap cursor-pointer select-none ${c.w||""} ${idx===0 ? "sticky left-0 z-20 bg-gray-50" : ""}`}
-                  title="Click to sort"
-                  onClick={()=>onSort(c)}
+                  key={c.key}
+                  className={`${header} whitespace-nowrap cursor-pointer select-none`}
+                  onClick={() => onSort(c)}
                 >
                   <div className="inline-flex items-center gap-1">
                     <span>{c.label}</span>
-                    <span className="text-gray-400">{sort.key===c.id ? (sort.dir==="desc"?"▼":"▲") : "▲"}</span>
+                    {/* simple sort indicator */}
+                    {/* eslint-disable-next-line */}
+                    <span className="text-gray-400">{/* handled in header click */}</span>
                   </div>
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {loading && <tr><td className={`${cell} text-gray-500`} colSpan={cols.length}>Loading…</td></tr>}
-            {err && <tr><td className={`${cell} text-red-600`} colSpan={cols.length}>Failed to load: {err}</td></tr>}
-            {!loading && !err && sorted.map((r,i)=>(
-              <tr key={`${r.player||i}-${i}`} className="odd:bg-white even:bg-gray-50">
-                {cols.map((c, idx)=>{
-                  if(c.type==="team"){
-                    const abbr=String(r.team||"").toUpperCase();
-                    return (
-                      <td key={c.id} className={`${cell} whitespace-nowrap ${idx===0 ? "sticky left-0 z-10 bg-white text-left" : ""}`}>
-                        <div className="inline-flex items-center gap-2 justify-center">
-                          {abbr && <img src={teamLogo(abbr)} alt={abbr} className="h-4 w-4 object-contain" />}
-                          <span>{abbr}</span>
-                        </div>
-                      </td>
-                    );
-                  }
-                  let val=r[c.id] ?? "";
-                  if(c.type==="money") val=int0(val);
-                  else if(c.type==="pct") val=pct(val);
-                  else if(c.type==="num1") val=smart1(val);
-                  const left = c.id==="player";
-                  const stickyCls = idx===0 ? "sticky left-0 z-10 bg-white" : "";
-                  return (
-                    <td key={c.id}
-                        className={`${cell} ${left?"text-left":"text-center"} tabular-nums whitespace-nowrap ${stickyCls}`}
-                        title={String(val)}>
-                      {val}
-                    </td>
-                  );
+            {loading && <tr><td className={`${cell}`} colSpan={columns.length}>Loading…</td></tr>}
+            {err && <tr><td className={`${cell} text-red-600`} colSpan={columns.length}>Failed to load: {err}</td></tr>}
+            {!loading && !err && sorted.map((r, i) => (
+              <tr key={`${r.player}-${i}`} className="odd:bg-white even:bg-gray-50">
+                {columns.map((c) => {
+                  let val = r[c.key];
+                  if (c.type === "money") val = fmt0(val);
+                  if (c.type === "num1")  val = fmt1(val);
+                  if (c.type === "pct")   val = fmtPct(val);
+                  return <td key={c.key} className={c.type === "text" ? "px-2 py-1 text-left whitespace-nowrap" : `${cell} tabular-nums`}>{val ?? ""}</td>;
                 })}
               </tr>
             ))}
