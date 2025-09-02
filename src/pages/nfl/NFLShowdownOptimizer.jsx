@@ -1,15 +1,11 @@
 // src/pages/nfl/NFLShowdownOptimizer.jsx
-// FULL DROP‑IN SHOWDOWN OPTIMIZER — v3
-// Implements:
-// • Team Max% overrides limited to slate teams (2 teams in Showdown)
-// • Exposure panel taller + tabs: All / Captain(MVP) / Flex (and totals)
-// • CSV Export:
-//    - DK: writes per-slot IDs (CPT vs FLEX) using site_ids.json slot tagging
-//    - FD: resolves DST/team naming like "Philadelphia Eagles" vs "Eagles"
-//           and maps pos D/DEF → DST; includes group prefix
-// • IF rules support IF {CPT/MVP or FLEX}
-// • Team exposure + simple stack shapes (e.g., 4-2, 3-3 across the two teams)
-// • Lineup Cards view (like classic)
+// FULL DROP‑IN — v3.1
+// Fixes:
+// 1) DK CSV now outputs "Player (ID)" correctly by matching DK site_ids entries
+//    using the site_ids `pos` field which is "FLEX" or "CPT" per-slot.
+// 2) FD DST salary shows correctly on load by leniently matching
+//    "Philadelphia Eagles" (FD) to "Eagles" (optimizer) when salary was 0.
+//    (Export behavior unchanged: still uses FD's full DST name.)
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API_BASE from "../../utils/api";
@@ -210,6 +206,9 @@ export default function NFLShowdownOptimizer() {
 
     const siteKey = cfg.key; // dk|fd
 
+    // pull FD list once
+    const fdList = Array.isArray(siteIds?.fd) ? siteIds.fd : (siteIds?.sites?.fd ?? []);
+
     const mapped = arr.map((r) => {
       const name = r.player ?? r.Player ?? r.Name ?? r.playerName ?? r.name ?? "";
       const pos  = normPos(r.pos ?? r.Pos ?? r.POS ?? r.Position ?? r.position ?? "");
@@ -222,20 +221,32 @@ export default function NFLShowdownOptimizer() {
       const flex_ceil  = num(pick(r, [`${siteKey} ceil`, `${SITES[siteKey].flexFieldPrefix} ceil`, "ceiling","ceil"], 0));
       const flex_pown  = num(pick(r, [`${siteKey} pown%`, `${SITES[siteKey].flexFieldPrefix} pown%`, "pown%","pown"])) / 100;
       const flex_opt   = num(pick(r, [`${siteKey} opt%`, `${SITES[siteKey].flexFieldPrefix} opt%`, "opt%","opt"])) / 100;
-      const flex_sal   = num(pick(r, [`${siteKey} sal`, `${SITES[siteKey].flexFieldPrefix} sal`, "salary", "sal", `${siteKey} salary`, `${SITES[siteKey].flexFieldPrefix} salary`, `${siteKey}_sal`, `${siteKey}_salary`, `${siteKey} flex sal`, `${siteKey} flex salary`, `${siteKey}_flex_sal`, `${siteKey}_flex_salary` ], 0));
+      let flex_sal   = num(pick(r, [`${siteKey} sal`, `${SITES[siteKey].flexFieldPrefix} sal`, "salary", "sal", `${siteKey} salary`, `${SITES[siteKey].flexFieldPrefix} salary`, `${siteKey}_sal`, `${siteKey}_salary`, `${siteKey} flex sal`, `${siteKey} flex salary`, `${siteKey}_flex_sal`, `${siteKey}_flex_salary` ], 0));
 
       const cap_proj = num(pick(r, [`${siteKey} ${SITES[siteKey].capTag.toLowerCase()} proj`, `${SITES[siteKey].mvpFieldPrefix} proj`, `${siteKey}_${SITES[siteKey].capTag.toLowerCase()}_proj`], flex_proj * 1.5));
       const cap_floor = num(pick(r, [`${siteKey} ${SITES[siteKey].capTag.toLowerCase()} floor`, `${SITES[siteKey].mvpFieldPrefix} floor`, `${siteKey}_${SITES[siteKey].capTag.toLowerCase()}_floor`], flex_floor * 1.5));
       const cap_ceil  = num(pick(r, [`${siteKey} ${SITES[siteKey].capTag.toLowerCase()} ceil`, `${SITES[siteKey].mvpFieldPrefix} ceil`, `${siteKey}_${SITES[siteKey].capTag.toLowerCase()}_ceil`], flex_ceil * 1.5));
       const cap_pown  = num(pick(r, [`${siteKey} ${SITES[siteKey].capTag.toLowerCase()} pown%`, `${SITES[siteKey].mvpFieldPrefix} pown%`, `${siteKey}_${SITES[siteKey].capTag.toLowerCase()}_pown%`], flex_pown * 100)) / 100;
       const cap_opt   = num(pick(r, [`${siteKey} ${SITES[siteKey].capTag.toLowerCase()} opt%`, `${SITES[siteKey].mvpFieldPrefix} opt%`, `${siteKey}_${SITES[siteKey].capTag.toLowerCase()}_opt%`], flex_opt * 100)) / 100;
-      const cap_sal   = num(pick(r, [`${siteKey} ${SITES[siteKey].capTag.toLowerCase()} sal`, `${SITES[siteKey].mvpFieldPrefix} sal`, `${siteKey}_${SITES[siteKey].capTag.toLowerCase()}_sal`, `${siteKey} ${SITES[siteKey].capTag.toLowerCase()} salary`, `${SITES[siteKey].mvpFieldPrefix} salary`, `${siteKey}_${SITES[siteKey].capTag.toLowerCase()}_salary`], 0)) || Math.round(flex_sal * 1.5);
+      let cap_sal   = num(pick(r, [`${siteKey} ${SITES[siteKey].capTag.toLowerCase()} sal`, `${SITES[siteKey].mvpFieldPrefix} sal`, `${siteKey}_${SITES[siteKey].capTag.toLowerCase()}_sal`, `${siteKey} ${SITES[siteKey].capTag.toLowerCase()} salary`, `${SITES[siteKey].mvpFieldPrefix} salary`, `${siteKey}_${SITES[siteKey].capTag.toLowerCase()}_salary`], 0)) || Math.round(flex_sal * 1.5);
+
+      // ---------- FD DST salary lenient patch ----------
+      if (siteKey === "fd" && pos === "DST" && (!flex_sal || flex_sal === 0)) {
+        const guess = fdList.find(x => normTeam(x.team) === team && normPosRaw(x.pos) === "D");
+        if (guess) {
+          const sFlex = num(guess.salary_flex || guess.salary || 0);
+          const sMvp  = num(guess.salary_mvp || Math.round(sFlex * 1.5));
+          if (!flex_sal) flex_sal = sFlex;
+          if (!cap_sal) cap_sal = sMvp;
+        }
+      }
+      // -------------------------------------------------
 
       return { name, pos, team, opp, proj: flex_proj, floor: flex_floor, ceil: flex_ceil, pown: flex_pown, opt: flex_opt, salary: flex_sal, cap_proj, cap_floor, cap_ceil, cap_pown, cap_opt, cap_salary: cap_sal, __raw: r };
     });
 
     return mapped.filter((r) => r.name && r.pos);
-  }, [data, site, cfg]);
+  }, [data, site, cfg, siteIds]);
 
   /* slate teams (only 2 in showdown) */
   const slateTeams = useMemo(() => {
@@ -263,7 +274,7 @@ export default function NFLShowdownOptimizer() {
   }, [expandedRows, order, q, tagFilter, cfg.capTag]);
 
   const sortable = new Set(["tag","pos","team","opp","salary","proj","floor","ceil","pown","opt","usage"]);
-  const setSort = (col) => { if (!sortable.has(col)) return; const dir = sortRef.current.col === col ? (sortRef.current.dir === "asc" ? "desc" : "asc") : "desc"; sortRef.current = { col, dir }; const mult = dir === "asc" ? 1 : -1; const sorted = [...displayRows].sort((a, b) => { if (["tag","pos","team","opp"].includes(col)) { const va = (col === "tag" ? a.tag : col === "pos" ? a.pos : col === "team" ? a.team : a.opp) || ""; const vb = (col === "tag" ? b.tag : col === "pos" ? b.pos : col === "team" ? b.team : col === "opp" ? b.opp : "") || ""; if (va < vb) return -1*mult; if (va > vb) return 1*mult; return a.name.localeCompare(b.name) * mult; } const map = { salary: "salaryDisplay", proj: "projDisplay", floor: "floorDisplay", ceil: "ceilDisplay", pown: "pownDisplay", opt: "optDisplay" }; const aV = col === "usage" ? (usagePct[a.key] || 0) : (a[map[col]] ?? 0); const bV = col === "usage" ? (usagePct[b.key] || 0) : (b[map[col]] ?? 0); if (aV < bV) return -1*mult; if (aV > bV) return 1*mult; return a.name.localeCompare(b.name) * mult; }); setOrder(sorted.map((r) => r.key)); };
+  const setSort = (col) => { if (!sortable.has(col)) return; const dir = sortRef.current.col === col ? (sortRef.current.dir === "asc" ? "desc" : "asc") : "desc"; sortRef.current = { col, dir }; const mult = dir === "asc" ? 1 : -1; const sorted = [...displayRows].sort((a, b) => { if (["tag","pos","team","opp"].includes(col)) { const va = (col === "tag" ? a.tag : col === "pos" ? a.pos : col === "team" ? a.team : a.opp) || ""; const vb = (col === "tag" ? b.tag : col === "pos" ? b.pos : col === "team" ? b.team : b.opp) || ""; if (va < vb) return -1*mult; if (va > vb) return 1*mult; return a.name.localeCompare(b.name) * mult; } const map = { salary: "salaryDisplay", proj: "projDisplay", floor: "floorDisplay", ceil: "ceilDisplay", pown: "pownDisplay", opt: "optDisplay", usage: null, }; const aV = col === "usage" ? (usagePct[a.key] || 0) : (a[map[col]] ?? 0); const bV = col === "usage" ? (usagePct[b.key] || 0) : (b[map[col]] ?? 0); if (aV < bV) return -1*mult; if (aV > bV) return 1*mult; return a.name.localeCompare(b.name) * mult; }); setOrder(sorted.map((r) => r.key)); };
   const sortArrow = (key) => sortRef.current.col === key ? (sortRef.current.dir === "asc" ? " ▲" : " ▼") : "";
 
   /* ------------------------------ actions ---------------------------- */
@@ -285,7 +296,7 @@ export default function NFLShowdownOptimizer() {
     // prepare team max overrides (only provided teams)
     const teamMax = {}; for (const tm of slateTeams) { const v = clamp(Number(teamMaxPct[tm]) || 0, 0, 100); if (String(teamMaxPct[tm] ?? "").trim() !== "") teamMax[tm] = v; }
 
-    const payload = { site, slots, players, n: Math.max(1, Number(numLineups) || 1), cap: Math.min(cfg.cap, Number(maxSalary) || cfg.cap), objective: optBy, locks: Array.from(locks), excludes: Array.from(excls), boosts: boost, randomness: clamp(Number(randomness) || 0, 0, 100), global_max_pct: clamp(Number(globalMax) || 100, 0, 100), team_max_pct: teamMax, min_pct: Object.fromEntries(Object.entries(minPct).map(([k, v]) => [k, clamp(Number(v) || 0, 0, 100)])), max_pct: Object.fromEntries(Object.entries(maxPct).map(([k, v]) => [k, clamp(Number(v) || 100, 0, 100)])), time_limit_ms: 1800, max_overlap: clamp(Number(maxOverlap) || 0, 0, 5), lineup_pown_max: String(lineupPownCap).trim() === "" ? null : clamp(Number(lineupPownCap) || 0, 0, 100), rules: apiRules };
+    const payload = { site, slots, players, n: Math.max(1, Number(numLineups) || 1), cap: Math.min(cfg.cap, Number(maxSalary) || cfg.cap), objective: optBy, locks: Array.from(locks), excludes: Array.from(excls), boosts: boost, randomness: clamp(Number(randomness) || 0, 0, 100), global_max_pct: clamp(Number(globalMax) || 100, 0, 100), team_max_pct: teamMax, min_pct: Object.fromEntries(Object.entries(minPct).map(([k, v]) => [k, clamp(Number(v) || 0, 0, 100)])), max_pct: Object.fromEntries(Object.entries(maxPct).map(([k, v]) => [k, clamp(Number(v) || 100, 0, 100)])), time_limit_ms: 1500, max_overlap: clamp(Number(maxOverlap) || 0, 0, 5), lineup_pown_max: String(lineupPownCap).trim() === "" ? null : clamp(Number(lineupPownCap) || 0, 0, 100), rules: apiRules };
 
     const out = []; try { await solveStreamShowdown(payload, (evt) => { const L = { players: evt.drivers, salary: evt.salary, total: evt.total }; out.push(L); setLineups((prev) => [...prev, L]); setProgressActual(out.length); }, () => { setProgressActual(out.length || payload.n); setProgressUI(out.length || payload.n); setIsOptimizing(false); clearInterval(tickRef.current); }); } catch (e) { alert(`Solve failed: ${String(e?.message || e)}`); setIsOptimizing(false); clearInterval(tickRef.current); }
   }
@@ -421,7 +432,7 @@ export default function NFLShowdownOptimizer() {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Player table */}
-        <div className="xl:col-span-2 rounded-xl border bg-white shadow-sm overflow-auto max-h-[720px]">
+        <div className="xl:col-span-2 rounded-xl border bg-white shadow-sm overflow-auto max-h=[720px]">
           <table className={`w-full border-separate ${textSz}`} style={{ borderSpacing: 0 }}>
             <thead className="bg-gray-50 sticky top-0 z-10">
               <tr>
@@ -464,9 +475,9 @@ export default function NFLShowdownOptimizer() {
           </table>
         </div>
 
-        {/* Right panel: bigger exposure + tabs */}
+        {/* Right panel: Exposure / Team / Stacks */}
         <div className="space-y-4">
-          <div className="rounded-lg border bg-white p-3 max-h=[700px] overflow-auto">
+          <div className="rounded-lg border bg-white p-3 max-h-[700px] overflow-auto">
             <div className="flex items-center justify-between mb-2">
               <div className="font-semibold">Exposure</div>
               <div className="inline-flex border rounded-md overflow-hidden text-xs">
@@ -525,7 +536,7 @@ export default function NFLShowdownOptimizer() {
                 <div key={idx} className="rounded-xl border shadow-sm">
                   <div className="px-3 py-2 text-sm font-semibold">Lineup #{idx+1}</div>
                   <table className={`w-full ${textSz}`}><thead><tr><th className={header}>Slot</th><th className={header}>Player</th><th className={header}>Proj</th><th className={header}>Sal</th></tr></thead><tbody>
-                    {L.players.map((n,i)=>{ const meta = rows.find(r=>r.name===n); if(!meta) return (<tr key={`${n}-${i}`} className="odd:bg-white even:bg-gray-50"><td className={cell}>{i===0?cfg.capTag:"FLEX"}</td><td className="px-2 py-1">{n}</td><td className={`${cell}`}>—</td><td className={`${cell}`}>—</td></tr>); const proj = i===0?meta.cap_proj:meta.proj; const sal = i===0?meta.cap_salary:meta.salary; return (<tr key={`${n}-${i}`} className="odd:bg-white even:bg-gray-50"><td className={cell}>{i===0?cfg.capTag:"FLEX"}</td><td className="px-2 py-1">{n}</td><td className={`${cell}`}>{fmt1(proj)}</td><td className={`${cell}`}>{fmt0(sal)}</td></tr>); })}
+                    {L.players.map((n,i)=>{ const meta = rows.find(r=>r.name===n); if(!meta) return (<tr key={`${n}-${i}`} className="odd:bg-white even:bg-gray-50"><td className={cell}>{i===0?cfg.capTag:"FLEX"}</td><td className="px-2 py-1">{n}</td><td className={`${cell}`}>—</td><td className={`${cell}`}>—</td></tr>); const proj = i===0?meta.cap_proj:meta.proj; const sal = i===0?meta.cap_salary:meta.salary; return (<tr key={`${n}-${i}`} className="odd:bg-white even:bg-gray-50"><td className={cell}>{i===0?cfg.capTag:"FLEX"}</td><td className="px-2 py-1">{n}</td><td className={cell}>{fmt1(proj)}</td><td className={cell}>{fmt0(sal)}</td></tr>); })}
                     <tr className="bg-gray-50 font-medium"><td className={cell}>Totals</td><td className="px-2 py-1"></td><td className={cell}>{fmt1(L.total)}</td><td className={cell}>{fmt0(L.salary)}</td></tr>
                   </tbody></table>
                 </div>
@@ -545,15 +556,18 @@ function downloadSiteLineupsCSV({ lineups, site, rows, siteIds, cfg, fname = "nf
   const siteKey = site === "fd" ? "fd" : "dk";
   const list = Array.isArray(siteIds?.[siteKey]) ? siteIds[siteKey] : (siteIds?.sites?.[siteKey] ?? []);
 
-  const keyStrict = (n,t,p) => `${normName(n)}|${normTeam(t)}|${normPos(p)}`;
-  const keyLoose  = (n,p)   => `${normName(n)}|${normPos(p)}`;
-  const keyTeam   = (t,p)   => `${normTeam(t)}|${normPos(p)}`;
+  const rowsByName = new Map(rows.map(r => [r.name, r]));
 
+  // Key helpers
+  const keyDK = (name, team, slot) => `${normName(name)}|${normTeam(team)}|${slot}`;
+  const keyFD = (name, team, pos)  => `${normName(name)}|${normTeam(team)}|${pos}`;
+
+  // Build indices
   const dkCPT = new Map();
   const dkFLEX = new Map();
   const fdAny = new Map();
 
-  // FanDuel prefix (group id)
+  // FD prefix (group id)
   let fdPrefix = null;
   if (siteKey === "fd") {
     const prefCounts = new Map();
@@ -565,45 +579,65 @@ function downloadSiteLineupsCSV({ lineups, site, rows, siteIds, cfg, fname = "nf
     else if (prefCounts.size > 1) fdPrefix = [...prefCounts.entries()].sort((a,b) => b[1]-a[1])[0][0];
   }
 
-  // index site ids
   for (const r of list) {
-    const rawPos = r.pos ?? r.Pos ?? r.position ?? r.POS; const pos = normPos(rawPos);
     const team = normTeam(r.team ?? r.Team ?? r.team_abbr ?? r.TeamAbbrev);
-    const nameFromSite = String(r.name ?? r.player ?? r.Player ?? "");
+    const nameFromSite = String(r.name ?? r.player ?? r.Player ?? r.raw_name ?? "");
     const baseId = String(r.id ?? r.ID ?? r.Id ?? r["DK ID"] ?? r["FD ID"] ?? r.dk_id ?? r.fd_id ?? "");
-    const rec = { id: baseId, nameFromSite, team, pos };
-
-    // add helpful aliases for DST (e.g., Philadelphia Eagles vs Eagles)
-    const aliases = new Set([nameFromSite]);
-    const meta = NFL_TEAMS[team];
-    if (pos === "DST" && meta) {
-      aliases.add(meta.nickname); aliases.add(`${meta.city} ${meta.nickname}`); aliases.add(meta.city);
-    }
-
+    const posOrSlot = String(r.pos ?? r.slottype ?? "").toUpperCase(); // DK: "FLEX"/"CPT" ; FD: positions like QB/WR/D/etc.
     if (siteKey === "dk") {
-      const posTag = (r.slot ?? r.slottype ?? r["slot"] ?? r["pos_slot"] ?? r["position_slot"] ?? r["position"]) || r.pos;
-      const slot = String(posTag || "FLEX").toUpperCase().includes("CPT") ? "CPT" : "FLEX";
-      for (const nm of aliases) { const ks = keyStrict(nm, team, pos); const kl = keyLoose(nm, pos); (slot === "CPT" ? dkCPT : dkFLEX).set(ks, rec); (slot === "CPT" ? dkCPT : dkFLEX).set(kl, rec); if (pos === "DST") (slot === "CPT" ? dkCPT : dkFLEX).set(keyTeam(team, "DST"), rec); }
+      if (posOrSlot === "CPT") dkCPT.set(keyDK(nameFromSite, team, "CPT"), { id: baseId, nameFromSite, team });
+      else dkFLEX.set(keyDK(nameFromSite, team, "FLEX"), { id: baseId, nameFromSite, team });
+      // also add DST aliases for safety (Eagles vs Philadelphia Eagles won't apply to DK, DK uses "Eagles")
     } else {
-      for (const nm of aliases) { const ks = keyStrict(nm, team, pos); const kl = keyLoose(nm, pos); fdAny.set(ks, rec); fdAny.set(kl, rec); if (pos === "DST") fdAny.set(keyTeam(team, "DST"), rec); }
+      const pos = normPos(posOrSlot); // map D/DEF → DST
+      fdAny.set(keyFD(nameFromSite, team, pos), { id: baseId, nameFromSite, team, pos });
+      // DST team aliases
+      const meta = NFL_TEAMS[team];
+      if (pos === "DST" && meta) {
+        fdAny.set(keyFD(`${meta.city} ${meta.nickname}`, team, pos), { id: baseId, nameFromSite, team, pos });
+        fdAny.set(keyFD(meta.nickname, team, pos), { id: baseId, nameFromSite, team, pos });
+        fdAny.set(keyFD(meta.city, team, pos), { id: baseId, nameFromSite, team, pos });
+      }
     }
   }
 
-  const rowsByName = new Map(rows.map(r => [r.name, r]));
   const header = ["#", "Salary", "Total", "D1","D2","D3","D4","D5","D6"];
 
-  const findDK = (name, pos, team, slot) => { const ks = keyStrict(name, team, pos); const kl = keyLoose(name, pos); const m = slot === 0 ? dkCPT : dkFLEX; return m.get(ks) || m.get(kl) || (pos === "DST" ? m.get(keyTeam(team, "DST")) : null); };
-  const findFD = (name, pos, team) => { const ks = keyStrict(name, team, pos); const kl = keyLoose(name, pos); return fdAny.get(ks) || fdAny.get(kl) || (pos === "DST" ? fdAny.get(keyTeam(team, "DST")) : null); };
+  const findDK = (name, team, slot) => {
+    // try strict key with original site name variants
+    let rec = dkCPT.get(keyDK(name, team, slot)) || dkFLEX.get(keyDK(name, team, slot));
+    if (rec) return rec;
+    // try normalized variants (DST nicknames etc. — DK already uses "Eagles"/"Cowboys")
+    const meta = NFL_TEAMS[team];
+    if (meta) {
+      rec = (slot==="CPT"?dkCPT:dkFLEX).get(keyDK(meta.nickname, team, slot)) ||
+            (slot==="CPT"?dkCPT:dkFLEX).get(keyDK(`${meta.city} ${meta.nickname}`, team, slot));
+      if (rec) return rec;
+    }
+    // final fallback: ignore team (rare) — match by name only
+    for (const [k,v] of (slot==="CPT"?dkCPT:dkFLEX).entries()) {
+      if (k.startsWith(`${normName(name)}|`) ) return v;
+    }
+    return null;
+  };
+
+  const findFD = (name, pos, team) => {
+    return fdAny.get(keyFD(name, team, pos)) ||
+           (()=>{ const meta = NFL_TEAMS[team]; if (!meta) return null;
+                  return fdAny.get(keyFD(`${meta.city} ${meta.nickname}`, team, pos)) ||
+                         fdAny.get(keyFD(meta.nickname, team, pos)) ||
+                         fdAny.get(keyFD(meta.city, team, pos)); })();
+  };
 
   const lines = lineups.map((L, idx) => {
     const ordered = orderPlayersForSiteShowdown(L.players, rowsByName);
     const cells = ordered.map((meta, i) => {
-      const name = meta.name; const pos = meta.pos; const tm = meta.team;
+      const name = meta.name; const tm = meta.team;
       if (siteKey === "fd") {
-        const rec = findFD(name, pos, tm); if (!rec) return escapeCSV(name);
+        const pos = meta.pos; const rec = findFD(name, pos, tm); if (!rec) return escapeCSV(name);
         const outId = fdPrefix ? `${fdPrefix}-${rec.id}` : rec.id; return escapeCSV(`${outId}:${rec.nameFromSite || name}`);
       } else {
-        const rec = findDK(name, pos, tm, i); if (!rec) return escapeCSV(`${name}`);
+        const slot = i===0 ? "CPT" : "FLEX"; const rec = findDK(name, tm, slot); if (!rec) return escapeCSV(`${name}`);
         return escapeCSV(`${name} (${rec.id})`);
       }
     });
