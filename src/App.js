@@ -49,20 +49,20 @@ import TrucksOptimizer from "./pages/nascar/TrucksOptimizer";
 import TrucksData from "./pages/nascar/TrucksData";
 
 /* ---------------- NFL (CLASSIC) ---------------- */
-import NflProjections from "./pages/nfl/NflProjections";                      // :contentReference[oaicite:0]{index=0}
+import NflProjections from "./pages/nfl/NflProjections";
 import NflStacks from "./pages/nfl/NflStacks";
 import NflCheatSheets from "./pages/nfl/NflCheatSheets";
 import NFLOptimizer from "./pages/nfl/NflOptimizer";
 
 // position projections
-import NflQBProjections from "./pages/nfl/NflQBProjections";                  // :contentReference[oaicite:1]{index=1}
-import NflRBProjections from "./pages/nfl/NflRBProjections";                  // :contentReference[oaicite:2]{index=2}
+import NflQBProjections from "./pages/nfl/NflQBProjections";
+import NflRBProjections from "./pages/nfl/NflRBProjections";
 import NflWRProjections from "./pages/nfl/NflWRProjections";
 import NflTEProjections from "./pages/nfl/NflTEProjections";
 
 // position data
-import NflQBData from "./pages/nfl/NflQBData";                                // :contentReference[oaicite:3]{index=3}
-import NflRBData from "./pages/nfl/NflRBData";                                // :contentReference[oaicite:4]{index=4}
+import NflQBData from "./pages/nfl/NflQBData";
+import NflRBData from "./pages/nfl/NflRBData";
 import NflWRData from "./pages/nfl/NflWRData";
 import NflTEData from "./pages/nfl/NflTEData";
 // import NflDSTData from "./pages/nfl/NflDSTData";
@@ -87,6 +87,9 @@ import NflRBProjectionsShowdown from "./pages/nfl/NflRBProjectionsShowdown";
 import NflWRProjectionsShowdown from "./pages/nfl/NflWRProjectionsShowdown";
 import NflTEProjectionsShowdown from "./pages/nfl/NflTEProjectionsShowdown";
 // import NflDSTProjectionsShowdown from "./pages/nfl/NflDSTProjectionsShowdown";
+
+/* ---------------- MLB ---------------- */
+import MlbPitcherProjections from "./pages/mlb/MlbPitcherProjections";
 
 function NotFound() {
   return (
@@ -245,6 +248,19 @@ export default function App() {
               {/* Default NFL redirect */}
               <Route path="/nfl/showdown" element={<Navigate to="/nfl/showdown/projections" replace />} />
               <Route path="/nfl" element={<Navigate to="/nfl/classic/projections" replace />} />
+
+              {/* ============ MLB ============ */}
+              <Route path="/mlb/pitcher-projections" element={<MlbPitcherProjections />} />
+              {/* Future MLB pages:
+                  <Route path="/mlb/batter-projections" element={<MlbBatterProjections />} />
+                  <Route path="/mlb/stacks" element={<MlbStacks />} />
+                  <Route path="/mlb/cheatsheets" element={<MlbCheatSheets />} />
+                  <Route path="/mlb/pitcher-data" element={<MlbPitcherData />} />
+                  <Route path="/mlb/batter-data" element={<MlbBatterData />} />
+                  <Route path="/mlb/optimizer" element={<MlbOptimizer />} />
+              */}
+              {/* Default MLB redirect */}
+              <Route path="/mlb" element={<Navigate to="/mlb/pitcher-projections" replace />} />
             </Route>
 
             {/* ---------- 404 ---------- */}

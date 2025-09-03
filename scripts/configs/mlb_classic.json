@@ -1,0 +1,73 @@
+{
+  "tasks": [
+    {
+      "sheet": "Pitcher Projections",
+      "header_row": 2,
+      "data_start_row": 3,
+      "usecols": "A:AZ",
+      "filters": [{ "column": "Player", "op": "nonempty" }],
+      "keep_columns": null,
+      "outfile": "pitcher_projections"
+    },
+    {
+      "sheet": "Batter Projections",
+      "header_row": 2,
+      "data_start_row": 3,
+      "usecols": "A:AZ",
+      "filters": [{ "column": "Player", "op": "nonempty" }],
+      "keep_columns": null,
+      "outfile": "batter_projections"
+    },
+    {
+      "sheet": "Top Stacks",
+      "header_row": 2,
+      "data_start_row": 3,
+      "usecols": "A:AZ",
+      "filters": [{ "column": "Team", "op": "nonempty" }],
+      "keep_columns": null,
+      "outfile": "stacks"
+    },
+    {
+      "sheet": "Pitcher Data",
+      "header_row": 2,
+      "data_start_row": 3,
+      "usecols": "A:AZ",
+      "filters": [{ "column": "Player", "op": "nonempty" }],
+      "keep_columns": null,
+      "outfile": "pitcher_data"
+    },
+    {
+      "sheet": "Batters Data",
+      "header_row": 2,
+      "data_start_row": 3,
+      "usecols": "A:AZ",
+      "filters": [{ "column": "Player", "op": "nonempty" }],
+      "keep_columns": null,
+      "outfile": "batter_data"
+    }
+  ],
+
+  "matchups": {
+    "sheet": ["MLB Dashboard"],
+    "out_rel": "data/mlb/latest/matchups",
+    "header_yellow_rgb": ["FFFFE699", "FFFFF2CC", "FFFFFF00"]
+  },
+
+  "site_ids": {
+    "dk_sheet": "DK Sals",
+    "dk_autodetect": true,
+
+    "fd_sheet": "FD Sals",
+    "fd_autodetect": true,
+
+    "row_hard_cap": 5000,
+    "out_rel": "data/mlb/latest/site_ids"
+  },
+
+  "name_xwalk": {
+    "projection_sheets": ["Batter Projections", "Pitcher Projections"],
+    "header_row": 2,
+    "data_start_row": 3,
+    "out_rel": "data/mlb/latest/name_xwalk"
+  }
+}
