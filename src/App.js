@@ -92,9 +92,10 @@ import NflTEProjectionsShowdown from "./pages/nfl/NflTEProjectionsShowdown";
 import MlbPitcherProjections from "./pages/mlb/MlbPitcherProjections";
 import MlbBattersProjections from "./pages/mlb/MlbBattersProjections";
 import MlbStacks from "./pages/mlb/MlbStacks";
-import MlbCheatSheet from "./pages/mlb/MlbCheatSheet"; // ← NEW: separate page
+import MlbCheatSheet from "./pages/mlb/MlbCheatSheet"; // ← separate page
 import PitcherData from "./pages/mlb/PitcherData";
 import BatterData from "./pages/mlb/BatterData";
+import MlbMatchups from "./pages/mlb/MlbMatchups"; // ← NEW
 
 function NotFound() {
   return (
@@ -261,8 +262,16 @@ export default function App() {
               <Route path="/mlb/hitters" element={<Navigate to="/mlb/batter-projections" replace />} />
               <Route path="/mlb/stacks" element={<MlbStacks />} />
               <Route path="/mlb/cheatsheets" element={<MlbCheatSheet />} /> {/* separate page */}
-              <Route path="/mlb/pitchers" element={<PitcherData />} />
+
+              {/* Data pages */}
+              <Route path="/mlb/pitcher-data" element={<PitcherData />} />
               <Route path="/mlb/batter-data" element={<BatterData />} />
+
+              {/* Back-compat for old pitcher data path */}
+              <Route path="/mlb/pitchers" element={<Navigate to="/mlb/pitcher-data" replace />} />
+
+              {/* NEW: MLB Matchups */}
+              <Route path="/mlb/matchups" element={<MlbMatchups />} />
 
               {/* Default MLB redirect */}
               <Route path="/mlb" element={<Navigate to="/mlb/pitcher-projections" replace />} />

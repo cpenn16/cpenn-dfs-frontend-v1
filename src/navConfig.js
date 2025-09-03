@@ -96,6 +96,7 @@ export const sportsNav = [
       { label: "Cheat Sheets", path: "/mlb/cheat-sheets" },
       { label: "Pitcher Data", path: "/mlb/pitcher-data" },
       { label: "Batter Data", path: "/mlb/batter-data" },
+       { label: "MLB Matchups", path: "/mlb/matchups" },
       { label: "Optimizer", path: "/mlb/optimizer" },
     ],
   },
