@@ -6,8 +6,7 @@ MLB_Exporter.py  (JSON-only)
 ----------------------------
 Exports MLB workbook tabs to JSON and parses the MLB Dashboard by yellow header panels.
 
-Defaults are set near the top (ROOT/paths block) to match your NFL exporter style.
-Override at runtime with:
+Overrides:
   --xlsm   "C:\\path\\to\\MLB Slate.xlsm"
   --config "...\mlb_classic.json"
   --out    "...\public\\data\\mlb\\latest"
@@ -18,6 +17,8 @@ import json
 import re
 from pathlib import Path
 from typing import List, Dict, Any, Optional
+from datetime import datetime, date, time
+from decimal import Decimal
 
 import pandas as pd
 from openpyxl import load_workbook
@@ -88,7 +89,7 @@ SHEETS_CONFIG: List[Dict[str, Any]] = [
     },
 ]
 
-DASHBOARD_SHEET_NAME = "MLB Dashboard"
+DASHBOARD_SHEET_NAME = "MLB Dashboard"   # yellow panels live here
 
 # Common Excel yellow fills used on your headers
 YELLOW_FILLS = {
@@ -165,7 +166,10 @@ def read_table(xlsx_path: Path, sheet: str, header_row: int, data_start_row: int
     body = body.dropna(axis=1, how="all")
     return body
 
-def parse_dashboard_panels(xlsx_path: Path, sheet_name: str, yellow_fills: Optional[set] = None) -> List[Dict[str, Any]]:
+
+# ------------------------ PANEL PARSING (YELLOW BARS) ------------------------
+
+def parse_yellow_panels(xlsx_path: Path, sheet_name: str, yellow_fills: Optional[set] = None) -> List[Dict[str, Any]]:
     """
     Detect header rows by:
       1) Yellow-ish fills (rgb OR theme/indexed with SOLID pattern)
@@ -271,15 +275,26 @@ def parse_dashboard_panels(xlsx_path: Path, sheet_name: str, yellow_fills: Optio
 
     return panels
 
-def load_config(path_str: Optional[str]) -> Optional[dict]:
-    if not path_str:
+
+# ------------------------ JSON-SAFE CONVERSION ------------------------
+
+def _jsonify_value(v):
+    """Make Excel/py types JSON safe with desired formats."""
+    if v is None or v == "":
         return None
-    p = Path(path_str)
-    if not p.exists():
-        print(f"⚠️  Config not found: {p}")
-        return None
-    with p.open("r", encoding="utf-8") as f:
-        return json.load(f)
+    if isinstance(v, pd.Timestamp):
+        return v.to_pydatetime().isoformat()
+    if isinstance(v, (datetime, date)):
+        return v.isoformat()
+    if isinstance(v, time):
+        s = v.strftime("%I:%M:%S %p")   # e.g. '07:40:00 PM'
+        return s.lstrip("0")            # '7:40:00 PM'
+    if isinstance(v, Decimal):
+        return float(v)
+    return v
+
+def _jsonify_rows_matrix(rows: List[List[Any]]) -> List[List[Any]]:
+    return [[_jsonify_value(x) for x in r] for r in rows]
 
 
 # ------------------------ CHEAT SHEET BUILDER ------------------------
@@ -297,30 +312,26 @@ NORMALIZE_TITLES = {
 }
 
 def _rows_to_dicts(rows: List[List[Any]]) -> List[Dict[str, Any]]:
-    """First row is headers; rest are records."""
+    """First row is headers; rest are records (JSON-safe)."""
     if not rows:
         return []
     headers = [str(h).strip() if h is not None else "" for h in rows[0]]
-    # ensure unique keys
     headers = _make_unique_columns(headers)
-    out = []
+    out: List[Dict[str, Any]] = []
     for r in rows[1:]:
         obj = {}
         for i, h in enumerate(headers):
-            obj[h] = r[i] if i < len(r) else None
-        # drop rows that are fully empty
+            obj[h] = _jsonify_value(r[i] if i < len(r) else None)
         if any(v not in (None, "", " ") for v in obj.values()):
             out.append(obj)
     return out
 
 def compose_cheat_sheet_from_panels(panels: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
-    Build a thin cheat_sheet.json structure that mirrors your screenshot:
-    sections keyed by:
-      Pitcher, C, 1B, 2B, 3B, SS, OF (merged), Cash Core, Top Stacks
+    Build cheat_sheet.json structure that mirrors your screenshot:
+      sections keyed by: Pitcher, C, 1B, 2B, 3B, SS, OF (merged), Cash Core, Top Stacks
     """
     out: Dict[str, Any] = {}
-
     for p in panels:
         title_raw = str(p.get("title") or "").strip()
         key = NORMALIZE_TITLES.get(title_raw.upper())
@@ -329,18 +340,25 @@ def compose_cheat_sheet_from_panels(panels: List[Dict[str, Any]]) -> Dict[str, A
         recs = _rows_to_dicts(p.get("rows") or [])
         if not recs:
             continue
-
         if key == "OF":
-            # Merge multiple OF blocks
             out.setdefault("OF", [])
             out["OF"].extend(recs)
         else:
             out[key] = recs
-
     return out
 
 
 # ------------------------ MAIN ------------------------
+
+def load_config(path_str: Optional[str]) -> Optional[dict]:
+    if not path_str:
+        return None
+    p = Path(path_str)
+    if not p.exists():
+        print(f"⚠️  Config not found: {p}")
+        return None
+    with p.open("r", encoding="utf-8") as f:
+        return json.load(f)
 
 def main():
     ap = argparse.ArgumentParser()
@@ -401,23 +419,35 @@ def main():
         except Exception as e:
             print(f"❌  {sheet}: {e}")
 
-    # Parse MLB Dashboard panels → matchups_raw.json + cheat_sheet.json
+    # Parse yellow panels once (your Dashboard holds both matchups + cheat sheet blocks)
     try:
-        panels = parse_dashboard_panels(xlsx_path, dashboard_sheet_name, yellow_fills)
+        panels = parse_yellow_panels(xlsx_path, dashboard_sheet_name, yellow_fills)
+
+        # 1) Raw panels for debugging (matchups-style)
         (out_dir / "matchups_raw.json").write_text(
             json.dumps(panels, ensure_ascii=False), encoding="utf-8"
         )
         print(f"✔️  {dashboard_sheet_name} → matchups_raw.json ({len(panels)} panels)")
 
-        cheat = compose_cheat_sheet_from_panels(panels)
+        # 2) Raw cheat sheet panels with JSON-safe cells
+        cs_panels_safe = []
+        for p in panels:
+            q = dict(p)
+            q["rows"] = _jsonify_rows_matrix(p.get("rows") or [])
+            cs_panels_safe.append(q)
+        (out_dir / "cheat_sheet_raw.json").write_text(
+            json.dumps(cs_panels_safe, ensure_ascii=False), encoding="utf-8"
+        )
+
+        # 3) Composed cheat sheet (merged OF, etc.)
+        cheat = compose_cheat_sheet_from_panels(cs_panels_safe)
         (out_dir / "cheat_sheet.json").write_text(
             json.dumps(cheat, ensure_ascii=False), encoding="utf-8"
         )
         print(f"✔️  {dashboard_sheet_name} → cheat_sheet.json (sections: {', '.join(cheat.keys())})")
 
     except Exception as e:
-        print(f"❌  Dashboard parse failed: {e}")
-
+        print(f"❌  Dashboard/cheat-sheet parse failed: {e}")
 
 if __name__ == "__main__":
     main()
