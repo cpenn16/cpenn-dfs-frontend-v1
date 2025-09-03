@@ -90,6 +90,7 @@ import NflTEProjectionsShowdown from "./pages/nfl/NflTEProjectionsShowdown";
 
 /* ---------------- MLB ---------------- */
 import MlbPitcherProjections from "./pages/mlb/MlbPitcherProjections";
+import MlbBattersProjections from "./pages/mlb/MlbBattersProjections";
 
 function NotFound() {
   return (
