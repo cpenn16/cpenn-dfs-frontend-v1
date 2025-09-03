@@ -2,7 +2,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
 /* ------------------------------- config ------------------------------- */
-/** Override with env if you like */
 const PITCHERS_URL =
   import.meta.env?.VITE_MLB_PITCHERS_URL || "/data/mlb/latest/pitcher_projections.json";
 const BATTERS_URL =
@@ -17,15 +16,18 @@ const num = (v) => {
   const n = Number(String(v ?? "").replace(/[,$%\s]/g, ""));
   return Number.isFinite(n) ? n : null;
 };
-// Round to whole dollars (no decimals) for all salary displays.
+
+// Whole dollars, no decimals
 const fmtMoney = (v) => {
   const n = num(v);
   return n == null ? "" : Math.round(n).toLocaleString();
 };
+
 const fmt1 = (v) => {
   const n = num(v);
   return n == null ? "" : n.toFixed(1);
 };
+
 const fmtPct = (v) => {
   if (v == null || v === "") return "";
   let s = String(v).trim();
@@ -38,6 +40,7 @@ const fmtPct = (v) => {
   if (Math.abs(n) <= 1) n *= 100;
   return `${n.toFixed(1)}%`;
 };
+
 const time12 = (v) => {
   if (!v) return "";
   const s = String(v).trim();
@@ -56,16 +59,42 @@ const time12 = (v) => {
   return `${hh}:${mm}:00 ${ampm}`;
 };
 
-/** value getter tolerant to many header names */
+const GET_TIME_KEYS = [
+  "Time",
+  "time",
+  "Start",
+  "Start Time",
+  "StartTime",
+  "Start ET",
+  "StartET",
+  "Game Time",
+  "ET",
+  "t",
+];
+
+/** tolerant getter */
 const get = (row, keys) => {
   if (!row) return undefined;
   for (const k of (Array.isArray(keys) ? keys : [keys])) {
-    if (row[k] !== undefined && row[k] !== null && row[k] !== "") return row[k];
+    const v = row[k];
+    if (v !== undefined && v !== null && v !== "") return v;
   }
   return undefined;
 };
 
-/* unified rows */
+/* --------------------------- row adapters ----------------------------- */
+// Prefer implied totals then fallbacks; include short 'v'
+const VEGAS_KEYS = [
+  "Imp. Tot",
+  "Imp. Total",
+  "ImpTotal",
+  "Implied Total",
+  "v",
+  "Vegas",
+  "Total",
+  "O/U",
+];
+
 const adaptPitcher = (r) => {
   const pos = String(get(r, ["Pos", "Position", "POS"]) || "").toUpperCase();
   return {
@@ -73,10 +102,8 @@ const adaptPitcher = (r) => {
     pos,
     team: get(r, ["Team", "Tm"]),
     opp: get(r, ["Opp", "Opponent"]),
-    // Prefer implied team total for "Vegas" display
-    vegas: get(r, ["Imp. Total", "ImpTotal", "Implied Total", "Total", "Vegas", "O/U"]),
-    // Try several keys for time
-    time: get(r, ["Time", "time", "Start", "Start Time", "StartTime"]),
+    vegas: get(r, VEGAS_KEYS),
+    time: get(r, GET_TIME_KEYS),
     dkSal: num(get(r, ["DK Sal", "DK_Sal", "DKSal", "dk_salary"])),
     dkProj: num(get(r, ["DK Proj", "dk_points", "DKProj"])),
     dkVal: num(get(r, ["DK Val", "dk_val", "DKVal"])),
@@ -89,8 +116,8 @@ const adaptBatter = (r) => ({
   pos: String(get(r, ["Pos", "Position", "POS"]) || "").toUpperCase(),
   team: get(r, ["Team", "Tm"]),
   opp: get(r, ["Opp", "Opponent"]),
-  vegas: get(r, ["Imp. Total", "ImpTotal", "Implied Total", "Vegas", "Total", "O/U"]),
-  time: get(r, ["Time", "time", "Start", "Start Time", "StartTime"]),
+  vegas: get(r, VEGAS_KEYS),
+  time: get(r, GET_TIME_KEYS),
   dkSal: num(get(r, ["DK Sal", "DK_Sal", "DKSal", "dk_salary"])),
   dkProj: num(get(r, ["DK Proj", "dk_points", "DKProj"])),
   dkVal: num(get(r, ["DK Val", "dk_val", "DKVal"])),
@@ -101,15 +128,15 @@ const adaptStack = (r) => ({
   team: get(r, ["Team", "team"]),
   opp: get(r, ["Opp", "opp"]),
   oppPitcher: get(r, ["Opp Pitcher", "opp_pitcher", "oppPitcher"]),
-  vegas: get(r, ["Imp. Tot", "Imp. Total", "ImpTotal", "Implied Total", "Total", "Vegas", "O/U"]),
-  time: get(r, ["Time", "time", "Start", "Start Time", "StartTime"]),
+  vegas: get(r, VEGAS_KEYS),
+  time: get(r, GET_TIME_KEYS),
   dkSal: num(get(r, ["DK Sal", "dk_sal"])),
   dkProj: num(get(r, ["DK Proj", "dk_proj"])),
   dkVal: num(get(r, ["DK Val", "dk_val"])),
   dkOwn: get(r, ["DK pOWN%", "dk_pown", "dk_pown%"]),
 });
 
-/* basic fetch hook */
+/* ------------------------------- data hook ---------------------------- */
 function useJson(url) {
   const [rows, setRows] = useState([]);
   const [err, setErr] = useState("");
@@ -136,18 +163,16 @@ function useJson(url) {
   return { rows, err, loading };
 }
 
-/* ------------------------------- tables ------------------------------- */
-
-function SectionHeader({ children }) {
-  return (
-    <div className="bg-gray-100 text-[11px] font-semibold grid grid-cols-9 gap-1 px-2 py-1 rounded-t">
-      {children}
-    </div>
-  );
-}
-
+/* ------------------------------- UI bits ------------------------------ */
+// Compact table styles (match Top Stacks compactness)
+const headerCls =
+  "bg-gray-100 text-[11px] font-semibold grid grid-cols-9 gap-1 px-2 py-1 rounded-t";
 const rowBaseCls =
   "grid grid-cols-9 gap-1 px-2 py-[2px] text-[11px] odd:bg-white even:bg-gray-50";
+
+function SectionHeader({ children }) {
+  return <div className={headerCls}>{children}</div>;
+}
 
 function RowPitcher({ r }) {
   const abv = String(r.team || "").toUpperCase();
@@ -236,11 +261,12 @@ export default function MlbCheatSheet() {
   const batters = useJson(BATTERS_URL);
   const stacks = useJson(STACKS_URL);
 
+  // Pitchers: accept any position that contains 'P' (SP/RP/P, etc.)
   const pRows = useMemo(
     () =>
       (pitchers.rows || [])
         .map(adaptPitcher)
-        .filter((r) => r.player && (r.pos === "SP" || r.pos === "RP")) // only pitchers
+        .filter((r) => r.player && (r.pos || "").includes("P"))
         .sort((a, b) => (b.dkProj ?? 0) - (a.dkProj ?? 0))
         .slice(0, 6),
     [pitchers.rows]
@@ -260,7 +286,7 @@ export default function MlbCheatSheet() {
       .sort((a, b) => (b.dkProj ?? 0) - (a.dkProj ?? 0))
       .slice(offset, offset + n);
 
-  // OF Top 3 and Next 3 like your sheet
+  // OF top 3 + next 3
   const ofTop = byPos("OF", 3, 0);
   const ofNext = byPos("OF", 3, 3);
 
@@ -270,7 +296,7 @@ export default function MlbCheatSheet() {
   const b3Top = byPos("3B", 3);
   const ssTop = byPos("SS", 3);
 
-  // Cash core (simple: top P + top two bats by value)
+  // Cash core: top pitcher + top 2 bats by value
   const cashP = pRows[0];
   const coreBats = [...bAll].sort((a, b) => (b.dkVal ?? 0) - (a.dkVal ?? 0)).slice(0, 2);
 
@@ -289,8 +315,8 @@ export default function MlbCheatSheet() {
 
   return (
     <div className="px-4 md:px-6 py-5">
-      {/* Yellow merged header bar */}
-      <div className="w-full rounded-xl bg-yellow-300 text-black font-extrabold text-xl md:text-2xl px-4 py-2 mb-4 shadow-sm">
+      {/* Centered yellow banner */}
+      <div className="w-full rounded-xl bg-yellow-300 text-black font-extrabold text-xl md:text-2xl px-4 py-2 mb-4 shadow-sm text-center">
         Cheat Sheet
       </div>
 
@@ -302,11 +328,11 @@ export default function MlbCheatSheet() {
         <div className="text-gray-600">Loading…</div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* LEFT COLUMN */}
+          {/* LEFT */}
           <div className="flex flex-col gap-4">
-            {/* Pitchers */}
+            {/* Pitcher */}
             <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-              <div className="px-3 py-2 font-bold">Pitcher</div>
+              <div className="px-3 py-2 font-bold text-[13px]">Pitcher</div>
               <SectionHeader>
                 <div className="col-span-2">Player</div>
                 <div>Salary</div>
@@ -327,7 +353,7 @@ export default function MlbCheatSheet() {
 
             {/* C */}
             <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-              <div className="px-3 py-2 font-bold">C</div>
+              <div className="px-3 py-2 font-bold text-[13px]">C</div>
               <SectionHeader>
                 <div className="col-span-2">Player</div>
                 <div>Salary</div>
@@ -344,7 +370,7 @@ export default function MlbCheatSheet() {
 
             {/* 1B */}
             <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-              <div className="px-3 py-2 font-bold">1B</div>
+              <div className="px-3 py-2 font-bold text-[13px]">1B</div>
               <SectionHeader>
                 <div className="col-span-2">Player</div>
                 <div>Salary</div>
@@ -361,7 +387,7 @@ export default function MlbCheatSheet() {
 
             {/* 2B */}
             <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-              <div className="px-3 py-2 font-bold">2B</div>
+              <div className="px-3 py-2 font-bold text-[13px]">2B</div>
               <SectionHeader>
                 <div className="col-span-2">Player</div>
                 <div>Salary</div>
@@ -378,7 +404,7 @@ export default function MlbCheatSheet() {
 
             {/* 3B */}
             <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-              <div className="px-3 py-2 font-bold">3B</div>
+              <div className="px-3 py-2 font-bold text-[13px]">3B</div>
               <SectionHeader>
                 <div className="col-span-2">Player</div>
                 <div>Salary</div>
@@ -395,7 +421,7 @@ export default function MlbCheatSheet() {
 
             {/* SS */}
             <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-              <div className="px-3 py-2 font-bold">SS</div>
+              <div className="px-3 py-2 font-bold text-[13px]">SS</div>
               <SectionHeader>
                 <div className="col-span-2">Player</div>
                 <div>Salary</div>
@@ -411,11 +437,11 @@ export default function MlbCheatSheet() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN */}
+          {/* RIGHT */}
           <div className="flex flex-col gap-4">
             {/* OF block 1 */}
             <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-              <div className="px-3 py-2 font-bold">OF</div>
+              <div className="px-3 py-2 font-bold text-[13px]">OF</div>
               <SectionHeader>
                 <div className="col-span-2">Player</div>
                 <div>Salary</div>
@@ -432,7 +458,7 @@ export default function MlbCheatSheet() {
 
             {/* OF block 2 */}
             <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-              <div className="px-3 py-2 font-bold">OF</div>
+              <div className="px-3 py-2 font-bold text-[13px]">OF</div>
               <SectionHeader>
                 <div className="col-span-2">Player</div>
                 <div>Salary</div>
@@ -449,7 +475,7 @@ export default function MlbCheatSheet() {
 
             {/* Cash Core */}
             <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-              <div className="px-3 py-2 font-bold">Cash Core</div>
+              <div className="px-3 py-2 font-bold text-[13px]">Cash Core</div>
               <SectionHeader>
                 <div className="col-span-2">Player</div>
                 <div>Salary</div>
@@ -471,7 +497,7 @@ export default function MlbCheatSheet() {
 
             {/* Top Stacks */}
             <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-              <div className="px-3 py-2 font-bold">Top Stacks</div>
+              <div className="px-3 py-2 font-bold text-[13px]">Top Stacks</div>
               <div className="bg-gray-100 text-[11px] font-semibold grid grid-cols-10 gap-1 px-2 py-1 rounded-t">
                 <div>Team</div>
                 <div>Salary</div>
