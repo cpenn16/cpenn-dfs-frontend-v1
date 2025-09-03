@@ -116,6 +116,8 @@ _HEADER_ALIASES = {
     "fd sal": "FD Sal",
     "teamabbrev": "Team",
     "opp": "Matchup",
+    "matchup": "Opp",
+    "opp": "Opp",
 }
 
 def _norm_header_label(s: str) -> str:
@@ -449,6 +451,8 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
                 r += 1
 
             sub = pd.DataFrame(rows, columns=headers)
+            if "Opp" not in sub.columns and "Matchup" in sub.columns:
+                sub = sub.rename(columns={"Matchup": "Opp"})
             out_obj[title] = sub.astype(object).where(pd.notna(sub), "").to_dict(orient="records")
 
         out_path = (project_root / "public" / Path(out_rel)).with_suffix(".json")
