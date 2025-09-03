@@ -33,9 +33,9 @@ from openpyxl.worksheet.worksheet import Worksheet
 THIS = Path(__file__).resolve()
 ROOT = THIS.parents[1]  # repo root (expected to include /public)
 
-DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\NFL\NFL TNF Showdown Cowboys vs Eagles.xlsm"
+DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\NFL\NFL Week 1 Classic.xlsm"
 DEFAULT_PROJ   = str(ROOT)
-DEFAULT_CONFIG = str(ROOT / "scripts" / "configs" / "nfl_showdown.json")
+DEFAULT_CONFIG = str(ROOT / "scripts" / "configs" / "nfl_classic.json")
 
 # ------------------------------ utilities ------------------------------
 

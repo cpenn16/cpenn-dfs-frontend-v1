@@ -3,17 +3,17 @@
     "date": null,
     "away": "DAL",
     "home": "PHI",
-    "ou": 46.5,
-    "spread_home": -7.0,
-    "ml_home": -325,
-    "ml_away": 260,
+    "ou": 47.5,
+    "spread_home": -8.5,
+    "ml_home": -395,
+    "ml_away": 310,
     "weather": {
-      "temp_f": 64.67,
-      "wind_mph": 4.61,
-      "desc": "64.67°F   4.61 mph mph   Overcast Clouds",
+      "temp_f": 61.9,
+      "wind_mph": 2.46,
+      "desc": "61.9°F   2.46 mph mph   Scattered Clouds",
       "is_dome": false
     },
-    "imp_home": 27.5,
+    "imp_home": 29.5,
     "imp_away": 19.5,
     "team_blocks": {
       "away": {
@@ -31,7 +31,7 @@
         ]
       },
       "home": {
-        "header": "PHI (27.5)",
+        "header": "PHI (29.5)",
         "lines": [
           "QB:  Jalen Hurts 0.0 0 | 0.0 0",
           "RB1: Saquon Barkley 0.0 0 | 0.0 0",
@@ -52,8 +52,8 @@
     "home": "LAC",
     "ou": 45.5,
     "spread_home": 3.0,
-    "ml_home": 140,
-    "ml_away": -166,
+    "ml_home": 142,
+    "ml_away": -170,
     "weather": {
       "temp_f": null,
       "wind_mph": null,
@@ -97,45 +97,45 @@
     "date": null,
     "away": "LV",
     "home": "NE",
-    "ou": 42.5,
+    "ou": 43.5,
     "spread_home": -3.0,
-    "ml_home": -170,
-    "ml_away": 142,
+    "ml_home": -155,
+    "ml_away": 130,
     "weather": {
-      "temp_f": 60.66,
-      "wind_mph": 1.99,
-      "desc": "60.66°F   1.99 mph mph   Overcast Clouds",
+      "temp_f": 55.02,
+      "wind_mph": 2.86,
+      "desc": "55.02°F   2.86 mph mph   Broken Clouds",
       "is_dome": false
     },
     "imp_home": 23.5,
-    "imp_away": 19.5,
+    "imp_away": 20.5,
     "team_blocks": {
       "away": {
-        "header": "LV (19.5)",
+        "header": "LV (20.5)",
         "lines": [
-          "QB:  Geno Smith 15.8 5.2k | 16.8 7k",
-          "RB1: Ashton Jeanty 16.5 7k | 17.3 6.4k",
-          "RB2: Raheem Mostert 4.5 5k | 4.3 5k",
-          "WR1: Jakobi Meyers 13.2 5.1k | 12.5 6.2k",
-          "WR2: Amari Cooper 6.1 4.6k | 5.9 5k",
-          "WR3: Tre Tucker 6.1 3.1k | 5.8 5k",
+          "QB:  Geno Smith 15.9 5.2k | 15.9 7k",
+          "RB1: Ashton Jeanty 16.6 7k | 15.3 6.4k",
+          "RB2: Raheem Mostert 4.4 5k | 3.8 5k",
+          "WR1: Jakobi Meyers 13.1 5.1k | 10.6 6.2k",
+          "WR2: Amari Cooper 6.1 4.6k | 5.0 5k",
+          "WR3: Tre Tucker 6.0 3.1k | 4.9 5k",
           "WR4: Dont'e Thornton Jr. 0.5 3.6k | 0.5 4.4k",
-          "TE1: Brock Bowers 15.8 6.5k | 14.5 7k",
-          "TE2: Michael Mayer 3.7 3k | 3.3 4.5k"
+          "TE1: Brock Bowers 16.0 6.5k | 12.6 7k",
+          "TE2: Michael Mayer 3.9 3k | 3.0 4.5k"
         ]
       },
       "home": {
         "header": "NE (23.5)",
         "lines": [
-          "QB:  Drake Maye 17.0 5.5k | 17.4 6.6k",
-          "RB1: Rhamondre Stevenson 10.3 5.4k | 10.8 5.6k",
-          "RB2: TreVeyon Henderson 11.5 5.5k | 11.8 4.7k",
-          "WR1: Stefon Diggs 11.8 5.3k | 11.1 6.1k",
-          "WR2: DeMario Douglas 8.7 4.2k | 8.0 4.7k",
-          "WR3: Kyle Williams 5.5 4.3k | 5.2 4k",
-          "WR4: Mack Hollins 2.9 3.1k | 2.8 4.8k",
-          "TE1: Hunter Henry 8.7 3.9k | 8.1 5k",
-          "TE2: Austin Hooper 4.5 2.9k | 4.2 4.5k"
+          "QB:  Drake Maye 17.4 5.5k | 17.4 6.6k",
+          "RB1: Rhamondre Stevenson 10.5 5.4k | 9.6 5.6k",
+          "RB2: TreVeyon Henderson 11.9 5.5k | 10.7 4.7k",
+          "WR1: Stefon Diggs 12.1 5.3k | 9.9 6.1k",
+          "WR2: DeMario Douglas 8.9 4.2k | 7.1 4.7k",
+          "WR3: Kyle Williams 3.6 4.3k | 3.0 4k",
+          "WR4: Mack Hollins 3.7 3.1k | 3.1 4.8k",
+          "TE1: Hunter Henry 9.1 3.9k | 7.3 5k",
+          "TE2: Austin Hooper 4.7 2.9k | 3.7 4.5k"
         ]
       }
     }
@@ -146,12 +146,12 @@
     "home": "NYJ",
     "ou": 38.5,
     "spread_home": 3.0,
-    "ml_home": 124,
-    "ml_away": -148,
+    "ml_home": 130,
+    "ml_away": -155,
     "weather": {
-      "temp_f": 68.36,
-      "wind_mph": 12.66,
-      "desc": "68.36°F   12.66 mph mph   Few Clouds",
+      "temp_f": 62.62,
+      "wind_mph": 1.01,
+      "desc": "62.62°F   1.01 mph mph   Clear Sky",
       "is_dome": false
     },
     "imp_home": 18.5,
@@ -160,29 +160,29 @@
       "away": {
         "header": "PIT (20.5)",
         "lines": [
-          "QB:  Aaron Rodgers 14.2 5.2k | 14.5 6.8k",
-          "RB1: Jaylen Warren 13.5 5.2k | 13.8 5.5k",
-          "RB2: Kaleb Johnson 12.3 5.3k | 13.5 5.5k",
-          "WR1: DK Metcalf 13.2 5.9k | 12.8 6.8k",
-          "WR2: Calvin Austin III 7.0 4.4k | 6.7 5.1k",
-          "WR3: Roman Wilson 5.9 3k | 5.4 4k",
+          "QB:  Aaron Rodgers 14.0 5.2k | 14.0 6.8k",
+          "RB1: Jaylen Warren 14.1 5.2k | 12.6 5.5k",
+          "RB2: Kaleb Johnson 11.9 5.3k | 11.1 5.5k",
+          "WR1: DK Metcalf 13.2 5.9k | 10.9 6.8k",
+          "WR2: Calvin Austin III 6.6 4.4k | 5.4 5.1k",
+          "WR3: Roman Wilson 5.3 3k | 4.2 4k",
           "WR4: Scotty Miller 0.0 3k | 0.0 4.3k",
-          "TE1: Pat Freiermuth 7.7 3.2k | 6.9 5k",
-          "TE2: Jonnu Smith 6.2 4.2k | 5.6 5.4k"
+          "TE1: Pat Freiermuth 7.6 3.2k | 6.0 5k",
+          "TE2: Jonnu Smith 6.3 4.2k | 5.1 5.4k"
         ]
       },
       "home": {
         "header": "NYJ (18.5)",
         "lines": [
-          "QB:  Justin Fields 16.9 5.4k | 16.9 7.2k",
-          "RB1: Breece Hall 13.5 6.4k | 13.6 7k",
-          "RB2: Braelon Allen 6.5 4.9k | 6.7 5.1k",
-          "WR1: Garrett Wilson 13.3 6.3k | 12.5 6.5k",
-          "WR2: Josh Reynolds 7.2 3.3k | 7.0 4.9k",
-          "WR3: Allen Lazard 5.1 3.9k | 5.0 4.5k",
+          "QB:  Justin Fields 17.1 5.4k | 17.1 7.2k",
+          "RB1: Breece Hall 13.6 6.4k | 12.0 7k",
+          "RB2: Braelon Allen 6.1 4.9k | 5.5 5.1k",
+          "WR1: Garrett Wilson 13.6 6.3k | 10.9 6.5k",
+          "WR2: Josh Reynolds 7.3 3.3k | 6.0 4.9k",
+          "WR3: Allen Lazard 5.0 3.9k | 4.1 4.5k",
           "WR4: Xavier Gipson 0.6 3k | 0.6 4.1k",
-          "TE1: Mason Taylor 6.6 3.1k | 5.9 4.8k",
-          "TE2: Jeremy Ruckert 1.9 2.5k | 1.7 4.1k"
+          "TE1: Mason Taylor 6.1 3.1k | 4.7 4.8k",
+          "TE2: Jeremy Ruckert 1.9 2.5k | 1.5 4.1k"
         ]
       }
     }
@@ -191,45 +191,45 @@
     "date": null,
     "away": "TB",
     "home": "ATL",
-    "ou": 48.5,
-    "spread_home": 1.5,
-    "ml_home": 105,
-    "ml_away": -125,
+    "ou": 47.5,
+    "spread_home": 2.5,
+    "ml_home": 114,
+    "ml_away": -135,
     "weather": {
       "temp_f": null,
       "wind_mph": null,
       "desc": null,
       "is_dome": true
     },
-    "imp_home": 24.5,
+    "imp_home": 23.5,
     "imp_away": 25.5,
     "team_blocks": {
       "away": {
         "header": "TB (25.5)",
         "lines": [
-          "QB:  Baker Mayfield 19.9 6.6k | 21.3 7.9k",
-          "RB1: Bucky Irving 17.1 7.1k | 17.9 7.7k",
-          "RB2: Rachaad White 8.9 5.1k | 8.7 5.1k",
-          "WR1: Mike Evans 16.6 6.6k | 16.2 7.5k",
-          "WR2: Emeka Egbuka 12.7 4.6k | 11.9 5k",
-          "WR3: Sterling Shepard 6.3 3.1k | 5.9 4.8k",
-          "WR4: Tez Johnson 1.5 3k | 1.4 4k",
-          "TE1: Cade Otton 9.0 3.8k | 8.3 5k",
-          "TE2: Payne Durham 2.4 2.6k | 2.3 4.2k"
+          "QB:  Baker Mayfield 19.8 6.6k | 19.8 7.9k",
+          "RB1: Bucky Irving 17.6 7.1k | 16.0 7.7k",
+          "RB2: Rachaad White 9.2 5.1k | 8.0 5.1k",
+          "WR1: Mike Evans 16.3 6.6k | 13.6 7.5k",
+          "WR2: Emeka Egbuka 12.9 4.6k | 10.4 5k",
+          "WR3: Sterling Shepard 6.1 3.1k | 5.1 4.8k",
+          "WR4: Tez Johnson 1.5 3k | 1.3 4k",
+          "TE1: Cade Otton 9.1 3.8k | 7.2 5k",
+          "TE2: Payne Durham 2.4 2.6k | 2.0 4.2k"
         ]
       },
       "home": {
-        "header": "ATL (24.5)",
+        "header": "ATL (23.5)",
         "lines": [
-          "QB:  Michael Penix Jr. 14.8 5.6k | 15.8 6.7k",
-          "RB1: Bijan Robinson 18.5 8k | 19.2 8.8k",
-          "RB2: Tyler Allgeier 5.9 5k | 6.4 5k",
-          "WR1: Drake London 15.5 6.5k | 14.9 7k",
-          "WR2: Darnell Mooney 9.9 5k | 9.7 5.8k",
-          "WR3: Ray-Ray McCloud III 7.1 3.7k | 6.7 4.7k",
-          "WR4: KhaDarel Hodge 1.3 3.2k | 1.3 4.2k",
-          "TE1: Kyle Pitts Sr. 7.9 4.3k | 7.5 5.2k",
-          "TE2: Charlie Woerner 1.3 2.5k | 1.1 4.2k"
+          "QB:  Michael Penix Jr. 15.1 5.6k | 15.1 6.7k",
+          "RB1: Bijan Robinson 18.5 8k | 16.8 8.8k",
+          "RB2: Tyler Allgeier 5.9 5k | 5.5 5k",
+          "WR1: Drake London 15.5 6.5k | 12.6 7k",
+          "WR2: Darnell Mooney 10.1 5k | 8.3 5.8k",
+          "WR3: Ray-Ray McCloud III 7.1 3.7k | 5.8 4.7k",
+          "WR4: KhaDarel Hodge 1.2 3.2k | 1.0 4.2k",
+          "TE1: Kyle Pitts Sr. 8.0 4.3k | 6.5 5.2k",
+          "TE2: Charlie Woerner 1.2 2.5k | 1.0 4.2k"
         ]
       }
     }
@@ -238,45 +238,45 @@
     "date": null,
     "away": "MIA",
     "home": "IND",
-    "ou": 46.5,
+    "ou": 47.5,
     "spread_home": -1.5,
-    "ml_home": -115,
-    "ml_away": -105,
+    "ml_home": -112,
+    "ml_away": -108,
     "weather": {
       "temp_f": null,
       "wind_mph": null,
       "desc": null,
       "is_dome": true
     },
-    "imp_home": 23.5,
+    "imp_home": 24.5,
     "imp_away": 23.5,
     "team_blocks": {
       "away": {
         "header": "MIA (23.5)",
         "lines": [
-          "QB:  Tua Tagovailoa 16.4 5.8k | 17.7 7.3k",
-          "RB1: De'Von Achane 19.0 6.9k | 18.4 8.2k",
-          "RB2: Ollie Gordon II 3.2 4.2k | 3.9 4.3k",
-          "WR1: Tyreek Hill 15.8 6.7k | 15.0 7.6k",
-          "WR2: Jaylen Waddle 12.9 5.7k | 12.3 5.5k",
-          "WR3: Malik Washington 5.1 3.2k | 4.6 4.4k",
-          "WR4: Nick Westbrook-Ikhine 4.2 3.5k | 4.1 4.8k",
-          "TE1: Darren Waller 8.3 3.5k | 7.7 4.7k",
-          "TE2: Julian Hill 2.3 2.7k | 2.1 4.1k"
+          "QB:  Tua Tagovailoa 16.5 5.8k | 16.5 7.3k",
+          "RB1: De'Von Achane 19.6 6.9k | 17.1 8.2k",
+          "RB2: Ollie Gordon II 3.2 4.2k | 3.2 4.3k",
+          "WR1: Tyreek Hill 16.3 6.7k | 13.3 7.6k",
+          "WR2: Jaylen Waddle 13.3 5.7k | 10.8 5.5k",
+          "WR3: Malik Washington 5.4 3.2k | 4.3 4.4k",
+          "WR4: Nick Westbrook-Ikhine 2.9 3.5k | 2.5 4.8k",
+          "TE1: Darren Waller 8.7 3.5k | 6.8 4.7k",
+          "TE2: Julian Hill 2.4 2.7k | 1.9 4.1k"
         ]
       },
       "home": {
-        "header": "IND (23.5)",
+        "header": "IND (24.5)",
         "lines": [
           "QB:  Daniel Jones 15.8 5.1k | 15.8 6.9k",
-          "RB1: Jonathan Taylor 16.1 6.8k | 17.7 8.3k",
-          "RB2: Tyler Goodson 3.1 4k | 3.3 4.5k",
-          "WR1: Michael Pittman Jr. 10.9 4.9k | 10.0 5.9k",
-          "WR2: Josh Downs 10.5 4.6k | 9.6 5.2k",
-          "WR3: Alec Pierce 7.4 4.4k | 7.4 5.1k",
-          "WR4: Adonai Mitchell 2.3 3.4k | 2.1 4.7k",
-          "TE1: Tyler Warren 9.1 4.4k | 8.2 5.1k",
-          "TE2: Mo Alie-Cox 1.4 2.5k | 1.3 4.1k"
+          "RB1: Jonathan Taylor 16.2 6.8k | 15.2 8.3k",
+          "RB2: Tyler Goodson 3.1 4k | 2.8 4.5k",
+          "WR1: Michael Pittman Jr. 10.9 4.9k | 8.6 5.9k",
+          "WR2: Josh Downs 10.8 4.6k | 8.6 5.2k",
+          "WR3: Alec Pierce 7.4 4.4k | 6.3 5.1k",
+          "WR4: Adonai Mitchell 2.2 3.4k | 1.8 4.7k",
+          "TE1: Tyler Warren 9.1 4.4k | 7.0 5.1k",
+          "TE2: Mo Alie-Cox 1.4 2.5k | 1.2 4.1k"
         ]
       }
     }
@@ -285,10 +285,10 @@
     "date": null,
     "away": "ARI",
     "home": "NO",
-    "ou": 42.5,
-    "spread_home": 5.5,
-    "ml_home": 195,
-    "ml_away": -238,
+    "ou": 43.5,
+    "spread_home": 6.5,
+    "ml_home": 230,
+    "ml_away": -285,
     "weather": {
       "temp_f": null,
       "wind_mph": null,
@@ -296,33 +296,33 @@
       "is_dome": true
     },
     "imp_home": 18.5,
-    "imp_away": 24.5,
+    "imp_away": 25.5,
     "team_blocks": {
       "away": {
-        "header": "ARI (24.5)",
+        "header": "ARI (25.5)",
         "lines": [
-          "QB:  Kyler Murray 18.4 6.4k | 19.1 7.7k",
-          "RB1: James Conner 16.4 6.1k | 17.3 7.5k",
-          "RB2: Trey Benson 7.2 4.6k | 7.6 4.1k",
-          "WR1: Marvin Harrison Jr. 13.0 5.5k | 12.5 6.4k",
-          "WR2: Michael Wilson 7.6 4.2k | 7.1 5k",
-          "WR3: Zay Jones 3.0 3.3k | 2.8 4.2k",
-          "WR4: Greg Dortch 3.7 3.5k | 3.4 4.5k",
-          "TE1: Trey McBride 15.4 6.2k | 14.1 6.3k",
-          "TE2: Elijah Higgins 2.4 2.5k | 2.2 4.1k"
+          "QB:  Kyler Murray 18.3 6.4k | 18.3 7.7k",
+          "RB1: James Conner 16.7 6.1k | 15.3 7.5k",
+          "RB2: Trey Benson 6.8 4.6k | 6.2 4.1k",
+          "WR1: Marvin Harrison Jr. 13.1 5.5k | 10.9 6.4k",
+          "WR2: Michael Wilson 7.6 4.2k | 6.2 5k",
+          "WR3: Zay Jones 2.9 3.3k | 2.4 4.2k",
+          "WR4: Greg Dortch 3.7 3.5k | 3.0 4.5k",
+          "TE1: Trey McBride 15.7 6.2k | 12.3 6.3k",
+          "TE2: Elijah Higgins 2.0 2.5k | 1.6 4.1k"
         ]
       },
       "home": {
         "header": "NO (18.5)",
         "lines": [
           "QB:  Spencer Rattler 13.9 4.8k | 13.9 6.5k",
-          "RB1: Alvin Kamara 17.6 6.3k | 17.3 7.1k",
-          "RB2: Kendre Miller 5.1 4.3k | 5.4 4.8k",
-          "WR1: Chris Olave 11.7 5.1k | 11.0 5.9k",
-          "WR2: Rashid Shaheed 9.2 4.6k | 9.0 5.6k",
-          "WR3: Brandin Cooks 4.8 4.1k | 4.5 4.8k",
-          "WR4: Devaughn Vele 3.7 3.9k | 3.5 4.8k",
-          "TE1: Juwan Johnson 6.0 3.3k | 5.5 4.7k",
+          "RB1: Alvin Kamara 17.5 6.3k | 15.3 7.1k",
+          "RB2: Kendre Miller 5.1 4.3k | 4.6 4.8k",
+          "WR1: Chris Olave 11.8 5.1k | 9.5 5.9k",
+          "WR2: Rashid Shaheed 9.5 4.6k | 8.0 5.6k",
+          "WR3: Brandin Cooks 4.4 4.1k | 3.6 4.8k",
+          "WR4: Devaughn Vele 3.5 3.9k | 2.8 4.8k",
+          "TE1: Juwan Johnson 6.1 3.3k | 4.8 4.7k",
           "TE2: Moliki Matavao 0.2 2.5k | 0.2 4k"
         ]
       }
@@ -333,44 +333,44 @@
     "away": "NYG",
     "home": "WAS",
     "ou": 45.5,
-    "spread_home": -6.5,
-    "ml_home": -285,
-    "ml_away": 230,
+    "spread_home": -6.0,
+    "ml_home": -265,
+    "ml_away": 215,
     "weather": {
-      "temp_f": 62.96,
-      "wind_mph": 4.61,
-      "desc": "62.96°F   4.61 mph mph   Broken Clouds",
+      "temp_f": 57.94,
+      "wind_mph": 1.99,
+      "desc": "57.94°F   1.99 mph mph   Clear Sky",
       "is_dome": false
     },
     "imp_home": 26.5,
-    "imp_away": 19.5,
+    "imp_away": 20.5,
     "team_blocks": {
       "away": {
-        "header": "NYG (19.5)",
+        "header": "NYG (20.5)",
         "lines": [
-          "QB:  Russell Wilson 15.8 5k | 16.5 6.7k",
-          "RB1: Tyrone Tracy Jr. 12.8 5.6k | 13.4 5.9k",
-          "RB2: Devin Singletary 6.1 4.6k | 6.5 4.8k",
-          "WR1: Malik Nabers 18.1 7k | 17.3 7.8k",
-          "WR2: Wan'Dale Robinson 10.3 4.5k | 9.4 5.1k",
-          "WR3: Darius Slayton 7.0 4k | 7.0 4.7k",
-          "WR4: Jalin Hyatt 0.9 3k | 0.8 4.5k",
-          "TE1: Theo Johnson 6.5 3k | 6.1 4.6k",
-          "TE2: Daniel Bellinger 2.1 2.5k | 1.9 4.4k"
+          "QB:  Russell Wilson 15.7 5k | 15.7 6.7k",
+          "RB1: Tyrone Tracy Jr. 12.4 5.6k | 11.4 5.9k",
+          "RB2: Devin Singletary 6.3 4.6k | 5.7 4.8k",
+          "WR1: Malik Nabers 18.1 7k | 14.8 7.8k",
+          "WR2: Wan'Dale Robinson 10.5 4.5k | 8.2 5.1k",
+          "WR3: Darius Slayton 6.9 4k | 5.9 4.7k",
+          "WR4: Jalin Hyatt 0.4 3k | 0.4 4.5k",
+          "TE1: Theo Johnson 6.6 3k | 5.3 4.6k",
+          "TE2: Daniel Bellinger 2.0 2.5k | 1.6 4.4k"
         ]
       },
       "home": {
         "header": "WAS (26.5)",
         "lines": [
-          "QB:  Jayden Daniels 22.0 7k | 22.9 8.5k",
-          "RB1: Austin Ekeler 12.2 4.8k | 11.8 5.2k",
-          "RB2: Jacory Croskey-Merritt 8.4 4k | 9.1 4k",
-          "WR1: Terry McLaurin 15.9 6.2k | 15.1 7.3k",
-          "WR2: Deebo Samuel Sr. 13.2 5.2k | 12.6 6.3k",
-          "WR3: Noah Brown 5.7 3.1k | 5.4 5.1k",
-          "WR4: Luke McCaffrey 2.1 3.5k | 1.8 4.6k",
-          "TE1: Zach Ertz 9.5 4.1k | 8.5 5.1k",
-          "TE2: John Bates 1.6 2.5k | 1.4 4.1k"
+          "QB:  Jayden Daniels 21.9 7k | 21.9 8.5k",
+          "RB1: Austin Ekeler 12.4 4.8k | 10.9 5.2k",
+          "RB2: Jacory Croskey-Merritt 8.4 4k | 7.8 4k",
+          "WR1: Terry McLaurin 15.8 6.2k | 13.0 7.3k",
+          "WR2: Deebo Samuel Sr. 13.4 5.2k | 11.3 6.3k",
+          "WR3: Noah Brown 5.8 3.1k | 4.7 5.1k",
+          "WR4: Luke McCaffrey 1.8 3.5k | 1.3 4.6k",
+          "TE1: Zach Ertz 9.4 4.1k | 7.4 5.1k",
+          "TE2: John Bates 1.6 2.5k | 1.3 4.1k"
         ]
       }
     }
@@ -380,44 +380,44 @@
     "away": "CAR",
     "home": "JAX",
     "ou": 46.5,
-    "spread_home": -3.0,
-    "ml_home": -155,
-    "ml_away": 130,
+    "spread_home": -3.5,
+    "ml_home": -180,
+    "ml_away": 150,
     "weather": {
-      "temp_f": 79.18,
-      "wind_mph": 5.75,
-      "desc": "79.18°F   5.75 mph mph   Few Clouds",
+      "temp_f": 74.46,
+      "wind_mph": 6.91,
+      "desc": "74.46°F   6.91 mph mph   Clear Sky",
       "is_dome": false
     },
-    "imp_home": 24.5,
+    "imp_home": 25.5,
     "imp_away": 22.5,
     "team_blocks": {
       "away": {
         "header": "CAR (22.5)",
         "lines": [
-          "QB:  Bryce Young 16.1 5.7k | 16.6 6.8k",
-          "RB1: Chuba Hubbard 14.6 6k | 15.3 6.5k",
-          "RB2: Rico Dowdle 7.9 5k | 7.9 5.3k",
-          "WR1: Tetairoa McMillan 13.3 5.2k | 12.9 5.6k",
-          "WR2: Xavier Legette 8.1 4.2k | 7.6 4.8k",
-          "WR3: Jalen Coker 7.8 3.7k | 7.5 4.5k",
-          "WR4: David Moore 2.4 3k | 2.3 4.2k",
-          "TE1: Ja'Tavion Sanders 6.0 2.9k | 5.6 4.5k",
-          "TE2: Tommy Tremble 3.7 2.5k | 3.4 4.4k"
+          "QB:  Bryce Young 16.1 5.7k | 16.1 6.8k",
+          "RB1: Chuba Hubbard 14.5 6k | 13.4 6.5k",
+          "RB2: Rico Dowdle 8.3 5k | 7.4 5.3k",
+          "WR1: Tetairoa McMillan 15.1 5.2k | 12.6 5.6k",
+          "WR2: Xavier Legette 9.3 4.2k | 7.7 4.8k",
+          "WR3: Jalen Coker 3.5 3.7k | 2.1 4.5k",
+          "WR4: David Moore 2.6 3k | 2.3 4.2k",
+          "TE1: Ja'Tavion Sanders 6.8 2.9k | 5.6 4.5k",
+          "TE2: Tommy Tremble 3.5 2.5k | 2.9 4.4k"
         ]
       },
       "home": {
-        "header": "JAX (24.5)",
+        "header": "JAX (25.5)",
         "lines": [
-          "QB:  Trevor Lawrence 17.0 5.3k | 18.1 7k",
-          "RB1: Tank Bigsby 9.7 4.6k | 10.5 5.3k",
-          "RB2: Travis Etienne Jr. 10.3 5.4k | 10.4 6.1k",
-          "WR1: Brian Thomas Jr. 16.7 6.8k | 16.2 7.7k",
-          "WR2: Travis Hunter 10.7 5k | 10.0 5.7k",
-          "WR3: Dyami Brown 6.5 4.3k | 6.0 4.8k",
-          "WR4: Parker Washington 3.4 3.8k | 3.2 4.9k",
-          "TE1: Brenton Strange 7.8 3.3k | 7.3 5k",
-          "TE2: Hunter Long 2.0 2.5k | 1.8 4k"
+          "QB:  Trevor Lawrence 17.4 5.3k | 17.4 7k",
+          "RB1: Tank Bigsby 9.8 4.6k | 9.2 5.3k",
+          "RB2: Travis Etienne Jr. 10.4 5.4k | 9.2 6.1k",
+          "WR1: Brian Thomas Jr. 17.2 6.8k | 14.4 7.7k",
+          "WR2: Travis Hunter 10.9 5k | 8.8 5.7k",
+          "WR3: Dyami Brown 6.5 4.3k | 5.3 4.8k",
+          "WR4: Parker Washington 3.4 3.8k | 2.8 4.9k",
+          "TE1: Brenton Strange 7.9 3.3k | 6.3 5k",
+          "TE2: Hunter Long 1.9 2.5k | 1.5 4k"
         ]
       }
     }
@@ -426,44 +426,44 @@
     "date": null,
     "away": "CIN",
     "home": "CLE",
-    "ou": 45.5,
+    "ou": 47.5,
     "spread_home": 5.5,
-    "ml_home": 190,
-    "ml_away": -230,
+    "ml_home": 195,
+    "ml_away": -238,
     "weather": {
-      "temp_f": 59.11,
-      "wind_mph": 3.44,
-      "desc": "59.11°F   3.44 mph mph   Broken Clouds",
+      "temp_f": 58.39,
+      "wind_mph": 5.75,
+      "desc": "58.39°F   5.75 mph mph   Clear Sky",
       "is_dome": false
     },
-    "imp_home": 20.5,
-    "imp_away": 26.5,
+    "imp_home": 21.5,
+    "imp_away": 27.5,
     "team_blocks": {
       "away": {
-        "header": "CIN (26.5)",
+        "header": "CIN (27.5)",
         "lines": [
-          "QB:  Joe Burrow 20.3 6.9k | 22.4 8k",
-          "RB1: Chase Brown 17.1 6.6k | 17.5 6.9k",
-          "RB2: Samaje Perine 6.5 4.1k | 6.3 4.6k",
-          "WR1: Ja'Marr Chase 20.4 8.1k | 19.6 9.2k",
-          "WR2: Tee Higgins 15.3 6.4k | 14.5 7.1k",
-          "WR3: Andrei Iosivas 5.9 3.7k | 5.5 4.9k",
+          "QB:  Joe Burrow 20.5 6.9k | 20.5 8k",
+          "RB1: Chase Brown 17.3 6.6k | 15.7 6.9k",
+          "RB2: Samaje Perine 6.6 4.1k | 5.8 4.6k",
+          "WR1: Ja'Marr Chase 20.7 8.1k | 17.2 9.2k",
+          "WR2: Tee Higgins 15.5 6.4k | 12.7 7.1k",
+          "WR3: Andrei Iosivas 6.1 3.7k | 4.9 4.9k",
           "WR4: Jermaine Burton 0.0 3.1k | 0.0 4.2k",
-          "TE1: Mike Gesicki 7.4 3.6k | 6.8 4.9k",
-          "TE2: Noah Fant 5.0 3.9k | 4.6 4.8k"
+          "TE1: Mike Gesicki 7.3 3.6k | 5.8 4.9k",
+          "TE2: Noah Fant 4.4 3.9k | 3.5 4.8k"
         ]
       },
       "home": {
-        "header": "CLE (20.5)",
+        "header": "CLE (21.5)",
         "lines": [
-          "QB:  Joe Flacco 15.5 4.9k | 16.7 6.6k",
-          "RB1: Jerome Ford 12.2 5.6k | 11.9 5.8k",
-          "RB2: Dylan Sampson 8.9 4.9k | 9.5 4.6k",
-          "WR1: Jerry Jeudy 16.1 5.4k | 15.6 6.2k",
-          "WR2: Cedric Tillman 10.8 4.4k | 10.3 4.7k",
-          "WR3: Jamari Thrash 4.7 3k | 4.3 4.1k",
+          "QB:  Joe Flacco 15.6 4.9k | 15.6 6.6k",
+          "RB1: Jerome Ford 12.4 5.6k | 10.9 5.8k",
+          "RB2: Dylan Sampson 9.0 4.9k | 8.3 4.6k",
+          "WR1: Jerry Jeudy 16.2 5.4k | 13.3 6.2k",
+          "WR2: Cedric Tillman 10.8 4.4k | 8.9 4.7k",
+          "WR3: Jamari Thrash 4.5 3k | 3.7 4.1k",
           "WR4: Isaiah Bond 0.1 3.9k | 0.1 4k",
-          "TE1: David Njoku 14.2 4.7k | 13.1 5.7k",
+          "TE1: David Njoku 14.6 4.7k | 11.7 5.7k",
           "TE2: Harold Fannin Jr. 0.1 3.1k | 0.1 4.7k"
         ]
       }
@@ -473,45 +473,45 @@
     "date": null,
     "away": "TEN",
     "home": "DEN",
-    "ou": 41.5,
-    "spread_home": -7.5,
+    "ou": 42.5,
+    "spread_home": -8.5,
     "ml_home": -380,
     "ml_away": 300,
     "weather": {
-      "temp_f": 62.2,
-      "wind_mph": 1.99,
-      "desc": "62.2°F   1.99 mph mph   Scattered Clouds",
+      "temp_f": 65.34,
+      "wind_mph": 4.0,
+      "desc": "65.34°F   4 mph mph   Scattered Clouds",
       "is_dome": false
     },
-    "imp_home": 25.5,
+    "imp_home": 26.5,
     "imp_away": 16.5,
     "team_blocks": {
       "away": {
         "header": "TEN (16.5)",
         "lines": [
-          "QB:  Cam Ward 12.6 5k | 12.9 7.1k",
-          "RB1: Tony Pollard 13.5 5.7k | 14.1 6k",
-          "RB2: Julius Chestnut 3.8 4k | 3.8 4.4k",
-          "WR1: Calvin Ridley 12.8 5k | 12.3 5.7k",
-          "WR2: Tyler Lockett 6.8 4k | 6.3 5k",
-          "WR3: Van Jefferson 3.8 3.4k | 3.6 4.5k",
-          "WR4: Elic Ayomanor 5.1 3.1k | 4.7 4k",
-          "TE1: Chig Okonkwo 7.9 3.4k | 7.1 4.9k",
-          "TE2: Gunnar Helm 3.2 2.6k | 2.9 4k"
+          "QB:  Cam Ward 14.9 5k | 14.9 7.1k",
+          "RB1: Tony Pollard 13.7 5.7k | 12.4 6k",
+          "RB2: Julius Chestnut 3.7 4k | 3.3 4.4k",
+          "WR1: Calvin Ridley 13.5 5k | 11.2 5.7k",
+          "WR2: Tyler Lockett 7.1 4k | 5.7 5k",
+          "WR3: Van Jefferson 3.9 3.4k | 3.2 4.5k",
+          "WR4: Elic Ayomanor 4.8 3.1k | 3.8 4k",
+          "TE1: Chig Okonkwo 8.3 3.4k | 6.5 4.9k",
+          "TE2: Gunnar Helm 3.3 2.6k | 2.6 4k"
         ]
       },
       "home": {
-        "header": "DEN (25.5)",
+        "header": "DEN (26.5)",
         "lines": [
-          "QB:  Bo Nix 18.0 6.3k | 18.5 7.4k",
-          "RB1: J.K. Dobbins 12.1 5.5k | 12.1 5.7k",
-          "RB2: RJ Harvey 10.0 5.8k | 10.1 5.7k",
-          "WR1: Courtland Sutton 13.7 6k | 13.2 6.7k",
-          "WR2: Marvin Mims Jr. 9.6 4.5k | 9.2 5.4k",
-          "WR3: Troy Franklin 5.4 3.5k | 5.0 4.6k",
-          "WR4: Pat Bryant 3.2 3.4k | 3.0 4k",
-          "TE1: Evan Engram 9.9 4.5k | 9.0 5.3k",
-          "TE2: Adam Trautman 2.5 2.8k | 2.4 4.1k"
+          "QB:  Bo Nix 18.3 6.3k | 18.3 7.4k",
+          "RB1: J.K. Dobbins 12.1 5.5k | 10.7 5.7k",
+          "RB2: RJ Harvey 10.0 5.8k | 9.0 5.7k",
+          "WR1: Courtland Sutton 14.2 6k | 11.8 6.7k",
+          "WR2: Marvin Mims Jr. 9.7 4.5k | 8.0 5.4k",
+          "WR3: Troy Franklin 5.0 3.5k | 4.2 4.6k",
+          "WR4: Pat Bryant 3.0 3.4k | 2.4 4k",
+          "TE1: Evan Engram 10.2 4.5k | 8.0 5.3k",
+          "TE2: Adam Trautman 2.3 2.8k | 1.9 4.1k"
         ]
       }
     }
@@ -520,45 +520,45 @@
     "date": null,
     "away": "SF",
     "home": "SEA",
-    "ou": 45.5,
+    "ou": 43.5,
     "spread_home": 2.5,
-    "ml_home": 120,
-    "ml_away": -142,
+    "ml_home": 114,
+    "ml_away": -135,
     "weather": {
-      "temp_f": 68.25,
+      "temp_f": 65.57,
       "wind_mph": 3.0,
-      "desc": "68.25°F   3 mph mph   Scattered Clouds",
+      "desc": "65.57°F   3 mph mph   Clear Sky",
       "is_dome": false
     },
-    "imp_home": 22.5,
-    "imp_away": 23.5,
+    "imp_home": 20.5,
+    "imp_away": 22.5,
     "team_blocks": {
       "away": {
-        "header": "SF (23.5)",
+        "header": "SF (22.5)",
         "lines": [
-          "QB:  Brock Purdy 18.6 6.2k | 20.1 6.9k",
-          "RB1: Christian McCaffrey 19.3 7.3k | 19.5 8.1k",
-          "RB2: Brian Robinson Jr. 7.1 5.8k | 6.9 6.3k",
-          "WR1: Jauan Jennings 12.7 4.9k | 12.2 6k",
-          "WR2: Ricky Pearsall 13.8 4.5k | 13.2 5.3k",
-          "WR3: Russell Gage Jr. 0.0 3k | 0.0 4k",
-          "WR4: Skyy Moore 0.5 3.1k | 0.5 4k",
-          "TE1: George Kittle 15.3 5.8k | 15.0 6.5k",
-          "TE2: Luke Farrell 1.5 2.5k | 1.3 4.2k"
+          "QB:  Brock Purdy 18.5 6.2k | 18.5 6.9k",
+          "RB1: Christian McCaffrey 20.3 7.3k | 18.0 8.1k",
+          "RB2: Brian Robinson Jr. 5.2 5.8k | 4.8 6.3k",
+          "WR1: Jauan Jennings 12.5 4.9k | 10.2 6k",
+          "WR2: Ricky Pearsall 14.1 4.5k | 11.7 5.3k",
+          "WR3: Russell Gage Jr. 0.3 3k | 0.3 4k",
+          "WR4: Skyy Moore 0.4 3.1k | 0.3 4k",
+          "TE1: George Kittle 15.6 5.8k | 13.0 6.5k",
+          "TE2: Luke Farrell 1.5 2.5k | 1.2 4.2k"
         ]
       },
       "home": {
-        "header": "SEA (22.5)",
+        "header": "SEA (20.5)",
         "lines": [
-          "QB:  Sam Darnold 16.0 5.3k | 16.6 7.5k",
-          "RB1: Kenneth Walker III 14.5 5.9k | 14.8 6.7k",
-          "RB2: Zach Charbonnet 9.5 4.9k | 9.4 4.9k",
-          "WR1: Jaxon Smith-Njigba 14.2 5.8k | 13.6 7.2k",
-          "WR2: Cooper Kupp 11.1 5.3k | 10.6 6.1k",
-          "WR3: Tory Horton 6.0 3k | 5.7 4k",
+          "QB:  Sam Darnold 16.0 5.3k | 16.0 7.5k",
+          "RB1: Kenneth Walker III 14.3 5.9k | 12.9 6.7k",
+          "RB2: Zach Charbonnet 9.6 4.9k | 8.5 4.9k",
+          "WR1: Jaxon Smith-Njigba 14.5 5.8k | 11.9 7.2k",
+          "WR2: Cooper Kupp 11.1 5.3k | 9.2 6.1k",
+          "WR3: Tory Horton 5.9 3k | 4.8 4k",
           "WR4: Jake Bobo 0.5 3k | 0.5 4.2k",
-          "TE1: AJ Barner 5.9 2.8k | 5.5 4.2k",
-          "TE2: Elijah Arroyo 3.9 2.7k | 3.7 4.5k"
+          "TE1: AJ Barner 6.0 2.8k | 4.8 4.2k",
+          "TE2: Elijah Arroyo 3.5 2.7k | 2.8 4.5k"
         ]
       }
     }
@@ -567,45 +567,45 @@
     "date": null,
     "away": "DET",
     "home": "GB",
-    "ou": 49.5,
-    "spread_home": -1.5,
-    "ml_home": -112,
-    "ml_away": -108,
+    "ou": 47.5,
+    "spread_home": -2.5,
+    "ml_home": -148,
+    "ml_away": 124,
     "weather": {
-      "temp_f": 54.12,
-      "wind_mph": 10.36,
-      "desc": "54.12°F   10.36 mph mph   Clear Sky",
+      "temp_f": 64.65,
+      "wind_mph": 6.91,
+      "desc": "64.65°F   6.91 mph mph   Few Clouds",
       "is_dome": false
     },
-    "imp_home": 25.5,
-    "imp_away": 24.5,
+    "imp_home": 24.5,
+    "imp_away": 23.5,
     "team_blocks": {
       "away": {
-        "header": "DET (24.5)",
+        "header": "DET (23.5)",
         "lines": [
-          "QB:  Jared Goff 17.1 6.5k | 18.6 7.8k",
-          "RB1: Jahmyr Gibbs 17.6 7.7k | 18.0 8.7k",
-          "RB2: David Montgomery 12.2 5.7k | 12.6 6.2k",
-          "WR1: Amon-Ra St. Brown 16.6 7.1k | 15.6 8.4k",
-          "WR2: Jameson Williams 12.0 5.5k | 11.9 6k",
-          "WR3: Isaac TeSlaa 4.9 3.1k | 4.5 4.3k",
-          "WR4: Kalif Raymond 2.9 3.2k | 2.8 4.8k",
-          "TE1: Sam LaPorta 10.0 5k | 9.4 5.9k",
-          "TE2: Brock Wright 1.7 2.5k | 1.6 4.2k"
+          "QB:  Jared Goff 17.0 6.5k | 17.0 7.8k",
+          "RB1: Jahmyr Gibbs 17.3 7.7k | 15.8 8.7k",
+          "RB2: David Montgomery 12.5 5.7k | 11.3 6.2k",
+          "WR1: Amon-Ra St. Brown 16.9 7.1k | 13.7 8.4k",
+          "WR2: Jameson Williams 12.1 5.5k | 10.3 6k",
+          "WR3: Isaac TeSlaa 4.3 3.1k | 3.5 4.3k",
+          "WR4: Kalif Raymond 2.9 3.2k | 2.5 4.8k",
+          "TE1: Sam LaPorta 9.8 5k | 8.0 5.9k",
+          "TE2: Brock Wright 1.6 2.5k | 1.3 4.2k"
         ]
       },
       "home": {
-        "header": "GB (25.5)",
+        "header": "GB (24.5)",
         "lines": [
-          "QB:  Jordan Love 16.8 6.1k | 17.9 7.6k",
-          "RB1: Josh Jacobs 16.6 6.7k | 17.6 7.8k",
-          "RB2: Emanuel Wilson 5.4 4.2k | 5.8 4.6k",
-          "WR1: Jayden Reed 11.2 5.4k | 11.0 5.8k",
-          "WR2: Matthew Golden 10.9 4.9k | 10.4 5.4k",
-          "WR3: Romeo Doubs 9.3 4.3k | 8.9 5.2k",
-          "WR4: Dontayvion Wicks 3.8 3.4k | 3.6 4.9k",
-          "TE1: Tucker Kraft 9.7 4k | 9.2 5.2k",
-          "TE2: Luke Musgrave 2.8 2.8k | 2.5 4.2k"
+          "QB:  Jordan Love 16.9 6.1k | 16.9 7.6k",
+          "RB1: Josh Jacobs 16.3 6.7k | 15.2 7.8k",
+          "RB2: Emanuel Wilson 5.2 4.2k | 4.8 4.6k",
+          "WR1: Jayden Reed 11.3 5.4k | 9.5 5.8k",
+          "WR2: Matthew Golden 11.1 4.9k | 9.0 5.4k",
+          "WR3: Romeo Doubs 9.3 4.3k | 7.6 5.2k",
+          "WR4: Dontayvion Wicks 3.5 3.4k | 2.8 4.9k",
+          "TE1: Tucker Kraft 9.9 4k | 8.1 5.2k",
+          "TE2: Luke Musgrave 2.8 2.8k | 2.2 4.2k"
         ]
       }
     }
@@ -614,10 +614,10 @@
     "date": null,
     "away": "HOU",
     "home": "LAR",
-    "ou": 44.5,
-    "spread_home": -2.5,
-    "ml_home": -142,
-    "ml_away": 120,
+    "ou": 43.5,
+    "spread_home": -3.0,
+    "ml_home": -155,
+    "ml_away": 130,
     "weather": {
       "temp_f": null,
       "wind_mph": null,
@@ -625,34 +625,34 @@
       "is_dome": true
     },
     "imp_home": 23.5,
-    "imp_away": 21.5,
+    "imp_away": 20.5,
     "team_blocks": {
       "away": {
-        "header": "HOU (21.5)",
+        "header": "HOU (20.5)",
         "lines": [
-          "QB:  C.J. Stroud 16.1 6k | 17.1 7.2k",
-          "RB1: Nick Chubb 10.9 5.2k | 11.8 5.4k",
-          "RB2: Dameon Pierce 5.7 4.7k | 6.2 4.5k",
-          "WR1: Nico Collins 18.0 7.4k | 17.6 7.9k",
-          "WR2: Christian Kirk 10.3 4.7k | 9.8 5.2k",
-          "WR3: Jayden Higgins 7.0 4.8k | 6.5 4k",
-          "WR4: Jaylin Noel 1.3 3.8k | 1.2 4k",
-          "TE1: Dalton Schultz 7.0 3.5k | 6.5 4.9k",
-          "TE2: Cade Stover 3.2 2.6k | 3.0 4.2k"
+          "QB:  C.J. Stroud 16.1 6k | 16.1 7.2k",
+          "RB1: Nick Chubb 10.9 5.2k | 10.1 5.4k",
+          "RB2: Dameon Pierce 5.8 4.7k | 5.3 4.5k",
+          "WR1: Nico Collins 18.1 7.4k | 14.9 7.9k",
+          "WR2: Christian Kirk 10.5 4.7k | 8.6 5.2k",
+          "WR3: Jayden Higgins 6.6 4.8k | 5.2 4k",
+          "WR4: Jaylin Noel 1.4 3.8k | 1.1 4k",
+          "TE1: Dalton Schultz 7.0 3.5k | 5.5 4.9k",
+          "TE2: Cade Stover 3.3 2.6k | 2.6 4.2k"
         ]
       },
       "home": {
         "header": "LAR (23.5)",
         "lines": [
-          "QB:  Matthew Stafford 15.7 5.9k | 16.8 7.1k",
-          "RB1: Kyren Williams 15.2 6.5k | 16.4 7.3k",
-          "RB2: Blake Corum 3.6 4.5k | 3.7 4.7k",
-          "WR1: Puka Nacua 17.8 7.6k | 17.0 8.1k",
-          "WR2: Davante Adams 13.7 6.1k | 13.2 6.9k",
-          "WR3: Tutu Atwell 5.8 3.6k | 5.5 4.8k",
-          "WR4: Jordan Whittington 4.0 3.1k | 3.8 4.5k",
-          "TE1: Tyler Higbee 6.0 3.4k | 5.6 5k",
-          "TE2: Terrance Ferguson 2.7 3.2k | 2.5 4.2k"
+          "QB:  Matthew Stafford 15.7 5.9k | 15.7 7.1k",
+          "RB1: Kyren Williams 15.5 6.5k | 14.4 7.3k",
+          "RB2: Blake Corum 3.6 4.5k | 3.3 4.7k",
+          "WR1: Puka Nacua 18.1 7.6k | 14.8 8.1k",
+          "WR2: Davante Adams 13.8 6.1k | 11.3 6.9k",
+          "WR3: Tutu Atwell 5.9 3.6k | 4.8 4.8k",
+          "WR4: Jordan Whittington 4.2 3.1k | 3.4 4.5k",
+          "TE1: Tyler Higbee 6.1 3.4k | 5.0 5k",
+          "TE2: Terrance Ferguson 1.9 3.2k | 1.5 4.2k"
         ]
       }
     }
@@ -661,21 +661,21 @@
     "date": null,
     "away": "BAL",
     "home": "BUF",
-    "ou": 51.5,
+    "ou": 50.5,
     "spread_home": -1.5,
-    "ml_home": -125,
-    "ml_away": 105,
+    "ml_home": -112,
+    "ml_away": -108,
     "weather": {
-      "temp_f": 55.98,
-      "wind_mph": 3.44,
-      "desc": "55.98°F   3.44 mph mph   Broken Clouds",
+      "temp_f": 58.44,
+      "wind_mph": 6.91,
+      "desc": "58.44°F   6.91 mph mph   Few Clouds",
       "is_dome": false
     },
-    "imp_home": 27.5,
-    "imp_away": 26.5,
+    "imp_home": 26.5,
+    "imp_away": 25.5,
     "team_blocks": {
       "away": {
-        "header": "BAL (26.5)",
+        "header": "BAL (25.5)",
         "lines": [
           "QB:  Lamar Jackson 0.0 0 | 0.0 0",
           "RB1: Derrick Henry 0.0 0 | 0.0 0",
@@ -689,7 +689,7 @@
         ]
       },
       "home": {
-        "header": "BUF (27.5)",
+        "header": "BUF (26.5)",
         "lines": [
           "QB:  Josh Allen 0.0 0 | 0.0 0",
           "RB1: James Cook 0.0 0 | 0.0 0",
@@ -708,21 +708,21 @@
     "date": null,
     "away": "MIN",
     "home": "CHI",
-    "ou": 43.5,
+    "ou": 44.5,
     "spread_home": 1.5,
     "ml_home": 105,
     "ml_away": -125,
     "weather": {
-      "temp_f": 64.54,
-      "wind_mph": 3.0,
-      "desc": "64.54°F   3 mph mph   Few Clouds",
+      "temp_f": 66.6,
+      "wind_mph": 3.44,
+      "desc": "66.6°F   3.44 mph mph   Clear Sky",
       "is_dome": false
     },
-    "imp_home": 21.5,
-    "imp_away": 22.5,
+    "imp_home": 22.5,
+    "imp_away": 23.5,
     "team_blocks": {
       "away": {
-        "header": "MIN (22.5)",
+        "header": "MIN (23.5)",
         "lines": [
           "QB:  J.J. McCarthy 0.0 0 | 0.0 0",
           "RB1: Aaron Jones Sr. 0.0 0 | 0.0 0",
@@ -736,7 +736,7 @@
         ]
       },
       "home": {
-        "header": "CHI (21.5)",
+        "header": "CHI (22.5)",
         "lines": [
           "QB:  Caleb Williams 0.0 0 | 0.0 0",
           "RB1: D'Andre Swift 0.0 0 | 0.0 0",
