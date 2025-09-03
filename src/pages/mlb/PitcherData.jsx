@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 
 /* ============================ CONFIG ============================ */
 // JSON path (matches your exporter outfile: pitcher_data.json)
-const DATA_URL = "/data/mlb/latest/pitchers_data.json";
+const DATA_URL = "/data/mlb/latest/pitcher_data.json";
 const TITLE = "MLB — Pitcher Data";
 
 const LOGO_BASE = "/logos/mlb";
