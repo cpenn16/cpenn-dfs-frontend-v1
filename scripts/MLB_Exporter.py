@@ -30,7 +30,7 @@ from openpyxl.worksheet.worksheet import Worksheet
 THIS = Path(__file__).resolve()
 ROOT = THIS.parents[1]  # repo root (expected to include /public)
 
-DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\MLB\MLB September 2nd.xlsm"
+DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\MLB\MLB September 3rd.xlsm"
 DEFAULT_CONFIG = str(ROOT / "scripts" / "configs" / "mlb_classic.json")
 DEFAULT_OUT    = str(ROOT / "public" / "data" / "mlb" / "latest")
 
@@ -187,6 +187,8 @@ def parse_yellow_panels(xlsx_path: Path, sheet_name: str, yellow_fills: Optional
             if start_rgb and str(start_rgb).upper() in fills_rgb:
                 return True
 
+            # Some themed/indexed yellows display without explicit rgb;
+            # treat "has non-transparent color" as header-like.
             if (getattr(fill.fgColor, "type", None) in ("theme", "indexed") or
                 getattr(fill.start_color, "type", None) in ("theme", "indexed")):
                 if (getattr(fill.fgColor, "rgb", None) not in (None, "00000000") or
@@ -202,6 +204,7 @@ def parse_yellow_panels(xlsx_path: Path, sheet_name: str, yellow_fills: Optional
         if any(cell_is_header_like(ws.cell(row=r, column=c)) for c in range(1, max_col + 1)):
             yellow_rows.append(r)
 
+    # Fallback: title pattern like "SEA @ TB"
     if not yellow_rows:
         for r in range(1, max_row + 1):
             first_text = None
@@ -323,6 +326,175 @@ def compose_cheat_sheet_from_panels(panels: List[Dict[str, Any]]) -> Dict[str, A
     return out
 
 
+# ------------------------ MATCHUPS (MLB Dashboard) HELPERS ------------------------
+
+# Generic numeric matcher
+NUM_RE = re.compile(r"[-+]?\d+(?:\.\d+)?")
+
+def _row_text(row):
+    """Join a row's non-empty cells into a single string."""
+    parts = [str(x).strip() for x in (row or []) if x not in (None, "", " ")]
+    return " | ".join(parts).strip()
+
+def _split_lr(row):
+    """Return (left_text, right_text) by taking first and last non-empty cells."""
+    vals = [str(x).strip() for x in (row or []) if x not in (None, "", " ")]
+    if not vals:
+        return "", ""
+    if len(vals) == 1:
+        return vals[0], ""
+    return vals[0], vals[-1]
+
+def _to_float(s):
+    if s is None: return None
+    if isinstance(s, (int, float)): return float(s)
+    m = NUM_RE.search(str(s))
+    return float(m.group()) if m else None
+
+def _to_int(s):
+    if s is None: return None
+    if isinstance(s, (int, float)): return int(s)
+    m = NUM_RE.search(str(s))
+    return int(float(m.group())) if m else None
+
+def _pct_to_float(s):
+    """Return 0–100 number from '102%' or 0–1 numeric; otherwise None."""
+    if s is None: return None
+    txt = str(s).strip()
+    if txt.endswith("%"):
+        return _to_float(txt[:-1])
+    n = _to_float(txt)
+    if n is None: return None
+    return n*100.0 if 0 <= n <= 1 else n
+
+
+def compose_matchups_from_dashboard(panels: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Convert yellow 'MLB Dashboard' panels to an array of game objects:
+    {
+      away, home, ou, ml_away, ml_home, imp_away, imp_home,
+      park, batting_pct, pitching_pct,
+      weather: { temp_f, humidity, wind_mph, wind_dir, desc, is_dome? },
+      sp_away, sp_home,
+      team_blocks: {
+        away: { header, lines: [...] },
+        home: { header, lines: [...] }
+      }
+    }
+    """
+    games = []
+
+    for p in panels:
+        title = (p.get("title") or "").strip()  # e.g. "SEA @ TB"
+        m = re.match(r"^([A-Z]{2,3})\s*@\s*([A-Z]{2,3})$", title)
+        if not m:
+            # Not a game block, skip
+            continue
+        away_abv, home_abv = m.group(1), m.group(2)
+
+        rows = p.get("rows") or []
+        texts = [_row_text(r) for r in rows if _row_text(r)]
+
+        # Defaults
+        game = {
+            "away": away_abv,
+            "home": home_abv,
+            "ou": None,
+            "ml_away": None,
+            "ml_home": None,
+            "imp_away": None,
+            "imp_home": None,
+            "park": None,
+            "batting_pct": None,
+            "pitching_pct": None,
+            "weather": {},
+            "sp_away": None,
+            "sp_home": None,
+            "team_blocks": {
+                "away": {"header": None, "lines": []},
+                "home": {"header": None, "lines": []},
+            },
+        }
+
+        # ---- Meta lines (O/U & MLs, park/batting/pitching, weather, SPs) ----
+        # O/U & ML line: "O/U: 8 | SEA ML: -115 | TB ML: -105"
+        ou_line = next((t for t in texts if "O/U" in t), "")
+        if ou_line:
+            m_ou = re.search(r"O/U:\s*([-+]?\d+(?:\.\d+)?)", ou_line)
+            if m_ou: game["ou"] = _to_float(m_ou.group(1))
+            m_away_ml = re.search(fr"{away_abv}\s*ML:\s*([+-]?\d+)", ou_line)
+            m_home_ml = re.search(fr"{home_abv}\s*ML:\s*([+-]?\d+)", ou_line)
+            if m_away_ml: game["ml_away"] = _to_int(m_away_ml.group(1))
+            if m_home_ml: game["ml_home"] = _to_int(m_home_ml.group(1))
+
+        # Park / factors: "Park: TB | Batting 102% | Pitching 98%"
+        park_line = next((t for t in texts if t.startswith("Park:")), "")
+        if park_line:
+            m_park = re.search(r"Park:\s*([A-Za-z0-9 .-]+)", park_line)
+            if m_park: game["park"] = m_park.group(1).strip()
+            m_bat = re.search(r"Batting\s+([0-9.]+%)", park_line)
+            m_pit = re.search(r"Pitching\s+([0-9.]+%)", park_line)
+            if m_bat: game["batting_pct"] = _pct_to_float(m_bat.group(1))
+            if m_pit: game["pitching_pct"] = _pct_to_float(m_pit.group(1))
+
+        # Temp/Humidity line: "Temp: 82.8°F, Humidity: 77%"
+        th_line = next((t for t in texts if t.startswith("Temp:")), "")
+        if th_line:
+            m_temp = re.search(r"Temp:\s*([-+]?\d+(?:\.\d+)?)", th_line)
+            m_hum = re.search(r"Humidity:\s*([-+]?\d+(?:\.\d+)?)%", th_line)
+            if m_temp: game["weather"]["temp_f"] = _to_float(m_temp.group(1))
+            if m_hum: game["weather"]["humidity"] = _to_float(m_hum.group(1))
+
+        # Wind / description: "Wind: 4.61 mph (In), Conditions: Few Clouds"
+        wind_line = next((t for t in texts if t.startswith("Wind:")), "")
+        if wind_line:
+            m_mph = re.search(r"Wind:\s*([-+]?\d+(?:\.\d+)?)\s*mph", wind_line)
+            m_dir = re.search(r"mph\s*\(([^)]+)\)", wind_line)
+            m_desc = re.search(r"Conditions:\s*(.+)$", wind_line)
+            if m_mph: game["weather"]["wind_mph"] = _to_float(m_mph.group(1))
+            if m_dir: game["weather"]["wind_dir"] = m_dir.group(1).strip()
+            if m_desc: game["weather"]["desc"] = m_desc.group(1).strip()
+
+        # SPs: "SP: Bryan Woo (R) | SP: Drew Rasmussen (R)"
+        sp_line = next((t for t in texts if t.startswith("SP:")), "")
+        if sp_line:
+            parts = [s.strip() for s in sp_line.split("|") if s.strip()]
+            if parts:
+                m_a = re.sub(r"^SP:\s*", "", parts[0]).strip()
+                if m_a: game["sp_away"] = m_a
+            if len(parts) > 1:
+                m_h = re.sub(r"^SP:\s*", "", parts[1]).strip()
+                if m_h: game["sp_home"] = m_h
+
+        # ---- Find the lineup header row (two cells each ending with 'Runs)') ----
+        head_idx = None
+        for idx, r in enumerate(rows):
+            l, rt = _split_lr(r)
+            if "Runs)" in l and "Runs)" in rt:
+                head_idx = idx
+                game["team_blocks"]["away"]["header"] = l.strip()
+                game["team_blocks"]["home"]["header"] = rt.strip()
+                # implied totals (SEA (4 Runs))
+                m_ia = re.search(r"\(([-+]?\d+(?:\.\d+)?)\s*Runs?\)", l)
+                m_ih = re.search(r"\(([-+]?\d+(?:\.\d+)?)\s*Runs?\)", rt)
+                if m_ia: game["imp_away"] = _to_float(m_ia.group(1))
+                if m_ih: game["imp_home"] = _to_float(m_ih.group(1))
+                break
+
+        # Subsequent rows => hitter lines (left/right columns)
+        if head_idx is not None:
+            for r in rows[head_idx + 1:]:
+                l, rt = _split_lr(r)
+                if not (l or rt):
+                    break
+                if l:  game["team_blocks"]["away"]["lines"].append(l)
+                if rt: game["team_blocks"]["home"]["lines"].append(rt)
+
+        games.append(game)
+
+    return games
+
+
 # ------------------------ MAIN ------------------------
 
 def load_config(path_str: Optional[str]) -> Optional[dict]:
@@ -422,7 +594,7 @@ def main():
         print(f"❌  Could not choose panel sheet: {e}")
         return
 
-    # Parse panels → cheat_sheet.json + debugging dumps
+    # Parse panels → cheat_sheet.json + matchups.json + debugging dumps
     try:
         panels = parse_yellow_panels(xlsx_path, panel_sheet, yellow_fills)
 
@@ -450,7 +622,15 @@ def main():
             json.dumps(cheat, ensure_ascii=False, indent=2),
             encoding="utf-8"
         )
-        print(f"✔️  {panel_sheet} → cheat_sheet.json (sections: {', '.join(cheat.keys())})")
+        print(f"✔️  {panel_sheet} → cheat_sheet.json (sections: {', '.join(cheat.keys()) or 'none'})")
+
+        # NEW: MLB matchups
+        games = compose_matchups_from_dashboard(cs_panels_safe)
+        (out_dir / "matchups.json").write_text(
+            json.dumps(games, ensure_ascii=False, indent=2),
+            encoding="utf-8"
+        )
+        print(f"✔️  {panel_sheet} → matchups.json ({len(games)} games)")
 
     except Exception as e:
         print(f"❌  Panel parsing / cheat sheet build failed: {e}")
