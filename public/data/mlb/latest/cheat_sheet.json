@@ -1,7 +1,7 @@
 {
   "Pitcher": [
     {
-      "Pitcher": "George Kirby",
+      "Player": "George Kirby",
       "Salary": "9500",
       "Team": "SEA",
       "Opp": "TB",
@@ -12,7 +12,7 @@
       "pOWN": "41.7%"
     },
     {
-      "Pitcher": "Ryan Bergert",
+      "Player": "Ryan Bergert",
       "Salary": "7500",
       "Team": "KC",
       "Opp": "LAA",
@@ -23,7 +23,7 @@
       "pOWN": "31.8%"
     },
     {
-      "Pitcher": "Robbie Ray",
+      "Player": "Robbie Ray",
       "Salary": "9000",
       "Team": "SF",
       "Opp": "COL",
@@ -34,7 +34,7 @@
       "pOWN": "37.5%"
     },
     {
-      "Pitcher": "Zebby Matthews",
+      "Player": "Zebby Matthews",
       "Salary": "8200",
       "Team": "MIN",
       "Opp": "CWS",
@@ -47,7 +47,7 @@
   ],
   "C": [
     {
-      "C": "Jorge Alfaro",
+      "Player": "Jorge Alfaro",
       "Salary": "2000",
       "Team": "MIL",
       "Opp": "PHI",
@@ -58,7 +58,7 @@
       "pOWN": "14.4%"
     },
     {
-      "C": "Edgar Quero",
+      "Player": "Edgar Quero",
       "Salary": "3000",
       "Team": "CWS",
       "Opp": "MIN",
@@ -69,7 +69,7 @@
       "pOWN": "7.3%"
     },
     {
-      "C": "Hunter Goodman",
+      "Player": "Hunter Goodman",
       "Salary": "5000",
       "Team": "COL",
       "Opp": "SF",
@@ -82,7 +82,7 @@
   ],
   "1B": [
     {
-      "1B": "Rafael Devers",
+      "Player": "Rafael Devers",
       "Salary": "5700",
       "Team": "SF",
       "Opp": "COL",
@@ -93,7 +93,7 @@
       "pOWN": "26.8%"
     },
     {
-      "1B": "Vinnie Pasquantino",
+      "Player": "Vinnie Pasquantino",
       "Salary": "4300",
       "Team": "KC",
       "Opp": "LAA",
@@ -104,7 +104,7 @@
       "pOWN": "17.8%"
     },
     {
-      "1B": "Dominic Smith",
+      "Player": "Dominic Smith",
       "Salary": "4000",
       "Team": "SF",
       "Opp": "COL",
@@ -117,7 +117,7 @@
   ],
   "2B": [
     {
-      "2B": "Casey Schmitt",
+      "Player": "Casey Schmitt",
       "Salary": "3900",
       "Team": "SF",
       "Opp": "COL",
@@ -128,7 +128,7 @@
       "pOWN": "12.6%"
     },
     {
-      "2B": "Luke Keaschall",
+      "Player": "Luke Keaschall",
       "Salary": "4800",
       "Team": "MIN",
       "Opp": "CWS",
@@ -139,7 +139,7 @@
       "pOWN": "11.1%"
     },
     {
-      "2B": "Kyle Farmer",
+      "Player": "Kyle Farmer",
       "Salary": "3000",
       "Team": "COL",
       "Opp": "SF",
@@ -152,7 +152,7 @@
   ],
   "3B": [
     {
-      "3B": "Matt Chapman",
+      "Player": "Matt Chapman",
       "Salary": "4700",
       "Team": "SF",
       "Opp": "COL",
@@ -163,7 +163,7 @@
       "pOWN": "30.7%"
     },
     {
-      "3B": "Casey Schmitt",
+      "Player": "Casey Schmitt",
       "Salary": "3900",
       "Team": "SF",
       "Opp": "COL",
@@ -174,7 +174,7 @@
       "pOWN": "12.6%"
     },
     {
-      "3B": "Kyle Farmer",
+      "Player": "Kyle Farmer",
       "Salary": "3000",
       "Team": "COL",
       "Opp": "SF",
@@ -187,7 +187,7 @@
   ],
   "SS": [
     {
-      "SS": "Willy Adames",
+      "Player": "Willy Adames",
       "Salary": "5300",
       "Team": "SF",
       "Opp": "COL",
@@ -198,7 +198,7 @@
       "pOWN": "29.8%"
     },
     {
-      "SS": "Bobby Witt Jr.",
+      "Player": "Bobby Witt Jr.",
       "Salary": "5800",
       "Team": "KC",
       "Opp": "LAA",
@@ -209,7 +209,7 @@
       "pOWN": "14.0%"
     },
     {
-      "SS": "Ezequiel Tovar",
+      "Player": "Ezequiel Tovar",
       "Salary": "3900",
       "Team": "COL",
       "Opp": "SF",
@@ -222,7 +222,7 @@
   ],
   "OF": [
     {
-      "OF": "Heliot Ramos",
+      "Player": "Heliot Ramos",
       "Salary": "5000",
       "Team": "SF",
       "Opp": "COL",
@@ -233,7 +233,7 @@
       "pOWN": "33.4%"
     },
     {
-      "OF": "Aaron Judge",
+      "Player": "Aaron Judge",
       "Salary": "6500",
       "Team": "NYY",
       "Opp": "HOU",
@@ -244,7 +244,7 @@
       "pOWN": "24.2%"
     },
     {
-      "OF": "Ian Happ",
+      "Player": "Ian Happ",
       "Salary": "3300",
       "Team": "CHC",
       "Opp": "ATL",
@@ -257,7 +257,7 @@
   ],
   "Cash Core": [
     {
-      "Cash Core": "George Kirby",
+      "Player": "George Kirby",
       "Salary": "9500",
       "Team": "SEA",
       "Opp": "TB",
@@ -268,7 +268,7 @@
       "pOWN": "41.7%"
     },
     {
-      "Cash Core": "Heliot Ramos",
+      "Player": "Heliot Ramos",
       "Salary": "5000",
       "Team": "SF",
       "Opp": "COL",
@@ -279,7 +279,7 @@
       "pOWN": "33.4%"
     },
     {
-      "Cash Core": "Rafael Devers",
+      "Player": "Rafael Devers",
       "Salary": "5700",
       "Team": "SF",
       "Opp": "COL",
@@ -292,10 +292,10 @@
   ],
   "Top Stacks": [
     {
-      "Top Stacks": "SF",
+      "Team": "SF",
       "Salary": "4400",
-      "Team": "COL",
-      "Opp": "German Marquez",
+      "Opp": "COL",
+      "Opp Pitcher": "German Marquez",
       "Vegas": "5.7",
       "Time": "8:40 PM",
       "Proj": "98.67",
@@ -303,10 +303,10 @@
       "pOWN": "19.1%"
     },
     {
-      "Top Stacks": "NYY",
+      "Team": "NYY",
       "Salary": "4711.1",
-      "Team": "HOU",
-      "Opp": "Jason Alexander",
+      "Opp": "HOU",
+      "Opp Pitcher": "Jason Alexander",
       "Vegas": "4.5",
       "Time": "8:10 PM",
       "Proj": "77.68",
@@ -314,10 +314,10 @@
       "pOWN": "6.9%"
     },
     {
-      "Top Stacks": "KC",
+      "Team": "KC",
       "Salary": "3655.6",
-      "Team": "LAA",
-      "Opp": "Caden Dana",
+      "Opp": "LAA",
+      "Opp Pitcher": "Caden Dana",
       "Vegas": "4.6",
       "Time": "7:40 PM",
       "Proj": "73.61",
@@ -325,10 +325,10 @@
       "pOWN": "7.8%"
     },
     {
-      "Top Stacks": "MIL",
+      "Team": "MIL",
       "Salary": "3720",
-      "Team": "PHI",
-      "Opp": "Aaron Nola",
+      "Opp": "PHI",
+      "Opp Pitcher": "Aaron Nola",
       "Vegas": "4.5",
       "Time": "7:40 PM",
       "Proj": "70.90",
@@ -336,10 +336,10 @@
       "pOWN": "4.8%"
     },
     {
-      "Top Stacks": "MIN",
+      "Team": "MIN",
       "Salary": "3655.6",
-      "Team": "CWS",
-      "Opp": "Yoendrys Gomez",
+      "Opp": "CWS",
+      "Opp Pitcher": "Yoendrys Gomez",
       "Vegas": "4.3",
       "Time": "7:40 PM",
       "Proj": "70.73",
@@ -347,10 +347,10 @@
       "pOWN": "6.1%"
     },
     {
-      "Top Stacks": "COL",
+      "Team": "COL",
       "Salary": "3744.4",
-      "Team": "SF",
-      "Opp": "Robbie Ray",
+      "Opp": "SF",
+      "Opp Pitcher": "Robbie Ray",
       "Vegas": "5.4",
       "Time": "8:40 PM",
       "Proj": "69.52",

@@ -450,10 +450,40 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
                 rows.append(display)
                 r += 1
 
-            sub = pd.DataFrame(rows, columns=headers)
-            if "Opp" not in sub.columns and "Matchup" in sub.columns:
-                sub = sub.rename(columns={"Matchup": "Opp"})
-            out_obj[title] = sub.astype(object).where(pd.notna(sub), "").to_dict(orient="records")
+                sub = pd.DataFrame(rows, columns=headers)
+
+                # ==== START normalization block ====
+                # Sections where the first column is the actual player name
+                _PLAYER_SECTIONS = {"Pitcher","C","1B","2B","3B","SS","OF","Cash Core"}
+
+                cols = list(sub.columns)
+
+                # If the first header equals the section title, rename it to 'Player'
+                if title in _PLAYER_SECTIONS and cols and cols[0] == title:
+                    cols[0] = "Player"
+
+                # Standardize Matchup/Opp headers to 'Opp'
+                cols = ["Opp" if (c or "").lower() in ("matchup","opp") else c for c in cols]
+
+                # Fix Top Stacks: make first col 'Team', then next 'Team' -> 'Opp', next 'Opp' -> 'Opp Pitcher'
+                if title == "Top Stacks":
+                    if cols and cols[0] in ("Top Stacks","Stacks","Stack"):
+                        cols[0] = "Team"
+                    seen_first_team = False
+                    for i in range(1, len(cols)):
+                        if not seen_first_team and cols[i] == "Team":
+                            cols[i] = "Opp"
+                            seen_first_team = True
+                            continue
+                        if seen_first_team and cols[i] == "Opp":
+                            cols[i] = "Opp Pitcher"
+                            break
+
+                sub.columns = cols
+                # ==== END normalization block ====
+
+                out_obj[title] = sub.astype(object).where(pd.notna(sub), "").to_dict(orient="records")
+
 
         out_path = (project_root / "public" / Path(out_rel)).with_suffix(".json")
         ensure_parent(out_path)
