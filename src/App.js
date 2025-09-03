@@ -252,14 +252,10 @@ export default function App() {
 
               {/* ============ MLB ============ */}
               <Route path="/mlb/pitcher-projections" element={<MlbPitcherProjections />} />
-              {/* Future MLB pages:
-                  <Route path="/mlb/batter-projections" element={<MlbBatterProjections />} />
-                  <Route path="/mlb/stacks" element={<MlbStacks />} />
-                  <Route path="/mlb/cheatsheets" element={<MlbCheatSheets />} />
-                  <Route path="/mlb/pitcher-data" element={<MlbPitcherData />} />
-                  <Route path="/mlb/batter-data" element={<MlbBatterData />} />
-                  <Route path="/mlb/optimizer" element={<MlbOptimizer />} />
-              */}
+              <Route path="/mlb/batter-projections" element={<MlbBattersProjections />} />
+              <Route path="/mlb/batters" element={<Navigate to="/mlb/batter-projections" replace />} />
+              <Route path="/mlb/hitters" element={<Navigate to="/mlb/batter-projections" replace />} />
+
               {/* Default MLB redirect */}
               <Route path="/mlb" element={<Navigate to="/mlb/pitcher-projections" replace />} />
             </Route>
