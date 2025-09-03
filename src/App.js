@@ -257,6 +257,7 @@ export default function App() {
               <Route path="/mlb/batters" element={<Navigate to="/mlb/batter-projections" replace />} />
               <Route path="/mlb/hitters" element={<Navigate to="/mlb/batter-projections" replace />} />
               <Route path="/mlb/stacks" element={<MlbStacks />} /> {/* ← NEW route */}
+              <Route path="/mlb/cheatsheets" element={<Navigate to="/mlb/stacks" replace />} />
 
               {/* Default MLB redirect */}
               <Route path="/mlb" element={<Navigate to="/mlb/pitcher-projections" replace />} />
