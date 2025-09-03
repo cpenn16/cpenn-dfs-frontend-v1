@@ -1,233 +1,106 @@
-// src/pages/mlb/PitcherProjections.jsx
-import React, { useMemo, useState } from "react";
+// src/pages/mlb/PitcherProjectionsPage.jsx
+import React, { useEffect, useMemo, useState } from "react";
+import PitcherProjections from "./PitcherProjections";
 
-/**
- * DROP-IN USAGE
- * ---------------------------------------------------------
- * <PitcherProjections rows={yourDataArray} />
- *
- * Expected row shape (keys are case-sensitive):
- * {
- *   impTotal: number,        // implied runs against (e.g., 4.0)
- *   hand: "L" | "R",
- *   player: string,          // full name
- *   dkSal: number,           // DraftKings salary
- *   fdSal: number,           // FanDuel salary
- *   team: string,            // e.g., "SEA"
- *   opp: string,             // e.g., "TB"
- *   ip: number,
- *   er: number,
- *   k: number,
- *   hits: number,
- *   bb: number,
- *   hr: number,
- *   w: number,               // win probability (0–1 or 0–100)
- *   dkProj: number,
- *   dkVal: number,
- *   dkPOwn: number,          // DK projected ownership in %, use 0–100
- *   fdProj: number,
- *   fdVal: number,
- *   fdPOwn: number,          // FD projected ownership in %, use 0–100
- *   dkFloor: number,
- *   dkCeiling: number,
- *   fdFloor: number,
- *   fdCeiling: number,
- *   dkRtg: number,           // 0–100
- *   fdRtg: number            // 0–100
- * }
- *
- * If your win prob is 0–1, we'll auto-detect and convert to %.
- * Same for pOWN fields — pass either 0–1 or 0–100 and it will render correctly.
- */
+// 1) Point this at your exporter URL or file.
+//    You can override with an env var: VITE_MLB_PITCHERS_URL
+const DATA_URL =
+  import.meta.env?.VITE_MLB_PITCHERS_URL ||
+  "/data/mlb_pitcher_projections.json"; // <- adjust if needed
 
-const number = (v, d = 2) =>
-  v === null || v === undefined || Number.isNaN(v) ? "—" : Number(v).toFixed(d);
-
-const whole = (v) =>
-  v === null || v === undefined || Number.isNaN(v) ? "—" : Math.round(Number(v)).toLocaleString();
-
-const money = (v) =>
-  v === null || v === undefined || Number.isNaN(v) ? "—" : `$${Math.round(Number(v)).toLocaleString()}`;
-
-const pct = (v, d = 1) => {
-  if (v === null || v === undefined || Number.isNaN(v)) return "—";
-  const n = Number(v);
-  const asPct = n <= 1 ? n * 100 : n; // accept 0–1 or 0–100
-  return `${asPct.toFixed(d)}%`;
-};
-
-// Sort utils
-const compare = (a, b, key, dir) => {
-  const va = a?.[key];
-  const vb = b?.[key];
-  const na = va === null || va === undefined ? Number.NEGATIVE_INFINITY : va;
-  const nb = vb === null || vb === undefined ? Number.NEGATIVE_INFINITY : vb;
-
-  if (typeof na === "string" || typeof nb === "string") {
-    const sa = (va ?? "").toString().toLowerCase();
-    const sb = (vb ?? "").toString().toLowerCase();
-    if (sa < sb) return dir === "asc" ? -1 : 1;
-    if (sa > sb) return dir === "asc" ? 1 : -1;
-    return 0;
+// 2) Small helpers to read values even if your keys vary between exports
+const pick = (obj, keys) => {
+  for (const k of keys) {
+    if (obj[k] !== undefined && obj[k] !== null && obj[k] !== "") return obj[k];
   }
-
-  if (na < nb) return dir === "asc" ? -1 : 1;
-  if (na > nb) return dir === "asc" ? 1 : -1;
-  return 0;
+  return undefined;
 };
 
-const Th = ({ col, sortKey, sortDir, onSort }) => {
-  const isActive = sortKey === col.key;
-  return (
-    <th
-      onClick={() => onSort(col.key)}
-      title={`Sort by ${col.label}`}
-      style={{ cursor: "pointer", whiteSpace: "nowrap", position: "sticky", top: 0, background: "white", zIndex: 2 }}
-      className="px-3 py-2 text-xs font-semibold text-slate-600 border-b"
-    >
-      <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-        <span>{col.label}</span>
-        <span style={{ opacity: isActive ? 1 : 0.25, fontSize: 12 }}>
-          {isActive ? (sortDir === "asc" ? "▲" : "▼") : "↕"}
-        </span>
-      </div>
-    </th>
-  );
+// auto %: accept 0–1 or 0–100
+const toPct = (v) => {
+  if (v === undefined || v === null || v === "") return undefined;
+  const n = Number(v);
+  if (Number.isNaN(n)) return undefined;
+  return n <= 1 ? n * 100 : n;
+};
+const toNum = (v) => {
+  if (v === undefined || v === null || v === "") return undefined;
+  const n = Number(v);
+  return Number.isNaN(n) ? undefined : n;
 };
 
-export default function PitcherProjections({ rows = [] }) {
-  // columns definition
-  const columns = useMemo(
-    () => [
-      { key: "impTotal", label: "Imp. Total", render: (r) => number(r.impTotal, 1) },
-      { key: "hand", label: "H", render: (r) => (r.hand ?? "—") },
-      { key: "player", label: "Player", render: (r) => r.player ?? "—" },
-      { key: "dkSal", label: "DK Sal", render: (r) => money(r.dkSal) },
-      { key: "fdSal", label: "FD Sal", render: (r) => money(r.fdSal) },
-      { key: "team", label: "Team", render: (r) => r.team ?? "—" },
-      { key: "opp", label: "Opp", render: (r) => r.opp ?? "—" },
+// 3) Adapter that maps MANY possible input names -> component keys
+function adaptRow(r) {
+  return {
+    impTotal: toNum(pick(r, ["Imp. Total", "ImpTotal", "imp_total", "impTotal", "ImpliedTotal"])),
+    hand: pick(r, ["H", "Hand", "handedness", "BatsThrows", "hand"]),
+    player: pick(r, ["Player", "Pitcher", "Name", "player"]),
+    dkSal: toNum(pick(r, ["DK Sal", "DK_Sal", "DKSal", "dk_salary", "dkSal"])),
+    fdSal: toNum(pick(r, ["FD Sal", "FD_Sal", "FDSal", "fd_salary", "fdSal"])),
+    team: pick(r, ["Team", "Tm", "team"]),
+    opp: pick(r, ["Opp", "Opponent", "opp"]),
+    ip: toNum(pick(r, ["IP", "ip_proj", "ip"])),
+    er: toNum(pick(r, ["ER", "er_proj", "er"])),
+    k: toNum(pick(r, ["K", "SO", "k_proj", "k"])),
+    hits: toNum(pick(r, ["Hits", "HitsAllowed", "H_allowed", "H_allwd", "H_Allowed", "hits"])),
+    bb: toNum(pick(r, ["BB", "Walks", "walks", "bb"])),
+    hr: toNum(pick(r, ["HR", "HomeRunsAllowed", "hr"])),
+    w: toPct(pick(r, ["W", "Win", "WinProb", "win_prob", "w"])),
 
-      { key: "ip", label: "IP", render: (r) => number(r.ip, 2) },
-      { key: "er", label: "ER", render: (r) => number(r.er, 2) },
-      { key: "k", label: "K", render: (r) => number(r.k, 2) },
-      { key: "hits", label: "H", render: (r) => number(r.hits, 2) },
-      { key: "bb", label: "BB", render: (r) => number(r.bb, 2) },
-      { key: "hr", label: "HR", render: (r) => number(r.hr, 2) },
-      { key: "w", label: "W", render: (r) => pct(r.w, 1) },
+    dkProj: toNum(pick(r, ["DK Proj", "DK_Proj", "DKProj", "dk_points", "dkProj"])),
+    dkVal: toNum(pick(r, ["DK Val", "DK_Val", "DKVal", "dk_val", "dkVal"])),
+    dkPOwn: toPct(pick(r, ["DK pOWN%", "DK_pOWN", "DKpOWN", "dk_pown", "dkPOwn"])),
 
-      { key: "dkProj", label: "DK Proj", render: (r) => number(r.dkProj, 2) },
-      { key: "dkVal", label: "DK Val", render: (r) => number(r.dkVal, 2) },
-      { key: "dkPOwn", label: "DK pOWN%", render: (r) => pct(r.dkPOwn, 1) },
+    fdProj: toNum(pick(r, ["FD Proj", "FD_Proj", "FDProj", "fd_points", "fdProj"])),
+    fdVal: toNum(pick(r, ["FD Val", "FD_Val", "FDVal", "fd_val", "fdVal"])),
+    fdPOwn: toPct(pick(r, ["FD pOWN%", "FD_pOWN", "FDpOWN", "fd_pown", "fdPOwn"])),
 
-      { key: "fdProj", label: "FD Proj", render: (r) => number(r.fdProj, 2) },
-      { key: "fdVal", label: "FD Val", render: (r) => number(r.fdVal, 2) },
-      { key: "fdPOwn", label: "FD pOWN%", render: (r) => pct(r.fdPOwn, 1) },
+    dkFloor: toNum(pick(r, ["DK Floor", "DK_Floor", "dk_floor", "dkFloor"])),
+    dkCeiling: toNum(pick(r, ["DK Ceiling", "DK_Ceiling", "dk_ceiling", "dkCeiling"])),
+    fdFloor: toNum(pick(r, ["FD Floor", "FD_Floor", "fd_floor", "fdFloor"])),
+    fdCeiling: toNum(pick(r, ["FD Ceiling", "FD_Ceiling", "fd_ceiling", "fdCeiling"])),
 
-      { key: "dkFloor", label: "DK Floor", render: (r) => number(r.dkFloor, 2) },
-      { key: "dkCeiling", label: "DK Ceiling", render: (r) => number(r.dkCeiling, 2) },
-      { key: "fdFloor", label: "FD Floor", render: (r) => number(r.fdFloor, 2) },
-      { key: "fdCeiling", label: "FD Ceiling", render: (r) => number(r.fdCeiling, 2) },
-
-      { key: "dkRtg", label: "DK Rtg", render: (r) => whole(r.dkRtg) },
-      { key: "fdRtg", label: "FD Rtg", render: (r) => whole(r.fdRtg) },
-    ],
-    []
-  );
-
-  // sorting state
-  const [sortKey, setSortKey] = useState("player");
-  const [sortDir, setSortDir] = useState("asc"); // "asc" | "desc"
-
-  const onSort = (key) => {
-    if (key === sortKey) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortKey(key);
-      setSortDir("asc");
-    }
+    dkRtg: toNum(pick(r, ["DK Rtg", "DK_Rtg", "DKRating", "dk_rating", "dkRtg"])),
+    fdRtg: toNum(pick(r, ["FD Rtg", "FD_Rtg", "FDRating", "fd_rating", "fdRtg"]))
   };
+}
 
-  const sorted = useMemo(() => {
-    const copy = [...rows];
-    copy.sort((a, b) => compare(a, b, sortKey, sortDir));
-    return copy;
-  }, [rows, sortKey, sortDir]);
+export default function PitcherProjectionsPage() {
+  const [rows, setRows] = useState([]);
+  const [err, setErr] = useState("");
 
-  // simple styles (tailwind-like classes added inline for easy drop-in anywhere)
-  const wrapperStyle = {
-    border: "1px solid #e5e7eb",
-    borderRadius: 10,
-    overflow: "hidden",
-    background: "white",
-  };
+  useEffect(() => {
+    let mounted = true;
 
-  const tableStyle = {
-    width: "100%",
-    borderCollapse: "separate",
-    borderSpacing: 0,
-    fontSize: 13.5,
-  };
+    (async () => {
+      try {
+        const res = await fetch(DATA_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        const raw = await res.json();
 
-  const headerStripe = {
-    position: "sticky",
-    top: 0,
-    background: "white",
-    boxShadow: "inset 0 -1px 0 #e5e7eb",
-  };
+        // Accept either an array or an object with a data/items property
+        const list = Array.isArray(raw) ? raw : raw?.data || raw?.items || [];
+        const adapted = list.map(adaptRow).filter((r) => r.player); // require player
+        if (mounted) setRows(adapted);
+      } catch (e) {
+        if (mounted) setErr(e.message || String(e));
+        console.error("PitcherProjections fetch error:", e);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
-    <div style={{ padding: 16 }}>
-      <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12 }}>MLB — Pitcher Projections</h1>
-
-      <div style={wrapperStyle}>
-        <div style={{ overflow: "auto", maxHeight: "78vh" }}>
-          <table style={tableStyle}>
-            <thead style={headerStripe}>
-              <tr>
-                {columns.map((col) => (
-                  <Th
-                    key={col.key}
-                    col={col}
-                    sortKey={sortKey}
-                    sortDir={sortDir}
-                    onSort={onSort}
-                  />
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {sorted.map((r, i) => (
-                <tr
-                  key={`${r.player}-${i}`}
-                  style={{
-                    background: i % 2 === 0 ? "#fff" : "#fafafa",
-                    borderBottom: "1px solid #f1f5f9",
-                  }}
-                >
-                  {columns.map((col) => (
-                    <td key={col.key} className="px-3 py-2 text-sm text-slate-800 whitespace-nowrap border-b">
-                      {col.render(r)}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-              {sorted.length === 0 && (
-                <tr>
-                  <td colSpan={columns.length} style={{ padding: 16, color: "#64748b" }}>
-                    No data.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+    <div className="px-4 py-4">
+      {err && (
+        <div style={{ marginBottom: 12, color: "#b91c1c", fontWeight: 600 }}>
+          Data load error: {err}
         </div>
-      </div>
-
-      {/* Tiny legend for % fields (optional) */}
-      <div style={{ marginTop: 8, fontSize: 12, color: "#64748b" }}>
-        <span style={{ marginRight: 12 }}>W = Win Probability</span>
-        <span style={{ marginRight: 12 }}>pOWN% = Projected Ownership</span>
-      </div>
+      )}
+      <PitcherProjections rows={rows} />
     </div>
   );
 }
