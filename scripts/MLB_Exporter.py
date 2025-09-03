@@ -309,32 +309,63 @@ def read_literal_table(xlsm_path: Path, sheet: str,
 
 def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> None:
     """
-    Mirrors NFL run_cheatsheets, but with column-scoped capture so L/R blocks don't merge.
-    Config shape:
-      "cheatsheets": {
-        "sheet": "Cheat Sheet",
-        "out_rel": "data/mlb/latest/cheat_sheet",
-        "tables": [
-          {"title": "Pitcher", "width": 9, "limit_rows": 200},
-          {"title": "C", "width": 9},
-          ...
-        ]
-      }
+    Title-based extraction, column-scoped. Extras:
+      - If 'Player' is blank (common with HYPERLINK formulas), read the formula
+        text from a non-data_only workbook and extract the display value.
+      - Normalize 'Time' to 'H:MM AM/PM'.
     """
     cs = cfg.get("cheatsheets")
-    if not cs: return
+    if not cs: 
+        return
     sheet      = cs.get("sheet") or "Cheat Sheet"
     out_rel    = (cs.get("out_rel") or "").lstrip(r"\/")
     title_ci   = bool(cs.get("title_match_ci", True))
     default_limit = int(cs.get("limit_rows", 200))
     if not out_rel:
-        print("⚠️  SKIP cheatsheets: missing out_rel"); return
+        print("⚠️  SKIP cheatsheets: missing out_rel"); 
+        return
 
-    wb = load_workbook(xlsm_path, data_only=True, read_only=True, keep_links=False)
+    # Helper: 24h → 12h
+    _TIME12_RE = re.compile(r"^\s*(\d{1,2})\s*:\s*(\d{2})(?::\d{2})?\s*(AM|PM)?\s*$", re.I)
+    def _to_12h(s: Any) -> str:
+        if s is None: 
+            return ""
+        t = str(s).strip()
+        if not t: 
+            return ""
+        m = _TIME12_RE.match(t)
+        if not m:
+            return t  # leave as-is
+        hh = int(m.group(1))
+        mm = m.group(2)
+        ampm = m.group(3)
+        if ampm:  # already AM/PM
+            up = ampm.upper()
+            return f"{hh}:{mm} {up}"
+        # 24h to 12h
+        if hh == 0:
+            return f"12:{mm} AM"
+        if 1 <= hh <= 11:
+            return f"{hh}:{mm} AM"
+        if hh == 12:
+            return f"12:{mm} PM"
+        return f"{hh-12}:{mm} PM"
+
+    # Helper: extract display from =HYPERLINK(..., "Display")
+    _HL_RE = re.compile(r"^=\s*HYPERLINK\s*\(\s*(?:\"[^\"]*\"|[^,]+)\s*,\s*\"([^\"]+)\"\s*\)\s*$", re.I)
+    def _hyperlink_display(val: Any) -> Optional[str]:
+        s = "" if val is None else str(val)
+        m = _HL_RE.match(s)
+        return m.group(1).strip() if m else None
+
+    wb_data = load_workbook(xlsm_path, data_only=True,  read_only=True, keep_links=False)
+    wb_form = load_workbook(xlsm_path, data_only=False, read_only=True, keep_links=False)
     try:
-        if sheet not in wb.sheetnames:
-            print(f"⚠️  SKIP cheatsheets: sheet '{sheet}' not found"); return
-        ws = wb[sheet]
+        if sheet not in wb_data.sheetnames:
+            print(f"⚠️  SKIP cheatsheets: sheet '{sheet}' not found"); 
+            return
+        ws  = wb_data[sheet]
+        wsf = wb_form[sheet]
         n_rows, n_cols = ws.max_row, ws.max_column
 
         def norm(s: Any) -> str:
@@ -344,7 +375,7 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
         titles_cfg = cs.get("tables") or []
         all_titles_norm = {norm(t.get("title")) for t in titles_cfg if t.get("title")}
 
-        # index of cell text → [(r,c)]
+        # index of text → [(r,c)]
         index: Dict[str, List[tuple]] = {}
         for r in range(1, n_rows + 1):
             for c in range(1, n_cols + 1):
@@ -355,33 +386,54 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
         out_obj: Dict[str, Any] = {}
         for i, t in enumerate(titles_cfg):
             title = str(t.get("title") or f"Table {i+1}").strip()
-            width = max(1, int(t.get("width", 8)))   # number of columns to read for this panel
+            width = max(1, int(t.get("width", 8)))
             limit_rows = int(t.get("limit_rows", default_limit))
             locs = index.get(norm(title), [])
             if not locs:
                 print(f"⚠️  cheatsheets: title not found: '{title}'")
                 continue
 
-            # pick the earliest (top-left) title occurrence
             start_r, start_c = min(locs, key=lambda rc: (rc[0], rc[1]))
-            header_r = start_r
+            header_r = start_r + 1          # header is the row *after* the yellow title
             data_r0  = header_r + 1
 
-            # read headers within the *column span only*
+            # headers within span
             hdr = [ws.cell(header_r, c) for c in range(start_c, min(start_c + width, n_cols + 1))]
             headers = dedup([_norm_header_label(_format_cell(c)) for c in hdr])
+
+            # quick lookup for special columns
+            try:
+                idx_player = next(i for i,h in enumerate(headers) if h.lower()=="player")
+            except StopIteration:
+                idx_player = None
+            try:
+                idx_time = next(i for i,h in enumerate(headers) if h.lower()=="time")
+            except StopIteration:
+                idx_time = None
 
             rows = []
             r = data_r0
             blank_seq = 0
             while r <= n_rows and len(rows) < limit_rows:
-                # stop if we hit another known title in the *first column* of this panel
+                # stop when we hit another known title in the first col of this panel
                 first_cell = norm(ws.cell(r, start_c).value)
                 if first_cell in all_titles_norm and first_cell != "":
                     break
 
                 row_cells = [ws.cell(r, c) for c in range(start_c, start_c + len(headers))]
                 display = [_format_cell(c) for c in row_cells]
+
+                # Fill missing Player from formula if needed
+                if idx_player is not None and (display[idx_player] == "" or display[idx_player] is None):
+                    raw = wsf.cell(r, start_c + idx_player).value  # read formula text
+                    disp = _hyperlink_display(raw)
+                    if disp:
+                        display[idx_player] = disp
+
+                # convert time
+                if idx_time is not None and display[idx_time]:
+                    display[idx_time] = _to_12h(display[idx_time])
+
                 if all(x == "" for x in display):
                     blank_seq += 1
                     if blank_seq >= 2:
@@ -401,7 +453,9 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
         out_path.write_text(json.dumps(out_obj, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"✔️  JSON → {out_path}  (sections: {', '.join(out_obj.keys()) or 'none'})")
     finally:
-        wb.close()
+        wb_data.close()
+        wb_form.close()
+
 
 
 # ---------------------- MLB GAMEBOARD (Dashboard) -----------------------
