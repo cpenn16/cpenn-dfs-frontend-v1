@@ -133,7 +133,7 @@ const PCT_IDS = new Set([
   "rating","k_pct","bb_pct","hr_fb","fb","gb","cnt_pct","sws_pct","bar_pct","hh_pct","h_kpct","h_bbpct"
 ]);
 
-/** Thick borders (your request): after FD, Time, Total, Rating, SB/g, SwS%, EV, PH, H AB, H BB% */
+/** Thick borders (your request): after FD, Time, Total, Rating, SB/g, SwS%, EV, PH, H BB% */
 const THICK_AFTER = new Set(["fd","time","total","rating","sbg","sws_pct","ev","ph","h_ab","h_bbpct"]);
 
 /* ============================== DATA FETCH ============================== */
