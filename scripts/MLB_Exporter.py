@@ -199,9 +199,11 @@ def parse_yellow_panels(
     sheet_name: str,
     yellow_fills: Optional[set] = None
 ) -> List[Dict[str, Any]]:
-    """Find yellow header rows and return their data blocks
-       (first row under header is table header)."""
-
+    """
+    Find yellow title rows and return *scoped* data blocks.
+    Critically, we detect the column span of each panel so side-by-side panels
+    (e.g., Pitcher on the left, OF on the right) don’t get merged.
+    """
     fills_rgb = set(v.upper() for v in (yellow_fills or YELLOW_FILLS))
     wb = load_workbook(xlsx_path, data_only=True)
     try:
@@ -227,8 +229,8 @@ def parse_yellow_panels(
                 if start_rgb and str(start_rgb).upper() in fills_rgb:
                     return True
 
-                # Some themed/indexed yellows display without explicit rgb;
-                # treat “has non-transparent color” as header-like.
+                # Themed/indexed yellows often won’t carry explicit rgb; treat any
+                # non-transparent theme/index color as header-like.
                 if (getattr(fill.fgColor, "type", None) in ("theme", "indexed") or
                     getattr(fill.start_color, "type", None) in ("theme", "indexed")):
                     if (getattr(fill.fgColor, "rgb", None) not in (None, "00000000") or
@@ -239,12 +241,13 @@ def parse_yellow_panels(
             except Exception:
                 return False
 
+        # 1) collect all yellow header rows (by row index)
         yellow_rows = []
         for r in range(1, max_row + 1):
             if any(cell_is_header_like(ws.cell(row=r, column=c)) for c in range(1, max_col + 1)):
                 yellow_rows.append(r)
 
-        # Fallback: title pattern like "SEA @ TB"
+        # Fallback if styles are stripped: accept titles like "SEA @ TB"
         if not yellow_rows:
             for r in range(1, max_row + 1):
                 first_text = None
@@ -257,27 +260,67 @@ def parse_yellow_panels(
                     yellow_rows.append(r)
 
         yellow_rows = sorted(set(yellow_rows))
+
         panels: List[Dict[str, Any]] = []
 
         for i, start_r in enumerate(yellow_rows):
-            end_r = (yellow_rows[i + 1] - 1) if i + 1 < len(yellow_rows) else max_row
+            # Determine the overall bottom boundary (until the next yellow header row)
+            overall_end_r = (yellow_rows[i + 1] - 1) if i + 1 < len(yellow_rows) else max_row
 
-            title = None
+            # 2) find the *column block* for THIS panel
+            #    - start_c: first non-empty cell in the header row
+            #    - end_c: extend right while the header row has content, but STOP if:
+            #        a) we encounter another yellow header-like cell in the same row
+            #        b) we hit a gap of >= 2 consecutive empty header cells
+            start_c = None
             for c in range(1, max_col + 1):
+                if (ws.cell(row=start_r, column=c).value not in (None, "")):
+                    start_c = c
+                    break
+            if start_c is None:
+                # No text on this header row; skip
+                continue
+
+            end_c = start_c
+            empty_run = 0
+            for c in range(start_c + 1, max_col + 1):
+                cell = ws.cell(row=start_r, column=c)
+                # another yellow header in the same row → next panel begins here
+                if cell_is_header_like(cell) and cell.value not in (None, "") and c > start_c:
+                    break
+                if cell.value in (None, ""):
+                    empty_run += 1
+                    if empty_run >= 2:
+                        break
+                else:
+                    empty_run = 0
+                    end_c = c
+
+            # 3) extract the title from this header block
+            title = None
+            for c in range(start_c, end_c + 1):
                 v = ws.cell(row=start_r, column=c).value
                 if v not in (None, ""):
                     title = str(v).strip()
                     break
 
+            # 4) collect rows under this header, bounded by (overall_end_r, start_c..end_c)
             rows = []
             r = start_r + 1
-            while r <= end_r:
-                vals = [ws.cell(row=r, column=c).value for c in range(1, max_col + 1)]
+            blank_streak = 0
+            while r <= overall_end_r:
+                vals = [ws.cell(row=r, column=c).value for c in range(start_c, end_c + 1)]
                 if all(v in (None, "", " ") for v in vals):
-                    break
-                rows.append(vals)
+                    blank_streak += 1
+                    # stop a panel after 2 consecutive blank rows
+                    if blank_streak >= 2:
+                        break
+                else:
+                    blank_streak = 0
+                    rows.append(vals)
                 r += 1
 
+            # trim trailing fully-empty columns from the captured block
             if rows:
                 last_nonempty = 0
                 for rr in rows:
@@ -290,7 +333,9 @@ def parse_yellow_panels(
                 "title": title or f"Panel @ row {start_r}",
                 "header_row": start_r,
                 "data_start_row": start_r + 1,
-                "rows": rows
+                "start_col": start_c,
+                "end_col": end_c,
+                "rows": rows,
             })
 
         return panels
