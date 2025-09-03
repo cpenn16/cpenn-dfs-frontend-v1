@@ -1,8 +1,16 @@
 // src/pages/mlb/MlbPitcherProjections.jsx
-import React, { useEffect, useMemo, useState, useLayoutEffect, useRef } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useLayoutEffect,
+  useRef,
+} from "react";
 
-/* ------------------------------- config ------------------------------- */
-/** Prefer env, fallback to your old path. Make sure this URL returns JSON. */
+/* ======================================================================
+   CONFIG
+   ====================================================================== */
+// Use env if available, else your previous path. Must return JSON.
 const SOURCE =
   import.meta.env?.VITE_MLB_PITCHERS_URL ||
   "/data/mlb/latest/pitcher_projections.json";
@@ -13,25 +21,33 @@ const SITES = {
   both: { key: "both", label: "Both" },
 };
 
-/** Header aliases we’ll tolerate coming from the sheet -> canonical keys */
+/* ======================================================================
+   HEADER ALIASES  (sheet headers -> canonical keys)
+   ====================================================================== */
 const ALIASES = {
-  // identity
+  // identity / context
+  imp_total: ["imp. total", "imp total", "impliedtotal", "imp_total", "v"],
+  hand: ["h", "hand", "handedness", "throws", "batsthrows"],
   player: ["player", "name", "pitcher", "player name"],
-  pos: ["pos", "position"],
   team: ["team", "teamabbrev", "tm"],
   opp: ["opp", "opponent"],
 
-  // NEW: context / stats
-  imp_total: ["imp. total", "imp total", "impliedtotal", "imp_total"],
-  hand: ["h", "hand", "handedness", "throws", "batsthrows"],
-
+  // stats
   ip: ["ip", "innings", "innings pitched", "ip_proj"],
   er: ["er", "earned runs"],
   k: ["k", "so", "strikeouts", "k_proj"],
-  hits_allowed: ["hits", "h_allowed", "hitsallowed", "h_allwd"],
+  hits_allowed: [
+    "h__2",
+    "hits",
+    "hitsallowed",
+    "h_allowed",
+    "h allwd",
+    "h allowed",
+  ],
   bb: ["bb", "walks"],
   hr: ["hr", "home runs allowed", "home_runs_allowed", "hr_allowed"],
-  w_pct: ["w", "win", "winprob", "win_prob", "win%"],
+  // W must stay decimal (not %)
+  w_dec: ["w", "win", "winprob", "win_prob", "win%"],
 
   // DK
   dk_sal: ["dk sal", "dk salary", "draftkings salary", "dk$"],
@@ -52,23 +68,10 @@ const ALIASES = {
   fd_rtg: ["fd rtg", "fd rating", "fd_rating"],
 };
 
-/* ------------------------------ helpers ------------------------------- */
+/* ======================================================================
+   HELPERS
+   ====================================================================== */
 const lc = (s) => String(s ?? "").toLowerCase().trim();
-const num = (v) => {
-  if (v === null || v === undefined || v === "") return null;
-  const n = Number(String(v).replace(/[,$%\s]/g, ""));
-  return Number.isFinite(n) ? n : null;
-};
-const pctNum = (v) => {
-  const n = num(v);
-  if (n === null) return null;
-  return n <= 1 ? n * 100 : n; // accept 0–1 or 0–100
-};
-const fmt0 = (v) => (num(v) === null ? "" : num(v).toLocaleString());
-const fmt1 = (v) => (num(v) === null ? "" : num(v).toFixed(1));
-const fmtPct1 = (v) => (pctNum(v) === null ? "" : `${pctNum(v).toFixed(1)}%`);
-const teamLogo = (team) => `/logos/mlb/${String(team || "").toUpperCase()}.png`;
-
 const buildLowerMap = (row) => {
   const low = {};
   for (const [k, v] of Object.entries(row)) low[lc(k)] = v;
@@ -77,49 +80,70 @@ const buildLowerMap = (row) => {
 const firstKey = (obj, names) => names.map(lc).find((n) => n in obj);
 const pick = (obj, names) => obj[firstKey(obj, names) ?? ""];
 
+const num = (v) => {
+  if (v === null || v === undefined || v === "") return null;
+  const n = Number(String(v).replace(/[,$%\s]/g, ""));
+  return Number.isFinite(n) ? n : null;
+};
+const pctNum = (v) => {
+  const n = num(v);
+  if (n === null) return null;
+  return n <= 1 ? n * 100 : n; // accept 0–1 or 0–100 (only for pOWN)
+};
+
+const fmtMoney0 = (v) => (num(v) === null ? "" : `$${num(v).toLocaleString()}`);
+const fmt1 = (v) => (num(v) === null ? "" : num(v).toFixed(1));
+const fmt2 = (v) => (num(v) === null ? "" : num(v).toFixed(2)); // W decimal
+const fmtPct1 = (v) => (pctNum(v) === null ? "" : `${pctNum(v).toFixed(1)}%`);
+
+const teamLogo = (team) => `/logos/mlb/${String(team || "").toUpperCase()}.png`;
+
+/* ======================================================================
+   NORMALIZER
+   ====================================================================== */
 function normalizeRow(row) {
   const low = buildLowerMap(row);
-  const out = {};
+  return {
+    imp_total: num(pick(low, ALIASES.imp_total)),
+    hand: (pick(low, ALIASES.hand) || "").toUpperCase(),
+    player: pick(low, ALIASES.player),
 
-  // identity
-  out.player = pick(low, ALIASES.player);
-  out.pos = pick(low, ALIASES.pos);
-  out.team = (pick(low, ALIASES.team) || "").toUpperCase();
-  out.opp = (pick(low, ALIASES.opp) || "").toUpperCase();
+    dk_sal: num(pick(low, ALIASES.dk_sal)),
+    fd_sal: num(pick(low, ALIASES.fd_sal)),
+    team: (pick(low, ALIASES.team) || "").toUpperCase(),
+    opp: (pick(low, ALIASES.opp) || "").toUpperCase(),
 
-  // context / stats
-  out.imp_total = num(pick(low, ALIASES.imp_total));
-  out.hand = (pick(low, ALIASES.hand) || "").toUpperCase();
-  out.ip = num(pick(low, ALIASES.ip));
-  out.er = num(pick(low, ALIASES.er));
-  out.k = num(pick(low, ALIASES.k));
-  out.hits_allowed = num(pick(low, ALIASES.hits_allowed));
-  out.bb = num(pick(low, ALIASES.bb));
-  out.hr = num(pick(low, ALIASES.hr));
-  out.w_pct = pctNum(pick(low, ALIASES.w_pct));
+    ip: num(pick(low, ALIASES.ip)),
+    er: num(pick(low, ALIASES.er)),
+    k: num(pick(low, ALIASES.k)),
+    hits_allowed: num(pick(low, ALIASES.hits_allowed)),
+    bb: num(pick(low, ALIASES.bb)),
+    hr: num(pick(low, ALIASES.hr)),
 
-  // DK
-  out.dk_sal = num(pick(low, ALIASES.dk_sal));
-  out.dk_proj = num(pick(low, ALIASES.dk_proj));
-  out.dk_val = num(pick(low, ALIASES.dk_val));
-  out.dk_pown = pctNum(pick(low, ALIASES.dk_pown));
-  out.dk_floor = num(pick(low, ALIASES.dk_floor));
-  out.dk_ceiling = num(pick(low, ALIASES.dk_ceiling));
-  out.dk_rtg = num(pick(low, ALIASES.dk_rtg));
+    // keep decimal for W
+    w_dec: num(pick(low, ALIASES.w_dec)),
 
-  // FD
-  out.fd_sal = num(pick(low, ALIASES.fd_sal));
-  out.fd_proj = num(pick(low, ALIASES.fd_proj));
-  out.fd_val = num(pick(low, ALIASES.fd_val));
-  out.fd_pown = pctNum(pick(low, ALIASES.fd_pown));
-  out.fd_floor = num(pick(low, ALIASES.fd_floor));
-  out.fd_ceiling = num(pick(low, ALIASES.fd_ceiling));
-  out.fd_rtg = num(pick(low, ALIASES.fd_rtg));
+    dk_proj: num(pick(low, ALIASES.dk_proj)),
+    dk_val: num(pick(low, ALIASES.dk_val)),
+    dk_pown: pctNum(pick(low, ALIASES.dk_pown)),
 
-  return out;
+    fd_proj: num(pick(low, ALIASES.fd_proj)),
+    fd_val: num(pick(low, ALIASES.fd_val)),
+    fd_pown: pctNum(pick(low, ALIASES.fd_pown)),
+
+    dk_floor: num(pick(low, ALIASES.dk_floor)),
+    dk_ceiling: num(pick(low, ALIASES.dk_ceiling)),
+    fd_floor: num(pick(low, ALIASES.fd_floor)),
+    fd_ceiling: num(pick(low, ALIASES.fd_ceiling)),
+
+    dk_rtg: num(pick(low, ALIASES.dk_rtg)),
+    fd_rtg: num(pick(low, ALIASES.fd_rtg)),
+  };
 }
 
-/* fetch with better error for HTML responses */
+/* ======================================================================
+   DATA HOOK  (with HTML-vs-JSON guard)
+   ====================================================================== */
 function useJson(url) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -133,15 +157,17 @@ function useJson(url) {
       try {
         const r = await fetch(`${url}?_=${Date.now()}`, { cache: "no-store" });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const ct = r.headers.get("content-type") || "";
-        if (!ct.toLowerCase().includes("application/json")) {
-          const text = await r.text();
+        const ct = (r.headers.get("content-type") || "").toLowerCase();
+        if (!ct.includes("application/json")) {
+          const txt = await r.text();
           throw new Error(
-            `Expected JSON but got ${ct || "unknown"}. First chars: ${text.slice(0, 30)}`
+            `Expected JSON, got ${ct || "unknown"}: ${txt.slice(0, 30)}`
           );
         }
         const j = await r.json();
-        const raw = Array.isArray(j) ? j : j?.rows || j?.data || j?.items || [];
+        const raw = Array.isArray(j)
+          ? j
+          : j?.rows || j?.data || j?.items || [];
         const data = raw.map(normalizeRow).filter((r) => r.player);
         if (alive) setRows(data);
       } catch (e) {
@@ -158,7 +184,9 @@ function useJson(url) {
   return { rows, loading, err };
 }
 
-/* CSV export (only visible columns) */
+/* ======================================================================
+   CSV EXPORT (exact displayed order)
+   ====================================================================== */
 const escapeCSV = (s) => {
   const v = String(s ?? "");
   return /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
@@ -169,17 +197,20 @@ function downloadCSV(rows, cols, fname = "mlb_pitcher_projections.csv") {
     .map((r) =>
       cols
         .map((c) => {
-          const key = c.key;
-          let val = r[key];
-          if (key.endsWith("_pown") || key === "w_pct") val = fmtPct1(val);
-          else if (key.endsWith("_sal")) val = fmt0(val);
+          const k = c.key;
+          let val = r[k];
+          if (k === "dk_sal" || k === "fd_sal") val = fmtMoney0(val);
+          else if (k === "dk_pown" || k === "fd_pown") val = fmtPct1(val);
+          else if (k === "w_dec") val = fmt2(val);
           else if (typeof val === "number") val = fmt1(val);
           return escapeCSV(val ?? "");
         })
         .join(",")
     )
     .join("\n");
-  const blob = new Blob([header + "\n" + body], { type: "text/csv;charset=utf-8;" });
+  const blob = new Blob([header + "\n" + body], {
+    type: "text/csv;charset=utf-8;",
+  });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -188,7 +219,9 @@ function downloadCSV(rows, cols, fname = "mlb_pitcher_projections.csv") {
   URL.revokeObjectURL(url);
 }
 
-/* small checkbox dropdown (Teams) */
+/* ======================================================================
+   TEAMS DROPDOWN
+   ====================================================================== */
 function TeamsDropdown({ allTeams, selected, onChange }) {
   const allSet = new Set(selected);
   const toggle = (tm) => {
@@ -204,6 +237,26 @@ function TeamsDropdown({ allTeams, selected, onChange }) {
         </span>
       </summary>
       <div className="absolute mt-2 z-20 bg-white border rounded-xl shadow-lg p-2 w-[260px]">
+        <div className="flex items-center justify-between mb-2 text-xs">
+          <button
+            className="px-2 py-1 rounded-md bg-gray-100 hover:bg-gray-200"
+            onClick={(e) => {
+              e.preventDefault();
+              onChange([...allTeams]);
+            }}
+          >
+            Select all
+          </button>
+          <button
+            className="px-2 py-1 rounded-md bg-gray-100 hover:bg-gray-200"
+            onClick={(e) => {
+              e.preventDefault();
+              onChange([]);
+            }}
+          >
+            Clear all
+          </button>
+        </div>
         <div className="grid grid-cols-4 gap-1 max-h-64 overflow-auto pr-1">
           {allTeams.map((t) => (
             <label key={t} className="flex items-center gap-1 text-xs">
@@ -217,120 +270,110 @@ function TeamsDropdown({ allTeams, selected, onChange }) {
             </label>
           ))}
         </div>
-        <div className="mt-2 text-right">
-          <button
-            className="text-xs text-gray-600 hover:text-gray-800"
-            onClick={(e) => {
-              e.preventDefault();
-              onChange([]);
-            }}
-          >
-            Clear all
-          </button>
-          <button
-            className="ml-2 text-xs text-gray-600 hover:text-gray-800"
-            onClick={(e) => {
-              e.preventDefault();
-              onChange([...allTeams]);
-            }}
-          >
-            Select all
-          </button>
-        </div>
       </div>
     </details>
   );
 }
 
-/* ------------------------------- page -------------------------------- */
+/* ======================================================================
+   PAGE
+   ====================================================================== */
 export default function MlbPitcherProjections() {
   const { rows, loading, err } = useJson(SOURCE);
 
-  const [site, setSite] = useState("both"); // "dk" | "fd" | "both"
-  const [q, setQ] = useState("");
-
+  // Site toggle + filters
+  const [site, setSite] = useState("both"); // dk | fd | both
   const posOptions = ["SP", "RP", "P"];
   const [posSel, setPosSel] = useState([...posOptions]);
 
   const allTeams = useMemo(
     () =>
-      Array.from(new Set(rows.map((r) => String(r.team || "").toUpperCase()).filter(Boolean))).sort(),
+      Array.from(
+        new Set(
+          rows.map((r) => String(r.team || "").toUpperCase()).filter(Boolean)
+        )
+      ).sort(),
     [rows]
   );
   const [teamsSel, setTeamsSel] = useState(allTeams);
   useEffect(() => {
-    if (allTeams.length && (!teamsSel || teamsSel.length === 0)) setTeamsSel(allTeams);
+    if (allTeams.length && (!teamsSel || teamsSel.length === 0))
+      setTeamsSel(allTeams);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allTeams]);
 
-  /* Columns */
-  const COLS_COMMON = useMemo(
-    () =>
-      [
-        { key: "imp_total", label: "Imp. Total" },
-        { key: "hand", label: "H" },
-        { key: "player", label: "Player" },
-        { key: "team", label: "Team" },
-        { key: "opp", label: "Opp" },
-        { key: "ip", label: "IP" },
-        { key: "er", label: "ER" },
-        { key: "k", label: "K" },
-        { key: "hits_allowed", label: "H" },
-        { key: "bb", label: "BB" },
-        { key: "hr", label: "HR" },
-        { key: "w_pct", label: "W" },
-      ].filter((c) => rows.some((r) => r[c.key] != null)),
-    [rows]
-  );
+  // Search
+  const [q, setQ] = useState("");
 
-  const COLS_DK = useMemo(
-    () =>
-      [
-        { key: "dk_sal", label: "DK Sal" },
-        { key: "dk_proj", label: "DK Proj" },
-        { key: "dk_val", label: "DK Val" },
-        { key: "dk_pown", label: "DK pOWN%" },
-        { key: "dk_floor", label: "DK Floor" },
-        { key: "dk_ceiling", label: "DK Ceiling" },
-        { key: "dk_rtg", label: "DK Rtg" },
-      ].filter((c) => rows.some((r) => r[c.key] != null)),
-    [rows]
-  );
+  // Column order EXACTLY as requested:
+  // Imp. Total, H(hand), Player, DK Sal, FD Sal, Team, Opp, IP, ER, K, H, BB, HR, W,
+  // DK Proj, DK Val, DK pOWN%, FD Proj, FD Val, FD pOWN%, DK Floor, DK Ceiling,
+  // FD Floor, FD Ceiling, DK Rtg, FD Rtg
+  const COLS_ORDER = useMemo(
+    () => [
+      { key: "imp_total", label: "Imp. Total" },
+      { key: "hand", label: "H" },
 
-  const COLS_FD = useMemo(
-    () =>
-      [
-        { key: "fd_sal", label: "FD Sal" },
-        { key: "fd_proj", label: "FD Proj" },
-        { key: "fd_val", label: "FD Val" },
-        { key: "fd_pown", label: "FD pOWN%" },
-        { key: "fd_floor", label: "FD Floor" },
-        { key: "fd_ceiling", label: "FD Ceiling" },
-        { key: "fd_rtg", label: "FD Rtg" },
-      ].filter((c) => rows.some((r) => r[c.key] != null)),
-    [rows]
+      // sticky
+      { key: "player", label: "Player", sticky: true },
+
+      { key: "dk_sal", label: "DK Sal", site: "dk" },
+      { key: "fd_sal", label: "FD Sal", site: "fd" },
+      { key: "team", label: "Team" },
+      { key: "opp", label: "Opp" },
+      { key: "ip", label: "IP" },
+      { key: "er", label: "ER" },
+      { key: "k", label: "K" },
+      { key: "hits_allowed", label: "H" },
+      { key: "bb", label: "BB" },
+      { key: "hr", label: "HR" },
+      // W stays decimal
+      { key: "w_dec", label: "W" },
+
+      { key: "dk_proj", label: "DK Proj", site: "dk" },
+      { key: "dk_val", label: "DK Val", site: "dk" },
+      { key: "dk_pown", label: "DK pOWN%", site: "dk" },
+
+      { key: "fd_proj", label: "FD Proj", site: "fd" },
+      { key: "fd_val", label: "FD Val", site: "fd" },
+      { key: "fd_pown", label: "FD pOWN%", site: "fd" },
+
+      { key: "dk_floor", label: "DK Floor", site: "dk" },
+      { key: "dk_ceiling", label: "DK Ceiling", site: "dk" },
+      { key: "fd_floor", label: "FD Floor", site: "fd" },
+      { key: "fd_ceiling", label: "FD Ceiling", site: "fd" },
+
+      { key: "dk_rtg", label: "DK Rtg", site: "dk" },
+      { key: "fd_rtg", label: "FD Rtg", site: "fd" },
+    ],
+    []
   );
 
   const columns = useMemo(() => {
-    if (site === "dk") return [...COLS_COMMON, ...COLS_DK];
-    if (site === "fd") return [...COLS_COMMON, ...COLS_FD];
-    return [...COLS_COMMON, ...COLS_DK, ...COLS_FD];
-  }, [site, COLS_COMMON, COLS_DK, COLS_FD]);
+    // Show only columns with data; respect site filter; keep order
+    return COLS_ORDER.filter((c) => {
+      if (site !== "both" && c.site && c.site !== site) return false;
+      return rows.some((r) => r[c.key] !== null && r[c.key] !== undefined);
+    });
+  }, [COLS_ORDER, rows, site]);
 
-  /* filtering */
+  // Filtering
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     const posSet = new Set(posSel);
     const teamSet = new Set(teamsSel);
     return rows.filter((r) => {
       if (posSet.size && r.pos && !posSet.has(String(r.pos))) return false;
-      if (teamSet.size && !teamSet.has(String(r.team || "").toUpperCase())) return false;
+      if (teamSet.size && !teamSet.has(String(r.team || "").toUpperCase()))
+        return false;
       if (!needle) return true;
-      return `${r.player ?? ""} ${r.pos ?? ""} ${r.team ?? ""} ${r.opp ?? ""}`.toLowerCase().includes(needle);
+      return `${r.player ?? ""} ${r.team ?? ""} ${r.opp ?? ""}`
+        .toLowerCase()
+        .includes(needle);
     });
   }, [rows, q, posSel, teamsSel]);
 
-  /* sorting */
+  // Sorting (default DK Proj desc so it feels familiar)
   const [sort, setSort] = useState({ key: "dk_proj", dir: "desc" });
   const sorted = useMemo(() => {
     const { key, dir } = sort;
@@ -339,7 +382,10 @@ export default function MlbPitcherProjections() {
     arr.sort((a, b) => {
       const av = num(a[key]);
       const bv = num(b[key]);
-      if (av === null && bv === null) return String(a[key] ?? "").localeCompare(String(b[key] ?? "")) * sgn;
+      if (av === null && bv === null)
+        return (
+          String(a[key] ?? "").localeCompare(String(b[key] ?? "")) * sgn
+        );
       if (av === null) return 1;
       if (bv === null) return -1;
       return (av - bv) * sgn;
@@ -348,29 +394,81 @@ export default function MlbPitcherProjections() {
   }, [filtered, sort]);
 
   const onSort = (col) => {
-    setSort((prev) => (prev.key !== col.key ? { key: col.key, dir: "desc" } : { key: col.key, dir: prev.dir === "desc" ? "asc" : "desc" }));
+    setSort((prev) =>
+      prev.key !== col.key
+        ? { key: col.key, dir: "desc" }
+        : { key: col.key, dir: prev.dir === "desc" ? "asc" : "desc" }
+    );
   };
 
-  /* sticky player/team */
+  // Sticky Player width
   const playerThRef = useRef(null);
   const [playerColWidth, setPlayerColWidth] = useState(0);
   useLayoutEffect(() => {
     const calc = () => {
-      if (playerThRef.current) setPlayerColWidth(playerThRef.current.getBoundingClientRect().width);
+      if (playerThRef.current)
+        setPlayerColWidth(playerThRef.current.getBoundingClientRect().width);
     };
     calc();
     window.addEventListener("resize", calc);
     return () => window.removeEventListener("resize", calc);
   }, [columns, sorted]);
 
+  // Table cell/header classes
   const cell = "px-2 py-1 text-center";
   const header = "px-2 py-1 font-semibold text-center";
   const textSz = "text-[12px]";
 
+  // Renderers by column key (match order definitions)
+  const renderCell = (key, r) => {
+    switch (key) {
+      case "imp_total":
+        return fmt1(r.imp_total);
+      case "hand":
+        return r.hand || "";
+      case "player":
+        return r.player || "";
+      case "dk_sal":
+      case "fd_sal":
+        return fmtMoney0(r[key]);
+      case "team":
+      case "opp":
+        return r[key] || "";
+      case "ip":
+      case "er":
+      case "k":
+      case "hits_allowed":
+      case "bb":
+      case "hr":
+        return fmt1(r[key]);
+      case "w_dec":
+        return fmt2(r.w_dec); // decimal!
+      case "dk_proj":
+      case "dk_val":
+      case "fd_proj":
+      case "fd_val":
+      case "dk_floor":
+      case "dk_ceiling":
+      case "fd_floor":
+      case "fd_ceiling":
+      case "dk_rtg":
+      case "fd_rtg":
+        return fmt1(r[key]);
+      case "dk_pown":
+      case "fd_pown":
+        return fmtPct1(r[key]);
+      default:
+        return r[key] ?? "";
+    }
+  };
+
   return (
     <div className="px-4 md:px-6 py-5">
+      {/* Top bar: title + controls */}
       <div className="flex items-center justify-between gap-3 mb-2">
-        <h1 className="text-2xl md:text-3xl font-extrabold mb-0.5">MLB — Pitcher Projections</h1>
+        <h1 className="text-2xl md:text-3xl font-extrabold mb-0.5">
+          MLB — Pitcher Projections
+        </h1>
 
         <div className="flex items-center gap-2">
           {/* site toggle */}
@@ -383,21 +481,38 @@ export default function MlbPitcherProjections() {
                   site === k ? "bg-white shadow font-semibold" : "text-gray-700"
                 }`}
               >
-                {k !== "both" ? <img src={SITES[k].logo} alt={SITES[k].label} className="w-4 h-4" /> : null}
+                {k !== "both" ? (
+                  <img
+                    src={SITES[k].logo}
+                    alt={SITES[k].label}
+                    className="w-4 h-4"
+                  />
+                ) : null}
                 <span>{SITES[k].label}</span>
               </button>
             ))}
           </div>
 
-          {/* Positions */}
+          {/* positions */}
           <div className="hidden md:flex items-center gap-1 ml-1">
-            {["SP", "RP", "P"].map((p) => {
+            {posOptions.map((p) => {
               const active = posSel.includes(p);
               return (
                 <button
                   key={p}
-                  onClick={() => setPosSel((prev) => (prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]))}
-                  className={`px-2.5 py-1 rounded-lg text-xs ${active ? "bg-white shadow font-medium" : "bg-gray-100 text-gray-700"}`}
+                  onClick={() =>
+                    setPosSel((prev) =>
+                      prev.includes(p)
+                        ? prev.filter((x) => x !== p)
+                        : [...prev, p]
+                    )
+                  }
+                  className={`px-2.5 py-1 rounded-lg text-xs ${
+                    active
+                      ? "bg-white shadow font-medium"
+                      : "bg-gray-100 text-gray-700"
+                  }`}
+                  title="Toggle position"
                 >
                   {p}
                 </button>
@@ -405,9 +520,13 @@ export default function MlbPitcherProjections() {
             })}
           </div>
 
-          {/* Teams dropdown */}
+          {/* teams */}
           <div className="ml-1">
-            <TeamsDropdown allTeams={allTeams} selected={teamsSel} onChange={setTeamsSel} />
+            <TeamsDropdown
+              allTeams={allTeams}
+              selected={teamsSel}
+              onChange={setTeamsSel}
+            />
           </div>
 
           {/* search */}
@@ -428,104 +547,94 @@ export default function MlbPitcherProjections() {
         </div>
       </div>
 
+      {/* error banner (HTML/404 guard) */}
       {err && (
         <div className="mb-2 text-red-600 font-semibold">
           Data load error: {err}
-          <div className="text-[12px] text-red-700 mt-1">
-            Tip: If you see “Expected JSON but got text/html…”, the URL is wrong or protected. Put the JSON in
-            <code className="mx-1 px-1 bg-red-50 rounded">public/</code> and point <code>SOURCE</code> to it, or set
-            <code className="mx-1 px-1 bg-red-50 rounded">VITE_MLB_PITCHERS_URL</code>.
-          </div>
         </div>
       )}
 
+      {/* table */}
       <div className="rounded-xl border bg-white shadow-sm overflow-auto">
-        <table className={`w-full border-separate ${textSz}`} style={{ borderSpacing: 0 }}>
+        <table
+          className={`w-full border-separate ${textSz}`}
+          style={{ borderSpacing: 0 }}
+        >
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
               {columns.map((c) => (
                 <th
                   key={c.key}
-                  ref={c.key === "player" ? playerThRef : undefined}
-                  className={`${header} whitespace-nowrap cursor-pointer select-none ${
-                    c.key === "player" ? "sticky left-0 z-20 bg-gray-50" : c.key === "team" ? "sticky z-20 bg-gray-50" : ""
+                  ref={c.sticky ? playerThRef : undefined}
+                  className={`px-2 py-1 font-semibold text-center whitespace-nowrap cursor-pointer select-none ${
+                    c.sticky ? "sticky left-0 z-20 bg-gray-50" : ""
                   }`}
-                  style={c.key === "team" ? { left: playerColWidth } : undefined}
+                  style={
+                    c.sticky ? { left: 0, minWidth: playerColWidth || 160 } : undefined
+                  }
                   onClick={() => onSort(c)}
                   title="Click to sort"
                 >
                   <div className="inline-flex items-center gap-1">
                     <span>{c.label}</span>
                     <span className="text-gray-400">
-                      {sort.key === c.key ? (sort.dir === "desc" ? "▼" : "▲") : "▲"}
+                      {sort.key === c.key
+                        ? sort.dir === "desc"
+                          ? "▼"
+                          : "▲"
+                        : "▲"}
                     </span>
                   </div>
                 </th>
               ))}
             </tr>
           </thead>
+
           <tbody>
             {loading && (
               <tr>
-                <td className={`${cell} text-gray-500`} colSpan={columns.length}>
+                <td className="px-2 py-1 text-center text-gray-500" colSpan={columns.length}>
                   Loading…
                 </td>
               </tr>
             )}
+
             {!loading &&
               sorted.map((r, i) => (
                 <tr key={`${r.player}-${i}`} className="odd:bg-white even:bg-gray-50">
                   {columns.map((c) => {
-                    if (c.key === "player") {
-                      return (
-                        <td
-                          key={c.key}
-                          className={`px-2 py-1 text-left sticky left-0 z-10 ${
-                            i % 2 === 0 ? "bg-white" : "bg-gray-50"
-                          } shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)]`}
-                        >
+                    const value = renderCell(c.key, r);
+                    const stickyCls = c.sticky
+                      ? `px-2 py-1 text-left sticky left-0 z-10 ${
+                          i % 2 === 0 ? "bg-white" : "bg-gray-50"
+                        } shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)]`
+                      : "px-2 py-1 text-center";
+                    return (
+                      <td key={c.key} className={stickyCls}>
+                        {c.key === "player" ? (
                           <div className="flex items-center gap-2">
                             <img
                               src={teamLogo(r.team)}
                               alt=""
                               className="w-4 h-4 rounded-sm object-contain"
-                              onError={(e) => (e.currentTarget.style.visibility = "hidden")}
+                              onError={(e) =>
+                                (e.currentTarget.style.visibility = "hidden")
+                              }
                             />
-                            <span className="whitespace-nowrap">{r.player}</span>
+                            <span className="whitespace-nowrap">{value}</span>
                           </div>
-                        </td>
-                      );
-                    }
-                    if (c.key === "team") {
-                      return (
-                        <td
-                          key={c.key}
-                          className={`px-2 py-1 text-center sticky z-10 ${
-                            i % 2 === 0 ? "bg-white" : "bg-gray-50"
-                          } shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)]`}
-                          style={{ left: playerColWidth }}
-                        >
-                          {r.team}
-                        </td>
-                      );
-                    }
-
-                    let val = r[c.key];
-                    if (c.key.endsWith("_pown") || c.key === "w_pct") val = fmtPct1(val);
-                    else if (c.key.endsWith("_sal")) val = fmt0(val);
-                    else if (typeof val === "number") val = fmt1(val);
-
-                    return (
-                      <td key={c.key} className={cell}>
-                        {val ?? ""}
+                        ) : (
+                          value
+                        )}
                       </td>
                     );
                   })}
                 </tr>
               ))}
+
             {!loading && !sorted.length && (
               <tr>
-                <td className={`${cell} text-gray-500`} colSpan={columns.length}>
+                <td className="px-2 py-1 text-center text-gray-500" colSpan={columns.length}>
                   No data.
                 </td>
               </tr>
@@ -535,7 +644,7 @@ export default function MlbPitcherProjections() {
       </div>
 
       <div className="mt-2 text-[12px] text-gray-500">
-        <span className="mr-3">W = Win Probability</span>
+        <span className="mr-3">W = Win Probability (decimal)</span>
         <span>pOWN% = Projected Ownership</span>
       </div>
     </div>
