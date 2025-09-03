@@ -133,7 +133,7 @@ export default function MlbCheatSheet() {
       </td>
       <td className={`${td} tabular-nums`}>{fmt0(r.Salary)}</td>
       <td className={td}>{String(r.Team || "").toUpperCase()}</td>
-      <td className={td}>{String(r.Matchup || "")}</td>
+      <td className={td}>{String(r.Opp ?? r.Matchup ?? "")}</td>
       <td className={td}>{fmt1(r.Vegas ?? r["Imp. Total"] ?? r["Imp Total"])}</td>
       <td className={td}>{time12(r.Time)}</td>
       <td className={`${td} tabular-nums`}>{fmt1(r.Proj ?? r["Proj "] ?? r["DK Proj"])}</td>
