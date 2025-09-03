@@ -228,7 +228,7 @@ export default function NavBar() {
               <MenuItem to="/mlb/batter-projections">Batter Projections</MenuItem>
               <MenuItem to="/mlb/stacks">Stacks</MenuItem>
               <MenuItem to="/mlb/cheatsheets">Cheat Sheets</MenuItem>
-              <MenuItem to="/mlb/pitcher-data">Pitcher Data</MenuItem>
+              <MenuItem to="/mlb/pitchers">Pitcher Data</MenuItem>
               <MenuItem to="/mlb/batter-data">Batter Data</MenuItem>
               <MenuItem to="/mlb/optimizer">Optimizer</MenuItem>
             </HoverMenu>
@@ -458,7 +458,7 @@ export default function NavBar() {
                   <MobileLink to="/mlb/batter-projections" onClick={closeMobile}>Batter Projections</MobileLink>
                   <MobileLink to="/mlb/stacks" onClick={closeMobile}>Stacks</MobileLink>
                   <MobileLink to="/mlb/cheatsheets" onClick={closeMobile}>Cheat Sheets</MobileLink>
-                  <MobileLink to="/mlb/pitcher-data" onClick={closeMobile}>Pitcher Data</MobileLink>
+                  <MobileLink to="/mlb/pitchers" onClick={closeMobile}>Pitcher Data</MobileLink>
                   <MobileLink to="/mlb/batter-data" onClick={closeMobile}>Batter Data</MobileLink>
                   <MobileLink to="/mlb/optimizer" onClick={closeMobile}>Optimizer</MobileLink>
                 </AccordionItem>
