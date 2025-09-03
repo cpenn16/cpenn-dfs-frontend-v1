@@ -1,11 +1,9 @@
 // src/pages/mlb/PitcherData.jsx
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 /* ============================ CONFIG ============================ */
-// JSON path (matches your exporter outfile: pitcher_data.json)
-const DATA_URL = "/data/mlb/latest/pitcher_data.json";
+const DATA_URL = "/data/mlb/latest/pitcher_data.json"; // <- matches your exporter
 const TITLE = "MLB — Pitcher Data";
-
 const LOGO_BASE = "/logos/mlb";
 const LOGO_EXT = "png";
 
@@ -16,13 +14,11 @@ const lower = (s) => norm(s).toLowerCase();
 const num = (v) => {
   if (v == null || v === "") return null;
   const s = String(v).trim();
-  // strip commas, % and spaces
   const clean = s.replace(/[,\s]/g, "").replace(/%$/, "");
   const n = Number(clean);
   return Number.isFinite(n) ? n : null;
 };
 
-// Percent that accepts "12%", 12, or 0.12 and outputs "12.0%"
 function fmtPct1(v) {
   if (v == null || v === "") return "";
   let s = String(v).trim();
@@ -33,17 +29,14 @@ function fmtPct1(v) {
   }
   let n = num(s);
   if (n == null) return "";
-  if (!hadPercent && Math.abs(n) <= 1) n *= 100; // 0.12 -> 12%
+  if (!hadPercent && Math.abs(n) <= 1) n *= 100;
   return `${n.toFixed(1)}%`;
 }
-
-function fmt1(v) {
+const fmt1 = (v) => {
   const n = num(v);
-  if (n == null) return "";
-  return n.toFixed(1).replace(/\.0$/, "");
-}
+  return n == null ? "" : n.toFixed(1).replace(/\.0$/, "");
+};
 
-// time → "7:40 PM" style
 function time12(s) {
   const v = norm(s);
   if (!v) return "";
@@ -76,73 +69,77 @@ function TeamWithLogo({ code }) {
 
 /* ===================== DISPLAY ORDER & HEADER BANDS ===================== */
 /**
- * We render exactly these labels in this order.
- * Each label lists possible source keys to read from (first match wins).
- * We also prevent reusing the same raw column twice (so Opp vs Pitcher K% don’t collide).
+ * IMPORTANT: Use unique IDs so we can render duplicate labels (“K%”, “BB%”) twice
+ * without one overwriting the other. The UI shows the `label`, logic uses `id`.
  */
-const DISPLAY_COLS = [
+const COLS = [
   // Player Info
-  { label: "Hand",  keys: ["Hand","Throws","Handedness"] },
-  { label: "player", keys: ["player","Player","Name"] },
-  { label: "DK",    keys: ["DK","DK Sal","DK Salary"] },
-  { label: "FD",    keys: ["FD","FD Sal","FD Salary"] },
+  { id: "hand",        label: "Hand",  keys: ["Hand","Throws","Handedness"] },
+  { id: "player",      label: "player", keys: ["player","Player","Name"] },
+  { id: "dk",          label: "DK",    keys: ["DK","DK Sal","DK Salary"] },
+  { id: "fd",          label: "FD",    keys: ["FD","FD Sal","FD Salary"] },
 
   // Matchup Info
-  { label: "Team",  keys: ["Team","Tm"] },
-  { label: "Opp",   keys: ["Opp","OPP","Opponent"] },
-  { label: "Park",  keys: ["Park","Ballpark"] },
-  { label: "Time",  keys: ["Time","Start","Start Time"] },
+  { id: "team",        label: "Team",  keys: ["Team","Tm"] },
+  { id: "opp",         label: "Opp",   keys: ["Opp","OPP","Opponent"] },
+  { id: "park",        label: "Park",  keys: ["Park","Ballpark"] },
+  { id: "time",        label: "Time",  keys: ["Time","Start","Start Time"] },
 
   // Vegas
-  { label: "Total",  keys: ["Total","O/U","Team Total","TT"] },
-  { label: "W%",     keys: ["W%","Win%"] },
-  { label: "K",      keys: ["K","Kline","Ks"] },
-  { label: "Field",  keys: ["Field","Field%"] },
-  { label: "Rating", keys: ["Rating","Rate"] },
+  { id: "total",       label: "Total",  keys: ["Total","O/U","Team Total","TT"] },
+  { id: "winpct",      label: "W%",     keys: ["W%","Win%"] },
+  { id: "kline",       label: "K",      keys: ["K","Kline","Ks"] },
+  { id: "field",       label: "Field",  keys: ["Field","Field%"] },
+  { id: "rating",      label: "Rating", keys: ["Rating","Rate"] },
 
-  // Opp splits (use Opp K%/BB% when available, otherwise fallback to generic)
-  { label: "K% (Opp)",  keys: ["Opp K%","K% (Opp)","K% vs Hand","K% (Team)","K% (Opp Team)","K%"] },
-  { label: "BB% (Opp)", keys: ["Opp BB%","BB% (Opp)","BB% vs Hand","BB% (Team)","BB% (Opp Team)","BB%"] },
-  { label: "wOBA",      keys: ["wOBA","Opp wOBA"] },
-  { label: "ISO",       keys: ["ISO","Opp ISO"] },
-  { label: "wRC+",      keys: ["wRC+","Opp wRC+"] },
+  // Opp splits
+  { id: "opp_kpct",    label: "K%",   keys: ["Opp K%","K% (Opp)","K% vs Hand","K% (Team)","K% (Opp Team)","K%"] },
+  { id: "opp_bbpct",   label: "BB%",  keys: ["Opp BB%","BB% (Opp)","BB% vs Hand","BB% (Team)","BB% (Opp Team)","BB%"] },
+  { id: "woba",        label: "wOBA", keys: ["wOBA","Opp wOBA"] },
+  { id: "iso",         label: "ISO",  keys: ["ISO","Opp ISO"] },
+  { id: "wrcplus",     label: "wRC+", keys: ["wRC+","Opp wRC+"] },
 
   // Advanced (pitcher)
-  { label: "IP",    keys: ["IP","IP/G"] },
-  { label: "Velo",  keys: ["Velo","FB Velo","Velocity"] },
-  { label: "xFIP",  keys: ["xFIP","xfip"] },
-  { label: "K% (P)",   keys: ["K% (P)","Pitch K%","K%_P","K%"] },
-  { label: "SwS%",  keys: ["SwS%","SwStr%"] },
-  { label: "BB% (P)",  keys: ["BB% (P)","Pitch BB%","BB%_P","BB%"] },
+  { id: "ip",          label: "IP",    keys: ["IP","IP/G"] },
+  { id: "velo",        label: "Velo",  keys: ["Velo","FB Velo","Velocity"] },
+  { id: "xfip",        label: "xFIP",  keys: ["xFIP","xfip"] },
+  { id: "p_kpct",      label: "K%",    keys: ["K% (P)","Pitch K%","K%_P","K%"] },
+  { id: "sws",         label: "SwS%",  keys: ["SwS%","SwStr%"] },
+  { id: "p_bbpct",     label: "BB%",   keys: ["BB% (P)","Pitch BB%","BB%_P","BB%"] },
 
   // Ratios
-  { label: "K/9",  keys: ["K/9","K9"] },
-  { label: "BB/9", keys: ["BB/9","BB9"] },
-  { label: "HR/9", keys: ["HR/9","HR9"] },
+  { id: "k9",          label: "K/9",  keys: ["K/9","K9"] },
+  { id: "bb9",         label: "BB/9", keys: ["BB/9","BB9"] },
+  { id: "hr9",         label: "HR/9", keys: ["HR/9","HR9"] },
 
   // Statcast
-  { label: "GB%",  keys: ["GB%","GB% (P)"] },
-  { label: "FB%",  keys: ["FB%","FB% (P)"] },
-  { label: "HH%",  keys: ["HH%","HardHit%","Hard%"] },
-  { label: "Bar%", keys: ["Bar%","Barrel%"] },
-  { label: "EV",   keys: ["EV","Avg EV","Exit Velo"] }
+  { id: "gbpct",       label: "GB%",  keys: ["GB%","GB% (P)"] },
+  { id: "fbpct",       label: "FB%",  keys: ["FB%","FB% (P)"] },
+  { id: "hhpct",       label: "HH%",  keys: ["HH%","HardHit%","Hard%"] },
+  { id: "barpct",      label: "Bar%", keys: ["Bar%","Barrel%"] },
+  { id: "ev",          label: "EV",   keys: ["EV","Avg EV","Exit Velo"] }
 ];
 
+// Header bands: use the IDs above to control grouping display
 const BANDS = [
-  ["PLAYER INFO", ["Hand","player","DK","FD"]],
-  ["MATCHUP INFO", ["Team","Opp","Park","Time"]],
-  ["VEGAS", ["Total","W%","K","Field","Rating"]],
-  ["OPPONENT SPLITS VS HANDEDNESS", ["K% (Opp)","BB% (Opp)","wOBA","ISO","wRC+"]],
-  ["ADVANCED STATS", ["IP","Velo","xFIP","K% (P)","SwS%","BB% (P)"]],
-  ["RATIOS", ["K/9","BB/9","HR/9"]],
-  ["STATCAST", ["GB%","FB%","HH%","Bar%","EV"]]
+  ["PLAYER INFO", ["hand","player","dk","fd"]],
+  ["MATCHUP INFO", ["team","opp","park","time"]],
+  ["VEGAS", ["total","winpct","kline","field","rating"]],
+  ["OPPONENT SPLITS VS HANDEDNESS", ["opp_kpct","opp_bbpct","woba","iso","wrcplus"]],
+  ["ADVANCED STATS", ["ip","velo","xfip","p_kpct","sws","p_bbpct"]],
+  ["RATIOS", ["k9","bb9","hr9"]],
+  ["STATCAST", ["gbpct","fbpct","hhpct","barpct","ev"]]
 ];
 
-// Percent columns
-const PERCENT_COLS = new Set([
-  "W%","Rating","K% (Opp)","BB% (Opp)","K% (P)","SwS%","BB% (P)",
-  "GB%","FB%","HH%","Bar%"
+// Columns that should display as percentages
+const PCT_IDS = new Set([
+  "winpct","rating","opp_kpct","opp_bbpct","p_kpct","sws","p_bbpct",
+  "gbpct","fbpct","hhpct","barpct"
 ]);
+
+// Add thick right border after these IDs (to match your request)
+// after Time / K / wRC+ / BB% (pitcher) / HH% / EV
+const THICK_AFTER = new Set(["time","kline","wrcplus","p_bbpct","hhpct","ev"]);
 
 /* ============================== DATA FETCH ============================== */
 function useJson(url) {
@@ -176,25 +173,25 @@ function useJson(url) {
 export default function PitcherData() {
   const { rows, loading, err } = useJson(DATA_URL);
 
-  // Build a mapping: display label -> raw key from data
   const rawCols = useMemo(() => (rows[0] ? Object.keys(rows[0]) : []), [rows]);
 
-  const labelToKey = useMemo(() => {
+  // Map id -> actual key found in data (first alias match wins). Avoid reusing the same raw key twice.
+  const idToKey = useMemo(() => {
     const used = new Set();
     const m = new Map();
-    for (const col of DISPLAY_COLS) {
+    for (const c of COLS) {
       let hit = null;
-      for (const cand of col.keys) {
+      for (const cand of c.keys) {
         const key = rawCols.find((rc) => lower(rc) === lower(cand) && !used.has(rc));
         if (key) { hit = key; break; }
       }
-      if (hit) used.add(hit); // don’t allow the same raw key to fill two display labels
-      m.set(col.label, hit || null);
+      if (hit) used.add(hit);
+      m.set(c.id, hit || null);
     }
     return m;
   }, [rawCols]);
 
-  // Search/filter
+  // Search
   const [q, setQ] = useState("");
   const filtered = useMemo(() => {
     const s = lower(q);
@@ -207,17 +204,19 @@ export default function PitcherData() {
     });
   }, [rows, q]);
 
-  // Sorting (default by DK if present)
-  const [sort, setSort] = useState({ key: "player", dir: "asc" });
-  useEffect(() => {
-    const dk = labelToKey.get("DK");
-    const player = labelToKey.get("player");
-    if (dk) setSort({ key: dk, dir: "desc" });
-    else if (player) setSort({ key: player, dir: "asc" });
-  }, [labelToKey]);
+  // Sorting (default DK desc or player asc)
+  const dkKey = idToKey.get("dk");
+  const playerKey = idToKey.get("player");
+  const [sort, setSort] = useState({ key: dkKey || playerKey || "", dir: dkKey ? "desc" : "asc" });
 
-  const onSort = (label) => {
-    const k = labelToKey.get(label);
+  useEffect(() => {
+    const dk = idToKey.get("dk");
+    const pl = idToKey.get("player");
+    setSort({ key: dk || pl || "", dir: dk ? "desc" : "asc" });
+  }, [idToKey]);
+
+  const onSort = (id) => {
+    const k = idToKey.get(id);
     if (!k) return;
     setSort((prev) =>
       prev.key === k ? { key: k, dir: prev.dir === "asc" ? "desc" : "asc" } : { key: k, dir: "desc" }
@@ -238,26 +237,21 @@ export default function PitcherData() {
     return arr;
   }, [filtered, sort]);
 
-  // UI helpers
+  // Helpers for rendering
   const headerCls = "px-2 py-1 font-semibold text-center text-[11px] whitespace-nowrap cursor-pointer select-none";
   const cellCls = "px-2 py-1 text-center text-[12px]";
 
-  const renderCell = (label, row) => {
-    const key = labelToKey.get(label);
+  const renderVal = (id, key, row) => {
     const raw = key ? row[key] : "";
-
-    // Specialized displays
-    if (label === "Time") return time12(raw);
-    if (label === "Team" || label === "Opp") return <TeamWithLogo code={raw} />;
-
-    if (PERCENT_COLS.has(label)) return fmtPct1(raw);
-    // everything else numeric → 1 decimal (no trailing .0), otherwise raw
+    if (id === "time") return time12(raw);
+    if (id === "team" || id === "opp") return <TeamWithLogo code={raw} />;
+    if (PCT_IDS.has(id)) return fmtPct1(raw);
     const n = num(raw);
     return n == null ? String(raw ?? "") : fmt1(n);
   };
 
-  // Compose band → list of labels we actually have (or still render blanks to keep grid stable)
-  const bandCols = BANDS.map(([band, labels]) => [band, labels]);
+  // Flatten columns in band order for rendering
+  const flatIds = BANDS.flatMap(([, ids]) => ids);
 
   return (
     <div className="px-4 md:px-6 py-5">
@@ -280,59 +274,75 @@ export default function PitcherData() {
           <thead className="sticky top-0 z-10">
             {/* Band row */}
             <tr className="bg-blue-100 text-[11px] font-bold text-gray-700 uppercase">
-              {bandCols.map(([band, labels]) => (
-                <th key={band} colSpan={labels.length} className="px-2 py-1 text-center border-b border-blue-200">
-                  {band}
+              {BANDS.map(([name, ids]) => (
+                <th key={name} colSpan={ids.length} className="px-2 py-1 text-center border-b border-blue-200">
+                  {name}
                 </th>
               ))}
             </tr>
             {/* Column header row */}
             <tr className="bg-blue-50">
-              {bandCols.flatMap(([, labels]) => labels).map((label, i) => (
-                <th
-                  key={label + i}
-                  className={`${headerCls} border-r border-blue-200`}
-                  onClick={() => onSort(label)}
-                  title="Click to sort"
-                >
-                  <span className="inline-flex items-center gap-1">
-                    <span>{label}</span>
-                    {labelToKey.get(label) === sort.key ? (
-                      <span className="text-gray-500">{sort.dir === "desc" ? "▼" : "▲"}</span>
-                    ) : (
-                      <span className="text-gray-300">▲</span>
-                    )}
-                  </span>
-                </th>
-              ))}
+              {flatIds.map((id) => {
+                const col = COLS.find((c) => c.id === id);
+                const key = idToKey.get(id);
+                const isSorted = key && key === sort.key;
+                const thick = THICK_AFTER.has(id);
+                return (
+                  <th
+                    key={id}
+                    className={`${headerCls} ${thick ? "border-r-2 border-blue-300" : "border-r border-blue-200"}`}
+                    onClick={() => onSort(id)}
+                    title="Click to sort"
+                  >
+                    <span className="inline-flex items-center gap-1">
+                      <span>{col.label}</span>
+                      {isSorted ? (
+                        <span className="text-gray-500">{sort.dir === "desc" ? "▼" : "▲"}</span>
+                      ) : (
+                        <span className="text-gray-300">▲</span>
+                      )}
+                    </span>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
 
           <tbody>
             {loading ? (
               <tr>
-                <td className={`${cellCls} text-gray-500`} colSpan={DISPLAY_COLS.length}>Loading…</td>
+                <td className={`${cellCls} text-gray-500`} colSpan={flatIds.length}>Loading…</td>
               </tr>
             ) : err ? (
               <tr>
-                <td className={`${cellCls} text-red-600`} colSpan={DISPLAY_COLS.length}>
+                <td className={`${cellCls} text-red-600`} colSpan={flatIds.length}>
                   Failed to load: {err}
                 </td>
               </tr>
             ) : sorted.length === 0 ? (
               <tr>
-                <td className={`${cellCls} text-gray-500`} colSpan={DISPLAY_COLS.length}>
+                <td className={`${cellCls} text-gray-500`} colSpan={flatIds.length}>
                   No rows match your filters.
                 </td>
               </tr>
             ) : (
               sorted.map((row, rIdx) => (
                 <tr key={rIdx} className={rIdx % 2 ? "bg-gray-50/40" : "bg-white"}>
-                  {bandCols.flatMap(([, labels]) => labels).map((label, i) => (
-                    <td key={label + "-" + rIdx + "-" + i} className={`${cellCls} border-r border-blue-200 ${label === "player" ? "text-left font-medium" : ""}`}>
-                      {renderCell(label, row)}
-                    </td>
-                  ))}
+                  {flatIds.map((id) => {
+                    const key = idToKey.get(id);
+                    const thick = THICK_AFTER.has(id);
+                    const isPlayer = id === "player";
+                    return (
+                      <td
+                        key={id + "-" + rIdx}
+                        className={`${cellCls} ${isPlayer ? "text-left font-medium" : ""} ${
+                          thick ? "border-r-2 border-blue-300" : "border-r border-blue-200"
+                        }`}
+                      >
+                        {renderVal(id, key, row)}
+                      </td>
+                    );
+                  })}
                 </tr>
               ))
             )}
