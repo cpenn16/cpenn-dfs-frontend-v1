@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 
 /* ============================ CONFIG ============================ */
-const DATA_URL = "/data/mlb/latest/pitcher_data.json"; // <- matches your exporter
+const DATA_URL = "/data/mlb/latest/pitcher_data.json"; // matches exporter outfile
 const TITLE = "MLB — Pitcher Data";
 const LOGO_BASE = "/logos/mlb";
 const LOGO_EXT = "png";
@@ -23,23 +23,14 @@ function fmtPct1(v) {
   if (v == null || v === "") return "";
   let s = String(v).trim();
   let hadPercent = false;
-  if (s.endsWith("%")) {
-    hadPercent = true;
-    s = s.slice(0, -1);
-  }
+  if (s.endsWith("%")) { hadPercent = true; s = s.slice(0, -1); }
   let n = num(s);
   if (n == null) return "";
-  if (!hadPercent && Math.abs(n) <= 1) n *= 100; // 0.12 -> 12%
+  if (!hadPercent && Math.abs(n) <= 1) n *= 100;
   return `${n.toFixed(1)}%`;
 }
-const fmt1 = (v) => {
-  const n = num(v);
-  return n == null ? "" : n.toFixed(1).replace(/\.0$/, "");
-};
-const fmt3 = (v) => {
-  const n = num(v);
-  return n == null ? "" : n.toFixed(3);
-};
+const fmt1 = (v) => { const n = num(v); return n == null ? "" : n.toFixed(1).replace(/\.0$/, ""); };
+const fmt3 = (v) => { const n = num(v); return n == null ? "" : n.toFixed(3); };
 
 function time12(s) {
   const v = norm(s);
@@ -47,8 +38,7 @@ function time12(s) {
   if (/\d{1,2}:\d{2}(:\d{2})?\s?[AP]M/i.test(v)) return v.toUpperCase().replace(/\s+/g, " ");
   const m = v.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
   if (!m) return v;
-  let hh = Number(m[1]);
-  const mm = m[2];
+  let hh = Number(m[1]); const mm = m[2];
   const ampm = hh >= 12 ? "PM" : "AM";
   hh = ((hh + 11) % 12) + 1;
   return `${hh}:${mm} ${ampm}`;
@@ -61,11 +51,7 @@ function TeamWithLogo({ code }) {
   return (
     <span className="inline-flex items-center gap-1">
       {/* eslint-disable-next-line jsx-a11y/alt-text */}
-      <img
-        src={src}
-        className="h-4 w-4 shrink-0"
-        onError={(e) => (e.currentTarget.style.display = "none")}
-      />
+      <img src={src} className="h-4 w-4 shrink-0" onError={(e) => (e.currentTarget.style.display = "none")} />
       <span>{abv}</span>
     </span>
   );
@@ -74,50 +60,50 @@ function TeamWithLogo({ code }) {
 /* ===================== DISPLAY ORDER & HEADER BANDS ===================== */
 const COLS = [
   // Player Info
-  { id: "hand",        label: "Hand",  keys: ["Hand","Throws","Handedness"] },
-  { id: "player",      label: "player", keys: ["player","Player","Name"] },
-  { id: "dk",          label: "DK",    keys: ["DK","DK Sal","DK Salary"] },
-  { id: "fd",          label: "FD",    keys: ["FD","FD Sal","FD Salary"] },
+  { id: "hand",   label: "Hand",  keys: ["Hand","Throws","Handedness"] },
+  { id: "player", label: "player", keys: ["player","Player","Name"] },
+  { id: "dk",     label: "DK",    keys: ["DK","DK Sal","DK Salary"] },
+  { id: "fd",     label: "FD",    keys: ["FD","FD Sal","FD Salary"] },
 
   // Matchup Info
-  { id: "team",        label: "Team",  keys: ["Team","Tm"] },
-  { id: "opp",         label: "Opp",   keys: ["Opp","OPP","Opponent"] },
-  { id: "park",        label: "Park",  keys: ["Park","Ballpark"] },
-  { id: "time",        label: "Time",  keys: ["Time","Start","Start Time"] },
+  { id: "team",   label: "Team",  keys: ["Team","Tm"] },
+  { id: "opp",    label: "Opp",   keys: ["Opp","OPP","Opponent"] },
+  { id: "park",   label: "Park",  keys: ["Park","Ballpark"] },
+  { id: "time",   label: "Time",  keys: ["Time","Start","Start Time"] },
 
   // Vegas
-  { id: "total",       label: "Total",  keys: ["Total","O/U","Team Total","TT"] },
-  { id: "winpct",      label: "W%",     keys: ["W%","Win%"] },
-  { id: "kline",       label: "K",      keys: ["K","Kline","Ks"] },
-  { id: "field",       label: "Field",  keys: ["Field","Field%"] },
-  { id: "rating",      label: "Rating", keys: ["Rating","Rate"] },
+  { id: "total",  label: "Total",  keys: ["Total","O/U","Team Total","TT"] },
+  { id: "winpct", label: "W%",     keys: ["W%","Win%"] },
+  { id: "kline",  label: "K",      keys: ["K","Kline","Ks"] },
+  { id: "field",  label: "Field",  keys: ["Field","Field%"] },
+  { id: "rating", label: "Rating", keys: ["Rating","Rate"] },
 
-  // Opponent Splits vs Handedness
-  { id: "opp_kpct",    label: "K%",   keys: ["Opp K%","K% (Opp)","K% vs Hand","K% (Team)","K% (Opp Team)","K%"] },
-  { id: "opp_bbpct",   label: "BB%",  keys: ["Opp BB%","BB% (Opp)","BB% vs Hand","BB% (Team)","BB% (Opp Team)","BB%"] },
-  { id: "woba",        label: "wOBA", keys: ["wOBA","Opp wOBA"] },
-  { id: "iso",         label: "ISO",  keys: ["ISO","Opp ISO"] },
-  { id: "wrcplus",     label: "wRC+", keys: ["wRC+","Opp wRC+"] },
+  // Opponent Splits vs Handedness  (prefer your new exact headers)
+  { id: "opp_kpct",  label: "K%",   keys: ["opp K%","Opp K%","K% (Opp)","K% vs Hand","K% (Team)","K% (Opp Team)"] },
+  { id: "opp_bbpct", label: "BB%",  keys: ["opp BB%","Opp BB%","BB% (Opp)","BB% vs Hand","BB% (Team)","BB% (Opp Team)"] },
+  { id: "woba",      label: "wOBA", keys: ["opp wOBA","wOBA","Opp wOBA"] },
+  { id: "iso",       label: "ISO",  keys: ["opp ISO","ISO","Opp ISO"] },
+  { id: "wrcplus",   label: "wRC+", keys: ["opp wRC+","wRC+","Opp wRC+"] },
 
   // Advanced (pitcher)
-  { id: "ip",          label: "IP",    keys: ["IP","IP/G"] },
-  { id: "velo",        label: "Velo",  keys: ["Velo","FB Velo","Velocity"] },
-  { id: "xfip",        label: "xFIP",  keys: ["xFIP","xfip"] },
-  { id: "p_kpct",      label: "K%",    keys: ["K% (P)","Pitch K%","K%_P","K%"] },
-  { id: "sws",         label: "SwS%",  keys: ["SwS%","SwStr%"] },
-  { id: "p_bbpct",     label: "BB%",   keys: ["BB% (P)","Pitch BB%","BB%_P","BB%"] },
+  { id: "ip",     label: "IP",    keys: ["IP","IP/G"] },
+  { id: "velo",   label: "Velo",  keys: ["Velo","FB Velo","Velocity"] },
+  { id: "xfip",   label: "xFIP",  keys: ["xFIP","xfip"] },
+  { id: "p_kpct", label: "K%",    keys: ["K% (P)","Pitch K%","K%_P","K%"] },
+  { id: "sws",    label: "SwS%",  keys: ["SwS%","SwStr%"] },
+  { id: "p_bbpct",label: "BB%",   keys: ["BB% (P)","Pitch BB%","BB%_P","BB%"] },
 
   // Ratios
-  { id: "k9",          label: "K/9",  keys: ["K/9","K9"] },
-  { id: "bb9",         label: "BB/9", keys: ["BB/9","BB9"] },
-  { id: "hr9",         label: "HR/9", keys: ["HR/9","HR9"] },
+  { id: "k9",   label: "K/9",  keys: ["K/9","K9"] },
+  { id: "bb9",  label: "BB/9", keys: ["BB/9","BB9"] },
+  { id: "hr9",  label: "HR/9", keys: ["HR/9","HR9"] },
 
   // Statcast
-  { id: "gbpct",       label: "GB%",  keys: ["GB%","GB% (P)"] },
-  { id: "fbpct",       label: "FB%",  keys: ["FB%","FB% (P)"] },
-  { id: "hhpct",       label: "HH%",  keys: ["HH%","HardHit%","Hard%"] },
-  { id: "barpct",      label: "Bar%", keys: ["Bar%","Barrel%"] },
-  { id: "ev",          label: "EV",   keys: ["EV","Avg EV","Exit Velo"] }
+  { id: "gbpct", label: "GB%",  keys: ["GB%","GB% (P)"] },
+  { id: "fbpct", label: "FB%",  keys: ["FB%","FB% (P)"] },
+  { id: "hhpct", label: "HH%",  keys: ["HH%","HardHit%","Hard%"] },
+  { id: "barpct",label: "Bar%", keys: ["Bar%","Barrel%"] },
+  { id: "ev",    label: "EV",   keys: ["EV","Avg EV","Exit Velo"] }
 ];
 
 const BANDS = [
@@ -131,12 +117,11 @@ const BANDS = [
 ];
 
 const PCT_IDS = new Set([
-  "winpct","rating","opp_kpct","opp_bbpct","p_kpct","sws","p_bbpct",
-  "gbpct","fbpct","hhpct","barpct"
+  "winpct","rating","opp_kpct","opp_bbpct","p_kpct","sws","p_bbpct","gbpct","fbpct","hhpct","barpct"
 ]);
 
 // Thick borders after: FD, Time, K, Rating, wRC+, BB% (P), HH%, EV
-const THICK_AFTER = new Set(["fd", "time", "kline", "rating", "wrcplus", "p_bbpct", "hhpct", "ev"]);
+const THICK_AFTER = new Set(["fd","time","kline","rating","wrcplus","p_bbpct","hhpct","ev"]);
 
 /* ============================== DATA FETCH ============================== */
 function useJson(url) {
@@ -170,91 +155,21 @@ function useJson(url) {
 export default function PitcherData() {
   const { rows, loading, err } = useJson(DATA_URL);
   const rawCols = useMemo(() => (rows[0] ? Object.keys(rows[0]) : []), [rows]);
-  const rawLower = useMemo(() => rawCols.map((c) => lower(c)), [rawCols]);
 
-  // helpers to detect generic K% / BB% regardless of suffixes
-  const isKpct = (lc) => lc.includes("k%") || lc.includes("kpct");
-  const isBBpct = (lc) => lc.includes("bb%") || lc.includes("bbpct");
-
-  // find first index matching predicate starting at fromIdx
-  const findIdx = (pred, fromIdx = 0, notUsedIdx = new Set()) => {
-    for (let i = fromIdx; i < rawLower.length; i++) {
-      if (pred(rawLower[i]) && !notUsedIdx.has(i)) return i;
-    }
-    return -1;
-  };
-
-  // Map id -> data key. Also respect “first K%/BB% is Opp; second is Pitcher”.
+  // map id -> actual key (first alias match wins; case-insensitive)
   const idToKey = useMemo(() => {
-    const usedIdx = new Set();
     const m = new Map();
-
-    // 1) normal one-pass for non-duplicate columns (prefer unique keys)
+    const rawLower = rawCols.map((c) => lower(c));
     for (const c of COLS) {
-      if (["opp_kpct","p_kpct","opp_bbpct","p_bbpct"].includes(c.id)) continue; // handle later
-      let hit = null;
-      for (const cand of c.keys) {
-        const idx = rawLower.findIndex((lc, i) => lc === lower(cand) && !usedIdx.has(i));
-        if (idx !== -1) { hit = rawCols[idx]; usedIdx.add(idx); break; }
-      }
-      if (hit) m.set(c.id, hit);
-      else m.set(c.id, null);
+      const idx = c.keys
+        .map((k) => rawLower.findIndex((rc) => rc === lower(k)))
+        .find((i) => i !== -1);
+      m.set(c.id, idx !== -1 && idx != null ? rawCols[idx] : null);
     }
-
-    // 2) Opp/Pitcher K%: prefer explicit labels; else use first & second generic K%
-    // Opp K%
-    let oppK = null, oppKIdx = -1;
-    for (const cand of ["Opp K%","K% (Opp)","K% vs Hand","K% (Team)","K% (Opp Team)"]) {
-      const idx = rawLower.findIndex((lc, i) => lc === lower(cand) && !usedIdx.has(i));
-      if (idx !== -1) { oppK = rawCols[idx]; oppKIdx = idx; usedIdx.add(idx); break; }
-    }
-    if (!oppK) {
-      const idx = findIdx(isKpct, 0, usedIdx);
-      if (idx !== -1) { oppK = rawCols[idx]; oppKIdx = idx; usedIdx.add(idx); }
-    }
-    m.set("opp_kpct", oppK);
-
-    // Pitcher K%: prefer explicit; else the next generic after opp
-    let pK = null;
-    for (const cand of ["K% (P)","Pitch K%","K%_P"]) {
-      const idx = rawLower.findIndex((lc, i) => lc === lower(cand) && !usedIdx.has(i));
-      if (idx !== -1) { pK = rawCols[idx]; usedIdx.add(idx); break; }
-    }
-    if (!pK) {
-      const start = oppKIdx >= 0 ? oppKIdx + 1 : 0;
-      const idxNext = findIdx(isKpct, start, usedIdx);
-      if (idxNext !== -1) { pK = rawCols[idxNext]; usedIdx.add(idxNext); }
-    }
-    m.set("p_kpct", pK || null);
-
-    // 3) Opp/Pitcher BB%
-    let oppBB = null, oppBBIdx = -1;
-    for (const cand of ["Opp BB%","BB% (Opp)","BB% vs Hand","BB% (Team)","BB% (Opp Team)"]) {
-      const idx = rawLower.findIndex((lc, i) => lc === lower(cand) && !usedIdx.has(i));
-      if (idx !== -1) { oppBB = rawCols[idx]; oppBBIdx = idx; usedIdx.add(idx); break; }
-    }
-    if (!oppBB) {
-      const idx = findIdx(isBBpct, 0, usedIdx);
-      if (idx !== -1) { oppBB = rawCols[idx]; oppBBIdx = idx; usedIdx.add(idx); }
-    }
-    m.set("opp_bbpct", oppBB);
-
-    let pBB = null;
-    for (const cand of ["BB% (P)","Pitch BB%","BB%_P"]) {
-      const idx = rawLower.findIndex((lc, i) => lc === lower(cand) && !usedIdx.has(i));
-      if (idx !== -1) { pBB = rawCols[idx]; usedIdx.add(idx); break; }
-    }
-    if (!pBB) {
-      const start = oppBBIdx >= 0 ? oppBBIdx + 1 : 0;
-      const idxNext = findIdx(isBBpct, start, usedIdx);
-      if (idxNext !== -1) { pBB = rawCols[idxNext]; usedIdx.add(idxNext); }
-    }
-    m.set("p_bbpct", pBB || null);
-
     return m;
-  }, [rawCols, rawLower]);
+  }, [rawCols]);
 
-  // Search
+  // search
   const [q, setQ] = useState("");
   const filtered = useMemo(() => {
     const s = lower(q);
@@ -267,7 +182,7 @@ export default function PitcherData() {
     });
   }, [rows, q]);
 
-  // Sorting (default DK desc or player asc)
+  // sorting
   const dkKey = idToKey.get("dk");
   const playerKey = idToKey.get("player");
   const [sort, setSort] = useState({ key: dkKey || playerKey || "", dir: dkKey ? "desc" : "asc" });
@@ -314,7 +229,7 @@ export default function PitcherData() {
     return n == null ? String(raw ?? "") : fmt1(n);
   };
 
-  // Flatten columns in band order for rendering
+  // flatten ids in band order
   const flatIds = BANDS.flatMap(([, ids]) => ids);
 
   return (
@@ -336,20 +251,16 @@ export default function PitcherData() {
       <div className="rounded-xl border bg-white shadow-sm overflow-auto">
         <table className="w-full border-separate" style={{ borderSpacing: 0 }}>
           <thead className="sticky top-0 z-10">
-            {/* Merged band headers (reverted) */}
+            {/* merged band headers */}
             <tr className="bg-blue-100 text-[11px] font-bold text-gray-700 uppercase">
               {BANDS.map(([name, ids]) => (
-                <th
-                  key={name}
-                  colSpan={ids.length}
-                  className="px-2 py-1 text-center border-b border-blue-200"
-                >
+                <th key={name} colSpan={ids.length} className="px-2 py-1 text-center border-b border-blue-200">
                   {name}
                 </th>
               ))}
             </tr>
 
-            {/* Column header row */}
+            {/* column header row */}
             <tr className="bg-blue-50">
               {flatIds.map((id) => {
                 const col = COLS.find((c) => c.id === id);
@@ -379,21 +290,11 @@ export default function PitcherData() {
 
           <tbody>
             {loading ? (
-              <tr>
-                <td className={`${cellCls} text-gray-500`} colSpan={flatIds.length}>Loading…</td>
-              </tr>
+              <tr><td className={`${cellCls} text-gray-500`} colSpan={flatIds.length}>Loading…</td></tr>
             ) : err ? (
-              <tr>
-                <td className={`${cellCls} text-red-600`} colSpan={flatIds.length}>
-                  Failed to load: {err}
-                </td>
-              </tr>
+              <tr><td className={`${cellCls} text-red-600`} colSpan={flatIds.length}>Failed to load: {err}</td></tr>
             ) : sorted.length === 0 ? (
-              <tr>
-                <td className={`${cellCls} text-gray-500`} colSpan={flatIds.length}>
-                  No rows match your filters.
-                </td>
-              </tr>
+              <tr><td className={`${cellCls} text-gray-500`} colSpan={flatIds.length}>No rows match your filters.</td></tr>
             ) : (
               sorted.map((row, rIdx) => (
                 <tr key={rIdx} className={rIdx % 2 ? "bg-gray-50/40" : "bg-white"}>
