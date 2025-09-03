@@ -13,7 +13,6 @@ import {
 } from "recharts";
 
 /* ------------------------------- config ------------------------------- */
-// Point to your stacks export (adjust if yours differs)
 const SOURCE = "/data/mlb/latest/stacks.json";
 
 const SITES = {
@@ -132,9 +131,7 @@ function useJson(url) {
 }
 
 /* -------------------------- columns (with fallbacks) ------------------ */
-/* Maps to your headers:
-Team, DK Sal, FD Sal, Total, Park, Opp, Opp Pitcher, H, DK Proj, DK Val, DK pOWN%, Tstack%, vStack%, DK Lev%, FD Proj, FD Val, FD pOWN%, Tstack%, vStack%, FD Lev%
-*/
+// Matches your updated headers exactly; also includes a few tolerant aliases.
 const COLS_BASE = [
   { key: ["team", "Team"], label: "Team", type: "text", w: "min-w-[6.5rem]" },
   { key: ["dk_sal", "DK Sal", "dkSal"], label: "DK Sal", type: "int" },
@@ -150,8 +147,8 @@ const COLS_DK = [
   { key: ["dk_proj", "DK Proj", "dkProj"], label: "DK Proj", type: "num1" },
   { key: ["dk_val", "DK Val", "dkVal"], label: "DK Val", type: "num1" },
   { key: ["dk_pown", "DK pOWN%", "dk_pown%", "dkPOWN"], label: "DK pOWN%", type: "pct1" },
-  { key: ["dk_tstack", "DK Tstack%", "tstack_dk", "Tstack%_DK", "Tstack%"], label: "Tstack%", type: "pct1" },
-  { key: ["dk_vstack", "DK vStack%", "vstack_dk", "vStack%_DK", "vStack%"], label: "vStack%", type: "pct1" },
+  { key: ["dk_tstack", "DK Tstack%", "tstack_dk"], label: "DK Tstack%", type: "pct1" },
+  { key: ["dk_vstack", "DK vStack%", "vstack_dk"], label: "DK vStack%", type: "pct1" },
   { key: ["dk_lev", "DK Lev%", "dkLev"], label: "DK Lev%", type: "pct1" },
 ];
 
@@ -159,8 +156,8 @@ const COLS_FD = [
   { key: ["fd_proj", "FD Proj", "fdProj"], label: "FD Proj", type: "num1" },
   { key: ["fd_val", "FD Val", "fdVal"], label: "FD Val", type: "num1" },
   { key: ["fd_pown", "FD pOWN%", "fd_pown%", "fdPOWN"], label: "FD pOWN%", type: "pct1" },
-  { key: ["fd_tstack", "FD Tstack%", "tstack_fd", "Tstack%_FD"], label: "Tstack%", type: "pct1" },
-  { key: ["fd_vstack", "FD vStack%", "vstack_fd", "vStack%_FD"], label: "vStack%", type: "pct1" },
+  { key: ["fd_tstack", "FD Tstack%", "tstack_fd"], label: "FD Tstack%", type: "pct1" },
+  { key: ["fd_vstack", "FD vStack%", "vstack_fd"], label: "FD vStack%", type: "pct1" },
   { key: ["fd_lev", "FD Lev%", "fdLev"], label: "FD Lev%", type: "pct1" },
 ];
 
@@ -250,7 +247,7 @@ function StacksInsights({ rows }) {
   const data = useMemo(
     () =>
       (rows || []).map((r) => ({
-        team: String(r.team || "").toUpperCase(),
+        team: String(getVal(r, ["team", "Team"]) || "").toUpperCase(),
         total: asNum(getVal(r, ["total", "Total", "imp_tot", "Implied Total"])),
         dk_proj: asNum(getVal(r, ["dk_proj", "DK Proj"])),
         fd_proj: asNum(getVal(r, ["fd_proj", "FD Proj"])),
@@ -416,7 +413,7 @@ export default function MlbStacks() {
   const [site, setSite] = useState("both");
   const [q, setQ] = useState("");
 
-  const COLS_ALL = useMemo(() => {
+  const columns = useMemo(() => {
     const base = [...COLS_BASE];
     if (site === "dk") return [...base, ...COLS_DK];
     if (site === "fd") return [...base, ...COLS_FD];
@@ -427,55 +424,51 @@ export default function MlbStacks() {
     const needle = q.trim().toLowerCase();
     if (!needle) return rows;
     return rows.filter((r) =>
-      `${r.team ?? ""} ${r.opp ?? ""} ${r.opp_pitcher ?? ""}`.toLowerCase().includes(needle)
+      `${getVal(r, ["team", "Team"]) ?? ""} ${getVal(r, ["opp", "Opp"]) ?? ""} ${getVal(r, [
+        "opp_pitcher",
+        "Opp Pitcher",
+        "oppPitcher",
+      ]) ?? ""}`.toLowerCase().includes(needle)
     );
   }, [rows, q]);
 
-  // default sort by DK Proj desc
+  // default sort DK Proj desc
   const [sort, setSort] = useState({ key: ["dk_proj", "DK Proj"], dir: "desc" });
 
   const sorted = useMemo(() => {
     const { key, dir } = sort;
     const sgn = dir === "asc" ? 1 : -1;
 
-    // find column to know its type
     const col =
-      COLS_ALL.find((c) =>
+      columns.find((c) =>
         Array.isArray(c.key)
           ? Array.isArray(key) && c.key.join("|") === key.join("|")
           : c.key === key
-      ) || COLS_ALL[0];
+      ) || columns[0];
 
     const t = col?.type;
     const arr = [...filtered];
     arr.sort((a, b) => {
       const avRaw = getVal(a, key);
       const bvRaw = getVal(b, key);
-      let av = null,
-        bv = null;
-      if (t === "pct1") {
-        const toPct = (v) => {
-          if (v === null || v === undefined || v === "") return null;
-          const raw = String(v).trim();
-          if (raw.endsWith("%")) return num(raw.slice(0, -1));
-          let n = num(raw);
-          if (n === null) return null;
-          if (Math.abs(n) <= 1) n *= 100;
-          return n;
-        };
-        av = toPct(avRaw);
-        bv = toPct(bvRaw);
-      } else {
-        av = num(avRaw);
-        bv = num(bvRaw);
-      }
+      const toPct = (v) => {
+        if (v === null || v === undefined || v === "") return null;
+        const raw = String(v).trim();
+        if (raw.endsWith("%")) return num(raw.slice(0, -1));
+        let n = num(raw);
+        if (n === null) return null;
+        if (Math.abs(n) <= 1) n *= 100;
+        return n;
+      };
+      const av = t === "pct1" ? toPct(avRaw) : num(avRaw);
+      const bv = t === "pct1" ? toPct(bvRaw) : num(bvRaw);
       if (av === null && bv === null) return 0;
       if (av === null) return 1;
       if (bv === null) return -1;
       return (av - bv) * sgn;
     });
     return arr;
-  }, [filtered, sort, COLS_ALL]);
+  }, [filtered, sort, columns]);
 
   const onSort = (col) => {
     setSort((prev) => {
@@ -498,7 +491,6 @@ export default function MlbStacks() {
         <h1 className="text-2xl md:text-3xl font-extrabold mb-0.5">MLB — Stacks</h1>
 
         <div className="flex items-center gap-2">
-          {/* site toggle */}
           <div className="inline-flex items-center gap-2 rounded-xl bg-gray-100 p-1">
             {["dk", "fd", "both"].map((k) => (
               <button
@@ -514,7 +506,6 @@ export default function MlbStacks() {
             ))}
           </div>
 
-          {/* search */}
           <input
             className="h-9 w-64 rounded-lg border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Search team / opp / pitcher…"
@@ -522,22 +513,20 @@ export default function MlbStacks() {
             onChange={(e) => setQ(e.target.value)}
           />
 
-          {/* export */}
           <button
             className="ml-1 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700"
-            onClick={() => downloadCSV(sorted, COLS_ALL)}
+            onClick={() => downloadCSV(sorted, columns)}
           >
             Export CSV
           </button>
         </div>
       </div>
 
-      {/* table */}
       <div className="rounded-xl border bg-white shadow-sm overflow-auto">
         <table className={`w-full border-separate ${textSz}`} style={{ borderSpacing: 0 }}>
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
-              {COLS_ALL.map((c) => (
+              {columns.map((c) => (
                 <th
                   key={Array.isArray(c.key) ? c.key.join("|") : c.key}
                   className={`${header} whitespace-nowrap cursor-pointer select-none ${c.w || ""} ${
@@ -566,72 +555,77 @@ export default function MlbStacks() {
               ))}
             </tr>
           </thead>
+
           <tbody>
             {loading && (
               <tr>
-                <td className={`${cell} text-gray-500`} colSpan={COLS_ALL.length}>
+                <td className={`${cell} text-gray-500`} colSpan={columns.length}>
                   Loading…
                 </td>
               </tr>
             )}
             {err && (
               <tr>
-                <td className={`${cell} text-red-600`} colSpan={COLS_ALL.length}>
+                <td className={`${cell} text-red-600`} colSpan={columns.length}>
                   Failed to load: {err}
                 </td>
               </tr>
             )}
             {!loading &&
               !err &&
-              sorted.map((r, i) => (
-                <tr key={`${r.team}-${r.opp}-${i}`} className="odd:bg-white even:bg-gray-50">
-                  {COLS_ALL.map((c) => {
-                    const raw = getVal(r, c.key);
-                    if ((Array.isArray(c.key) ? c.key[0] : c.key) === "team") {
-                      const abv = String(r.team || "").toUpperCase();
+              sorted.map((r, i) => {
+                const teamAbv = String(getVal(r, ["team", "Team"]) || "").toUpperCase();
+                return (
+                  <tr key={`${teamAbv}-${getVal(r, ["opp", "Opp"]) || ""}-${i}`} className="odd:bg-white even:bg-gray-50">
+                    {columns.map((c) => {
+                      const raw = getVal(r, c.key);
+
+                      if ((Array.isArray(c.key) ? c.key[0] : c.key) === "team") {
+                        return (
+                          <td
+                            key={Array.isArray(c.key) ? c.key.join("|") : c.key}
+                            className={`px-2 py-1 text-left sticky left-0 z-10 ${
+                              i % 2 === 0 ? "bg-white" : "bg-gray-50"
+                            } min-w-[6.5rem] shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)]`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <img
+                                src={teamLogo(teamAbv)}
+                                alt=""
+                                className="w-4 h-4 rounded-sm object-contain"
+                                onError={(e) => (e.currentTarget.style.visibility = "hidden")}
+                              />
+                              <span className="whitespace-nowrap font-medium">{teamAbv}</span>
+                            </div>
+                          </td>
+                        );
+                      }
+
+                      let val = raw;
+                      if (c.type === "int") val = fmt.int(raw);
+                      if (c.type === "smart1") val = fmt.smart1(raw);
+                      if (c.type === "num1") val = fmt.num1(raw);
+                      if (c.type === "pct1") val = fmt.pct1(raw);
+
+                      const cls = c.type === "text" ? "px-2 py-1 text-center" : `${cell} tabular-nums`;
                       return (
                         <td
                           key={Array.isArray(c.key) ? c.key.join("|") : c.key}
-                          className={`px-2 py-1 text-left sticky left-0 z-10 ${
-                            i % 2 === 0 ? "bg-white" : "bg-gray-50"
-                          } min-w-[6.5rem] shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)]`}
+                          className={`${cls} whitespace-nowrap`}
+                          title={String(val ?? "")}
                         >
-                          <div className="flex items-center gap-2">
-                            <img
-                              src={teamLogo(r.team)}
-                              alt=""
-                              className="w-4 h-4 rounded-sm object-contain"
-                              onError={(e) => (e.currentTarget.style.visibility = "hidden")}
-                            />
-                            <span className="whitespace-nowrap font-medium">{abv}</span>
-                          </div>
+                          {val ?? ""}
                         </td>
                       );
-                    }
-                    let val = raw;
-                    if (c.type === "int") val = fmt.int(raw);
-                    if (c.type === "smart1") val = fmt.smart1(raw);
-                    if (c.type === "num1") val = fmt.num1(raw);
-                    if (c.type === "pct1") val = fmt.pct1(raw);
-
-                    const cls = c.type === "text" ? "px-2 py-1 text-center" : `${cell} tabular-nums`;
-                    return (
-                      <td
-                        key={Array.isArray(c.key) ? c.key.join("|") : c.key}
-                        className={`${cls} whitespace-nowrap`}
-                        title={String(val ?? "")}
-                      >
-                        {val ?? ""}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
+                    })}
+                  </tr>
+                );
+              })}
           </tbody>
         </table>
       </div>
 
-      {/* Insights panel below the table */}
+      {/* Insights */}
       {!loading && !err ? <StacksInsights rows={filtered} /> : null}
     </div>
   );
