@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 
 /* ============================ CONFIG ============================ */
-const DATA_URL = "/data/mlb/latest/pitcher_data.json"; // <- matches your exporter
+const DATA_URL = "/data/mlb/latest/pitcher_data.json"; // matches your exporter
 const TITLE = "MLB — Pitcher Data";
 const LOGO_BASE = "/logos/mlb";
 const LOGO_EXT = "png";
@@ -29,12 +29,16 @@ function fmtPct1(v) {
   }
   let n = num(s);
   if (n == null) return "";
-  if (!hadPercent && Math.abs(n) <= 1) n *= 100;
+  if (!hadPercent && Math.abs(n) <= 1) n *= 100; // 0.12 -> 12%
   return `${n.toFixed(1)}%`;
 }
 const fmt1 = (v) => {
   const n = num(v);
   return n == null ? "" : n.toFixed(1).replace(/\.0$/, "");
+};
+const fmt3 = (v) => {
+  const n = num(v);
+  return n == null ? "" : n.toFixed(3);
 };
 
 function time12(s) {
@@ -68,10 +72,7 @@ function TeamWithLogo({ code }) {
 }
 
 /* ===================== DISPLAY ORDER & HEADER BANDS ===================== */
-/**
- * IMPORTANT: Use unique IDs so we can render duplicate labels (“K%”, “BB%”) twice
- * without one overwriting the other. The UI shows the `label`, logic uses `id`.
- */
+/** Unique IDs let us render duplicate labels (“K%”, “BB%”) twice. */
 const COLS = [
   // Player Info
   { id: "hand",        label: "Hand",  keys: ["Hand","Throws","Handedness"] },
@@ -92,7 +93,7 @@ const COLS = [
   { id: "field",       label: "Field",  keys: ["Field","Field%"] },
   { id: "rating",      label: "Rating", keys: ["Rating","Rate"] },
 
-  // Opp splits
+  // Opponent Splits vs Handedness
   { id: "opp_kpct",    label: "K%",   keys: ["Opp K%","K% (Opp)","K% vs Hand","K% (Team)","K% (Opp Team)","K%"] },
   { id: "opp_bbpct",   label: "BB%",  keys: ["Opp BB%","BB% (Opp)","BB% vs Hand","BB% (Team)","BB% (Opp Team)","BB%"] },
   { id: "woba",        label: "wOBA", keys: ["wOBA","Opp wOBA"] },
@@ -137,9 +138,10 @@ const PCT_IDS = new Set([
   "gbpct","fbpct","hhpct","barpct"
 ]);
 
-// Add thick right border after these IDs (to match your request)
-// after Time / K / wRC+ / BB% (pitcher) / HH% / EV
-const THICK_AFTER = new Set(["time","kline","wrcplus","p_bbpct","hhpct","ev"]);
+// Thick borders after these IDs (added FD and Rating here)
+const THICK_AFTER = new Set([
+  "fd", "time", "kline", "rating", "wrcplus", "p_bbpct", "hhpct", "ev"
+]);
 
 /* ============================== DATA FETCH ============================== */
 function useJson(url) {
@@ -172,13 +174,19 @@ function useJson(url) {
 /* ============================== MAIN PAGE ============================== */
 export default function PitcherData() {
   const { rows, loading, err } = useJson(DATA_URL);
-
   const rawCols = useMemo(() => (rows[0] ? Object.keys(rows[0]) : []), [rows]);
 
-  // Map id -> actual key found in data (first alias match wins). Avoid reusing the same raw key twice.
+  /**
+   * Map id -> data key.
+   * Pass 1: prefer unique keys (avoid reusing same raw key).
+   * Pass 2: if still missing (e.g., only generic "K%"/"BB%" present once),
+   *         allow reuse so both UI columns can show *something*.
+   */
   const idToKey = useMemo(() => {
     const used = new Set();
     const m = new Map();
+
+    // pass 1: unique
     for (const c of COLS) {
       let hit = null;
       for (const cand of c.keys) {
@@ -187,6 +195,13 @@ export default function PitcherData() {
       }
       if (hit) used.add(hit);
       m.set(c.id, hit || null);
+    }
+    // pass 2: allow reuse if still missing
+    for (const c of COLS) {
+      if (!m.get(c.id)) {
+        const key = rawCols.find((rc) => c.keys.map(lower).includes(lower(rc)));
+        if (key) m.set(c.id, key);
+      }
     }
     return m;
   }, [rawCols]);
@@ -237,7 +252,7 @@ export default function PitcherData() {
     return arr;
   }, [filtered, sort]);
 
-  // Helpers for rendering
+  // UI helpers
   const headerCls = "px-2 py-1 font-semibold text-center text-[11px] whitespace-nowrap cursor-pointer select-none";
   const cellCls = "px-2 py-1 text-center text-[12px]";
 
@@ -245,13 +260,23 @@ export default function PitcherData() {
     const raw = key ? row[key] : "";
     if (id === "time") return time12(raw);
     if (id === "team" || id === "opp") return <TeamWithLogo code={raw} />;
+
+    if (id === "woba" || id === "iso") return fmt3(raw);
     if (PCT_IDS.has(id)) return fmtPct1(raw);
+
     const n = num(raw);
     return n == null ? String(raw ?? "") : fmt1(n);
   };
 
   // Flatten columns in band order for rendering
   const flatIds = BANDS.flatMap(([, ids]) => ids);
+
+  // For proper band header borders, compute where thick borders land in the row
+  const thickAfterIndex = new Set(
+    flatIds
+      .map((id, i) => (THICK_AFTER.has(id) ? i : -1))
+      .filter((i) => i >= 0)
+  );
 
   return (
     <div className="px-4 md:px-6 py-5">
@@ -272,17 +297,41 @@ export default function PitcherData() {
       <div className="rounded-xl border bg-white shadow-sm overflow-auto">
         <table className="w-full border-separate" style={{ borderSpacing: 0 }}>
           <thead className="sticky top-0 z-10">
-            {/* Band row */}
+            {/* Band row — render per-column th so borders align all the way through */}
             <tr className="bg-blue-100 text-[11px] font-bold text-gray-700 uppercase">
-              {BANDS.map(([name, ids]) => (
-                <th key={name} colSpan={ids.length} className="px-2 py-1 text-center border-b border-blue-200">
-                  {name}
-                </th>
-              ))}
+              {BANDS.flatMap(([band, ids], bandIdx) =>
+                ids.map((id, i) => {
+                  const colSpan = 1; // per-column header to keep borders aligned
+                  // show the band label centered only over the first column of the band using absolute positioning
+                  const showLabel = i === 0;
+                  // figure out the absolute start/end index for the band to center the label
+                  const startIndex = BANDS.slice(0, bandIdx).reduce((a, [, arr]) => a + arr.length, 0);
+                  const bandWidth = ids.length;
+                  return (
+                    <th
+                      key={`${band}-${id}`}
+                      colSpan={colSpan}
+                      className={`px-2 py-1 text-center border-b border-blue-200 relative ${
+                        THICK_AFTER.has(id) ? "border-r-2 border-blue-300" : "border-r border-blue-200"
+                      }`}
+                    >
+                      {showLabel ? (
+                        <div
+                          className="absolute left-1/2 -translate-x-1/2 w-full text-center pointer-events-none"
+                          style={{ width: `calc(${bandWidth} * 100%)` }}
+                        >
+                          {band}
+                        </div>
+                      ) : null}
+                    </th>
+                  );
+                })
+              )}
             </tr>
+
             {/* Column header row */}
             <tr className="bg-blue-50">
-              {flatIds.map((id) => {
+              {flatIds.map((id, idx) => {
                 const col = COLS.find((c) => c.id === id);
                 const key = idToKey.get(id);
                 const isSorted = key && key === sort.key;
