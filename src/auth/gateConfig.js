@@ -20,7 +20,7 @@ export const PROMO_UNLOCKS = {
   "/nfl/classic/optimizer": false,
   "/nfl/showdown/optimizer": false,
   "/nfl/optimizer": false, // legacy shortcut
-  "/nfl": true,
+  "/nfl": false,
 
   // NBA
   "/nba/optimizer": false,
