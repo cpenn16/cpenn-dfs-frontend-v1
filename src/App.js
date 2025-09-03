@@ -94,6 +94,9 @@ import MlbBattersProjections from "./pages/mlb/MlbBattersProjections";
 import MlbStacks from "./pages/mlb/MlbStacks";
 import MlbCheatSheet from "./pages/mlb/MlbCheatSheet"; // ← NEW: separate page
 
+// ★ NEW: Pitcher Data page
+import PitcherData from "./pages/mlb/PitcherData";
+
 function NotFound() {
   return (
     <div className="p-8">
@@ -259,6 +262,9 @@ export default function App() {
               <Route path="/mlb/hitters" element={<Navigate to="/mlb/batter-projections" replace />} />
               <Route path="/mlb/stacks" element={<MlbStacks />} />
               <Route path="/mlb/cheatsheets" element={<MlbCheatSheet />} /> {/* separate page */}
+
+              {/* ★ NEW: Pitcher Data route */}
+              <Route path="/mlb/pitchers" element={<PitcherData />} />
 
               {/* Default MLB redirect */}
               <Route path="/mlb" element={<Navigate to="/mlb/pitcher-projections" replace />} />
