@@ -72,25 +72,21 @@ import NflGameboard from "./pages/nfl/NflGameboard";
 
 /* ---------------- NFL (SHOWDOWN) ---------------- */
 import NflProjectionsShowdown from "./pages/nfl/NflProjectionsShowdown";
-import NFLShowdownOptimizer from "./pages/nfl/NFLShowdownOptimizer"; // ← added
+import NFLShowdownOptimizer from "./pages/nfl/NFLShowdownOptimizer";
 
-// If you created these showdown wrappers, keep these imports.
-// Otherwise, remove the ones you don't have yet.
 import NflQBDataShowdown from "./pages/nfl/NflQBDataShowdown";
 import NflRBDataShowdown from "./pages/nfl/NflRBDataShowdown";
 import NflWRDataShowdown from "./pages/nfl/NflWRDataShowdown";
 import NflTEDataShowdown from "./pages/nfl/NflTEDataShowdown";
-// import NflDSTDataShowdown from "./pages/nfl/NflDSTDataShowdown";
 
 import NflQBProjectionsShowdown from "./pages/nfl/NflQBProjectionsShowdown";
 import NflRBProjectionsShowdown from "./pages/nfl/NflRBProjectionsShowdown";
 import NflWRProjectionsShowdown from "./pages/nfl/NflWRProjectionsShowdown";
 import NflTEProjectionsShowdown from "./pages/nfl/NflTEProjectionsShowdown";
-// import NflDSTProjectionsShowdown from "./pages/nfl/NflDSTProjectionsShowdown";
 
 /* ---------------- MLB ---------------- */
 import MlbPitcherProjections from "./pages/mlb/MlbPitcherProjections";
-import MlbBattersProjections from "./pages/mlb/MlbBattersProjections";
+import BattersProjections from "./pages/mlb/BattersProjections";
 
 function NotFound() {
   return (
@@ -111,18 +107,17 @@ function SportsGateLayout() {
 }
 
 export default function App() {
-  // Track logged-in user (some components still read this prop)
   const [user, setUser] = useState(undefined); // undefined = loading
 
   useEffect(() => {
-    // initial session
     supabase.auth.getSession().then(({ data }) => {
       setUser(data.session?.user ?? null);
     });
-    // listen for changes
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
     return () => listener.subscription.unsubscribe();
   }, []);
 
@@ -140,7 +135,7 @@ export default function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login />} />
 
-            {/* ---------- Account (login-only, never plan-gated) ---------- */}
+            {/* ---------- Account ---------- */}
             <Route
               path="/account"
               element={
@@ -149,119 +144,284 @@ export default function App() {
                 </AuthOnly>
               }
             />
-            {/* Back-compat */}
-            <Route path="/dashboard" element={<Navigate to="/account" replace />} />
+            <Route
+              path="/dashboard"
+              element={<Navigate to="/account" replace />}
+            />
 
-            {/* ---------- GATED SPORTS AREA (all nested routes obey gateConfig rules) ---------- */}
+            {/* ---------- GATED SPORTS AREA ---------- */}
             <Route element={<SportsGateLayout />}>
-              {/* ============ NASCAR → CUP ============ */}
-              <Route path="/nascar/cup/dfs-projections" element={<CupProjections />} />
-              <Route path="/nascar/cup/projections" element={<Navigate to="/nascar/cup/dfs-projections" replace />} />
+              {/* ===== NASCAR CUP ===== */}
+              <Route
+                path="/nascar/cup/dfs-projections"
+                element={<CupProjections />}
+              />
+              <Route
+                path="/nascar/cup/projections"
+                element={
+                  <Navigate to="/nascar/cup/dfs-projections" replace />
+                }
+              />
               <Route path="/nascar/cup/odds" element={<CupOdds />} />
               <Route path="/nascar/cup/betting-sims" element={<CupOdds />} />
               <Route path="/nascar/cup/sims" element={<CupOdds />} />
               <Route path="/nascar/cup/gfs" element={<CupGfs />} />
               <Route path="/nascar/cup/practice" element={<CupPractice />} />
-              <Route path="/nascar/cup/cheatsheets" element={<CupCheatSheets />} />
-              <Route path="/nascar/cup/cheat-sheets" element={<Navigate to="/nascar/cup/cheatsheets" replace />} />
+              <Route
+                path="/nascar/cup/cheatsheets"
+                element={<CupCheatSheets />}
+              />
+              <Route
+                path="/nascar/cup/cheat-sheets"
+                element={
+                  <Navigate to="/nascar/cup/cheatsheets" replace />
+                }
+              />
               <Route path="/nascar/cup/optimizer" element={<CupOptimizer />} />
               <Route path="/nascar/cup/data" element={<CupData />} />
 
-              {/* ============ NASCAR → XFINITY ============ */}
-              <Route path="/nascar/xfinity/dfs-projections" element={<XfProjections />} />
-              <Route path="/nascar/xfinity/projections" element={<Navigate to="/nascar/xfinity/dfs-projections" replace />} />
+              {/* ===== NASCAR XFINITY ===== */}
+              <Route
+                path="/nascar/xfinity/dfs-projections"
+                element={<XfProjections />}
+              />
+              <Route
+                path="/nascar/xfinity/projections"
+                element={
+                  <Navigate to="/nascar/xfinity/dfs-projections" replace />
+                }
+              />
               <Route path="/nascar/xfinity/odds" element={<XfOdds />} />
-              <Route path="/nascar/xfinity/betting-sims" element={<XfOdds />} />
+              <Route
+                path="/nascar/xfinity/betting-sims"
+                element={<XfOdds />}
+              />
               <Route path="/nascar/xfinity/sims" element={<XfOdds />} />
               <Route path="/nascar/xfinity/gfs" element={<XfGfs />} />
-              <Route path="/nascar/xfinity/practice" element={<XfPractice />} />
-              <Route path="/nascar/xfinity/cheatsheets" element={<XfCheatSheets />} />
-              <Route path="/nascar/xfinity/cheat-sheets" element={<Navigate to="/nascar/xfinity/cheatsheets" replace />} />
-              <Route path="/nascar/xfinity/optimizer" element={<XfOptimizer />} />
+              <Route
+                path="/nascar/xfinity/practice"
+                element={<XfPractice />}
+              />
+              <Route
+                path="/nascar/xfinity/cheatsheets"
+                element={<XfCheatSheets />}
+              />
+              <Route
+                path="/nascar/xfinity/cheat-sheets"
+                element={
+                  <Navigate to="/nascar/xfinity/cheatsheets" replace />
+                }
+              />
+              <Route
+                path="/nascar/xfinity/optimizer"
+                element={<XfOptimizer />}
+              />
               <Route path="/nascar/xfinity/data" element={<XfData />} />
 
-              {/* ============ NASCAR → TRUCKS ============ */}
-              <Route path="/nascar/trucks/dfs-projections" element={<TrucksProjections />} />
-              <Route path="/nascar/trucks/projections" element={<Navigate to="/nascar/trucks/dfs-projections" replace />} />
+              {/* ===== NASCAR TRUCKS ===== */}
+              <Route
+                path="/nascar/trucks/dfs-projections"
+                element={<TrucksProjections />}
+              />
+              <Route
+                path="/nascar/trucks/projections"
+                element={
+                  <Navigate to="/nascar/trucks/dfs-projections" replace />
+                }
+              />
               <Route path="/nascar/trucks/odds" element={<TrucksOdds />} />
-              <Route path="/nascar/trucks/betting-sims" element={<TrucksOdds />} />
+              <Route
+                path="/nascar/trucks/betting-sims"
+                element={<TrucksOdds />}
+              />
               <Route path="/nascar/trucks/sims" element={<TrucksOdds />} />
               <Route path="/nascar/trucks/gfs" element={<TrucksGfs />} />
-              <Route path="/nascar/trucks/practice" element={<TrucksPractice />} />
-              <Route path="/nascar/trucks/cheatsheets" element={<TrucksCheatSheets />} />
-              <Route path="/nascar/trucks/cheat-sheets" element={<Navigate to="/nascar/trucks/cheatsheets" replace />} />
-              <Route path="/nascar/trucks/optimizer" element={<TrucksOptimizer />} />
+              <Route
+                path="/nascar/trucks/practice"
+                element={<TrucksPractice />}
+              />
+              <Route
+                path="/nascar/trucks/cheatsheets"
+                element={<TrucksCheatSheets />}
+              />
+              <Route
+                path="/nascar/trucks/cheat-sheets"
+                element={
+                  <Navigate to="/nascar/trucks/cheatsheets" replace />
+                }
+              />
+              <Route
+                path="/nascar/trucks/optimizer"
+                element={<TrucksOptimizer />}
+              />
               <Route path="/nascar/trucks/data" element={<TrucksData />} />
 
               {/* Default NASCAR redirect */}
-              <Route path="/nascar" element={<Navigate to="/nascar/cup/dfs-projections" replace />} />
+              <Route
+                path="/nascar"
+                element={
+                  <Navigate to="/nascar/cup/dfs-projections" replace />
+                }
+              />
 
-              {/* ============ NFL — CLASSIC ============ */}
-              <Route path="/nfl/classic/projections" element={<NflProjections />} />
+              {/* ===== NFL CLASSIC ===== */}
+              <Route
+                path="/nfl/classic/projections"
+                element={<NflProjections />}
+              />
               <Route path="/nfl/classic/stacks" element={<NflStacks />} />
-              <Route path="/nfl/classic/cheatsheets" element={<NflCheatSheets />} />
-              <Route path="/nfl/classic/optimizer" element={<NFLOptimizer />} />
+              <Route
+                path="/nfl/classic/cheatsheets"
+                element={<NflCheatSheets />}
+              />
+              <Route
+                path="/nfl/classic/optimizer"
+                element={<NFLOptimizer />}
+              />
 
-              {/* Projections by position */}
-              <Route path="/nfl/classic/qb-projections" element={<NflQBProjections />} />
-              <Route path="/nfl/classic/rb-projections" element={<NflRBProjections />} />
-              <Route path="/nfl/classic/wr-projections" element={<NflWRProjections />} />
-              <Route path="/nfl/classic/te-projections" element={<NflTEProjections />} />
+              <Route
+                path="/nfl/classic/qb-projections"
+                element={<NflQBProjections />}
+              />
+              <Route
+                path="/nfl/classic/rb-projections"
+                element={<NflRBProjections />}
+              />
+              <Route
+                path="/nfl/classic/wr-projections"
+                element={<NflWRProjections />}
+              />
+              <Route
+                path="/nfl/classic/te-projections"
+                element={<NflTEProjections />}
+              />
 
-              {/* Data tables by position */}
               <Route path="/nfl/classic/qb-data" element={<NflQBData />} />
               <Route path="/nfl/classic/rb-data" element={<NflRBData />} />
               <Route path="/nfl/classic/wr-data" element={<NflWRData />} />
               <Route path="/nfl/classic/te-data" element={<NflTEData />} />
-              {/* <Route path="/nfl/classic/dst-data" element={<NflDSTData />} /> */}
 
-              {/* NEW: NFL Gameboard (Matchups) */}
-              <Route path="/nfl/classic/nfl-gameboard" element={<NflGameboard />} />
-              <Route path="/nfl/classic/gameboard" element={<Navigate to="/nfl/classic/nfl-gameboard" replace />} />
+              <Route
+                path="/nfl/classic/nfl-gameboard"
+                element={<NflGameboard />}
+              />
+              <Route
+                path="/nfl/classic/gameboard"
+                element={
+                  <Navigate to="/nfl/classic/nfl-gameboard" replace />
+                }
+              />
 
-              {/* Optional shortcut to optimizer */}
-              <Route path="/nfl/optimizer" element={<Navigate to="/nfl/classic/optimizer" replace />} />
-              <Route path="/nfl/classic" element={<Navigate to="/nfl/classic/projections" replace />} />
+              <Route
+                path="/nfl/optimizer"
+                element={
+                  <Navigate to="/nfl/classic/optimizer" replace />
+                }
+              />
+              <Route
+                path="/nfl/classic"
+                element={
+                  <Navigate to="/nfl/classic/projections" replace />
+                }
+              />
+              <Route
+                path="/nfl/projections"
+                element={
+                  <Navigate to="/nfl/classic/projections" replace />
+                }
+              />
+              <Route
+                path="/nfl/dfs-projections"
+                element={
+                  <Navigate to="/nfl/classic/projections" replace />
+                }
+              />
 
-              {/* Backward-compat redirects to CLASSIC */}
-              <Route path="/nfl/projections" element={<Navigate to="/nfl/classic/projections" replace />} />
-              <Route path="/nfl/dfs-projections" element={<Navigate to="/nfl/classic/projections" replace />} />
+              {/* ===== NFL SHOWDOWN ===== */}
+              <Route
+                path="/nfl/showdown/projections"
+                element={<NflProjectionsShowdown />}
+              />
+              <Route
+                path="/nfl/showdown/optimizer"
+                element={<NFLShowdownOptimizer />}
+              />
 
-              {/* ============ NFL — SHOWDOWN ============ */}
-              {/* All-positions showdown */}
-              <Route path="/nfl/showdown/projections" element={<NflProjectionsShowdown />} />
-              <Route path="/nfl/showdown/optimizer" element={<NFLShowdownOptimizer />} />
+              <Route
+                path="/nfl/showdown/qb-data"
+                element={<NflQBDataShowdown />}
+              />
+              <Route
+                path="/nfl/showdown/rb-data"
+                element={<NflRBDataShowdown />}
+              />
+              <Route
+                path="/nfl/showdown/wr-data"
+                element={<NflWRDataShowdown />}
+              />
+              <Route
+                path="/nfl/showdown/te-data"
+                element={<NflTEDataShowdown />}
+              />
 
-              {/* Showdown by position — DATA */}
-              <Route path="/nfl/showdown/qb-data" element={<NflQBDataShowdown />} />
-              <Route path="/nfl/showdown/rb-data" element={<NflRBDataShowdown />} />
-              <Route path="/nfl/showdown/wr-data" element={<NflWRDataShowdown />} />
-              <Route path="/nfl/showdown/te-data" element={<NflTEDataShowdown />} />
-              {/* <Route path="/nfl/showdown/dst-data" element={<NflDSTDataShowdown />} /> */}
+              <Route
+                path="/nfl/showdown/qb-projections"
+                element={<NflQBProjectionsShowdown />}
+              />
+              <Route
+                path="/nfl/showdown/rb-projections"
+                element={<NflRBProjectionsShowdown />}
+              />
+              <Route
+                path="/nfl/showdown/wr-projections"
+                element={<NflWRProjectionsShowdown />}
+              />
+              <Route
+                path="/nfl/showdown/te-projections"
+                element={<NflTEProjectionsShowdown />}
+              />
 
-              {/* Showdown by position — PROJECTIONS */}
-              <Route path="/nfl/showdown/qb-projections" element={<NflQBProjectionsShowdown />} />
-              <Route path="/nfl/showdown/rb-projections" element={<NflRBProjectionsShowdown />} />
-              <Route path="/nfl/showdown/wr-projections" element={<NflWRProjectionsShowdown />} />
-              <Route path="/nfl/showdown/te-projections" element={<NflTEProjectionsShowdown />} />
-              {/* <Route path="/nfl/showdown/dst-projections" element={<NflDSTProjectionsShowdown />} /> */}
+              <Route
+                path="/nfl/showdown"
+                element={
+                  <Navigate to="/nfl/showdown/projections" replace />
+                }
+              />
+              <Route
+                path="/nfl"
+                element={
+                  <Navigate to="/nfl/classic/projections" replace />
+                }
+              />
 
-              {/* Default NFL redirect */}
-              <Route path="/nfl/showdown" element={<Navigate to="/nfl/showdown/projections" replace />} />
-              <Route path="/nfl" element={<Navigate to="/nfl/classic/projections" replace />} />
+              {/* ===== MLB ===== */}
+              <Route
+                path="/mlb/pitcher-projections"
+                element={<MlbPitcherProjections />}
+              />
+              <Route
+                path="/mlb/batter-projections"
+                element={<BattersProjections />}
+              />
+              <Route
+                path="/mlb/batters"
+                element={
+                  <Navigate to="/mlb/batter-projections" replace />
+                }
+              />
+              <Route
+                path="/mlb/hitters"
+                element={
+                  <Navigate to="/mlb/batter-projections" replace />
+                }
+              />
 
-              {/* ============ MLB ============ */}
-              <Route path="/mlb/pitcher-projections" element={<MlbPitcherProjections />} />
-              {/* Future MLB pages:
-                  <Route path="/mlb/batter-projections" element={<MlbBatterProjections />} />
-                  <Route path="/mlb/stacks" element={<MlbStacks />} />
-                  <Route path="/mlb/cheatsheets" element={<MlbCheatSheets />} />
-                  <Route path="/mlb/pitcher-data" element={<MlbPitcherData />} />
-                  <Route path="/mlb/batter-data" element={<MlbBatterData />} />
-                  <Route path="/mlb/optimizer" element={<MlbOptimizer />} />
-              */}
-              {/* Default MLB redirect */}
-              <Route path="/mlb" element={<Navigate to="/mlb/pitcher-projections" replace />} />
+              <Route
+                path="/mlb"
+                element={
+                  <Navigate to="/mlb/pitcher-projections" replace />
+                }
+              />
             </Route>
 
             {/* ---------- 404 ---------- */}
