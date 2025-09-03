@@ -4,7 +4,7 @@
 """
 MLB_Exporter.py  (JSON-only)
 ----------------------------
-Exports MLB workbook tabs to JSON and parses the MLB Dashboard by yellow header panels.
+Exports MLB workbook tabs to JSON and parses the Cheat Sheet / MLB Dashboard by yellow header panels.
 
 Overrides:
   --xlsm   "C:\\path\\to\\MLB Slate.xlsm"
@@ -24,14 +24,19 @@ import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
+
 # ------------------------ ROOT / DEFAULT PATHS ------------------------
 
 THIS = Path(__file__).resolve()
 ROOT = THIS.parents[1]  # repo root (expected to include /public)
 
-DEFAULT_XLSM = r"C:\Users\cpenn\Dropbox\Sports Models\MLB\MLB September 2nd.xlsm"
+DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\MLB\MLB September 2nd.xlsm"
 DEFAULT_CONFIG = str(ROOT / "scripts" / "configs" / "mlb_classic.json")
-DEFAULT_OUT = str(ROOT / "public" / "data" / "mlb" / "latest")
+DEFAULT_OUT    = str(ROOT / "public" / "data" / "mlb" / "latest")
+
+# Prefer "Cheat Sheet" (your grid lives here), fallback to "MLB Dashboard"
+PANEL_SHEET_CANDIDATES = ["Cheat Sheet", "MLB Dashboard"]
+
 
 # ------------------------ BUILT-IN CONFIG FALLBACK ------------------------
 
@@ -83,8 +88,6 @@ SHEETS_CONFIG: List[Dict[str, Any]] = [
     },
 ]
 
-DASHBOARD_SHEET_NAME = "MLB Dashboard"   # yellow panels live here
-
 # Common Excel yellow fills used on your headers
 YELLOW_FILLS = {
     "FFFFE699",
@@ -93,6 +96,7 @@ YELLOW_FILLS = {
 }
 
 GAME_TITLE_RE = re.compile(r"^[A-Z]{2,3}\s*@\s*[A-Z]{2,3}$")
+
 
 # ------------------------ UTILITIES ------------------------
 
@@ -153,6 +157,7 @@ def read_table(xlsx_path: Path, sheet: str, header_row: int, data_start_row: int
     body = body.dropna(how="all")
     body = body.dropna(axis=1, how="all")
     return body
+
 
 # ------------------------ PANEL PARSING (YELLOW BARS) ------------------------
 
@@ -248,6 +253,7 @@ def parse_yellow_panels(xlsx_path: Path, sheet_name: str, yellow_fills: Optional
 
     return panels
 
+
 # ------------------------ JSON-SAFE CONVERSION ------------------------
 
 def _jsonify_value(v):
@@ -280,6 +286,7 @@ def _rows_to_dicts(rows: List[List[Any]]) -> List[Dict[str, Any]]:
             out.append(obj)
     return out
 
+
 # ------------------------ CHEAT SHEET BUILDER ------------------------
 
 NORMALIZE_TITLES = {
@@ -296,8 +303,8 @@ NORMALIZE_TITLES = {
 
 def compose_cheat_sheet_from_panels(panels: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
-    Build cheat_sheet.json structure that mirrors your screenshot:
-      sections keyed by: Pitcher, C, 1B, 2B, 3B, SS, OF (merged), Cash Core, Top Stacks
+    Build cheat_sheet.json structure that mirrors your sheet:
+      Pitcher, C, 1B, 2B, 3B, SS, OF (merged from multiple blocks), Cash Core, Top Stacks
     """
     out: Dict[str, Any] = {}
     for p in panels:
@@ -315,6 +322,7 @@ def compose_cheat_sheet_from_panels(panels: List[Dict[str, Any]]) -> Dict[str, A
             out[key] = recs
     return out
 
+
 # ------------------------ MAIN ------------------------
 
 def load_config(path_str: Optional[str]) -> Optional[dict]:
@@ -327,6 +335,27 @@ def load_config(path_str: Optional[str]) -> Optional[dict]:
     with p.open("r", encoding="utf-8") as f:
         return json.load(f)
 
+def choose_panel_sheet(xlsx_path: Path, preferred_from_cfg: Optional[str]) -> str:
+    """Pick the panel sheet. Priority:
+       1) Config-provided name (if present and exists)
+       2) 'Cheat Sheet' if present
+       3) 'MLB Dashboard' if present
+    """
+    wb = load_workbook(xlsx_path, data_only=True)
+    names = set(wb.sheetnames)
+
+    if preferred_from_cfg and preferred_from_cfg in names:
+        return preferred_from_cfg
+
+    for cand in PANEL_SHEET_CANDIDATES:
+        if cand in names:
+            return cand
+
+    raise RuntimeError(
+        f"No panel sheet found. Looked for: {preferred_from_cfg or '(none)'} "
+        f"then {', '.join(PANEL_SHEET_CANDIDATES)}. Available: {', '.join(sorted(names))}"
+    )
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--xlsm", type=str, default=DEFAULT_XLSM, help="Path to MLB .xlsx/.xlsm workbook")
@@ -335,12 +364,12 @@ def main():
     args = ap.parse_args()
 
     xlsx_path = Path(args.xlsm).expanduser()
-    out_dir = ensure_outdir(Path(args.out))
+    out_dir   = ensure_outdir(Path(args.out))
 
     cfg = load_config(args.config)
 
     sheets_config = SHEETS_CONFIG
-    dashboard_sheet_name = DASHBOARD_SHEET_NAME
+    cfg_panel_sheet = None
     yellow_fills = set(YELLOW_FILLS)
 
     if cfg:
@@ -348,11 +377,11 @@ def main():
             sheets_config = cfg["tasks"]
         if isinstance(cfg.get("matchups"), dict):
             m = cfg["matchups"]
-            sheet_field = m.get("sheet", dashboard_sheet_name)
+            sheet_field = m.get("sheet")
             if isinstance(sheet_field, list) and sheet_field:
-                dashboard_sheet_name = sheet_field[0]
+                cfg_panel_sheet = sheet_field[0]
             elif isinstance(sheet_field, str):
-                dashboard_sheet_name = sheet_field
+                cfg_panel_sheet = sheet_field
             ylist = m.get("header_yellow_rgb")
             if isinstance(ylist, list) and ylist:
                 yellow_fills = set(str(x).upper() for x in ylist)
@@ -385,21 +414,26 @@ def main():
         except Exception as e:
             print(f"❌  {sheet}: {e}")
 
-    # Parse yellow panels once and create cheat_sheet.json
+    # Choose panel sheet (Cheat Sheet preferred)
     try:
-        panels = parse_yellow_panels(xlsx_path, dashboard_sheet_name, yellow_fills)
+        panel_sheet = choose_panel_sheet(xlsx_path, cfg_panel_sheet)
+        print(f"Using panel sheet: {panel_sheet}")
+    except Exception as e:
+        print(f"❌  Could not choose panel sheet: {e}")
+        return
 
-        # For debugging
+    # Parse panels → cheat_sheet.json + debugging dumps
+    try:
+        panels = parse_yellow_panels(xlsx_path, panel_sheet, yellow_fills)
+
+        # Raw (as extracted) panels for debugging
         (out_dir / "matchups_raw.json").write_text(
             json.dumps(panels, ensure_ascii=False),
             encoding="utf-8"
         )
-        print(f"✔️  {dashboard_sheet_name} → matchups_raw.json ({len(panels)} panels)")
+        print(f"✔️  {panel_sheet} → matchups_raw.json ({len(panels)} panels)")
 
-        # Compose cheat sheet sections
-        cheat = compose_cheat_sheet_from_panels(panels)
-
-        # (Optional) write raw but JSON-safe version too
+        # Raw panels but with JSON-safe cell values
         cs_panels_safe = []
         for p in panels:
             q = dict(p)
@@ -410,15 +444,16 @@ def main():
             encoding="utf-8"
         )
 
-        # ✅ Write final cheat sheet EXACTLY as object (no {"sections": []})
+        # Final composed cheat sheet object (merged OF, JSON-safe)
+        cheat = compose_cheat_sheet_from_panels(cs_panels_safe)
         (out_dir / "cheat_sheet.json").write_text(
             json.dumps(cheat, ensure_ascii=False, indent=2),
             encoding="utf-8"
         )
-        print(f"✔️  {dashboard_sheet_name} → cheat_sheet.json (sections: {', '.join(cheat.keys())})")
+        print(f"✔️  {panel_sheet} → cheat_sheet.json (sections: {', '.join(cheat.keys())})")
 
     except Exception as e:
-        print(f"❌  Dashboard/cheat-sheet parse failed: {e}")
+        print(f"❌  Panel parsing / cheat sheet build failed: {e}")
 
 if __name__ == "__main__":
     main()
