@@ -119,7 +119,7 @@ export default function MlbCheatSheet() {
   const getSec = (k) => Array.isArray(cheat?.[k]) ? cheat[k] : [];
 
   // Column sets to match your sheet
-  const colsPlayer = ["Player", "Salary", "Team", "Matchup", "Vegas", "Time", "Proj", "Value", "pOWN"];
+  const colsPlayer = ["Player", "Salary", "Team", "Opp", "Vegas", "Time", "Proj", "Value", "pOWN"];
   const colsStacks = ["Team", "Salary", "Opp", "Opp Pitcher", "Vegas", "Time", "Proj", "Value", "pOWN"];
 
   const renderPlayerRow = (r) => (
