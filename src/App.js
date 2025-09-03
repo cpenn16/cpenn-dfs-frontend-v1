@@ -91,7 +91,8 @@ import NflTEProjectionsShowdown from "./pages/nfl/NflTEProjectionsShowdown";
 /* ---------------- MLB ---------------- */
 import MlbPitcherProjections from "./pages/mlb/MlbPitcherProjections";
 import MlbBattersProjections from "./pages/mlb/MlbBattersProjections";
-import MlbStacks from "./pages/mlb/MlbStacks"; // ← NEW import
+import MlbStacks from "./pages/mlb/MlbStacks";
+import MlbCheatSheet from "./pages/mlb/MlbCheatSheet"; // ← NEW: separate page
 
 function NotFound() {
   return (
@@ -256,8 +257,8 @@ export default function App() {
               <Route path="/mlb/batter-projections" element={<MlbBattersProjections />} />
               <Route path="/mlb/batters" element={<Navigate to="/mlb/batter-projections" replace />} />
               <Route path="/mlb/hitters" element={<Navigate to="/mlb/batter-projections" replace />} />
-              <Route path="/mlb/stacks" element={<MlbStacks />} /> {/* ← NEW route */}
-              <Route path="/mlb/cheatsheets" element={<Navigate to="/mlb/stacks" replace />} />
+              <Route path="/mlb/stacks" element={<MlbStacks />} />
+              <Route path="/mlb/cheatsheets" element={<MlbCheatSheet />} /> {/* separate page */}
 
               {/* Default MLB redirect */}
               <Route path="/mlb" element={<Navigate to="/mlb/pitcher-projections" replace />} />

@@ -1,3 +1,4 @@
+// src/pages/mlb/MlbCheatSheet.jsx
 import React, { useEffect, useMemo, useState } from "react";
 
 /* ------------------------------- config ------------------------------- */
@@ -64,15 +65,15 @@ const get = (row, keys) => {
   return undefined;
 };
 
-/* unified rows */
+/* unified rows (accept common alias variants) */
 const adaptPitcher = (r) => ({
   player: get(r, ["Player", "Pitcher", "Name"]),
   team: get(r, ["Team", "Tm"]),
   opp: get(r, ["Opp", "Opponent"]),
   vegas: get(r, ["Imp. Total", "ImpTotal", "ImpliedTotal", "Total", "Vegas", "O/U"]),
   time: get(r, ["Time", "time"]),
-  dkSal: num(get(r, ["DK Sal", "DK_Sal", "DKSal", "dk_salary"])),
-  dkProj: num(get(r, ["DK Proj", "dk_points", "DKProj"])),
+  dkSal: num(get(r, ["DK Sal", "DK_Sal", "DKSal", "dk_salary", "dk_sal"])),
+  dkProj: num(get(r, ["DK Proj", "dk_points", "DKProj", "dk_proj"])),
   dkVal: num(get(r, ["DK Val", "dk_val", "DKVal"])),
   dkOwn: get(r, ["DK pOWN%", "dk_pown", "dk_pown%"]),
 });
@@ -82,10 +83,10 @@ const adaptBatter = (r) => ({
   pos: String(get(r, ["Pos", "Position", "POS"]) || "").toUpperCase(),
   team: get(r, ["Team", "Tm"]),
   opp: get(r, ["Opp", "Opponent"]),
-  vegas: get(r, ["Vegas", "Total", "Imp. Total", "Implied Total"]),
+  vegas: get(r, ["Vegas", "Total", "Imp. Total", "Implied Total", "ImpTotal"]),
   time: get(r, ["Time", "time"]),
-  dkSal: num(get(r, ["DK Sal", "DK_Sal", "DKSal", "dk_salary"])),
-  dkProj: num(get(r, ["DK Proj", "dk_points", "DKProj"])),
+  dkSal: num(get(r, ["DK Sal", "DK_Sal", "DKSal", "dk_salary", "dk_sal"])),
+  dkProj: num(get(r, ["DK Proj", "dk_points", "DKProj", "dk_proj"])),
   dkVal: num(get(r, ["DK Val", "dk_val", "DKVal"])),
   dkOwn: get(r, ["DK pOWN%", "dk_pown", "dk_pown%"]),
 });
@@ -94,11 +95,11 @@ const adaptStack = (r) => ({
   team: get(r, ["Team", "team"]),
   opp: get(r, ["Opp", "opp"]),
   oppPitcher: get(r, ["Opp Pitcher", "opp_pitcher", "oppPitcher"]),
-  vegas: get(r, ["Total", "total", "Imp. Tot", "Implied Total"]),
+  vegas: get(r, ["Total", "total", "Imp. Tot", "Implied Total", "ImpTotal"]),
   time: get(r, ["Time", "time"]),
-  dkSal: num(get(r, ["DK Sal", "dk_sal"])),
-  dkProj: num(get(r, ["DK Proj", "dk_proj"])),
-  dkVal: num(get(r, ["DK Val", "dk_val"])),
+  dkSal: num(get(r, ["DK Sal", "dk_sal", "DK Sal"])),
+  dkProj: num(get(r, ["DK Proj", "dk_proj", "DK Proj"])),
+  dkVal: num(get(r, ["DK Val", "dk_val", "DK Val"])),
   dkOwn: get(r, ["DK pOWN%", "dk_pown", "dk_pown%"]),
 });
 
@@ -144,8 +145,15 @@ function RowPitcher({ r }) {
   return (
     <div className="grid grid-cols-9 gap-2 px-2 py-1 text-[12px] odd:bg-white even:bg-gray-50">
       <div className="col-span-2 flex items-center gap-2">
-        <img src={teamLogo(abv)} alt="" className="w-4 h-4" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
-        <span className="truncate" title={r.player}>{r.player}</span>
+        <img
+          src={teamLogo(abv)}
+          alt=""
+          className="w-4 h-4"
+          onError={(e) => (e.currentTarget.style.visibility = "hidden")}
+        />
+        <span className="truncate" title={r.player}>
+          {r.player}
+        </span>
       </div>
       <div className="text-center tabular-nums">{fmtMoney(r.dkSal)}</div>
       <div className="text-center">{abv}</div>
@@ -164,8 +172,15 @@ function RowBatter({ r }) {
   return (
     <div className="grid grid-cols-9 gap-2 px-2 py-1 text-[12px] odd:bg-white even:bg-gray-50">
       <div className="col-span-2 flex items-center gap-2">
-        <img src={teamLogo(abv)} alt="" className="w-4 h-4" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
-        <span className="truncate" title={`${r.player} (${r.pos})`}>{r.player}</span>
+        <img
+          src={teamLogo(abv)}
+          alt=""
+          className="w-4 h-4"
+          onError={(e) => (e.currentTarget.style.visibility = "hidden")}
+        />
+        <span className="truncate" title={`${r.player} (${r.pos})`}>
+          {r.player}
+        </span>
       </div>
       <div className="text-center tabular-nums">{fmtMoney(r.dkSal)}</div>
       <div className="text-center">{abv}</div>
@@ -184,12 +199,19 @@ function RowStack({ r }) {
   return (
     <div className="grid grid-cols-10 gap-2 px-2 py-1 text-[12px] odd:bg-white even:bg-gray-50">
       <div className="flex items-center gap-2">
-        <img src={teamLogo(abv)} alt="" className="w-4 h-4" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
+        <img
+          src={teamLogo(abv)}
+          alt=""
+          className="w-4 h-4"
+          onError={(e) => (e.currentTarget.style.visibility = "hidden")}
+        />
         <span className="font-medium">{abv}</span>
       </div>
       <div className="text-center tabular-nums">{fmtMoney(r.dkSal)}</div>
       <div className="text-center">{String(r.opp || "")}</div>
-      <div className="text-left truncate" title={r.oppPitcher || ""}>{r.oppPitcher || ""}</div>
+      <div className="text-left truncate" title={r.oppPitcher || ""}>
+        {r.oppPitcher || ""}
+      </div>
       <div className="text-center">{fmt1(r.vegas)}</div>
       <div className="text-center">{time12(r.time)}</div>
       <div className="text-center tabular-nums">{fmt1(r.dkProj)}</div>
@@ -263,9 +285,7 @@ export default function MlbCheatSheet() {
         Cheat Sheet
       </div>
 
-      {err ? (
-        <div className="text-red-600 font-semibold mb-3">Failed to load: {err}</div>
-      ) : null}
+      {err ? <div className="text-red-600 font-semibold mb-3">Failed to load: {err}</div> : null}
 
       {loading ? (
         <div className="text-gray-600">Loading…</div>
@@ -287,11 +307,7 @@ export default function MlbCheatSheet() {
                 <div>Value</div>
                 <div>pOWN</div>
               </SectionHeader>
-              <div>
-                {pRows.map((r, i) => (
-                  <RowPitcher key={`${r.player}-${i}`} r={r} />
-                ))}
-              </div>
+              <div>{pRows.map((r, i) => <RowPitcher key={`${r.player}-${i}`} r={r} />)}</div>
             </div>
 
             {/* C */}

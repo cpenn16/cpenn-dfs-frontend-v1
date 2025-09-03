@@ -170,6 +170,8 @@ def parse_dashboard_panels(xlsx_path: Path, sheet_name: str, yellow_fills: Optio
     Detect header rows by:
       1) Yellow-ish fills (rgb OR theme/indexed with SOLID pattern)
       2) Fallback regex like 'NYY @ BOS' when no yellow is found
+    Each panel returns the *rows* under the yellow bar. The first row is assumed
+    to be the table header for that panel (as in your screenshot).
     """
     fills_rgb = set(v.upper() for v in (yellow_fills or YELLOW_FILLS))
     wb = load_workbook(xlsx_path, data_only=True)
@@ -280,6 +282,64 @@ def load_config(path_str: Optional[str]) -> Optional[dict]:
         return json.load(f)
 
 
+# ------------------------ CHEAT SHEET BUILDER ------------------------
+
+NORMALIZE_TITLES = {
+    "PITCHER": "Pitcher",
+    "C": "C",
+    "1B": "1B",
+    "2B": "2B",
+    "3B": "3B",
+    "SS": "SS",
+    "OF": "OF",
+    "CASH CORE": "Cash Core",
+    "TOP STACKS": "Top Stacks",
+}
+
+def _rows_to_dicts(rows: List[List[Any]]) -> List[Dict[str, Any]]:
+    """First row is headers; rest are records."""
+    if not rows:
+        return []
+    headers = [str(h).strip() if h is not None else "" for h in rows[0]]
+    # ensure unique keys
+    headers = _make_unique_columns(headers)
+    out = []
+    for r in rows[1:]:
+        obj = {}
+        for i, h in enumerate(headers):
+            obj[h] = r[i] if i < len(r) else None
+        # drop rows that are fully empty
+        if any(v not in (None, "", " ") for v in obj.values()):
+            out.append(obj)
+    return out
+
+def compose_cheat_sheet_from_panels(panels: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Build a thin cheat_sheet.json structure that mirrors your screenshot:
+    sections keyed by:
+      Pitcher, C, 1B, 2B, 3B, SS, OF (merged), Cash Core, Top Stacks
+    """
+    out: Dict[str, Any] = {}
+
+    for p in panels:
+        title_raw = str(p.get("title") or "").strip()
+        key = NORMALIZE_TITLES.get(title_raw.upper())
+        if not key:
+            continue
+        recs = _rows_to_dicts(p.get("rows") or [])
+        if not recs:
+            continue
+
+        if key == "OF":
+            # Merge multiple OF blocks
+            out.setdefault("OF", [])
+            out["OF"].extend(recs)
+        else:
+            out[key] = recs
+
+    return out
+
+
 # ------------------------ MAIN ------------------------
 
 def main():
@@ -341,13 +401,20 @@ def main():
         except Exception as e:
             print(f"❌  {sheet}: {e}")
 
-    # Parse MLB Dashboard panels → matchups_raw.json
+    # Parse MLB Dashboard panels → matchups_raw.json + cheat_sheet.json
     try:
         panels = parse_dashboard_panels(xlsx_path, dashboard_sheet_name, yellow_fills)
         (out_dir / "matchups_raw.json").write_text(
             json.dumps(panels, ensure_ascii=False), encoding="utf-8"
         )
         print(f"✔️  {dashboard_sheet_name} → matchups_raw.json ({len(panels)} panels)")
+
+        cheat = compose_cheat_sheet_from_panels(panels)
+        (out_dir / "cheat_sheet.json").write_text(
+            json.dumps(cheat, ensure_ascii=False), encoding="utf-8"
+        )
+        print(f"✔️  {dashboard_sheet_name} → cheat_sheet.json (sections: {', '.join(cheat.keys())})")
+
     except Exception as e:
         print(f"❌  Dashboard parse failed: {e}")
 
