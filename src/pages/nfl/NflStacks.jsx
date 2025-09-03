@@ -610,22 +610,21 @@ export default function NflStacks() {
                     if ((Array.isArray(c.key) ? c.key[0] : c.key) === "team") {
                       const abv = String(r.team || "").toUpperCase();
                       return (
-                        <td key={Array.isArray(c.key) ? c.key.join("|") : c.key} className="px-2 py-1 text-left">
-                          {/* Make the inner div sticky instead of the <td> */}
-                          <div
-                            className={`sticky left-0 z-10 ${
-                              i % 2 === 0 ? "bg-white" : "bg-gray-50"
-                            } -ml-2 pl-2 pr-2 shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)]`}
-                          >
-                            <div className="flex items-center gap-2">
-                              <img
-                                src={teamLogo(r.team)}
-                                alt=""
-                                className="w-4 h-4 rounded-sm object-contain"
-                                onError={(e) => (e.currentTarget.style.visibility = "hidden")}
-                              />
-                              <span className="whitespace-nowrap font-medium">{abv}</span>
-                            </div>
+                        // First column: make the TD itself sticky
+                        <td
+                          key={Array.isArray(c.key) ? c.key.join("|") : c.key}
+                          className={`px-2 py-1 text-left sticky left-0 z-10 ${
+                            i % 2 === 0 ? "bg-white" : "bg-gray-50"
+                          } min-w-[7rem] shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)]`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <img
+                              src={teamLogo(r.team)}
+                              alt=""
+                              className="w-4 h-4 rounded-sm object-contain"
+                              onError={(e) => (e.currentTarget.style.visibility = "hidden")}
+                            />
+                            <span className="whitespace-nowrap font-medium">{abv}</span>
                           </div>
                         </td>
                       );
