@@ -91,6 +91,7 @@ import NflTEProjectionsShowdown from "./pages/nfl/NflTEProjectionsShowdown";
 /* ---------------- MLB ---------------- */
 import MlbPitcherProjections from "./pages/mlb/MlbPitcherProjections";
 import MlbBattersProjections from "./pages/mlb/MlbBattersProjections";
+import MlbStacks from "./pages/mlb/MlbStacks"; // ← NEW import
 
 function NotFound() {
   return (
@@ -255,6 +256,7 @@ export default function App() {
               <Route path="/mlb/batter-projections" element={<MlbBattersProjections />} />
               <Route path="/mlb/batters" element={<Navigate to="/mlb/batter-projections" replace />} />
               <Route path="/mlb/hitters" element={<Navigate to="/mlb/batter-projections" replace />} />
+              <Route path="/mlb/stacks" element={<MlbStacks />} /> {/* ← NEW route */}
 
               {/* Default MLB redirect */}
               <Route path="/mlb" element={<Navigate to="/mlb/pitcher-projections" replace />} />
