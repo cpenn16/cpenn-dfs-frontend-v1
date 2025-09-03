@@ -2,86 +2,154 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 /* ============================ CONFIG ============================ */
-
-const DATA_URL = "/data/mlb/latest/pitcher_data.json"; // <- point to your pitchers JSON
+// JSON path (matches your exporter outfile: pitcher_data.json)
+const DATA_URL = "/data/mlb/latest/pitchers_data.json";
 const TITLE = "MLB — Pitcher Data";
 
-const SHOW_TEAM_LOGOS = true;
-const HIDE_PLAYER_INFO_LABEL = true;
-
-// logos served from: /public/logos/mlb/XXX.png  ->  /logos/mlb/XXX.png
 const LOGO_BASE = "/logos/mlb";
 const LOGO_EXT = "png";
-const TEAM_FIX = {
-  WSH: "WAS", JAC: "JAX", OAK: "OAK",  // MLB rarely needs these, left as examples
-  TB: "TB", CHC: "CHC", SF: "SF", HOU: "HOU", NYY: "NYY", ATL: "ATL",
-  TEX: "TEX", ARI: "ARI", KC: "KC", MIN: "MIN", COL: "COL", SEA: "SEA", LAA: "LAA",
-};
 
 /* ============================ HELPERS ============================ */
-
-const norm = (s) => String(s ?? "").trim();
+const norm = (v) => (v == null ? "" : String(v).trim());
 const lower = (s) => norm(s).toLowerCase();
-const keynorm = (s) => lower(String(s).replace(/[\s._%/()\-]/g, ""));
 
-function parseNumericLike(v) {
-  if (v == null) return null;
+const num = (v) => {
+  if (v == null || v === "") return null;
   const s = String(v).trim();
-  if (s === "") return null;
-  if (/%$/.test(s)) {
-    const n = Number(s.replace(/%/g, ""));
-    return Number.isFinite(n) ? n : null;
-  }
-  const n = Number(s.replace(/,/g, ""));
+  // strip commas, % and spaces
+  const clean = s.replace(/[,\s]/g, "").replace(/%$/, "");
+  const n = Number(clean);
   return Number.isFinite(n) ? n : null;
+};
+
+// Percent that accepts "12%", 12, or 0.12 and outputs "12.0%"
+function fmtPct1(v) {
+  if (v == null || v === "") return "";
+  let s = String(v).trim();
+  let hadPercent = false;
+  if (s.endsWith("%")) {
+    hadPercent = true;
+    s = s.slice(0, -1);
+  }
+  let n = num(s);
+  if (n == null) return "";
+  if (!hadPercent && Math.abs(n) <= 1) n *= 100; // 0.12 -> 12%
+  return `${n.toFixed(1)}%`;
 }
 
-function fmtTime(s) {
-  const raw = norm(s);
-  if (!raw) return "";
-  if (/\b(am|pm)\b/i.test(raw))
-    return raw.replace(/\s+/g, "").toUpperCase().replace("AM", " AM").replace("PM", " PM");
-  const m = raw.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/i);
-  if (!m) return raw;
+function fmt1(v) {
+  const n = num(v);
+  if (n == null) return "";
+  return n.toFixed(1).replace(/\.0$/, "");
+}
+
+// time → "7:40 PM" style
+function time12(s) {
+  const v = norm(s);
+  if (!v) return "";
+  if (/\d{1,2}:\d{2}(:\d{2})?\s?[AP]M/i.test(v)) return v.toUpperCase().replace(/\s+/g, " ");
+  const m = v.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if (!m) return v;
   let hh = Number(m[1]);
   const mm = m[2];
   const ampm = hh >= 12 ? "PM" : "AM";
   hh = ((hh + 11) % 12) + 1;
   return `${hh}:${mm} ${ampm}`;
 }
-function timeToMinutes(s) {
-  const raw = norm(s);
-  if (!raw) return null;
-  const ap = raw.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-  if (ap) {
-    let h = Number(ap[1]), m = Number(ap[2]);
-    const pm = /pm/i.test(ap[3]);
-    if (h === 12) h = pm ? 12 : 0; else if (pm) h += 12;
-    return h * 60 + m;
-  }
-  const m = raw.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
-  return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+
+function TeamWithLogo({ code }) {
+  const abv = String(code || "").toUpperCase();
+  if (!abv) return null;
+  const src = `${LOGO_BASE}/${abv}.${LOGO_EXT}`;
+  return (
+    <span className="inline-flex items-center gap-1">
+      {/* eslint-disable-next-line jsx-a11y/alt-text */}
+      <img
+        src={src}
+        className="h-4 w-4 shrink-0"
+        onError={(e) => (e.currentTarget.style.display = "none")}
+      />
+      <span>{abv}</span>
+    </span>
+  );
 }
 
-function fmtCellValue(col, val) {
-  const v = norm(val);
-  if (!v) return "";
-  if (/%$/.test(v)) return v;
-  if (/^time$/i.test(col)) return fmtTime(v);
-  if (/\b(sal|salary)\b/i.test(col)) {
-    const n = parseNumericLike(v);
-    return n == null ? v : Math.round(n).toLocaleString();
-  }
-  const n = parseNumericLike(v);
-  if (n == null) return v;
-  const f = n.toFixed(1);
-  return f.endsWith(".0") ? f.slice(0, -2) : f;
-}
+/* ===================== DISPLAY ORDER & HEADER BANDS ===================== */
+/**
+ * We render exactly these labels in this order.
+ * Each label lists possible source keys to read from (first match wins).
+ * We also prevent reusing the same raw column twice (so Opp vs Pitcher K% don’t collide).
+ */
+const DISPLAY_COLS = [
+  // Player Info
+  { label: "Hand",  keys: ["Hand","Throws","Handedness"] },
+  { label: "player", keys: ["player","Player","Name"] },
+  { label: "DK",    keys: ["DK","DK Sal","DK Salary"] },
+  { label: "FD",    keys: ["FD","FD Sal","FD Salary"] },
 
+  // Matchup Info
+  { label: "Team",  keys: ["Team","Tm"] },
+  { label: "Opp",   keys: ["Opp","OPP","Opponent"] },
+  { label: "Park",  keys: ["Park","Ballpark"] },
+  { label: "Time",  keys: ["Time","Start","Start Time"] },
+
+  // Vegas
+  { label: "Total",  keys: ["Total","O/U","Team Total","TT"] },
+  { label: "W%",     keys: ["W%","Win%"] },
+  { label: "K",      keys: ["K","Kline","Ks"] },
+  { label: "Field",  keys: ["Field","Field%"] },
+  { label: "Rating", keys: ["Rating","Rate"] },
+
+  // Opp splits (use Opp K%/BB% when available, otherwise fallback to generic)
+  { label: "K% (Opp)",  keys: ["Opp K%","K% (Opp)","K% vs Hand","K% (Team)","K% (Opp Team)","K%"] },
+  { label: "BB% (Opp)", keys: ["Opp BB%","BB% (Opp)","BB% vs Hand","BB% (Team)","BB% (Opp Team)","BB%"] },
+  { label: "wOBA",      keys: ["wOBA","Opp wOBA"] },
+  { label: "ISO",       keys: ["ISO","Opp ISO"] },
+  { label: "wRC+",      keys: ["wRC+","Opp wRC+"] },
+
+  // Advanced (pitcher)
+  { label: "IP",    keys: ["IP","IP/G"] },
+  { label: "Velo",  keys: ["Velo","FB Velo","Velocity"] },
+  { label: "xFIP",  keys: ["xFIP","xfip"] },
+  { label: "K% (P)",   keys: ["K% (P)","Pitch K%","K%_P","K%"] },
+  { label: "SwS%",  keys: ["SwS%","SwStr%"] },
+  { label: "BB% (P)",  keys: ["BB% (P)","Pitch BB%","BB%_P","BB%"] },
+
+  // Ratios
+  { label: "K/9",  keys: ["K/9","K9"] },
+  { label: "BB/9", keys: ["BB/9","BB9"] },
+  { label: "HR/9", keys: ["HR/9","HR9"] },
+
+  // Statcast
+  { label: "GB%",  keys: ["GB%","GB% (P)"] },
+  { label: "FB%",  keys: ["FB%","FB% (P)"] },
+  { label: "HH%",  keys: ["HH%","HardHit%","Hard%"] },
+  { label: "Bar%", keys: ["Bar%","Barrel%"] },
+  { label: "EV",   keys: ["EV","Avg EV","Exit Velo"] }
+];
+
+const BANDS = [
+  ["PLAYER INFO", ["Hand","player","DK","FD"]],
+  ["MATCHUP INFO", ["Team","Opp","Park","Time"]],
+  ["VEGAS", ["Total","W%","K","Field","Rating"]],
+  ["OPPONENT SPLITS VS HANDEDNESS", ["K% (Opp)","BB% (Opp)","wOBA","ISO","wRC+"]],
+  ["ADVANCED STATS", ["IP","Velo","xFIP","K% (P)","SwS%","BB% (P)"]],
+  ["RATIOS", ["K/9","BB/9","HR/9"]],
+  ["STATCAST", ["GB%","FB%","HH%","Bar%","EV"]]
+];
+
+// Percent columns
+const PERCENT_COLS = new Set([
+  "W%","Rating","K% (Opp)","BB% (Opp)","K% (P)","SwS%","BB% (P)",
+  "GB%","FB%","HH%","Bar%"
+]);
+
+/* ============================== DATA FETCH ============================== */
 function useJson(url) {
-  const [data, setData] = useState([]);
+  const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
+
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -91,449 +159,182 @@ function useJson(url) {
         const r = await fetch(`${url}?_=${Date.now()}`, { cache: "no-store" });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const j = await r.json();
-        const arr = Array.isArray(j) ? j : j?.rows || j?.data || [];
-        if (alive) setData(arr);
-      } catch (e) { if (alive) setErr(String(e)); }
-      finally { if (alive) setLoading(false); }
+        if (alive) setRows(Array.isArray(j) ? j : j?.data || []);
+      } catch (e) {
+        if (alive) setErr(String(e.message || e));
+      } finally {
+        if (alive) setLoading(false);
+      }
     })();
     return () => { alive = false; };
   }, [url]);
-  return { data, loading, err };
+
+  return { rows, loading, err };
 }
 
-/* ============================ LOGOS ============================ */
-
-function fixAbbr(code) {
-  const c = String(code || "").toUpperCase();
-  return TEAM_FIX[c] || c;
-}
-function TeamWithLogo({ code }) {
-  const c = fixAbbr(code);
-  if (!c) return null;
-  if (!SHOW_TEAM_LOGOS) return <span>{c}</span>;
-  const src = `${LOGO_BASE}/${c}.${LOGO_EXT}`;
-  return (
-    <span className="inline-flex items-center gap-1">
-      {/* eslint-disable-next-line jsx-a11y/alt-text */}
-      <img src={src} className="h-4 w-4 shrink-0" onError={(e) => (e.currentTarget.style.display = "none")} />
-      <span>{c}</span>
-    </span>
-  );
-}
-
-/* ============================ COLUMNS & BANDS ============================ */
-/*
-Requested header bands & columns:
-
-Player Info
-  Hand, player, DK, FD
-Matchup Info
-  Team, Opp, Park, Time
-Vegas
-  Total, W%, K, Field, Rating
-Opponent Splits vs Handedness
-  K%, BB%, wOBA, ISO, wRC+
-Advanced Stats
-  IP, Velo, xFIP, K%, SwS%, BB%
-Ratios
-  K/9, BB/9, HR/9
-Statcast
-  GB%, FB%, HH%, Bar%, EV
-Projections
-  DK, Val, FD, Val
-*/
-
-// Column aliases to match flexible headers coming from sheets/exports
-const ORDER = {
-  "Player Info": [
-    ["Hand", "Throws", "Handedness"],
-    ["Player", "player", "Name"],
-    ["DK", "DK Sal", "DK Salary"],
-    ["FD", "FD Sal", "FD Salary"],
-  ],
-  "Matchup Info": [
-    ["Team", "Tm"],
-    ["Opp", "OPP", "Opponent"],
-    ["Park", "Ballpark"],
-    ["Time", "Start", "Start Time"],
-  ],
-  Vegas: [
-    ["Total", "O/U", "Team Total", "TT"],
-    ["W%", "Win%", "W%"],
-    ["K", "Kline", "Ks"],
-    ["Field", "Field%", "Field%Proj"],
-    ["Rating", "Rate", "Proj Rating"],
-  ],
-  "Opponent Splits vs Handedness": [
-    // We try “Opp …” first to avoid stealing generic “K%/BB%” from Advanced Stats
-    ["Opp K%", "K% (Opp)", "K%_Opp", "OK%"],
-    ["Opp BB%", "BB% (Opp)", "BB%_Opp", "OBB%"],
-    ["Opp wOBA", "wOBA (Opp)", "wOBA_opp"],
-    ["Opp ISO", "ISO (Opp)", "ISO_opp"],
-    ["Opp wRC+", "wRC+ (Opp)", "wRC+_opp"],
-  ],
-  "Advanced Stats": [
-    ["IP", "Innings", "IP/G"],
-    ["Velo", "FB Velo", "Velocity"],
-    ["xFIP", "xfip"],
-    ["K% (P)", "K%_P", "K%"],
-    ["SwS%", "SwStr%", "SwStr% (P)", "SwS% (P)"],
-    ["BB% (P)", "BB%_P", "BB%"],
-  ],
-  Ratios: [
-    ["K/9", "K9"],
-    ["BB/9", "BB9"],
-    ["HR/9", "HR9"],
-  ],
-  Statcast: [
-    ["GB%", "GB% (P)"],
-    ["FB%", "FB% (P)"],
-    ["HH%", "HardHit%", "Hard%"],
-    ["Bar%", "Barrel%", "Barrel%"],
-    ["EV", "Avg EV", "Exit Velo"],
-  ],
-  Projections: [
-    ["DK Proj", "DK", "DK Projection"],
-    ["Val (DK)", "Val", "DK Val", "Value"],
-    ["FD Proj", "FD", "FD Projection"],
-    ["Val (FD)", "FD Val", "FD Value"],
-  ],
-};
-
-const BAND_ORDER = [
-  "Player Info",
-  "Matchup Info",
-  "Vegas",
-  "Ballpark", // Note: “Park” column is in Matchup Info; if you later add ballpark factors, you can map them here.
-  "Opponent Splits vs Handedness",
-  "Advanced Stats",
-  "Ratios",
-  "Statcast",
-  "Projections",
-];
-
-// Map desired header -> actual column name in the data (handles aliases)
-// Ensures we don't double-claim the exact same raw column
-function resolveOne(spec, rawCols, used) {
-  const cands = Array.isArray(spec) ? spec : [spec];
-  for (const cand of cands) {
-    const want = keynorm(cand);
-    const hit = rawCols.find((rc) => keynorm(rc) === want && !used.has(rc));
-    if (hit) return hit;
-  }
-  return null;
-}
-
-function buildColumnsAndBands(rawCols) {
-  const used = new Set();
-  const buckets = new Map(BAND_ORDER.map((b) => [b, []]));
-
-  for (const band of BAND_ORDER) {
-    for (const item of ORDER[band] || []) {
-      const real = resolveOne(item, rawCols, used);
-      if (real) {
-        buckets.get(band).push(real);
-        used.add(real);
-      }
-    }
-  }
-
-  // Merge: if “Ballpark” ended empty (likely), we omit it.
-  const bands = [];
-  const columns = [];
-  for (const b of BAND_ORDER) {
-    const cols = buckets.get(b);
-    if (!cols || cols.length === 0) continue;
-    const start = columns.length;
-    columns.push(...cols);
-    bands.push({ name: b, start, span: cols.length });
-  }
-  return { columns, bands };
-}
-
-/* ============================ PLAYER PICKER ============================ */
-
-function useOutsideClick(ref, onClose) {
-  useEffect(() => {
-    function onDoc(e) {
-      if (ref.current && !ref.current.contains(e.target)) onClose();
-    }
-    document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
-  }, [ref, onClose]);
-}
-
-/* ============================ MAIN ============================ */
-
+/* ============================== MAIN PAGE ============================== */
 export default function PitcherData() {
-  const { data, loading, err } = useJson(DATA_URL);
+  const { rows, loading, err } = useJson(DATA_URL);
 
-  const rawCols = useMemo(() => (data.length ? Object.keys(data[0]) : []), [data]);
-  const { columns, bands } = useMemo(() => buildColumnsAndBands(rawCols), [rawCols]);
+  // Build a mapping: display label -> raw key from data
+  const rawCols = useMemo(() => (rows[0] ? Object.keys(rows[0]) : []), [rows]);
 
-  // search + player picker
-  const [q, setQ] = useState("");
-  const allPlayers = useMemo(() => {
-    const s = new Set();
-    for (const r of data) {
-      const n = r.Player || r.player || r.Name;
-      if (n) s.add(String(n));
+  const labelToKey = useMemo(() => {
+    const used = new Set();
+    const m = new Map();
+    for (const col of DISPLAY_COLS) {
+      let hit = null;
+      for (const cand of col.keys) {
+        const key = rawCols.find((rc) => lower(rc) === lower(cand) && !used.has(rc));
+        if (key) { hit = key; break; }
+      }
+      if (hit) used.add(hit); // don’t allow the same raw key to fill two display labels
+      m.set(col.label, hit || null);
     }
-    return Array.from(s).sort((a, b) => a.localeCompare(b));
-  }, [data]);
-  const [selected, setSelected] = useState(new Set()); // empty => all
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const [pickFilter, setPickFilter] = useState("");
-  const pickerRef = useRef(null);
-  useOutsideClick(pickerRef, () => setPickerOpen(false));
+    return m;
+  }, [rawCols]);
 
-  const toggleOne = (name) =>
-    setSelected((prev) => {
-      const next = new Set(prev);
-      next.has(name) ? next.delete(name) : next.add(name);
-      return next;
-    });
-
+  // Search/filter
+  const [q, setQ] = useState("");
   const filtered = useMemo(() => {
     const s = lower(q);
-    const restrict = selected.size > 0;
-    return data.filter((r) => {
-      const name = String(r.Player || r.player || r.Name || "");
-      if (restrict && !selected.has(name)) return false;
-      if (!s) return true;
-      const t = lower(r.Team || r.team || r.Tm);
-      const o = lower(r.Opp || r.OPP || r.Opponent || r.opp);
-      return lower(name).includes(s) || t.includes(s) || o.includes(s);
+    if (!s) return rows;
+    return rows.filter((r) => {
+      const name = lower(r.player || r.Player || r.Name || "");
+      const t = lower(r.Team || "");
+      const o = lower(r.Opp || r.OPP || r.Opponent || "");
+      return name.includes(s) || t.includes(s) || o.includes(s);
     });
-  }, [data, q, selected]);
+  }, [rows, q]);
 
-  // default sort: DK > FD > first col
-  const [sort, setSort] = useState({ key: "Player", dir: "asc" });
+  // Sorting (default by DK if present)
+  const [sort, setSort] = useState({ key: "player", dir: "asc" });
   useEffect(() => {
-    if (!columns || columns.length === 0) return;
-    const dkKey = columns.find((c) => /\bdk(\s|_|-)?(sal|salary|proj)?\b/i.test(String(c)));
-    const fdKey = columns.find((c) => /\bfd(\s|_|-)?(sal|salary|proj)?\b/i.test(String(c)));
-    if (dkKey) setSort({ key: dkKey, dir: "desc" });
-    else if (fdKey) setSort({ key: fdKey, dir: "desc" });
-    else setSort({ key: columns[0], dir: "asc" });
-  }, [columns]);
+    const dk = labelToKey.get("DK");
+    const player = labelToKey.get("player");
+    if (dk) setSort({ key: dk, dir: "desc" });
+    else if (player) setSort({ key: player, dir: "asc" });
+  }, [labelToKey]);
 
-  const onSort = (keyName) => {
+  const onSort = (label) => {
+    const k = labelToKey.get(label);
+    if (!k) return;
     setSort((prev) =>
-      prev.key === keyName ? { key: keyName, dir: prev.dir === "asc" ? "desc" : "asc" } : { key: keyName, dir: "desc" }
+      prev.key === k ? { key: k, dir: prev.dir === "asc" ? "desc" : "asc" } : { key: k, dir: "desc" }
     );
   };
 
-  function compareCells(a, b, keyName) {
-    if (/^time$/i.test(keyName)) {
-      const av = timeToMinutes(a[keyName]);
-      const bv = timeToMinutes(b[keyName]);
-      if (av == null && bv == null) return 0;
-      if (av == null) return 1;
-      if (bv == null) return -1;
-      return av - bv;
-    }
-    if (/\b(sal|salary)\b/i.test(keyName)) {
-      const av = parseNumericLike(a[keyName]);
-      const bv = parseNumericLike(b[keyName]);
-      if (av == null && bv == null) return 0;
-      if (av == null) return 1;
-      if (bv == null) return -1;
-      return av - bv;
-    }
-    const av = parseNumericLike(a[keyName]);
-    const bv = parseNumericLike(b[keyName]);
-    if (av != null && bv != null) return av - bv;
-    const sa = String(a[keyName] ?? "");
-    const sb = String(b[keyName] ?? "");
-    return sa.localeCompare(sb, undefined, { sensitivity: "base" });
-  }
-
   const sorted = useMemo(() => {
     const arr = [...filtered];
-    const { key: k, dir } = sort;
-    const sgn = dir === "asc" ? 1 : -1;
-    arr.sort((a, b) => sgn * compareCells(a, b, k));
+    const k = sort.key;
+    const dir = sort.dir === "asc" ? 1 : -1;
+    if (!k) return arr;
+    arr.sort((a, b) => {
+      const av = a[k], bv = b[k];
+      const an = num(av), bn = num(bv);
+      if (an != null && bn != null) return dir * (an - bn);
+      return dir * String(av ?? "").localeCompare(String(bv ?? ""), undefined, { sensitivity: "base" });
+    });
     return arr;
   }, [filtered, sort]);
 
-  // UI classes
-  const textSz = "text-[12px]";
-  const cellCls = "px-2 py-1 text-center";
-  const headerCls = "px-2 py-1 font-semibold text-center whitespace-nowrap cursor-pointer select-none";
+  // UI helpers
+  const headerCls = "px-2 py-1 font-semibold text-center text-[11px] whitespace-nowrap cursor-pointer select-none";
+  const cellCls = "px-2 py-1 text-center text-[12px]";
+
+  const renderCell = (label, row) => {
+    const key = labelToKey.get(label);
+    const raw = key ? row[key] : "";
+
+    // Specialized displays
+    if (label === "Time") return time12(raw);
+    if (label === "Team" || label === "Opp") return <TeamWithLogo code={raw} />;
+
+    if (PERCENT_COLS.has(label)) return fmtPct1(raw);
+    // everything else numeric → 1 decimal (no trailing .0), otherwise raw
+    const n = num(raw);
+    return n == null ? String(raw ?? "") : fmt1(n);
+  };
+
+  // Compose band → list of labels we actually have (or still render blanks to keep grid stable)
+  const bandCols = BANDS.map(([band, labels]) => [band, labels]);
 
   return (
     <div className="px-4 md:px-6 py-5">
       <div className="flex items-center justify-between gap-3 mb-2">
-        <div className="flex items-baseline gap-3">
-          <h1 className="text-2xl md:text-3xl font-extrabold">{TITLE}</h1>
-          <div className="text-sm text-gray-600">
-            {loading ? "Loading…" : err ? `Error: ${err}` : `${sorted.length.toLocaleString()} rows`}
-          </div>
-        </div>
+        <h1 className="text-2xl md:text-3xl font-extrabold">
+          {TITLE}
+          {err ? <span className="ml-3 text-sm text-red-600">Error: {err}</span> : null}
+        </h1>
 
-        <div className="flex items-center gap-2">
-          {/* Player picker */}
-          <div className="relative" ref={pickerRef}>
-            <button
-              className="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm hover:bg-gray-50"
-              onClick={() => setPickerOpen((v) => !v)}
-            >
-              {selected.size === 0 ? "All pitchers" : `${selected.size} selected`}
-            </button>
-            {pickerOpen && (
-              <div className="absolute right-0 z-20 mt-2 w-80 rounded-xl border border-gray-200 bg-white shadow p-2">
-                <div className="mb-2 flex items-center gap-2">
-                  <button onClick={() => setSelected(new Set(allPlayers))} className="px-2 py-1 text-xs rounded border">
-                    All
-                  </button>
-                  <button onClick={() => setSelected(new Set())} className="px-2 py-1 text-xs rounded border">
-                    None
-                  </button>
-                  <input
-                    value={pickFilter}
-                    onChange={(e) => setPickFilter(e.target.value)}
-                    placeholder="Search players…"
-                    className="ml-auto h-7 w-40 rounded border px-2 text-xs"
-                  />
-                </div>
-                <div className="max-h-72 overflow-auto pr-1">
-                  {(pickFilter
-                    ? allPlayers.filter((n) => lower(n).includes(lower(pickFilter)))
-                    : allPlayers
-                  ).map((name) => (
-                    <label key={name} className="flex items-center gap-2 py-1 text-xs">
-                      <input
-                        type="checkbox"
-                        checked={selected.size === 0 ? true : selected.has(name)}
-                        onChange={() => toggleOne(name)}
-                      />
-                      <span className="truncate">{name}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* search */}
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search pitcher / team / opp…"
-            className="h-9 w-72 rounded-lg border border-gray-300 px-3 text-sm focus:ring-2 focus:ring-indigo-500"
-          />
-        </div>
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search pitcher / team / opp…"
+          className="h-9 w-72 rounded-lg border border-gray-300 px-3 text-sm focus:ring-2 focus:ring-indigo-500"
+        />
       </div>
 
       <div className="rounded-xl border bg-white shadow-sm overflow-auto">
-        <table className={`w-full border-separate ${textSz}`} style={{ borderSpacing: 0 }}>
-          {columns.length > 0 && (
-            <thead className="sticky top-0 z-10">
-              {/* merged band row */}
-              <tr className="bg-blue-100 text-[11px] font-bold text-gray-700 uppercase">
-                {bands.map((g) => (
-                  <th key={`${g.name}-${g.start}`} colSpan={g.span} className="px-2 py-1 text-center border-b border-blue-200">
-                    {HIDE_PLAYER_INFO_LABEL && g.name === "Player Info" ? "" : g.name}
-                  </th>
-                ))}
-              </tr>
-              {/* column headers */}
-              <tr className="bg-blue-50">
-                {columns.map((c, i) => {
-                  const isBandEnd = bands.some((b) => b.start + b.span - 1 === i);
-                  return (
-                    <th
-                      key={c}
-                      className={[
-                        headerCls,
-                        isBandEnd ? "border-r-2 border-blue-300" : "border-r border-blue-200",
-                        c === "Player" || c === "player" || c === "Name" ? "text-left" : "",
-                        i === 1 ? "sticky left-0 z-20 bg-blue-50" : "", // freeze 2nd header cell
-                      ].join(" ")}
-                      onClick={() => onSort(c)}
-                      title="Click to sort"
-                    >
-                      <span className="inline-flex items-center gap-1">
-                        <span>{c}</span>
-                        {sort.key === c ? (
-                          <span className="text-gray-500">{sort.dir === "desc" ? "▼" : "▲"}</span>
-                        ) : (
-                          <span className="text-gray-300">▲</span>
-                        )}
-                      </span>
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-          )}
+        <table className="w-full border-separate" style={{ borderSpacing: 0 }}>
+          <thead className="sticky top-0 z-10">
+            {/* Band row */}
+            <tr className="bg-blue-100 text-[11px] font-bold text-gray-700 uppercase">
+              {bandCols.map(([band, labels]) => (
+                <th key={band} colSpan={labels.length} className="px-2 py-1 text-center border-b border-blue-200">
+                  {band}
+                </th>
+              ))}
+            </tr>
+            {/* Column header row */}
+            <tr className="bg-blue-50">
+              {bandCols.flatMap(([, labels]) => labels).map((label, i) => (
+                <th
+                  key={label + i}
+                  className={`${headerCls} border-r border-blue-200`}
+                  onClick={() => onSort(label)}
+                  title="Click to sort"
+                >
+                  <span className="inline-flex items-center gap-1">
+                    <span>{label}</span>
+                    {labelToKey.get(label) === sort.key ? (
+                      <span className="text-gray-500">{sort.dir === "desc" ? "▼" : "▲"}</span>
+                    ) : (
+                      <span className="text-gray-300">▲</span>
+                    )}
+                  </span>
+                </th>
+              ))}
+            </tr>
+          </thead>
 
           <tbody>
-            {loading && (
+            {loading ? (
               <tr>
-                <td className={`${cellCls} text-gray-500`} colSpan={columns.length}>
-                  Loading…
-                </td>
+                <td className={`${cellCls} text-gray-500`} colSpan={DISPLAY_COLS.length}>Loading…</td>
               </tr>
-            )}
-            {err && (
+            ) : err ? (
               <tr>
-                <td className={`${cellCls} text-red-600`} colSpan={columns.length}>
+                <td className={`${cellCls} text-red-600`} colSpan={DISPLAY_COLS.length}>
                   Failed to load: {err}
                 </td>
               </tr>
-            )}
-            {!loading &&
-              !err &&
-              sorted.map((row, rIdx) => (
-                <tr key={rIdx} className={rIdx % 2 ? "bg-gray-50/40" : "bg-white"}>
-                  {columns.map((c, i) => {
-                    const raw = row[c];
-                    const isTeam = keynorm(c) === keynorm("Team");
-                    const isOpp = keynorm(c) === keynorm("Opp");
-                    const isPlayer = ["player", "name", "playername", "player "].includes(keynorm(c)) || c === "Player";
-
-                    const content = isTeam || isOpp ? <TeamWithLogo code={raw} /> : fmtCellValue(c, raw);
-                    const isBandEnd = bands.some((b) => b.start + b.span - 1 === i);
-                    const borders = isBandEnd ? "border-r-2 border-blue-300" : "border-r border-blue-200";
-
-                    if (i === 1) {
-                      // Freeze 2nd column (usually Player)
-                      return (
-                        <td
-                          key={`${c}-${rIdx}`}
-                          className={[cellCls, isPlayer ? "text-left font-medium" : "text-center", borders].join(" ")}
-                        >
-                          <div
-                            className={`sticky left-0 z-10 ${
-                              rIdx % 2 ? "bg-gray-50/40" : "bg-white"
-                            } -ml-2 pl-2 pr-2 shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)]`}
-                          >
-                            {content}
-                          </div>
-                        </td>
-                      );
-                    }
-
-                    return (
-                      <td
-                        key={`${c}-${rIdx}`}
-                        className={[cellCls, isPlayer ? "text-left font-medium" : "text-center", borders].join(" ")}
-                      >
-                        {content}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-
-            {!loading && !err && sorted.length === 0 && (
+            ) : sorted.length === 0 ? (
               <tr>
-                <td className={`${cellCls} text-gray-500`} colSpan={columns.length}>
+                <td className={`${cellCls} text-gray-500`} colSpan={DISPLAY_COLS.length}>
                   No rows match your filters.
                 </td>
               </tr>
+            ) : (
+              sorted.map((row, rIdx) => (
+                <tr key={rIdx} className={rIdx % 2 ? "bg-gray-50/40" : "bg-white"}>
+                  {bandCols.flatMap(([, labels]) => labels).map((label, i) => (
+                    <td key={label + "-" + rIdx + "-" + i} className={`${cellCls} border-r border-blue-200 ${label === "player" ? "text-left font-medium" : ""}`}>
+                      {renderCell(label, row)}
+                    </td>
+                  ))}
+                </tr>
+              ))
             )}
           </tbody>
         </table>

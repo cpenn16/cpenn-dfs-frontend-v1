@@ -33,7 +33,15 @@
       "data_start_row": 3,
       "usecols": "A:AZ",
       "filters": [{ "column": "Player", "op": "nonempty" }],
-      "keep_columns": null,
+      "keep_columns": [
+        "Hand","player","DK","FD",
+        "Team","Opp","Park","Time",
+        "Total","W%","K","Field","Rating",
+        "Opp K%","Opp BB%","wOBA","ISO","wRC+",
+        "IP","Velo","xFIP","K%","SwS%","BB%",
+        "K/9","BB/9","HR/9",
+        "GB%","FB%","HH%","Bar%","EV"
+      ],
       "outfile": "pitcher_data"
     },
     {
@@ -56,10 +64,8 @@
   "site_ids": {
     "dk_sheet": "DK Sals",
     "dk_autodetect": true,
-
     "fd_sheet": "FD Sals",
     "fd_autodetect": true,
-
     "row_hard_cap": 5000,
     "out_rel": "data/mlb/latest/site_ids"
   },
