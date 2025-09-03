@@ -4,19 +4,7 @@
 """
 MLB_Exporter.py  (JSON-only)
 ----------------------------
-Exports MLB workbook tabs to JSON and parses the MLB Dashboard yellow panels.
-
-Outputs (unchanged):
-  - pitcher_projections.json
-  - batter_projections.json
-  - stacks.json
-  - pitcher_data.json
-  - batter_data.json
-
-Plus (for the Cheat Sheet UI):
-  - matchups_raw.json        (debug view of all yellow panels)
-  - cheat_sheet_raw.json     (same panels, cell values JSON-safe)
-  - cheat_sheet.json         (sections with original header order + rows)
+Exports MLB workbook tabs to JSON and parses the MLB Dashboard by yellow header panels.
 
 Overrides:
   --xlsm   "C:\\path\\to\\MLB Slate.xlsm"
@@ -36,7 +24,6 @@ import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
-
 # ------------------------ ROOT / DEFAULT PATHS ------------------------
 
 THIS = Path(__file__).resolve()
@@ -45,7 +32,6 @@ ROOT = THIS.parents[1]  # repo root (expected to include /public)
 DEFAULT_XLSM = r"C:\Users\cpenn\Dropbox\Sports Models\MLB\MLB September 2nd.xlsm"
 DEFAULT_CONFIG = str(ROOT / "scripts" / "configs" / "mlb_classic.json")
 DEFAULT_OUT = str(ROOT / "public" / "data" / "mlb" / "latest")
-
 
 # ------------------------ BUILT-IN CONFIG FALLBACK ------------------------
 
@@ -57,7 +43,7 @@ SHEETS_CONFIG: List[Dict[str, Any]] = [
         "usecols": "A:AZ",
         "filters": [{"column": "Player", "op": "nonempty"}],
         "keep_columns": None,
-        "outfile": "pitcher_projections",
+        "outfile": "pitcher_projections"
     },
     {
         "sheet": "Batter Projections",
@@ -66,7 +52,7 @@ SHEETS_CONFIG: List[Dict[str, Any]] = [
         "usecols": "A:AZ",
         "filters": [{"column": "Player", "op": "nonempty"}],
         "keep_columns": None,
-        "outfile": "batter_projections",
+        "outfile": "batter_projections"
     },
     {
         "sheet": "Top Stacks",
@@ -75,7 +61,7 @@ SHEETS_CONFIG: List[Dict[str, Any]] = [
         "usecols": "A:AZ",
         "filters": [{"column": "Team", "op": "nonempty"}],
         "keep_columns": None,
-        "outfile": "stacks",
+        "outfile": "stacks"
     },
     {
         "sheet": "Pitcher Data",
@@ -84,7 +70,7 @@ SHEETS_CONFIG: List[Dict[str, Any]] = [
         "usecols": "A:AZ",
         "filters": [{"column": "Player", "op": "nonempty"}],
         "keep_columns": None,
-        "outfile": "pitcher_data",
+        "outfile": "pitcher_data"
     },
     {
         "sheet": "Batters Data",
@@ -93,15 +79,20 @@ SHEETS_CONFIG: List[Dict[str, Any]] = [
         "usecols": "A:AZ",
         "filters": [{"column": "Player", "op": "nonempty"}],
         "keep_columns": None,
-        "outfile": "batter_data",
+        "outfile": "batter_data"
     },
 ]
 
 DASHBOARD_SHEET_NAME = "MLB Dashboard"   # yellow panels live here
 
-YELLOW_FILLS = {"FFFFE699", "FFFFF2CC", "FFFFFF00"}  # common Excel yellows
-GAME_TITLE_RE = re.compile(r"^[A-Z]{2,3}\s*@\s*[A-Z]{2,3}$")
+# Common Excel yellow fills used on your headers
+YELLOW_FILLS = {
+    "FFFFE699",
+    "FFFFF2CC",
+    "FFFFFF00",
+}
 
+GAME_TITLE_RE = re.compile(r"^[A-Z]{2,3}\s*@\s*[A-Z]{2,3}$")
 
 # ------------------------ UTILITIES ------------------------
 
@@ -110,7 +101,7 @@ def ensure_outdir(path: Path) -> Path:
     return path
 
 def _make_unique_columns(cols):
-    """Ensure unique headers while preserving order."""
+    """Ensure DataFrame columns are unique while preserving order."""
     seen = {}
     out = []
     for c in cols:
@@ -143,7 +134,13 @@ def export_df_json_only(df: pd.DataFrame, out_dir: Path, name: str) -> None:
     out_json.write_text(df.to_json(orient="records", force_ascii=False), encoding="utf-8")
 
 def read_table(xlsx_path: Path, sheet: str, header_row: int, data_start_row: int, usecols: Optional[str]) -> pd.DataFrame:
-    df_raw = pd.read_excel(xlsx_path, sheet_name=sheet, header=None, engine="openpyxl", usecols=usecols)
+    df_raw = pd.read_excel(
+        xlsx_path,
+        sheet_name=sheet,
+        header=None,
+        engine="openpyxl",
+        usecols=usecols
+    )
     header_idx = header_row - 1
     data_idx = data_start_row - 1
 
@@ -157,11 +154,10 @@ def read_table(xlsx_path: Path, sheet: str, header_row: int, data_start_row: int
     body = body.dropna(axis=1, how="all")
     return body
 
-
 # ------------------------ PANEL PARSING (YELLOW BARS) ------------------------
 
 def parse_yellow_panels(xlsx_path: Path, sheet_name: str, yellow_fills: Optional[set] = None) -> List[Dict[str, Any]]:
-    """Locate yellow header bars and collect each panel (title + header row + data rows)."""
+    """Find yellow header rows and return their data blocks (first row under header is table header)."""
     fills_rgb = set(v.upper() for v in (yellow_fills or YELLOW_FILLS))
     wb = load_workbook(xlsx_path, data_only=True)
     if sheet_name not in wb.sheetnames:
@@ -191,6 +187,7 @@ def parse_yellow_panels(xlsx_path: Path, sheet_name: str, yellow_fills: Optional
                 if (getattr(fill.fgColor, "rgb", None) not in (None, "00000000") or
                     getattr(fill.start_color, "rgb", None) not in (None, "00000000")):
                     return True
+
             return False
         except Exception:
             return False
@@ -217,7 +214,6 @@ def parse_yellow_panels(xlsx_path: Path, sheet_name: str, yellow_fills: Optional
     for i, start_r in enumerate(yellow_rows):
         end_r = (yellow_rows[i + 1] - 1) if i + 1 < len(yellow_rows) else max_row
 
-        # panel title = first non-empty cell on the yellow row
         title = None
         for c in range(1, max_col + 1):
             v = ws.cell(row=start_r, column=c).value
@@ -225,34 +221,32 @@ def parse_yellow_panels(xlsx_path: Path, sheet_name: str, yellow_fills: Optional
                 title = str(v).strip()
                 break
 
-        # header row directly beneath
-        header_row_ix = start_r + 1
-        headers = []
-        for c in range(1, max_col + 1):
-            v = ws.cell(row=header_row_ix, column=c).value
-            headers.append("" if v is None else str(v).strip())
-        while headers and headers[-1] == "":
-            headers.pop()
-        headers = _make_unique_columns(headers)
-
-        # collect table body
-        data_rows = []
-        r = header_row_ix + 1
+        rows = []
+        r = start_r + 1
         while r <= end_r:
-            vals = [ws.cell(row=r, column=c).value for c in range(1, len(headers) + 1)]
+            vals = [ws.cell(row=r, column=c).value for c in range(1, max_col + 1)]
             if all(v in (None, "", " ") for v in vals):
                 break
-            data_rows.append(vals)
+            rows.append(vals)
             r += 1
+
+        if rows:
+            last_nonempty = 0
+            for rr in rows:
+                for ci, vv in enumerate(rr, start=1):
+                    if vv not in (None, "", " "):
+                        last_nonempty = max(last_nonempty, ci)
+            rows = [rr[:last_nonempty] for rr in rows]
 
         panels.append({
             "title": title or f"Panel @ row {start_r}",
-            "columns": headers,
-            "rows": data_rows,
+            "header_row": start_r,
+            "data_start_row": start_r + 1,
+            "range_rows": [start_r, (r - 1) if rows else start_r],
+            "rows": rows
         })
 
     return panels
-
 
 # ------------------------ JSON-SAFE CONVERSION ------------------------
 
@@ -271,9 +265,20 @@ def _jsonify_value(v):
         return float(v)
     return v
 
-def _jsonify_rows_matrix(rows: List[List[Any]]) -> List[List[Any]]:
-    return [[_jsonify_value(x) for x in r] for r in rows]
-
+def _rows_to_dicts(rows: List[List[Any]]) -> List[Dict[str, Any]]:
+    """First row is headers; rest are records (JSON-safe)."""
+    if not rows:
+        return []
+    headers = [str(h).strip() if h is not None else "" for h in rows[0]]
+    headers = _make_unique_columns(headers)
+    out: List[Dict[str, Any]] = []
+    for r in rows[1:]:
+        obj = {}
+        for i, h in enumerate(headers):
+            obj[h] = _jsonify_value(r[i] if i < len(r) else None)
+        if any(v not in (None, "", " ") for v in obj.values()):
+            out.append(obj)
+    return out
 
 # ------------------------ CHEAT SHEET BUILDER ------------------------
 
@@ -289,49 +294,26 @@ NORMALIZE_TITLES = {
     "TOP STACKS": "Top Stacks",
 }
 
-def compose_cheat_sheet_from_panels(cs_panels_safe: List[Dict[str, Any]]) -> Dict[str, Any]:
+def compose_cheat_sheet_from_panels(panels: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
-    Build cheat_sheet.json with explicit sections.
-    Each section preserves original header order via "columns".
-    OF panels are merged into one section with same columns as the first OF.
+    Build cheat_sheet.json structure that mirrors your screenshot:
+      sections keyed by: Pitcher, C, 1B, 2B, 3B, SS, OF (merged), Cash Core, Top Stacks
     """
-    sections: List[Dict[str, Any]] = []
-
-    merged_of_rows: List[Dict[str, Any]] = []
-    of_columns: Optional[List[str]] = None
-
-    for p in cs_panels_safe:
-        title_raw = str(p.get("title") or "").strip().upper()
-        key = NORMALIZE_TITLES.get(title_raw)
+    out: Dict[str, Any] = {}
+    for p in panels:
+        title_raw = str(p.get("title") or "").strip()
+        key = NORMALIZE_TITLES.get(title_raw.upper())
         if not key:
             continue
-
-        # p["rows"] is a matrix (already JSON-safe). First row is not headers here—headers in p["columns"].
-        columns: List[str] = p.get("columns") or []
-        rows_mat: List[List[Any]] = p.get("rows") or []
-
-        # Convert to list-of-dicts with the provided columns
-        dict_rows: List[Dict[str, Any]] = []
-        for r in rows_mat:
-            obj = {}
-            for i, h in enumerate(columns):
-                obj[h] = r[i] if i < len(r) else None
-            # keep non-empty rows
-            if any(x not in (None, "", " ") for x in obj.values()):
-                dict_rows.append(obj)
-
+        recs = _rows_to_dicts(p.get("rows") or [])
+        if not recs:
+            continue
         if key == "OF":
-            if of_columns is None:
-                of_columns = columns
-            merged_of_rows.extend(dict_rows)
+            out.setdefault("OF", [])
+            out["OF"].extend(recs)
         else:
-            sections.append({"section": key, "columns": columns, "rows": dict_rows})
-
-    if merged_of_rows:
-        sections.append({"section": "OF", "columns": of_columns or [], "rows": merged_of_rows})
-
-    return {"sections": sections}
-
+            out[key] = recs
+    return out
 
 # ------------------------ MAIN ------------------------
 
@@ -356,6 +338,7 @@ def main():
     out_dir = ensure_outdir(Path(args.out))
 
     cfg = load_config(args.config)
+
     sheets_config = SHEETS_CONFIG
     dashboard_sheet_name = DASHBOARD_SHEET_NAME
     yellow_fills = set(YELLOW_FILLS)
@@ -380,7 +363,7 @@ def main():
     print(f"Output:   {out_dir}")
     print("----------------------------------")
 
-    # 1) Export the tabular sheets (JSON only)
+    # Export projections/data tabs (JSON only)
     for task in sheets_config:
         sheet = task["sheet"]
         header_row = task.get("header_row", 2)
@@ -402,46 +385,40 @@ def main():
         except Exception as e:
             print(f"❌  {sheet}: {e}")
 
-    # 2) Parse yellow panels once and build cheat sheet JSONs
+    # Parse yellow panels once and create cheat_sheet.json
     try:
         panels = parse_yellow_panels(xlsx_path, dashboard_sheet_name, yellow_fills)
 
-        # raw (not JSON-safe) – for debug
+        # For debugging
         (out_dir / "matchups_raw.json").write_text(
-            json.dumps(panels, ensure_ascii=False, default=str), encoding="utf-8"
+            json.dumps(panels, ensure_ascii=False),
+            encoding="utf-8"
         )
         print(f"✔️  {dashboard_sheet_name} → matchups_raw.json ({len(panels)} panels)")
 
-        # make cells JSON-safe
+        # Compose cheat sheet sections
+        cheat = compose_cheat_sheet_from_panels(panels)
+
+        # (Optional) write raw but JSON-safe version too
         cs_panels_safe = []
         for p in panels:
-            q = {
-                "title": p.get("title"),
-                "columns": p.get("columns") or [],
-                "rows": _jsonify_rows_matrix(p.get("rows") or []),
-            }
+            q = dict(p)
+            q["rows"] = [[_jsonify_value(x) for x in r] for r in p.get("rows") or []]
             cs_panels_safe.append(q)
-
         (out_dir / "cheat_sheet_raw.json").write_text(
-            json.dumps(cs_panels_safe, ensure_ascii=False), encoding="utf-8"
+            json.dumps(cs_panels_safe, ensure_ascii=False, indent=2),
+            encoding="utf-8"
         )
 
-        # compose final cheat sheet structure
-        cheat = compose_cheat_sheet_from_panels(cs_panels_safe)
+        # ✅ Write final cheat sheet EXACTLY as object (no {"sections": []})
         (out_dir / "cheat_sheet.json").write_text(
-            json.dumps(cheat, ensure_ascii=False), encoding="utf-8"
+            json.dumps(cheat, ensure_ascii=False, indent=2),
+            encoding="utf-8"
         )
-        print(f"✔️  {dashboard_sheet_name} → cheat_sheet.json (sections={len(cheat.get('sections', []))})")
+        print(f"✔️  {dashboard_sheet_name} → cheat_sheet.json (sections: {', '.join(cheat.keys())})")
 
     except Exception as e:
         print(f"❌  Dashboard/cheat-sheet parse failed: {e}")
-        # don’t fail the whole export; write an empty file so frontend won’t 404
-        try:
-            (out_dir / "cheat_sheet.json").write_text(json.dumps({"sections": []}), encoding="utf-8")
-            print("⚠️  Fallback: empty cheat_sheet.json")
-        except Exception:
-            pass
-
 
 if __name__ == "__main__":
     main()
