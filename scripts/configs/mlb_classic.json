@@ -37,7 +37,7 @@
         "Hand","player","DK","FD",
         "Team","Opp","Park","Time",
         "Total","W%","K","Field","Rating",
-        "Opp K%","Opp BB%","wOBA","ISO","wRC+",
+        "opp K%","opp BB%","opp wOBA","opp ISO","opp wRC+",
         "IP","Velo","xFIP","K%","SwS%","BB%",
         "K/9","BB/9","HR/9",
         "GB%","FB%","HH%","Bar%","EV"
