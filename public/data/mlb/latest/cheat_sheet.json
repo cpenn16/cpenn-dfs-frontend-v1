@@ -1,42 +1,361 @@
 {
   "Pitcher": [
     {
-      "George Kirby": "Ryan Bergert"
+      "Pitcher": "George Kirby",
+      "Salary": "9500",
+      "Team": "SEA",
+      "Matchup": "TB",
+      "Vegas": "4.2",
+      "Time": "19:35:00",
+      "Proj": "14.6",
+      "Value": "1.54",
+      "pOWN": "41.7%"
     },
     {
-      "George Kirby": "Robbie Ray"
+      "Pitcher": "Ryan Bergert",
+      "Salary": "7500",
+      "Team": "KC",
+      "Matchup": "LAA",
+      "Vegas": "4.4",
+      "Time": "19:40:00",
+      "Proj": "12.7",
+      "Value": "1.70",
+      "pOWN": "31.8%"
+    },
+    {
+      "Pitcher": "Robbie Ray",
+      "Salary": "9000",
+      "Team": "SF",
+      "Matchup": "COL",
+      "Vegas": "5.4",
+      "Time": "20:40:00",
+      "Proj": "14.8",
+      "Value": "1.64",
+      "pOWN": "37.5%"
+    },
+    {
+      "Pitcher": "Zebby Matthews",
+      "Salary": "8200",
+      "Team": "MIN",
+      "Matchup": "CWS",
+      "Vegas": "4.1",
+      "Time": "19:40:00",
+      "Proj": "11.7",
+      "Value": "1.43",
+      "pOWN": "17.5%"
+    }
+  ],
+  "C": [
+    {
+      "C": "Jorge Alfaro",
+      "Salary": "2000",
+      "Team": "MIL",
+      "Matchup": "PHI",
+      "Vegas": "4.5",
+      "Time": "19:40:00",
+      "Proj": "7.0",
+      "Value": "3.50",
+      "pOWN": "14.4%"
+    },
+    {
+      "C": "Edgar Quero",
+      "Salary": "3000",
+      "Team": "CWS",
+      "Matchup": "MIN",
+      "Vegas": "4.1",
+      "Time": "19:40:00",
+      "Proj": "7.3",
+      "Value": "2.43",
+      "pOWN": "7.3%"
+    },
+    {
+      "C": "Hunter Goodman",
+      "Salary": "5000",
+      "Team": "COL",
+      "Matchup": "SF",
+      "Vegas": "5.4",
+      "Time": "20:40:00",
+      "Proj": "9.5",
+      "Value": "1.90",
+      "pOWN": "10.1%"
     }
   ],
   "1B": [
     {
-      "Rafael Devers": "Vinnie Pasquantino"
+      "1B": "Rafael Devers",
+      "Salary": "5700",
+      "Team": "SF",
+      "Matchup": "COL",
+      "Vegas": "5.7",
+      "Time": "20:40:00",
+      "Proj": "14.4",
+      "Value": "2.52",
+      "pOWN": "26.8%"
     },
     {
-      "Rafael Devers": "Dominic Smith"
+      "1B": "Vinnie Pasquantino",
+      "Salary": "4300",
+      "Team": "KC",
+      "Matchup": "LAA",
+      "Vegas": "4.6",
+      "Time": "19:40:00",
+      "Proj": "11.6",
+      "Value": "2.71",
+      "pOWN": "17.8%"
+    },
+    {
+      "1B": "Dominic Smith",
+      "Salary": "4000",
+      "Team": "SF",
+      "Matchup": "COL",
+      "Vegas": "5.7",
+      "Time": "20:40:00",
+      "Proj": "9.7",
+      "Value": "2.43",
+      "pOWN": "11.4%"
     }
   ],
   "2B": [
     {
-      "Casey Schmitt": "Luke Keaschall"
+      "2B": "Casey Schmitt",
+      "Salary": "3900",
+      "Team": "SF",
+      "Matchup": "COL",
+      "Vegas": "5.7",
+      "Time": "20:40:00",
+      "Proj": "10.2",
+      "Value": "2.63",
+      "pOWN": "12.6%"
     },
     {
-      "Casey Schmitt": "Kyle Farmer"
+      "2B": "Luke Keaschall",
+      "Salary": "4800",
+      "Team": "MIN",
+      "Matchup": "CWS",
+      "Vegas": "4.3",
+      "Time": "19:40:00",
+      "Proj": "10.9",
+      "Value": "2.26",
+      "pOWN": "11.1%"
+    },
+    {
+      "2B": "Kyle Farmer",
+      "Salary": "3000",
+      "Team": "COL",
+      "Matchup": "SF",
+      "Vegas": "5.4",
+      "Time": "20:40:00",
+      "Proj": "8.1",
+      "Value": "2.69",
+      "pOWN": "9.8%"
     }
   ],
   "3B": [
     {
-      "Matt Chapman": "Casey Schmitt"
+      "3B": "Matt Chapman",
+      "Salary": "4700",
+      "Team": "SF",
+      "Matchup": "COL",
+      "Vegas": "5.7",
+      "Time": "20:40:00",
+      "Proj": "11.8",
+      "Value": "2.52",
+      "pOWN": "30.7%"
     },
     {
-      "Matt Chapman": "Kyle Farmer"
+      "3B": "Casey Schmitt",
+      "Salary": "3900",
+      "Team": "SF",
+      "Matchup": "COL",
+      "Vegas": "5.7",
+      "Time": "20:40:00",
+      "Proj": "10.2",
+      "Value": "2.63",
+      "pOWN": "12.6%"
+    },
+    {
+      "3B": "Kyle Farmer",
+      "Salary": "3000",
+      "Team": "COL",
+      "Matchup": "SF",
+      "Vegas": "5.4",
+      "Time": "20:40:00",
+      "Proj": "8.1",
+      "Value": "2.69",
+      "pOWN": "9.8%"
     }
   ],
   "SS": [
     {
-      "Willy Adames": "Bobby Witt Jr."
+      "SS": "Willy Adames",
+      "Salary": "5300",
+      "Team": "SF",
+      "Matchup": "COL",
+      "Vegas": "5.7",
+      "Time": "20:40:00",
+      "Proj": "14.0",
+      "Value": "2.64",
+      "pOWN": "29.8%"
     },
     {
-      "Willy Adames": "Ezequiel Tovar"
+      "SS": "Bobby Witt Jr.",
+      "Salary": "5800",
+      "Team": "KC",
+      "Matchup": "LAA",
+      "Vegas": "4.6",
+      "Time": "19:40:00",
+      "Proj": "12.7",
+      "Value": "2.19",
+      "pOWN": "14.0%"
+    },
+    {
+      "SS": "Ezequiel Tovar",
+      "Salary": "3900",
+      "Team": "COL",
+      "Matchup": "SF",
+      "Vegas": "5.4",
+      "Time": "20:40:00",
+      "Proj": "8.7",
+      "Value": "2.22",
+      "pOWN": "7.7%"
+    }
+  ],
+  "OF": [
+    {
+      "OF": "Heliot Ramos",
+      "Salary": "5000",
+      "Team": "SF",
+      "Matchup": "COL",
+      "Vegas": "5.7",
+      "Time": "20:40:00",
+      "Proj": "13.5",
+      "Value": "2.69",
+      "pOWN": "33.4%"
+    },
+    {
+      "OF": "Aaron Judge",
+      "Salary": "6500",
+      "Team": "NYY",
+      "Matchup": "HOU",
+      "Vegas": "4.5",
+      "Time": "20:10:00",
+      "Proj": "14.4",
+      "Value": "2.21",
+      "pOWN": "24.2%"
+    },
+    {
+      "OF": "Ian Happ",
+      "Salary": "3300",
+      "Team": "CHC",
+      "Matchup": "ATL",
+      "Vegas": "4.1",
+      "Time": "19:40:00",
+      "Proj": "8.8",
+      "Value": "2.68",
+      "pOWN": "11.2%"
+    }
+  ],
+  "Cash Core": [
+    {
+      "Cash Core": "George Kirby",
+      "Salary": "9500",
+      "Team": "SEA",
+      "Matchup": "TB",
+      "Vegas": "4.2",
+      "Time": "19:35:00",
+      "Proj": "14.6",
+      "Value": "1.54",
+      "pOWN": "41.7%"
+    },
+    {
+      "Cash Core": "Heliot Ramos",
+      "Salary": "5000",
+      "Team": "SF",
+      "Matchup": "COL",
+      "Vegas": "5.7",
+      "Time": "20:40:00",
+      "Proj": "13.5",
+      "Value": "2.69",
+      "pOWN": "33.4%"
+    },
+    {
+      "Cash Core": "Rafael Devers",
+      "Salary": "5700",
+      "Team": "SF",
+      "Matchup": "COL",
+      "Vegas": "5.7",
+      "Time": "20:40:00",
+      "Proj": "14.4",
+      "Value": "2.52",
+      "pOWN": "26.8%"
+    }
+  ],
+  "Top Stacks": [
+    {
+      "Top Stacks": "SF",
+      "Salary": "4400",
+      "Team": "COL",
+      "Matchup": "German Marquez",
+      "Vegas": "5.7",
+      "Time": "20:40:00",
+      "Proj": "98.67",
+      "Value": "2.49",
+      "pOWN": "19.1%"
+    },
+    {
+      "Top Stacks": "NYY",
+      "Salary": "4711.1",
+      "Team": "HOU",
+      "Matchup": "Jason Alexander",
+      "Vegas": "4.5",
+      "Time": "20:10:00",
+      "Proj": "77.68",
+      "Value": "1.83",
+      "pOWN": "6.9%"
+    },
+    {
+      "Top Stacks": "KC",
+      "Salary": "3655.6",
+      "Team": "LAA",
+      "Matchup": "Caden Dana",
+      "Vegas": "4.6",
+      "Time": "19:40:00",
+      "Proj": "73.61",
+      "Value": "2.24",
+      "pOWN": "7.8%"
+    },
+    {
+      "Top Stacks": "MIL",
+      "Salary": "3720",
+      "Team": "PHI",
+      "Matchup": "Aaron Nola",
+      "Vegas": "4.5",
+      "Time": "19:40:00",
+      "Proj": "70.90",
+      "Value": "2.12",
+      "pOWN": "4.8%"
+    },
+    {
+      "Top Stacks": "MIN",
+      "Salary": "3655.6",
+      "Team": "CWS",
+      "Matchup": "Yoendrys Gomez",
+      "Vegas": "4.3",
+      "Time": "19:40:00",
+      "Proj": "70.73",
+      "Value": "2.15",
+      "pOWN": "6.1%"
+    },
+    {
+      "Top Stacks": "COL",
+      "Salary": "3744.4",
+      "Team": "SF",
+      "Matchup": "Robbie Ray",
+      "Vegas": "5.4",
+      "Time": "20:40:00",
+      "Proj": "69.52",
+      "Value": "2.06",
+      "pOWN": "6.7%"
     }
   ]
 }

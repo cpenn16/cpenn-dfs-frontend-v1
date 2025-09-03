@@ -4,76 +4,82 @@
       "sheet": "Pitcher Projections",
       "header_row": 2,
       "data_start_row": 3,
-      "usecols": "A:AZ",
-      "filters": [{ "column": "Player", "op": "nonempty" }],
-      "keep_columns": null,
-      "outfile": "pitcher_projections"
+      "limit_to_col": "AZ",
+      "out_rel": "data/mlb/latest/pitcher_projections",
+      "format": "json"
     },
     {
       "sheet": "Batter Projections",
       "header_row": 2,
       "data_start_row": 3,
-      "usecols": "A:AZ",
-      "filters": [{ "column": "Player", "op": "nonempty" }],
-      "keep_columns": null,
-      "outfile": "batter_projections"
+      "limit_to_col": "AZ",
+      "out_rel": "data/mlb/latest/batter_projections",
+      "format": "json"
     },
     {
       "sheet": "Top Stacks",
       "header_row": 2,
       "data_start_row": 3,
-      "usecols": "A:AZ",
-      "filters": [{ "column": "Team", "op": "nonempty" }],
-      "keep_columns": null,
-      "outfile": "stacks"
+      "limit_to_col": "AZ",
+      "out_rel": "data/mlb/latest/stacks",
+      "format": "json"
     },
     {
       "sheet": "Pitcher Data",
       "header_row": 2,
       "data_start_row": 3,
-      "usecols": "A:AZ",
-      "filters": [{ "column": "Player", "op": "nonempty" }],
-      "keep_columns": [
-        "Hand","player","DK","FD",
-        "Team","Opp","Park","Time",
-        "Total","W%","K","Field","Rating",
-        "opp K%","opp BB%","opp wOBA","opp ISO","opp wRC+",
-        "IP","Velo","xFIP","K%","SwS%","BB%",
-        "K/9","BB/9","HR/9",
-        "GB%","FB%","HH%","Bar%","EV"
-      ],
-      "outfile": "pitcher_data"
+      "limit_to_col": "AZ",
+      "out_rel": "data/mlb/latest/pitcher_data",
+      "format": "json"
     },
     {
       "sheet": "Batters Data",
       "header_row": 2,
       "data_start_row": 3,
-      "usecols": "A:AZ",
-      "filters": [{ "column": "Player", "op": "nonempty" }],
-      "keep_columns": null,
-      "outfile": "batter_data"
+      "limit_to_col": "AZ",
+      "out_rel": "data/mlb/latest/batter_data",
+      "format": "json"
+    },
+    {
+      "sheet": "Name XWalk",
+      "header_row": 1,
+      "data_start_row": 2,
+      "limit_to_col": "AZ",
+      "out_rel": "data/mlb/latest/name_xwalk",
+      "format": "json"
+    },
+    {
+      "sheet": "Site IDs",
+      "header_row": 1,
+      "data_start_row": 2,
+      "limit_to_col": "AZ",
+      "out_rel": "data/mlb/latest/site_ids",
+      "format": "json"
     }
   ],
 
-  "matchups": {
-    "sheet": ["MLB Dashboard"],
+  "cheatsheets": {
+    "sheet": "Cheat Sheet",
+    "out_rel": "data/mlb/latest/cheat_sheet",
+    "title_match_ci": true,
+    "limit_rows": 200,
+    "tables": [
+      { "title": "Pitcher",   "width": 9 },
+      { "title": "C",         "width": 9 },
+      { "title": "1B",        "width": 9 },
+      { "title": "2B",        "width": 9 },
+      { "title": "3B",        "width": 9 },
+      { "title": "SS",        "width": 9 },
+      { "title": "OF",        "width": 9 },
+      { "title": "Cash Core", "width": 9 },
+      { "title": "Top Stacks","width": 9 }
+    ]
+  },
+
+  "gameboard": {
+    "sheet": ["MLB Dashboard", "Game Dashboard", "Dashboard"],
     "out_rel": "data/mlb/latest/matchups",
-    "header_yellow_rgb": ["FFFFE699", "FFFFF2CC", "FFFFFF00"]
-  },
-
-  "site_ids": {
-    "dk_sheet": "DK Sals",
-    "dk_autodetect": true,
-    "fd_sheet": "FD Sals",
-    "fd_autodetect": true,
-    "row_hard_cap": 5000,
-    "out_rel": "data/mlb/latest/site_ids"
-  },
-
-  "name_xwalk": {
-    "projection_sheets": ["Batter Projections", "Pitcher Projections"],
-    "header_row": 2,
-    "data_start_row": 3,
-    "out_rel": "data/mlb/latest/name_xwalk"
+    "title_regex": "^[A-Z]{2,3}\\s*@\\s*[A-Z]{2,3}$",
+    "header_yellow_rgb": ["FFFFE699","FFFFF2CC","FFFFFF00","FFFDE9D9","FFEEE8AA"]
   }
 }

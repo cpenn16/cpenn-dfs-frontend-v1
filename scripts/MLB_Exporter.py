@@ -1,45 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 """
-MLB_Exporter.py — FULL exporter (no trimming)
+MLB_Exporter.py — Full exporter to match NFL_Exporter structure (no _raw files)
 
-Outputs JSON files for your site under: <project>/public/data/mlb/latest/
+Exports:
+- Generic "tasks" (sheet → out_rel) using literal Excel display values
+- Cheat Sheet (table extraction by title cells, column-scoped so side-by-side tables don’t merge)
+- MLB Matchups "gameboard" from the MLB Dashboard (panel windows like NFL)
 
-Writes:
-  - pitcher_projections.json
-  - batter_projections.json
-  - stacks.json
-  - pitcher_data.json
-  - batter_data.json
-  - cheat_sheet.json
-  - matchups.json
-
-Behavior:
-  • Sheet exports: read literal tables and write JSON (records).
-  • Cheat Sheet: parse yellow header panels; normalize known titles.
-  • Matchups: ALWAYS prefer panels from "MLB Dashboard" (fallback to same
-    panel sheet used for Cheat Sheet if MLB Dashboard doesn’t exist).
-
-Args:
-  --xlsm   Full path to your MLB workbook (.xlsm)
-  --out    Output directory (default: <repo>/public/data/mlb/latest)
-  --config Optional JSON config to override default sheet tasks & cheat tables
-           (format compatible with your nfl/mlb classic configs)
-
-This file is self-contained and can be dropped in place of any prior
-MLB_Exporter.py. It does not write CSV (JSON only) to keep output concise.
+Usage:
+  python scripts/MLB_Exporter.py --xlsm "C:\\path\\to\\MLB.xlsm" ^
+                                 --project "." ^
+                                 --config "scripts\\configs\\mlb_classic.json"
 """
 
 from __future__ import annotations
 
-import argparse
-import json
-import re
+import argparse, json, re, sys, shutil, tempfile, datetime
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
-from datetime import datetime, date, time
-from decimal import Decimal
+from typing import Any, Dict, Iterable, List, Optional, Union
 
 import pandas as pd
 import numpy as np
@@ -47,474 +26,70 @@ from openpyxl import load_workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
 
-# --------------------------------------------------------------------------------------
-# Defaults / Paths
-# --------------------------------------------------------------------------------------
+# ------------------------- ROOT / DEFAULT PATHS -------------------------
 
 THIS = Path(__file__).resolve()
 ROOT = THIS.parents[1]  # repo root (expected to include /public)
 
 DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\MLB\MLB September 3rd.xlsm"
-DEFAULT_CONFIG = str(ROOT / "scripts" / "configs" / "mlb_classic.json")  # optional
-DEFAULT_OUT    = str(ROOT / "public" / "data" / "mlb" / "latest")
-
-# Prefer "Cheat Sheet" for cheat panels; fallback to "MLB Dashboard"
-PANEL_SHEET_CANDIDATES = ["Cheat Sheet", "MLB Dashboard"]
-
-# Default sheet tasks (overridable via --config)
-DEFAULT_SHEETS_CONFIG: List[Dict[str, Any]] = [
-    {
-        "sheet": "Pitcher Projections",
-        "header_row": 2,
-        "data_start_row": 3,
-        "usecols": "A:AZ",
-        "filters": [{"column": "Player", "op": "nonempty"}],
-        "keep_columns": None,
-        "outfile": "pitcher_projections",
-    },
-    {
-        "sheet": "Batter Projections",
-        "header_row": 2,
-        "data_start_row": 3,
-        "usecols": "A:AZ",
-        "filters": [{"column": "Player", "op": "nonempty"}],
-        "keep_columns": None,
-        "outfile": "batter_projections",
-    },
-    {
-        "sheet": "Top Stacks",
-        "header_row": 2,
-        "data_start_row": 3,
-        "usecols": "A:AZ",
-        "filters": [{"column": "Team", "op": "nonempty"}],
-        "keep_columns": None,
-        "outfile": "stacks",
-    },
-    {
-        "sheet": "Pitcher Data",
-        "header_row": 2,
-        "data_start_row": 3,
-        "usecols": "A:AZ",
-        "filters": [{"column": "Player", "op": "nonempty"}],
-        "keep_columns": None,
-        "outfile": "pitcher_data",
-    },
-    {
-        "sheet": "Batters Data",
-        "header_row": 2,
-        "data_start_row": 3,
-        "usecols": "A:AZ",
-        "filters": [{"column": "Player", "op": "nonempty"}],
-        "keep_columns": None,
-        "outfile": "batter_data",
-    },
-]
-
-# Common Excel yellow fills used on your headers
-YELLOW_FILLS = {
-    "FFFFE699",
-    "FFFFF2CC",
-    "FFFFFF00",
-}
-
-GAME_TITLE_RE = re.compile(r"^\s*([A-Z]{2,3})\s*@\s*([A-Z]{2,3})\s*$")
+DEFAULT_PROJ   = str(ROOT)
+DEFAULT_CONFIG = str(ROOT / "scripts" / "configs" / "mlb_classic.json")
 
 
-# --------------------------------------------------------------------------------------
-# Utilities (I/O, DataFrame helpers)
-# --------------------------------------------------------------------------------------
+# ------------------------------ utilities ------------------------------
 
-def ensure_outdir(path: Path) -> Path:
+def ensure_parent(path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+def ensure_dir(path: Path) -> None:
     path.mkdir(parents=True, exist_ok=True)
-    return path
 
-def _make_unique_columns(cols: Iterable[Any]) -> List[str]:
+def dedup(names: Iterable) -> List[str]:
     seen: Dict[str, int] = {}
     out: List[str] = []
-    for c in cols:
-        base = "" if c is None else str(c)
-        if base not in seen:
-            seen[base] = 1
-            out.append(base)
+    for i, raw in enumerate(list(names)):
+        s = "" if raw is None else str(raw).strip()
+        if s == "" or s.lower() in {"nan", "nat"} or s.lower().startswith("unnamed"):
+            s = f"col_{i+1}"
+        key = s
+        if key in seen:
+            seen[key] += 1
+            key = f"{key}_{seen[key]}"
         else:
-            seen[base] += 1
-            out.append(f"{base}__{seen[base]}")
+            seen[key] = 0
+        out.append(key)
     return out
 
-def df_apply_filters(df: pd.DataFrame, filters: List[Dict[str, str]] | None) -> pd.DataFrame:
-    if not filters: return df
-    keep = df.copy()
-    for f in filters:
-        col = f.get("column")
-        op  = (f.get("op") or "nonempty").lower()
-        if not col or col not in keep.columns:
-            continue
-        if op == "nonempty":
-            keep = keep[keep[col].astype(str).str.strip().ne("").fillna(False)]
-        elif op == "nonzero":
-            keep = keep[pd.to_numeric(keep[col], errors="coerce").fillna(0) != 0]
-        # additional ops can be added here
-    return keep
+def to_json_records(df: pd.DataFrame) -> str:
+    df2 = df.astype(object).where(pd.notna(df), "")
+    return df2.to_json(orient="records", force_ascii=False, indent=2)
 
-def export_df_json_only(df: pd.DataFrame, out_dir: Path, name: str) -> None:
-    out_json = out_dir / f"{name}.json"
-    out_json.write_text(df.to_json(orient="records", force_ascii=False), encoding="utf-8")
-    print(f"✔️  JSON → {out_json}  ({len(df):,} rows)")
-
-def read_table(
-    xlsx_path: Path,
-    sheet: str,
-    header_row: int,
-    data_start_row: int,
-    usecols: Optional[str],
-) -> pd.DataFrame:
-    df_raw = pd.read_excel(
-        xlsx_path,
-        sheet_name=sheet,
-        header=None,
-        engine="openpyxl",
-        usecols=usecols,
-    )
-    header_idx = header_row - 1
-    data_idx   = data_start_row - 1
-
-    headers = df_raw.iloc[header_idx].tolist()
-    body    = df_raw.iloc[data_idx:].reset_index(drop=True)
-
-    headers = _make_unique_columns(headers)
-    body.columns = headers
-
-    # Drop fully empty rows/cols
-    body = body.dropna(how="all").dropna(axis=1, how="all")
-
-    return body
+def _stage_copy_for_read(src: Path) -> tuple[Path, Path]:
+    """Copy workbook to temp so Excel can stay open while we read."""
+    tmpdir = Path(tempfile.mkdtemp(prefix="mlb_export_"))
+    dst = tmpdir / src.name
+    shutil.copy2(src, dst)
+    return dst, tmpdir
 
 
-# --------------------------------------------------------------------------------------
-# Yellow Panels Parser (Cheat Sheet + Matchups)
-# --------------------------------------------------------------------------------------
-
-def parse_yellow_panels(
-    xlsx_path: Path,
-    sheet_name: str,
-    yellow_fills: Optional[set] = None
-) -> List[Dict[str, Any]]:
-    """
-    Find yellow title rows and return *scoped* data blocks.
-    Critically, we detect the column span of each panel so side-by-side panels
-    (e.g., Pitcher on the left, OF on the right) don’t get merged.
-    """
-    fills_rgb = set(v.upper() for v in (yellow_fills or YELLOW_FILLS))
-    wb = load_workbook(xlsx_path, data_only=True)
-    try:
-        if sheet_name not in wb.sheetnames:
-            return []
-
-        ws: Worksheet = wb[sheet_name]
-        max_row, max_col = ws.max_row, ws.max_column
-
-        def cell_is_header_like(cell) -> bool:
-            try:
-                fill = cell.fill
-                if not fill or fill.patternType is None:
-                    return False
-                if str(fill.patternType).lower() != "solid":
-                    return False
-
-                rgb = getattr(fill.fgColor, "rgb", None)
-                if rgb and str(rgb).upper() in fills_rgb:
-                    return True
-
-                start_rgb = getattr(fill.start_color, "rgb", None)
-                if start_rgb and str(start_rgb).upper() in fills_rgb:
-                    return True
-
-                # Themed/indexed yellows often won’t carry explicit rgb; treat any
-                # non-transparent theme/index color as header-like.
-                if (getattr(fill.fgColor, "type", None) in ("theme", "indexed") or
-                    getattr(fill.start_color, "type", None) in ("theme", "indexed")):
-                    if (getattr(fill.fgColor, "rgb", None) not in (None, "00000000") or
-                        getattr(fill.start_color, "rgb", None) not in (None, "00000000")):
-                        return True
-
-                return False
-            except Exception:
-                return False
-
-        # 1) collect all yellow header rows (by row index)
-        yellow_rows = []
-        for r in range(1, max_row + 1):
-            if any(cell_is_header_like(ws.cell(row=r, column=c)) for c in range(1, max_col + 1)):
-                yellow_rows.append(r)
-
-        # Fallback if styles are stripped: accept titles like "SEA @ TB"
-        if not yellow_rows:
-            for r in range(1, max_row + 1):
-                first_text = None
-                for c in range(1, max_col + 1):
-                    v = ws.cell(row=r, column=c).value
-                    if v not in (None, ""):
-                        first_text = str(v).strip()
-                        break
-                if first_text and GAME_TITLE_RE.match(first_text):
-                    yellow_rows.append(r)
-
-        yellow_rows = sorted(set(yellow_rows))
-
-        panels: List[Dict[str, Any]] = []
-
-        for i, start_r in enumerate(yellow_rows):
-            # Determine the overall bottom boundary (until the next yellow header row)
-            overall_end_r = (yellow_rows[i + 1] - 1) if i + 1 < len(yellow_rows) else max_row
-
-            # 2) find the *column block* for THIS panel
-            #    - start_c: first non-empty cell in the header row
-            #    - end_c: extend right while the header row has content, but STOP if:
-            #        a) we encounter another yellow header-like cell in the same row
-            #        b) we hit a gap of >= 2 consecutive empty header cells
-            start_c = None
-            for c in range(1, max_col + 1):
-                if (ws.cell(row=start_r, column=c).value not in (None, "")):
-                    start_c = c
-                    break
-            if start_c is None:
-                # No text on this header row; skip
-                continue
-
-            end_c = start_c
-            empty_run = 0
-            for c in range(start_c + 1, max_col + 1):
-                cell = ws.cell(row=start_r, column=c)
-                # another yellow header in the same row → next panel begins here
-                if cell_is_header_like(cell) and cell.value not in (None, "") and c > start_c:
-                    break
-                if cell.value in (None, ""):
-                    empty_run += 1
-                    if empty_run >= 2:
-                        break
-                else:
-                    empty_run = 0
-                    end_c = c
-
-            # 3) extract the title from this header block
-            title = None
-            for c in range(start_c, end_c + 1):
-                v = ws.cell(row=start_r, column=c).value
-                if v not in (None, ""):
-                    title = str(v).strip()
-                    break
-
-            # 4) collect rows under this header, bounded by (overall_end_r, start_c..end_c)
-            rows = []
-            r = start_r + 1
-            blank_streak = 0
-            while r <= overall_end_r:
-                vals = [ws.cell(row=r, column=c).value for c in range(start_c, end_c + 1)]
-                if all(v in (None, "", " ") for v in vals):
-                    blank_streak += 1
-                    # stop a panel after 2 consecutive blank rows
-                    if blank_streak >= 2:
-                        break
-                else:
-                    blank_streak = 0
-                    rows.append(vals)
-                r += 1
-
-            # trim trailing fully-empty columns from the captured block
-            if rows:
-                last_nonempty = 0
-                for rr in rows:
-                    for ci, vv in enumerate(rr, start=1):
-                        if vv not in (None, "", " "):
-                            last_nonempty = max(last_nonempty, ci)
-                rows = [rr[:last_nonempty] for rr in rows]
-
-            panels.append({
-                "title": title or f"Panel @ row {start_r}",
-                "header_row": start_r,
-                "data_start_row": start_r + 1,
-                "start_col": start_c,
-                "end_col": end_c,
-                "rows": rows,
-            })
-
-        return panels
-    finally:
-        wb.close()
-
-
-# --------------------------------------------------------------------------------------
-# JSON-safe conversion & Cheat Sheet composer
-# --------------------------------------------------------------------------------------
-
-def _jsonify_value(v):
-    """Make Excel/py types JSON safe with desired formats."""
-    if v in (None, ""): return None
-    if isinstance(v, pd.Timestamp):          return v.to_pydatetime().isoformat()
-    if isinstance(v, (datetime, date)):      return v.isoformat()
-    if isinstance(v, time):                  return v.strftime("%I:%M:%S %p").lstrip("0")
-    if isinstance(v, Decimal):               return float(v)
-    return v
-
-def _rows_to_dicts(rows: List[List[Any]]) -> List[Dict[str, Any]]:
-    """First row is headers; rest are records (JSON-safe)."""
-    if not rows: return []
-    headers = [str(h).strip() if h is not None else "" for h in rows[0]]
-    headers = _make_unique_columns(headers)
-    out: List[Dict[str, Any]] = []
-    for r in rows[1:]:
-        obj = {}
-        for i, h in enumerate(headers):
-            obj[h] = _jsonify_value(r[i] if i < len(r) else None)
-        if any(v not in (None, "", " ") for v in obj.values()):
-            out.append(obj)
-    return out
-
-NORMALIZE_TITLES = {
-    "PITCHER": "Pitcher",
-    "C": "C",
-    "1B": "1B",
-    "2B": "2B",
-    "3B": "3B",
-    "SS": "SS",
-    "OF": "OF",
-    "CASH CORE": "Cash Core",
-    "TOP STACKS": "Top Stacks",
-}
-
-def compose_cheat_sheet_from_panels(panels: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """
-    Build cheat_sheet.json structure that mirrors your sheet:
-      Pitcher, C, 1B, 2B, 3B, SS, OF (merged from multiple blocks), Cash Core, Top Stacks
-    """
-    out: Dict[str, Any] = {}
-    for p in panels:
-        title_raw = str(p.get("title") or "").strip()
-        key = NORMALIZE_TITLES.get(title_raw.upper())
-        if not key:
-            continue
-        recs = _rows_to_dicts(p.get("rows") or [])
-        if not recs:
-            continue
-        if key == "OF":
-            out.setdefault("OF", [])
-            out["OF"].extend(recs)
-        else:
-            out[key] = recs
-    return out
-
-
-# --------------------------------------------------------------------------------------
-# MATCHUPS composer (robust for dashboard layouts)
-# --------------------------------------------------------------------------------------
-
-_NUM_RE = re.compile(r"[-+]?\d+(?:\.\d+)?")
-
-def _to_float(s):
-    if s is None: return None
-    if isinstance(s, (int, float)): return float(s)
-    m = _NUM_RE.search(str(s))
-    return float(m.group()) if m else None
-
-def _row_text(row: List[Any]) -> str:
-    parts = [str(x).strip() for x in (row or []) if x not in (None, "", " ")]
-    return " | ".join(parts).strip()
-
-def _split_lr(row: List[Any]) -> Tuple[str, str]:
-    vals = [str(x).strip() for x in (row or []) if x not in (None, "", " ")]
-    if not vals:
-        return "", ""
-    if len(vals) == 1:
-        return vals[0], ""
-    return vals[0], vals[-1]
-
-def compose_matchups_from_dashboard(panels: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """
-    Produce an array of games for the React MLB Matchups page.
-
-    We recognize game panels by titles like "SEA @ TB".
-    Within each panel, we split each data row into (left, right) strings to simulate
-    team_blocks.away.lines and team_blocks.home.lines. If your lineup rows already
-    start with "1 - ..." those will show in the UI; otherwise they'll just be plain lines.
-    We lightly probe for O/U and implied totals in top rows; OK if None.
-    """
-    games: List[Dict[str, Any]] = []
-
-    for p in panels:
-        title = str(p.get("title") or "").strip()
-        m = GAME_TITLE_RE.match(title)
-        if not m:
-            # Not a game panel; skip
-            continue
-
-        away = m.group(1).upper()
-        home = m.group(2).upper()
-
-        rows: List[List[Any]] = p.get("rows") or []
-        left_lines: List[str] = []
-        right_lines: List[str] = []
-
-        for r in rows:
-            l, rtxt = _split_lr(r)
-            if l:    left_lines.append(l)
-            if rtxt: right_lines.append(rtxt)
-
-        imp_away = None
-        imp_home = None
-        ou = None
-
-        # Try to detect OU and (X.X) implied references from top few rows
-        for r in rows[:4]:
-            s = _row_text(r)
-            if "O/U" in s.upper() or "OU" in s.upper():
-                nums = [float(x) for x in _NUM_RE.findall(s)]
-                if nums:
-                    ou = nums[0]
-            for tok in re.findall(r"\(([0-9]+(?:\.[0-9]+)?)\)", s):
-                val = float(tok)
-                if imp_away is None:
-                    imp_away = val
-                elif imp_home is None:
-                    imp_home = val
-
-        games.append({
-            "away": away,
-            "home": home,
-            "ou": ou,
-            "imp_away": imp_away,
-            "imp_home": imp_home,
-            "team_blocks": {
-                "away": {"header": f"{away}" + (f" ({imp_away})" if imp_away is not None else ""), "lines": left_lines},
-                "home": {"header": f"{home}" + (f" ({imp_home})" if imp_home is not None else ""), "lines": right_lines},
-            },
-            # Optional extras the UI tolerates as None
-            "spread_home": None,
-            "ml_home": None,
-            "ml_away": None,
-            "weather": {"temp_f": None, "wind_mph": None, "desc": None, "is_dome": None},
-        })
-
-    return games
-
-
-# --------------------------------------------------------------------------------------
-# Read literal table (stringified like Excel display)
-# --------------------------------------------------------------------------------------
-
-def _decimals_from_format(fmt: str) -> int:
-    if not isinstance(fmt, str): return 0
-    m = re.search(r"0\.([0]+)", fmt)
-    return len(m.group(1)) if m else 0
+# --------------------- openpyxl “display text” formatting --------------------
 
 _PERCENT_RE = re.compile(r"%")
 
+def _decimals_from_format(fmt: str) -> int:
+    if not isinstance(fmt, str):
+        return 0
+    m = re.search(r"0\.([0]+)", fmt)
+    return len(m.group(1)) if m else 0
+
 def _format_cell(cell) -> str:
     v = cell.value
-    if v is None: return ""
+    if v is None:
+        return ""
     fmt = cell.number_format or ""
 
     # Dates/times
-    if isinstance(v, (datetime, date, time)):
+    if isinstance(v, (datetime.date, datetime.datetime, datetime.time)):
         return str(v)
 
     # Numbers
@@ -533,32 +108,152 @@ def _format_cell(cell) -> str:
 
     return str(v).strip()
 
-def dedup(names: Iterable) -> List[str]:
-    seen: Dict[str, int] = {}
-    out: List[str] = []
-    for i, raw in enumerate(list(names)):
-        s = "" if raw is None else str(raw).strip()
-        if s == "" or s.lower() in {"nan", "nat"} or s.lower().startswith("unnamed"):
-            s = f"col_{i+1}"
-        key = s
-        if key in seen:
-            seen[key] += 1
-            key = f"{key}_{seen[key]}"
-        else:
-            seen[key] = 0
-        out.append(key)
-    return out
 
-def read_literal_table(
-    xlsm_path: Path,
-    sheet: str,
-    header_row: Optional[int],
-    data_start_row: Optional[int],
-    limit_to_col: Optional[str] = None,
-) -> pd.DataFrame:
+# ------------------------------ header normalization --------------------
+
+_HEADER_ALIASES = {
+    "dk sal": "DK Sal",
+    "fd sal": "FD Sal",
+    "teamabbrev": "Team",
+    "opp": "Matchup",
+}
+
+def _norm_header_label(s: str) -> str:
+    t = (s or "").replace("\u00A0", " ").replace("\u202F", " ").strip()
+    key = re.sub(r"\s+", " ", t).lower()
+    return _HEADER_ALIASES.get(key, t)
+
+
+# ------------------------------ filters engine --------------------------
+
+def _resolve_col(df: pd.DataFrame, name: str) -> Optional[str]:
+    if name in df.columns:
+        return name
+    low_map = {c.lower(): c for c in df.columns}
+    return low_map.get((name or "").lower())
+
+def _apply_leaf_filter(df: pd.DataFrame, f: Dict[str, Any]) -> pd.Series:
+    col_name = _resolve_col(df, f.get("column", ""))
+    if not col_name:
+        return pd.Series([True] * len(df), index=df.index)
+
+    op = (f.get("op") or "contains").lower()
+    cs = bool(f.get("case_sensitive", False))
+    s = df[col_name].astype(str)
+    if not cs:
+        s = s.str.lower()
+
+    if op == "nonempty":       return s.str.strip().ne("")
+    val = str(f.get("value", "")).strip()
+    if not cs:                 val = val.lower()
+
+    if   op == "equals":       res = s.eq(val)
+    elif op == "not_equals":   res = s.ne(val)
+    elif op == "contains":     res = s.str.contains(val, na=False)
+    elif op == "not_contains": res = ~s.str.contains(val, na=False)
+    elif op == "startswith":   res = s.str.startswith(val, na=False)
+    elif op == "endswith":     res = s.str.endswith(val, na=False)
+    elif op == "regex":
+        try:
+            pat = re.compile(val, 0 if cs else re.IGNORECASE)
+            res = s.str.match(pat).fillna(False)
+        except Exception:
+            res = pd.Series([True] * len(df), index=df.index)
+    else:
+        res = pd.Series([True] * len(df), index=df.index)
+
+    return res.fillna(False)
+
+def _apply_filters(df: pd.DataFrame, filters: Union[List, Dict, None]) -> pd.DataFrame:
+    def eval_filter(f) -> pd.Series:
+        if isinstance(f, dict) and ("any_of" in f or "all_of" in f):
+            if "any_of" in f:
+                parts = [eval_filter(x) for x in (f.get("any_of") or [])]
+                return pd.concat(parts, axis=1).any(axis=1) if parts else pd.Series([True]*len(df), index=df.index)
+            if "all_of" in f:
+                parts = [eval_filter(x) for x in (f.get("all_of") or [])]
+                return pd.concat(parts, axis=1).all(axis=1) if parts else pd.Series([True]*len(df), index=df.index)
+        return _apply_leaf_filter(df, f)
+
+    if not filters: return df
+    if isinstance(filters, dict) and ("any_of" in filters or "all_of" in filters):
+        return df[eval_filter(filters)]
+    if isinstance(filters, list):
+        masks = [eval_filter(f) for f in filters]
+        return df[pd.concat(masks, axis=1).all(axis=1)] if masks else df
+    return df
+
+
+# ------------------------------ task runner -----------------------------
+
+def maybe_apply_column_mapping(df: pd.DataFrame, mapping: Dict[str, str] | None) -> pd.DataFrame:
+    if not mapping: return df
+    existing = {src: dst for src, dst in mapping.items() if src in df.columns}
+    return df.rename(columns=existing) if existing else df
+
+def reorder_columns_if_all_present(df: pd.DataFrame, order: List[str] | None) -> pd.DataFrame:
+    if not order: return df
+    return df[order] if all(c in df.columns for c in order) else df
+
+def export_one(df: pd.DataFrame, out_csv: Optional[Path], out_json: Optional[Path]) -> None:
+    if out_csv:
+        ensure_parent(out_csv)
+        df.astype(object).where(pd.notna(df), "").to_csv(out_csv, index=False, encoding="utf-8-sig")
+        print(f"✔️  CSV  → {out_csv}")
+    if out_json:
+        ensure_parent(out_json)
+        out_json.write_text(to_json_records(df), encoding="utf-8")
+        print(f"✔️  JSON → {out_json}")
+
+def run_task(xlsm_path: Path, project_root: Path, task: Dict[str, Any]) -> None:
+    sheet = task.get("sheet")
+    if not sheet:
+        print("⚠️  SKIP: task missing 'sheet'"); return
+
+    df = read_literal_table(
+        xlsm_path=xlsm_path,
+        sheet=sheet,
+        header_row=task.get("header_row"),
+        data_start_row=task.get("data_start_row"),
+        limit_to_col=task.get("limit_to_col"),
+    )
+
+    keep_cols_src: List[str] = task.get("keep_columns_sheet_order", [])
+    if keep_cols_src:
+        df = df[[c for c in df.columns if c in keep_cols_src]]
+
+    df = maybe_apply_column_mapping(df, task.get("column_mapping"))
+    df = reorder_columns_if_all_present(df, task.get("column_order"))
+    df = _apply_filters(df, task.get("filters"))
+
+    out_rel = (task.get("out_rel") or "").lstrip(r"\/")
+    if not out_rel:
+        print(f"⚠️  SKIP: task for '{sheet}' missing 'out_rel'"); return
+
+    base = project_root / "public" / Path(out_rel)
+    fmt = str(task.get("format", "json")).lower()
+    csv_path  = base.with_suffix(".csv")  if fmt in ("csv", "both")  else None
+    json_path = base.with_suffix(".json") if fmt in ("json", "both") else None
+    export_one(df, csv_path, json_path)
+
+
+# ------------------------------- literal read ---------------------------
+
+def _excel_col_to_idx(label: str) -> int:
+    s = re.sub(r"[^A-Za-z]", "", str(label)).upper()
+    if not s: return 0
+    n = 0
+    for ch in s:
+        n = n * 26 + (ord(ch) - ord("A") + 1)
+    return n - 1
+
+def read_literal_table(xlsm_path: Path, sheet: str,
+                       header_row: Optional[int],
+                       data_start_row: Optional[int],
+                       limit_to_col: Optional[str] = None) -> pd.DataFrame:
     """
     Read a sheet using openpyxl and return a DataFrame of *strings* matching Excel display.
-    `limit_to_col` (e.g., "AZ") caps the rightmost column read.
+    `limit_to_col` (e.g., "AE") caps the rightmost column read.
     """
     wb = load_workbook(xlsm_path, data_only=True, read_only=True, keep_links=False)
     try:
@@ -568,13 +263,6 @@ def read_literal_table(
 
         max_c = ws.max_column
         if limit_to_col:
-            def _excel_col_to_idx(label: str) -> int:
-                s = re.sub(r"[^A-Za-z]", "", str(label)).upper()
-                if not s: return 0
-                n = 0
-                for ch in s:
-                    n = n * 26 + (ord(ch) - ord("A") + 1)
-                return n - 1
             try:
                 max_c = min(max_c, _excel_col_to_idx(limit_to_col) + 1)
             except Exception:
@@ -593,7 +281,7 @@ def read_literal_table(
             data_start_row = best_r + 1
 
         raw_headers = [_format_cell(c) for c in ws[header_row][0:max_c]]
-        raw_headers = [re.sub(r"\s+", " ", h).strip() for h in raw_headers]
+        raw_headers = [_norm_header_label(h) for h in raw_headers]
         headers = dedup(raw_headers)
 
         out_rows: List[List[str]] = []
@@ -603,7 +291,7 @@ def read_literal_table(
             row = [_format_cell(c) for c in cells]
             if all(v == "" for v in row):
                 blanks_in_a_row += 1
-                if blanks_in_a_row >= 3: break
+                if blanks_in_a_row >= 2: break
                 continue
             blanks_in_a_row = 0
             out_rows.append(row)
@@ -617,109 +305,368 @@ def read_literal_table(
         wb.close()
 
 
-# --------------------------------------------------------------------------------------
-# Config loader
-# --------------------------------------------------------------------------------------
+# -------------------------- cheatsheets (by title) ----------------------
 
-def load_config(path: Optional[str]) -> Dict[str, Any]:
-    if not path:
-        return {}
-    p = Path(path)
-    if not p.exists():
-        return {}
+def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> None:
+    """
+    Mirrors NFL run_cheatsheets, but with column-scoped capture so L/R blocks don't merge.
+    Config shape:
+      "cheatsheets": {
+        "sheet": "Cheat Sheet",
+        "out_rel": "data/mlb/latest/cheat_sheet",
+        "tables": [
+          {"title": "Pitcher", "width": 9, "limit_rows": 200},
+          {"title": "C", "width": 9},
+          ...
+        ]
+      }
+    """
+    cs = cfg.get("cheatsheets")
+    if not cs: return
+    sheet      = cs.get("sheet") or "Cheat Sheet"
+    out_rel    = (cs.get("out_rel") or "").lstrip(r"\/")
+    title_ci   = bool(cs.get("title_match_ci", True))
+    default_limit = int(cs.get("limit_rows", 200))
+    if not out_rel:
+        print("⚠️  SKIP cheatsheets: missing out_rel"); return
+
+    wb = load_workbook(xlsm_path, data_only=True, read_only=True, keep_links=False)
     try:
-        return json.loads(p.read_text(encoding="utf-8"))
-    except Exception:
-        return {}
+        if sheet not in wb.sheetnames:
+            print(f"⚠️  SKIP cheatsheets: sheet '{sheet}' not found"); return
+        ws = wb[sheet]
+        n_rows, n_cols = ws.max_row, ws.max_column
 
+        def norm(s: Any) -> str:
+            txt = "" if s is None else str(s).strip()
+            return txt.lower() if title_ci else txt
 
-# --------------------------------------------------------------------------------------
-# Main
-# --------------------------------------------------------------------------------------
+        titles_cfg = cs.get("tables") or []
+        all_titles_norm = {norm(t.get("title")) for t in titles_cfg if t.get("title")}
 
-def main():
-    ap = argparse.ArgumentParser(description="Export MLB workbook to site JSON (full exporter)")
-    ap.add_argument("--xlsm",   type=str, default=DEFAULT_XLSM,   help="Full path to MLB .xlsm")
-    ap.add_argument("--out",    type=str, default=DEFAULT_OUT,    help="Output folder (public/data/mlb/latest)")
-    ap.add_argument("--config", type=str, default="",             help="Optional config JSON to override defaults")
-    args = ap.parse_args()
+        # index of cell text → [(r,c)]
+        index: Dict[str, List[tuple]] = {}
+        for r in range(1, n_rows + 1):
+            for c in range(1, n_cols + 1):
+                s = norm(ws.cell(r, c).value)
+                if s:
+                    index.setdefault(s, []).append((r, c))
 
-    xlsx_path = Path(args.xlsm).resolve()
-    out_dir   = ensure_outdir(Path(args.out).resolve())
+        out_obj: Dict[str, Any] = {}
+        for i, t in enumerate(titles_cfg):
+            title = str(t.get("title") or f"Table {i+1}").strip()
+            width = max(1, int(t.get("width", 8)))   # number of columns to read for this panel
+            limit_rows = int(t.get("limit_rows", default_limit))
+            locs = index.get(norm(title), [])
+            if not locs:
+                print(f"⚠️  cheatsheets: title not found: '{title}'")
+                continue
 
-    if not xlsx_path.exists():
-        raise FileNotFoundError(f"Workbook not found: {xlsx_path}")
+            # pick the earliest (top-left) title occurrence
+            start_r, start_c = min(locs, key=lambda rc: (rc[0], rc[1]))
+            header_r = start_r
+            data_r0  = header_r + 1
 
-    cfg = load_config(args.config)
+            # read headers within the *column span only*
+            hdr = [ws.cell(header_r, c) for c in range(start_c, min(start_c + width, n_cols + 1))]
+            headers = dedup([_norm_header_label(_format_cell(c)) for c in hdr])
 
-    # -------------- Sheet Exports (tables) --------------
-    sheets_cfg = cfg.get("sheets") or DEFAULT_SHEETS_CONFIG
-    for t in sheets_cfg:
-        sheet = t.get("sheet")
-        if not sheet:
-            print("⚠️  SKIP: task missing 'sheet'"); continue
-        try:
-            df = read_table(
-                xlsx_path=xlsx_path,
-                sheet=sheet,
-                header_row=int(t.get("header_row", 2)),
-                data_start_row=int(t.get("data_start_row", 3)),
-                usecols=t.get("usecols"),
-            )
-        except Exception as e:
-            print(f"❌  {sheet}: {e}")
-            continue
+            rows = []
+            r = data_r0
+            blank_seq = 0
+            while r <= n_rows and len(rows) < limit_rows:
+                # stop if we hit another known title in the *first column* of this panel
+                first_cell = norm(ws.cell(r, start_c).value)
+                if first_cell in all_titles_norm and first_cell != "":
+                    break
 
-        if t.get("filters"):
-            df = df_apply_filters(df, t.get("filters"))
+                row_cells = [ws.cell(r, c) for c in range(start_c, start_c + len(headers))]
+                display = [_format_cell(c) for c in row_cells]
+                if all(x == "" for x in display):
+                    blank_seq += 1
+                    if blank_seq >= 2:
+                        break
+                    r += 1
+                    continue
 
-        keep_cols = t.get("keep_columns")
-        if keep_cols and isinstance(keep_cols, list):
-            df = df[[c for c in df.columns if c in keep_cols]]
+                blank_seq = 0
+                rows.append(display)
+                r += 1
 
-        outfile = (t.get("outfile") or sheet.lower().replace(" ", "_")).strip()
-        export_df_json_only(df, out_dir, outfile)
+            sub = pd.DataFrame(rows, columns=headers)
+            out_obj[title] = sub.astype(object).where(pd.notna(sub), "").to_dict(orient="records")
 
-    # -------------- CHEAT SHEET (yellow panels) --------------
-    # Choose which sheet to parse panels from for the cheat_sheet
-    wb = load_workbook(xlsx_path, data_only=True)
-    try:
-        names = wb.sheetnames
+        out_path = (project_root / "public" / Path(out_rel)).with_suffix(".json")
+        ensure_parent(out_path)
+        out_path.write_text(json.dumps(out_obj, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"✔️  JSON → {out_path}  (sections: {', '.join(out_obj.keys()) or 'none'})")
     finally:
         wb.close()
 
-    panel_sheet = None
-    for cand in PANEL_SHEET_CANDIDATES:
-        if cand in names:
-            panel_sheet = cand
-            break
-    if not panel_sheet:
-        panel_sheet = names[0]
 
-    cs_panels = parse_yellow_panels(xlsx_path, panel_sheet, YELLOW_FILLS)
-    cheat_sheet = compose_cheat_sheet_from_panels(cs_panels)
+# ---------------------- MLB GAMEBOARD (Dashboard) -----------------------
 
-    (out_dir / "cheat_sheet.json").write_text(
-        json.dumps(cheat_sheet, ensure_ascii=False, indent=2),
-        encoding="utf-8"
-    )
-    print(f"✔️  {panel_sheet} → cheat_sheet.json "
-          f"(sections: {', '.join(sorted(cheat_sheet.keys())) or 'none'})")
+_TITLE_RE = re.compile(r"^\s*([A-Z]{2,3})\s*@\s*([A-Z]{2,3})\s*$")
 
-    # -------------- MATCHUPS (always prefer MLB Dashboard) --------------
-    matchups_sheet = "MLB Dashboard" if "MLB Dashboard" in names else panel_sheet
+def _cell(ws: Worksheet, r: int, c: int) -> str:
+    v = ws.cell(r, c).value
+    return "" if v is None else str(v).strip()
 
-    if matchups_sheet != panel_sheet:
-        match_panels = parse_yellow_panels(xlsx_path, matchups_sheet, YELLOW_FILLS)
-    else:
-        match_panels = cs_panels  # reuse
+def _row_text_range(ws: Worksheet, r: int, c0: int, c1: int) -> str:
+    parts = [_cell(ws, r, c) for c in range(max(1, c0), max(1, c1) + 1)]
+    parts = [p for p in parts if p]
+    return " | ".join(parts)
 
-    games = compose_matchups_from_dashboard(match_panels)
-    (out_dir / "matchups.json").write_text(
-        json.dumps(games, ensure_ascii=False, indent=2),
-        encoding="utf-8"
-    )
-    print(f"✔️  {matchups_sheet} → matchups.json ({len(games)} games)")
+def _find_header_cols_in_row(ws: Worksheet, r: int, max_col: int,
+                             yellow_rgbs: set, title_re: re.Pattern) -> list[int]:
+    cols = []
+    for c in range(1, max_col + 1):
+        txt = ws.cell(r, c).value
+        if txt is None or str(txt).strip() == "":
+            continue
+        is_header = False
+        try:
+            fill = ws.cell(r, c).fill
+            if fill and fill.patternType == "solid":
+                rgb = (fill.fgColor.rgb or "").upper()
+                if rgb in yellow_rgbs:
+                    is_header = True
+        except Exception:
+            pass
+        if isinstance(txt, str) and title_re.match(txt.strip()):
+            is_header = True
+        if is_header:
+            cols.append(c)
+    return cols
+
+def run_matchups(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> None:
+    gb = cfg.get("gameboard")
+    if not gb: return
+
+    out_rel = (gb.get("out_rel") or "").lstrip(r"\\/") or "data/mlb/latest/matchups"
+    yellow_rgbs = {str(x).upper() for x in gb.get("header_yellow_rgb", ["FFFFE699","FFFFF2CC","FFFFFF00"])}
+    title_re = re.compile(gb.get("title_regex", r"^[A-Z]{2,3}\s*@\s*[A-Z]{2,3}$"))
+
+    # pick dashboard sheet (case-insensitive, partial ok)
+    wb = load_workbook(xlsm_path, data_only=True, read_only=True, keep_links=False)
+    try:
+        want = gb.get("sheet") or ["MLB Dashboard", "Game Dashboard", "Dashboard"]
+        want_list = [want] if isinstance(want, str) else list(want)
+
+        def pick_sheet(want_list: List[str]) -> Optional[str]:
+            if not want_list: return None
+            lowmap = {s.lower(): s for s in wb.sheetnames}
+            for w in want_list:
+                if w in wb.sheetnames: return w
+                if w.lower() in lowmap: return lowmap[w.lower()]
+            for w in want_list:
+                wl = w.lower()
+                for actual in wb.sheetnames:
+                    if wl in actual.lower():
+                        return actual
+            return None
+
+        sheet_name = pick_sheet(want_list) or wb.sheetnames[0]
+        print(f"• MLB Matchups: using sheet '{sheet_name}'")
+        ws = wb[sheet_name]
+        max_row, max_col = ws.max_row, ws.max_column
+
+        games: List[Dict[str, Any]] = []
+        r = 1
+        while r <= max_row:
+            header_cols = _find_header_cols_in_row(ws, r, max_col, yellow_rgbs, title_re)
+            if not header_cols:
+                r += 1
+                continue
+
+            header_cols_sorted = sorted(header_cols)
+            for idx, c_start in enumerate(header_cols_sorted):
+                c_end = (header_cols_sorted[idx + 1] - 1) if idx + 1 < len(header_cols_sorted) else max_col
+
+                # header/title for this window
+                title_line = _row_text_range(ws, r, c_start, c_end)
+                title = (title_line.split("|", 1)[0] or "").strip()
+                m = title_re.match(title)
+                if not m:
+                    continue
+                away, home = m.group(1), m.group(2)
+
+                g: Dict[str, Any] = {
+                    "away": away,
+                    "home": home,
+                    "ou": None,
+                    "spread_home": None,
+                    "ml_home": None,
+                    "ml_away": None,
+                    "imp_home": None,
+                    "imp_away": None,
+                    "weather": {"temp_f": None, "wind_mph": None, "desc": None, "is_dome": None},
+                    "team_blocks": {
+                        "away": {"header": away, "lines": []},
+                        "home": {"header": home, "lines": []},
+                    },
+                }
+
+                # Walk down inside the window until we hit the team-bar row like "SEA (4.2) | TB (3.9)"
+                k = r + 1
+                team_bar_row = None
+                while k <= max_row:
+                    vals = [_cell(ws, k, c) for c in range(c_start, c_end + 1)]
+                    left  = next((x for x in vals if x), "")
+                    right = next((x for x in reversed(vals) if x), "")
+                    if not (left or right):
+                        k += 1
+                        continue
+
+                    # Team bar heuristic: looks like "AAA (x.x)" on each side
+                    mL = re.match(r"^\s*([A-Z]{2,3})\s*\(([0-9.]+)\)", left or "")
+                    mR = re.match(r"^\s*([A-Z]{2,3})\s*\(([0-9.]+)\)", right or "")
+                    if mL and mR:
+                        g["team_blocks"]["away"]["header"] = f"{mL.group(1)} ({mL.group(2)})"
+                        g["team_blocks"]["home"]["header"] = f"{mR.group(1)} ({mR.group(2)})"
+                        try:
+                            g["imp_away"] = float(mL.group(2))
+                            g["imp_home"] = float(mR.group(2))
+                        except Exception:
+                            pass
+                        team_bar_row = k
+                        break
+
+                    # Parse meta rows (O/U, ML, Spread, Totals, Weather) if you include them
+                    whole = " | ".join([x for x in vals if x])
+                    U = whole.upper()
+                    if "O/U" in U:
+                        m_ou = re.search(r"O/?U:\s*([0-9.]+)", whole, flags=re.I)
+                        if m_ou: g["ou"] = float(m_ou.group(1))
+                        for tm, ml in re.findall(r"\b([A-Z]{2,3})\s*ML:\s*([+-]?\d+)", whole, flags=re.I):
+                            if tm.upper() == away: g["ml_away"] = int(ml)
+                            if tm.upper() == home: g["ml_home"]  = int(ml)
+                    elif "SPREAD" in U:
+                        mH = re.search(r"SPREAD:\s*([+-]?[0-9.]+)", whole, flags=re.I)
+                        if mH: g["spread_home"] = float(mH.group(1))
+                    elif "TOTAL" in U:
+                        mA = re.search(rf"{away}\s*([0-9.]+)", whole, flags=re.I)
+                        mH = re.search(rf"{home}\s*([0-9.]+)", whole, flags=re.I)
+                        if mA: g["imp_away"] = float(mA.group(1))
+                        if mH: g["imp_home"]  = float(mH.group(1))
+                    elif "WEATHER" in U:
+                        is_dome = "dome" in U
+                        g["weather"]["is_dome"] = is_dome
+                        g["weather"]["desc"] = None if is_dome else whole.replace("|"," ").strip()
+
+                    k += 1
+
+                if not team_bar_row:
+                    continue
+
+                # Collect left/right lines until a new header in this window or double-blank
+                k = team_bar_row + 1
+                blanks = 0
+                while k <= max_row:
+                    row_hdr_cols = _find_header_cols_in_row(ws, k, c_end, yellow_rgbs, title_re)
+                    row_hdr_cols = [c for c in row_hdr_cols if c_start <= c <= c_end]
+                    if row_hdr_cols:
+                        break
+
+                    vals = [_cell(ws, k, c) for c in range(c_start, c_end + 1)]
+                    left  = next((x for x in vals if x), "")
+                    right = next((x for x in reversed(vals) if x), "")
+
+                    # bail if we see another team-bar row
+                    if re.match(r"^\s*[A-Z]{2,3}\s*\([0-9.]+\)", left or "") and re.match(r"^\s*[A-Z]{2,3}\s*\([0-9.]+\)", right or ""):
+                        break
+
+                    if not left and not right:
+                        blanks += 1
+                        if blanks >= 2:
+                            break
+                        k += 1
+                        continue
+
+                    blanks = 0
+                    if left:  g["team_blocks"]["away"]["lines"].append(left)
+                    if right: g["team_blocks"]["home"]["lines"].append(right)
+                    k += 1
+
+                # Backfill OU if implieds are present
+                if g.get("ou") is None and all(isinstance(g.get(k2), (int, float)) for k2 in ("imp_home","imp_away")):
+                    g["ou"] = float(g["imp_home"]) + float(g["imp_away"])
+
+                games.append(g)
+
+            r += 1
+
+        out_path = (project_root / "public" / Path(out_rel)).with_suffix(".json")
+        ensure_parent(out_path)
+        out_path.write_text(json.dumps(games, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"✔️  JSON → {out_path}  (games: {len(games)})")
+    finally:
+        wb.close()
+
+
+# --------------------------------- config --------------------------------
+
+def _choose_project_root(arg_proj: Optional[str]) -> Path:
+    if arg_proj:
+        p = Path(arg_proj).resolve()
+        if (p / "public").exists():
+            return p
+        print(f"⚠️  --project '{p}' has no /public. Falling back to script root.", file=sys.stderr)
+    if (ROOT / "public").exists():
+        return ROOT
+    print("ERROR: could not find a project root with /public.", file=sys.stderr)
+    sys.exit(1)
+
+
+# --------------------------------- main ---------------------------------
+
+def main() -> None:
+    print(">>> MLB Exporter (tasks + cheatsheets + matchups)")
+    ap = argparse.ArgumentParser(description="Export MLB Excel workbook to site data files (CSV/JSON).")
+    ap.add_argument("--xlsm",    default=DEFAULT_XLSM,   help="Path to the source workbook (.xls/.xlsx/.xlsm)")
+    ap.add_argument("--project", default=DEFAULT_PROJ,   help="Path to project root (contains /public)")
+    ap.add_argument("--config",  default=DEFAULT_CONFIG, help="Path to exporter config JSON")
+    args = ap.parse_args()
+
+    xlsm_path     = Path(args.xlsm).resolve()
+    project_root  = _choose_project_root(args.project)
+    config_path   = Path(args.config).resolve()
+
+    if not xlsm_path.exists():
+        print(f"ERROR: workbook not found: {xlsm_path}", file=sys.stderr); sys.exit(1)
+    if not config_path.exists():
+        print(f"ERROR: config not found: {config_path}", file=sys.stderr); sys.exit(1)
+
+    staged_xlsm, temp_dir = _stage_copy_for_read(xlsm_path)
+
+    try:
+        cfg = json.loads(config_path.read_text(encoding="utf-8-sig"))
+
+        tasks = cfg.get("tasks", [])
+        if not isinstance(tasks, list):
+            print("ERROR: config 'tasks' must be an array.", file=sys.stderr); sys.exit(1)
+
+        for t in tasks:
+            sheet = t.get("sheet")
+            print(f"\n=== TASK: sheet='{sheet}' | out='{t.get('out_rel','?')}' ===")
+            try:
+                run_task(staged_xlsm, project_root, t)
+            except Exception as e:
+                print(f"⚠️  SKIP: task failed: {e}")
+
+        print("\n=== CHEAT SHEET ===")
+        try: run_cheatsheets(staged_xlsm, project_root, cfg)
+        except Exception as e: print(f"⚠️  SKIP cheatsheets: {e}")
+
+        print("\n=== MATCHUPS (MLB Dashboard) ===")
+        try: run_matchups(staged_xlsm, project_root, cfg)
+        except Exception as e: print(f"⚠️  SKIP matchups: {e}")
+
+        print("\nDone.")
+    finally:
+        try: shutil.rmtree(temp_dir, ignore_errors=True)
+        except Exception: pass
+
 
 if __name__ == "__main__":
     main()
