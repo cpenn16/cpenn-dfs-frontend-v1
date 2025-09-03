@@ -309,68 +309,57 @@ def read_literal_table(xlsm_path: Path, sheet: str,
 
 def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> None:
     """
-    Title-based extraction, column-scoped. Extras:
-      - If 'Player' is blank (common with HYPERLINK formulas), read the formula
-        text from a non-data_only workbook and extract the display value.
-      - Normalize 'Time' to 'H:MM AM/PM'.
+    Title-based extraction, column-scoped.
+    - Auto-detect header row (either the yellow title row or the row below).
+    - If 'Player' is blank (HYPERLINK formula), pull display text from formula.
+    - Normalize 'Time' to 12-hour (H:MM AM/PM).
     """
     cs = cfg.get("cheatsheets")
-    if not cs: 
+    if not cs:
         return
     sheet      = cs.get("sheet") or "Cheat Sheet"
     out_rel    = (cs.get("out_rel") or "").lstrip(r"\/")
     title_ci   = bool(cs.get("title_match_ci", True))
     default_limit = int(cs.get("limit_rows", 200))
     if not out_rel:
-        print("⚠️  SKIP cheatsheets: missing out_rel"); 
+        print("⚠️  SKIP cheatsheets: missing out_rel")
         return
 
-    # Helper: 24h → 12h
+    # helpers --------------------------------------------------------------
     _TIME12_RE = re.compile(r"^\s*(\d{1,2})\s*:\s*(\d{2})(?::\d{2})?\s*(AM|PM)?\s*$", re.I)
     def _to_12h(s: Any) -> str:
-        if s is None: 
-            return ""
+        if s is None: return ""
         t = str(s).strip()
-        if not t: 
-            return ""
+        if not t: return ""
         m = _TIME12_RE.match(t)
-        if not m:
-            return t  # leave as-is
-        hh = int(m.group(1))
-        mm = m.group(2)
-        ampm = m.group(3)
-        if ampm:  # already AM/PM
-            up = ampm.upper()
-            return f"{hh}:{mm} {up}"
-        # 24h to 12h
-        if hh == 0:
-            return f"12:{mm} AM"
-        if 1 <= hh <= 11:
-            return f"{hh}:{mm} AM"
-        if hh == 12:
-            return f"12:{mm} PM"
+        if not m: return t
+        hh = int(m.group(1)); mm = m.group(2); ampm = m.group(3)
+        if ampm: return f"{hh}:{mm} {ampm.upper()}"
+        if hh == 0:  return f"12:{mm} AM"
+        if hh <= 11: return f"{hh}:{mm} AM"
+        if hh == 12:return f"12:{mm} PM"
         return f"{hh-12}:{mm} PM"
 
-    # Helper: extract display from =HYPERLINK(..., "Display")
     _HL_RE = re.compile(r"^=\s*HYPERLINK\s*\(\s*(?:\"[^\"]*\"|[^,]+)\s*,\s*\"([^\"]+)\"\s*\)\s*$", re.I)
     def _hyperlink_display(val: Any) -> Optional[str]:
         s = "" if val is None else str(val)
         m = _HL_RE.match(s)
         return m.group(1).strip() if m else None
 
+    def norm(s: Any) -> str:
+        txt = "" if s is None else str(s).strip()
+        return txt.lower() if title_ci else txt
+
+    # ---------------------------------------------------------------------
     wb_data = load_workbook(xlsm_path, data_only=True,  read_only=True, keep_links=False)
     wb_form = load_workbook(xlsm_path, data_only=False, read_only=True, keep_links=False)
     try:
         if sheet not in wb_data.sheetnames:
-            print(f"⚠️  SKIP cheatsheets: sheet '{sheet}' not found"); 
+            print(f"⚠️  SKIP cheatsheets: sheet '{sheet}' not found")
             return
         ws  = wb_data[sheet]
         wsf = wb_form[sheet]
         n_rows, n_cols = ws.max_row, ws.max_column
-
-        def norm(s: Any) -> str:
-            txt = "" if s is None else str(s).strip()
-            return txt.lower() if title_ci else txt
 
         titles_cfg = cs.get("tables") or []
         all_titles_norm = {norm(t.get("title")) for t in titles_cfg if t.get("title")}
@@ -383,6 +372,25 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
                 if s:
                     index.setdefault(s, []).append((r, c))
 
+        EXPECTED = {"player","salary","team","matchup","vegas","time","proj","value","pown"}
+
+        def pick_header_row(start_r: int, start_c: int, width: int) -> int:
+            """Choose between start_r or start_r+1 by scoring header-likeness."""
+            candidates = [start_r, start_r + 1]
+            best_r, best_score = start_r, -1
+            for r0 in candidates:
+                cells = [ws.cell(r0, c) for c in range(start_c, min(start_c+width, n_cols+1))]
+                labels = [ _norm_header_label(_format_cell(c)) for c in cells ]
+                labels_l = [l.lower() for l in labels]
+                score = sum(1 for l in labels_l if l in EXPECTED)
+                # prefer rows containing "player"
+                if "player" in labels_l: score += 3
+                # mild preference for more non-empty strings
+                score += sum(1 for l in labels_l if l.strip() != "")
+                if score > best_score:
+                    best_r, best_score = r0, score
+            return best_r
+
         out_obj: Dict[str, Any] = {}
         for i, t in enumerate(titles_cfg):
             title = str(t.get("title") or f"Table {i+1}").strip()
@@ -394,54 +402,49 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
                 continue
 
             start_r, start_c = min(locs, key=lambda rc: (rc[0], rc[1]))
-            header_r = start_r + 1          # header is the row *after* the yellow title
+            header_r = pick_header_row(start_r, start_c, width)
             data_r0  = header_r + 1
 
             # headers within span
             hdr = [ws.cell(header_r, c) for c in range(start_c, min(start_c + width, n_cols + 1))]
             headers = dedup([_norm_header_label(_format_cell(c)) for c in hdr])
 
-            # quick lookup for special columns
-            try:
-                idx_player = next(i for i,h in enumerate(headers) if h.lower()=="player")
-            except StopIteration:
-                idx_player = None
-            try:
-                idx_time = next(i for i,h in enumerate(headers) if h.lower()=="time")
-            except StopIteration:
-                idx_time = None
+            # locate special columns
+            col_l = [h.lower() for h in headers]
+            idx_player = col_l.index("player") if "player" in col_l else None
+            idx_time   = col_l.index("time")   if "time"   in col_l else None
 
             rows = []
             r = data_r0
-            blank_seq = 0
+            blanks = 0
             while r <= n_rows and len(rows) < limit_rows:
-                # stop when we hit another known title in the first col of this panel
-                first_cell = norm(ws.cell(r, start_c).value)
-                if first_cell in all_titles_norm and first_cell != "":
+                # stop when a new section title appears in the first column of the panel
+                first = norm(ws.cell(r, start_c).value)
+                if first and first in all_titles_norm:
                     break
 
                 row_cells = [ws.cell(r, c) for c in range(start_c, start_c + len(headers))]
-                display = [_format_cell(c) for c in row_cells]
+                display   = [_format_cell(c) for c in row_cells]
 
-                # Fill missing Player from formula if needed
-                if idx_player is not None and (display[idx_player] == "" or display[idx_player] is None):
-                    raw = wsf.cell(r, start_c + idx_player).value  # read formula text
+                # fill 'Player' from formula if needed
+                if idx_player is not None and not display[idx_player]:
+                    raw = wsf.cell(r, start_c + idx_player).value
                     disp = _hyperlink_display(raw)
                     if disp:
                         display[idx_player] = disp
 
-                # convert time
+                # normalize time
                 if idx_time is not None and display[idx_time]:
                     display[idx_time] = _to_12h(display[idx_time])
 
                 if all(x == "" for x in display):
-                    blank_seq += 1
-                    if blank_seq >= 2:
+                    blanks += 1
+                    if blanks >= 2:
                         break
                     r += 1
                     continue
 
-                blank_seq = 0
+                blanks = 0
                 rows.append(display)
                 r += 1
 
@@ -455,7 +458,6 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
     finally:
         wb_data.close()
         wb_form.close()
-
 
 
 # ---------------------- MLB GAMEBOARD (Dashboard) -----------------------
