@@ -17,9 +17,10 @@ const num = (v) => {
   const n = Number(String(v ?? "").replace(/[,$%\s]/g, ""));
   return Number.isFinite(n) ? n : null;
 };
+// Round to whole dollars (no decimals) for all salary displays.
 const fmtMoney = (v) => {
   const n = num(v);
-  return n == null ? "" : n.toLocaleString();
+  return n == null ? "" : Math.round(n).toLocaleString();
 };
 const fmt1 = (v) => {
   const n = num(v);
@@ -39,7 +40,6 @@ const fmtPct = (v) => {
 };
 const time12 = (v) => {
   if (!v) return "";
-  // works with "19:40" or "7:40 PM" or full "7:40:00 PM"
   const s = String(v).trim();
   if (/\d{1,2}:\d{2}(:\d{2})?\s?[AP]M/i.test(s)) return s.toUpperCase();
   const m = s.match(/^(\d{1,2}):(\d{2})$/);
@@ -65,28 +65,34 @@ const get = (row, keys) => {
   return undefined;
 };
 
-/* unified rows (accept common alias variants) */
-const adaptPitcher = (r) => ({
-  player: get(r, ["Player", "Pitcher", "Name"]),
-  team: get(r, ["Team", "Tm"]),
-  opp: get(r, ["Opp", "Opponent"]),
-  vegas: get(r, ["Imp. Total", "ImpTotal", "ImpliedTotal", "Total", "Vegas", "O/U"]),
-  time: get(r, ["Time", "time"]),
-  dkSal: num(get(r, ["DK Sal", "DK_Sal", "DKSal", "dk_salary", "dk_sal"])),
-  dkProj: num(get(r, ["DK Proj", "dk_points", "DKProj", "dk_proj"])),
-  dkVal: num(get(r, ["DK Val", "dk_val", "DKVal"])),
-  dkOwn: get(r, ["DK pOWN%", "dk_pown", "dk_pown%"]),
-});
+/* unified rows */
+const adaptPitcher = (r) => {
+  const pos = String(get(r, ["Pos", "Position", "POS"]) || "").toUpperCase();
+  return {
+    player: get(r, ["Player", "Pitcher", "Name"]),
+    pos,
+    team: get(r, ["Team", "Tm"]),
+    opp: get(r, ["Opp", "Opponent"]),
+    // Prefer implied team total for "Vegas" display
+    vegas: get(r, ["Imp. Total", "ImpTotal", "Implied Total", "Total", "Vegas", "O/U"]),
+    // Try several keys for time
+    time: get(r, ["Time", "time", "Start", "Start Time", "StartTime"]),
+    dkSal: num(get(r, ["DK Sal", "DK_Sal", "DKSal", "dk_salary"])),
+    dkProj: num(get(r, ["DK Proj", "dk_points", "DKProj"])),
+    dkVal: num(get(r, ["DK Val", "dk_val", "DKVal"])),
+    dkOwn: get(r, ["DK pOWN%", "dk_pown", "dk_pown%"]),
+  };
+};
 
 const adaptBatter = (r) => ({
   player: get(r, ["Player", "Name"]),
   pos: String(get(r, ["Pos", "Position", "POS"]) || "").toUpperCase(),
   team: get(r, ["Team", "Tm"]),
   opp: get(r, ["Opp", "Opponent"]),
-  vegas: get(r, ["Vegas", "Total", "Imp. Total", "Implied Total", "ImpTotal"]),
-  time: get(r, ["Time", "time"]),
-  dkSal: num(get(r, ["DK Sal", "DK_Sal", "DKSal", "dk_salary", "dk_sal"])),
-  dkProj: num(get(r, ["DK Proj", "dk_points", "DKProj", "dk_proj"])),
+  vegas: get(r, ["Imp. Total", "ImpTotal", "Implied Total", "Vegas", "Total", "O/U"]),
+  time: get(r, ["Time", "time", "Start", "Start Time", "StartTime"]),
+  dkSal: num(get(r, ["DK Sal", "DK_Sal", "DKSal", "dk_salary"])),
+  dkProj: num(get(r, ["DK Proj", "dk_points", "DKProj"])),
   dkVal: num(get(r, ["DK Val", "dk_val", "DKVal"])),
   dkOwn: get(r, ["DK pOWN%", "dk_pown", "dk_pown%"]),
 });
@@ -95,11 +101,11 @@ const adaptStack = (r) => ({
   team: get(r, ["Team", "team"]),
   opp: get(r, ["Opp", "opp"]),
   oppPitcher: get(r, ["Opp Pitcher", "opp_pitcher", "oppPitcher"]),
-  vegas: get(r, ["Total", "total", "Imp. Tot", "Implied Total", "ImpTotal"]),
-  time: get(r, ["Time", "time"]),
-  dkSal: num(get(r, ["DK Sal", "dk_sal", "DK Sal"])),
-  dkProj: num(get(r, ["DK Proj", "dk_proj", "DK Proj"])),
-  dkVal: num(get(r, ["DK Val", "dk_val", "DK Val"])),
+  vegas: get(r, ["Imp. Tot", "Imp. Total", "ImpTotal", "Implied Total", "Total", "Vegas", "O/U"]),
+  time: get(r, ["Time", "time", "Start", "Start Time", "StartTime"]),
+  dkSal: num(get(r, ["DK Sal", "dk_sal"])),
+  dkProj: num(get(r, ["DK Proj", "dk_proj"])),
+  dkVal: num(get(r, ["DK Val", "dk_val"])),
   dkOwn: get(r, ["DK pOWN%", "dk_pown", "dk_pown%"]),
 });
 
@@ -134,16 +140,19 @@ function useJson(url) {
 
 function SectionHeader({ children }) {
   return (
-    <div className="bg-gray-100 text-xs font-semibold grid grid-cols-9 gap-2 px-2 py-1 rounded-t">
+    <div className="bg-gray-100 text-[11px] font-semibold grid grid-cols-9 gap-1 px-2 py-1 rounded-t">
       {children}
     </div>
   );
 }
 
+const rowBaseCls =
+  "grid grid-cols-9 gap-1 px-2 py-[2px] text-[11px] odd:bg-white even:bg-gray-50";
+
 function RowPitcher({ r }) {
   const abv = String(r.team || "").toUpperCase();
   return (
-    <div className="grid grid-cols-9 gap-2 px-2 py-1 text-[12px] odd:bg-white even:bg-gray-50">
+    <div className={rowBaseCls}>
       <div className="col-span-2 flex items-center gap-2">
         <img
           src={teamLogo(abv)}
@@ -170,7 +179,7 @@ function RowPitcher({ r }) {
 function RowBatter({ r }) {
   const abv = String(r.team || "").toUpperCase();
   return (
-    <div className="grid grid-cols-9 gap-2 px-2 py-1 text-[12px] odd:bg-white even:bg-gray-50">
+    <div className={rowBaseCls}>
       <div className="col-span-2 flex items-center gap-2">
         <img
           src={teamLogo(abv)}
@@ -197,7 +206,7 @@ function RowBatter({ r }) {
 function RowStack({ r }) {
   const abv = String(r.team || "").toUpperCase();
   return (
-    <div className="grid grid-cols-10 gap-2 px-2 py-1 text-[12px] odd:bg-white even:bg-gray-50">
+    <div className="grid grid-cols-10 gap-1 px-2 py-[2px] text-[11px] odd:bg-white even:bg-gray-50">
       <div className="flex items-center gap-2">
         <img
           src={teamLogo(abv)}
@@ -231,7 +240,7 @@ export default function MlbCheatSheet() {
     () =>
       (pitchers.rows || [])
         .map(adaptPitcher)
-        .filter((r) => r.player)
+        .filter((r) => r.player && (r.pos === "SP" || r.pos === "RP")) // only pitchers
         .sort((a, b) => (b.dkProj ?? 0) - (a.dkProj ?? 0))
         .slice(0, 6),
     [pitchers.rows]
@@ -285,7 +294,9 @@ export default function MlbCheatSheet() {
         Cheat Sheet
       </div>
 
-      {err ? <div className="text-red-600 font-semibold mb-3">Failed to load: {err}</div> : null}
+      {err ? (
+        <div className="text-red-600 font-semibold mb-3">Failed to load: {err}</div>
+      ) : null}
 
       {loading ? (
         <div className="text-gray-600">Loading…</div>
@@ -307,7 +318,11 @@ export default function MlbCheatSheet() {
                 <div>Value</div>
                 <div>pOWN</div>
               </SectionHeader>
-              <div>{pRows.map((r, i) => <RowPitcher key={`${r.player}-${i}`} r={r} />)}</div>
+              <div>
+                {pRows.map((r, i) => (
+                  <RowPitcher key={`${r.player}-${i}`} r={r} />
+                ))}
+              </div>
             </div>
 
             {/* C */}
@@ -457,7 +472,7 @@ export default function MlbCheatSheet() {
             {/* Top Stacks */}
             <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
               <div className="px-3 py-2 font-bold">Top Stacks</div>
-              <div className="bg-gray-100 text-xs font-semibold grid grid-cols-10 gap-2 px-2 py-1 rounded-t">
+              <div className="bg-gray-100 text-[11px] font-semibold grid grid-cols-10 gap-1 px-2 py-1 rounded-t">
                 <div>Team</div>
                 <div>Salary</div>
                 <div>Opp</div>
