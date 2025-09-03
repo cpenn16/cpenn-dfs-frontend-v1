@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 
 /* ============================ CONFIG ============================ */
 
-const DATA_URL = "/data/mlb/latest/pitchers.json"; // <- point to your pitchers JSON
+const DATA_URL = "/data/mlb/latest/pitcher_data.json"; // <- point to your pitchers JSON
 const TITLE = "MLB — Pitcher Data";
 
 const SHOW_TEAM_LOGOS = true;
