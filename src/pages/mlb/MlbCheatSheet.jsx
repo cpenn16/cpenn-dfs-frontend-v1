@@ -16,19 +16,15 @@ const num = (v) => {
   const n = Number(String(v ?? "").replace(/[,$%\s]/g, ""));
   return Number.isFinite(n) ? n : null;
 };
-
-// Whole dollars, no decimals
-const fmtMoney = (v) => {
+const fmtMoney0 = (v) => {
   const n = num(v);
-  return n == null ? "" : Math.round(n).toLocaleString();
+  return n == null ? "" : n.toLocaleString(undefined, { maximumFractionDigits: 0 });
 };
-
 const fmt1 = (v) => {
   const n = num(v);
   return n == null ? "" : n.toFixed(1);
 };
-
-const fmtPct = (v) => {
+const fmtPct1 = (v) => {
   if (v == null || v === "") return "";
   let s = String(v).trim();
   if (s.endsWith("%")) {
@@ -40,7 +36,6 @@ const fmtPct = (v) => {
   if (Math.abs(n) <= 1) n *= 100;
   return `${n.toFixed(1)}%`;
 };
-
 const time12 = (v) => {
   if (!v) return "";
   const s = String(v).trim();
@@ -59,84 +54,63 @@ const time12 = (v) => {
   return `${hh}:${mm}:00 ${ampm}`;
 };
 
-const GET_TIME_KEYS = [
-  "Time",
-  "time",
-  "Start",
-  "Start Time",
-  "StartTime",
-  "Start ET",
-  "StartET",
-  "Game Time",
-  "ET",
-  "t",
-];
-
-/** tolerant getter */
+/** tolerant getter for multiple header names */
 const get = (row, keys) => {
   if (!row) return undefined;
   for (const k of (Array.isArray(keys) ? keys : [keys])) {
-    const v = row[k];
-    if (v !== undefined && v !== null && v !== "") return v;
+    if (row[k] !== undefined && row[k] !== null && row[k] !== "") return row[k];
   }
   return undefined;
 };
 
-/* --------------------------- row adapters ----------------------------- */
-// Prefer implied totals then fallbacks; include short 'v'
-const VEGAS_KEYS = [
-  "Imp. Tot",
-  "Imp. Total",
-  "ImpTotal",
-  "Implied Total",
-  "v",
-  "Vegas",
-  "Total",
-  "O/U",
-];
-
-const adaptPitcher = (r) => {
-  const pos = String(get(r, ["Pos", "Position", "POS"]) || "").toUpperCase();
-  return {
-    player: get(r, ["Player", "Pitcher", "Name"]),
-    pos,
-    team: get(r, ["Team", "Tm"]),
-    opp: get(r, ["Opp", "Opponent"]),
-    vegas: get(r, VEGAS_KEYS),
-    time: get(r, GET_TIME_KEYS),
-    dkSal: num(get(r, ["DK Sal", "DK_Sal", "DKSal", "dk_salary"])),
-    dkProj: num(get(r, ["DK Proj", "dk_points", "DKProj"])),
-    dkVal: num(get(r, ["DK Val", "dk_val", "DKVal"])),
-    dkOwn: get(r, ["DK pOWN%", "dk_pown", "dk_pown%"]),
-  };
-};
+/* unified rows (broad key coverage) */
+const adaptPitcher = (r) => ({
+  player: get(r, ["Player", "Pitcher", "Name"]),
+  team: get(r, ["Team", "Tm"]),
+  opp: get(r, ["Opp", "Opponent"]),
+  vegas: get(r, [
+    "Imp. Total",
+    "Imp Total",
+    "ImpTotal",
+    "Implied Total",
+    "implied_total",
+    "Vegas",
+    "Total",
+    "v",
+  ]),
+  time: get(r, ["Time", "time", "Start", "Start Time", "start_time"]),
+  dkSal: num(get(r, ["DK Sal", "Salary", "DK_Sal", "DKSal", "dk_salary"])),
+  dkProj: num(get(r, ["DK Proj", "Proj", "Projection", "dk_points", "DKProj"])),
+  dkVal: num(get(r, ["DK Val", "Value", "dk_val", "DKVal"])),
+  dkOwn: get(r, ["DK pOWN%", "dk_pown", "dk_pown%", "pOWN", "Ownership"]),
+});
 
 const adaptBatter = (r) => ({
   player: get(r, ["Player", "Name"]),
   pos: String(get(r, ["Pos", "Position", "POS"]) || "").toUpperCase(),
   team: get(r, ["Team", "Tm"]),
   opp: get(r, ["Opp", "Opponent"]),
-  vegas: get(r, VEGAS_KEYS),
-  time: get(r, GET_TIME_KEYS),
-  dkSal: num(get(r, ["DK Sal", "DK_Sal", "DKSal", "dk_salary"])),
-  dkProj: num(get(r, ["DK Proj", "dk_points", "DKProj"])),
-  dkVal: num(get(r, ["DK Val", "dk_val", "DKVal"])),
-  dkOwn: get(r, ["DK pOWN%", "dk_pown", "dk_pown%"]),
+  vegas: get(r, ["v", "Vegas", "Total", "Imp. Total", "Implied Total"]),
+  time: get(r, ["Time", "time", "Start", "Start Time", "start_time"]),
+  dkSal: num(get(r, ["DK Sal", "Salary", "DK_Sal", "DKSal", "dk_salary"])),
+  dkProj: num(get(r, ["DK Proj", "Proj", "Projection", "dk_points", "DKProj"])),
+  dkVal: num(get(r, ["DK Val", "Value", "dk_val", "DKVal"])),
+  dkOwn: get(r, ["DK pOWN%", "dk_pown", "dk_pown%", "pOWN", "Ownership"]),
 });
 
 const adaptStack = (r) => ({
   team: get(r, ["Team", "team"]),
   opp: get(r, ["Opp", "opp"]),
   oppPitcher: get(r, ["Opp Pitcher", "opp_pitcher", "oppPitcher"]),
-  vegas: get(r, VEGAS_KEYS),
-  time: get(r, GET_TIME_KEYS),
-  dkSal: num(get(r, ["DK Sal", "dk_sal"])),
-  dkProj: num(get(r, ["DK Proj", "dk_proj"])),
-  dkVal: num(get(r, ["DK Val", "dk_val"])),
-  dkOwn: get(r, ["DK pOWN%", "dk_pown", "dk_pown%"]),
+  vegas: get(r, ["v", "Total", "total", "Imp. Tot", "Implied Total"]),
+  time: get(r, ["Time", "time", "Start", "Start Time", "start_time"]),
+  dkSal: num(get(r, ["DK Sal", "dk_sal", "Salary"])),
+  dkProj: num(get(r, ["DK Proj", "dk_proj", "Proj"])),
+  dkVal: num(get(r, ["DK Val", "dk_val", "Value"])),
+  dkOwn: get(r, ["DK pOWN%", "dk_pown", "pOWN"]),
 });
 
-/* ------------------------------- data hook ---------------------------- */
+/* basic fetch hook */
 function useJson(url) {
   const [rows, setRows] = useState([]);
   const [err, setErr] = useState("");
@@ -163,94 +137,45 @@ function useJson(url) {
   return { rows, err, loading };
 }
 
-/* ------------------------------- UI bits ------------------------------ */
-// Compact table styles (match Top Stacks compactness)
-const headerCls =
-  "bg-gray-100 text-[11px] font-semibold grid grid-cols-9 gap-1 px-2 py-1 rounded-t";
-const rowBaseCls =
-  "grid grid-cols-9 gap-1 px-2 py-[2px] text-[11px] odd:bg-white even:bg-gray-50";
+/* ---------------------------- small table UI --------------------------- */
 
-function SectionHeader({ children }) {
-  return <div className={headerCls}>{children}</div>;
-}
-
-function RowPitcher({ r }) {
-  const abv = String(r.team || "").toUpperCase();
+function Block({ title, children }) {
   return (
-    <div className={rowBaseCls}>
-      <div className="col-span-2 flex items-center gap-2">
-        <img
-          src={teamLogo(abv)}
-          alt=""
-          className="w-4 h-4"
-          onError={(e) => (e.currentTarget.style.visibility = "hidden")}
-        />
-        <span className="truncate" title={r.player}>
-          {r.player}
-        </span>
-      </div>
-      <div className="text-center tabular-nums">{fmtMoney(r.dkSal)}</div>
-      <div className="text-center">{abv}</div>
-      <div className="text-center">{String(r.opp || "")}</div>
-      <div className="text-center">{fmt1(r.vegas)}</div>
-      <div className="text-center">{time12(r.time)}</div>
-      <div className="text-center tabular-nums">{fmt1(r.dkProj)}</div>
-      <div className="text-center tabular-nums">{fmt1(r.dkVal)}</div>
-      <div className="text-center">{fmtPct(r.dkOwn)}</div>
+    <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
+      <div className="px-3 py-2 font-bold">{title}</div>
+      {children}
     </div>
   );
 }
 
-function RowBatter({ r }) {
-  const abv = String(r.team || "").toUpperCase();
+const th = "px-2 py-1 text-center font-semibold text-[11px]";
+const td = "px-2 py-1 text-center text-[12px]";
+
+function HeadRow({ cols }) {
   return (
-    <div className={rowBaseCls}>
-      <div className="col-span-2 flex items-center gap-2">
-        <img
-          src={teamLogo(abv)}
-          alt=""
-          className="w-4 h-4"
-          onError={(e) => (e.currentTarget.style.visibility = "hidden")}
-        />
-        <span className="truncate" title={`${r.player} (${r.pos})`}>
-          {r.player}
-        </span>
-      </div>
-      <div className="text-center tabular-nums">{fmtMoney(r.dkSal)}</div>
-      <div className="text-center">{abv}</div>
-      <div className="text-center">{String(r.opp || "")}</div>
-      <div className="text-center">{fmt1(r.vegas)}</div>
-      <div className="text-center">{time12(r.time)}</div>
-      <div className="text-center tabular-nums">{fmt1(r.dkProj)}</div>
-      <div className="text-center tabular-nums">{fmt1(r.dkVal)}</div>
-      <div className="text-center">{fmtPct(r.dkOwn)}</div>
-    </div>
+    <thead className="bg-gray-100 sticky top-0">
+      <tr>
+        {cols.map((c) => (
+          <th key={c} className={th}>
+            {c}
+          </th>
+        ))}
+      </tr>
+    </thead>
   );
 }
 
-function RowStack({ r }) {
-  const abv = String(r.team || "").toUpperCase();
+function TeamCell({ team }) {
+  const abv = String(team || "").toUpperCase();
   return (
-    <div className="grid grid-cols-10 gap-1 px-2 py-[2px] text-[11px] odd:bg-white even:bg-gray-50">
-      <div className="flex items-center gap-2">
-        <img
-          src={teamLogo(abv)}
-          alt=""
-          className="w-4 h-4"
-          onError={(e) => (e.currentTarget.style.visibility = "hidden")}
-        />
-        <span className="font-medium">{abv}</span>
-      </div>
-      <div className="text-center tabular-nums">{fmtMoney(r.dkSal)}</div>
-      <div className="text-center">{String(r.opp || "")}</div>
-      <div className="text-left truncate" title={r.oppPitcher || ""}>
-        {r.oppPitcher || ""}
-      </div>
-      <div className="text-center">{fmt1(r.vegas)}</div>
-      <div className="text-center">{time12(r.time)}</div>
-      <div className="text-center tabular-nums">{fmt1(r.dkProj)}</div>
-      <div className="text-center tabular-nums">{fmt1(r.dkVal)}</div>
-      <div className="text-center">{fmtPct(r.dkOwn)}</div>
+    <div className="flex items-center justify-center gap-1">
+      <img
+        src={teamLogo(abv)}
+        alt=""
+        className="w-4 h-4"
+        onError={(e) => (e.currentTarget.style.visibility = "hidden")}
+      />
+      <span className="font-medium">{abv}</span>
     </div>
   );
 }
@@ -261,12 +186,12 @@ export default function MlbCheatSheet() {
   const batters = useJson(BATTERS_URL);
   const stacks = useJson(STACKS_URL);
 
-  // Pitchers: accept any position that contains 'P' (SP/RP/P, etc.)
+  /* Build ranked lists */
   const pRows = useMemo(
     () =>
       (pitchers.rows || [])
         .map(adaptPitcher)
-        .filter((r) => r.player && (r.pos || "").includes("P"))
+        .filter((r) => r.player)
         .sort((a, b) => (b.dkProj ?? 0) - (a.dkProj ?? 0))
         .slice(0, 6),
     [pitchers.rows]
@@ -286,7 +211,6 @@ export default function MlbCheatSheet() {
       .sort((a, b) => (b.dkProj ?? 0) - (a.dkProj ?? 0))
       .slice(offset, offset + n);
 
-  // OF top 3 + next 3
   const ofTop = byPos("OF", 3, 0);
   const ofNext = byPos("OF", 3, 3);
 
@@ -296,7 +220,7 @@ export default function MlbCheatSheet() {
   const b3Top = byPos("3B", 3);
   const ssTop = byPos("SS", 3);
 
-  // Cash core: top pitcher + top 2 bats by value
+  // Cash Core: top P + two best value bats
   const cashP = pRows[0];
   const coreBats = [...bAll].sort((a, b) => (b.dkVal ?? 0) - (a.dkVal ?? 0)).slice(0, 2);
 
@@ -313,9 +237,29 @@ export default function MlbCheatSheet() {
   const loading = pitchers.loading || batters.loading || stacks.loading;
   const err = pitchers.err || batters.err || stacks.err;
 
+  const smallCols = ["Player", "Salary", "Team", "Matchup", "Vegas", "Time", "Proj", "Value"];
+  const smallRow = (r, showOwn = true) => (
+    <>
+      <td className={`${td} text-left`}>
+        <div className="flex items-center gap-2">
+          <TeamCell team={r.team} />
+          <div className="truncate">{r.player}</div>
+        </div>
+        {showOwn ? <div className="text-[11px] text-gray-500">{fmtPct1(r.dkOwn)}</div> : null}
+      </td>
+      <td className={`${td} tabular-nums`}>{fmtMoney0(r.dkSal)}</td>
+      <td className={td}>{String(r.team || "").toUpperCase()}</td>
+      <td className={td}>{String(r.opp || "")}</td>
+      <td className={td}>{fmt1(r.vegas)}</td>
+      <td className={td}>{time12(r.time)}</td>
+      <td className={`${td} tabular-nums`}>{fmt1(r.dkProj)}</td>
+      <td className={`${td} tabular-nums`}>{fmt1(r.dkVal)}</td>
+    </>
+  );
+
   return (
     <div className="px-4 md:px-6 py-5">
-      {/* Centered yellow banner */}
+      {/* Yellow merged header bar — centered */}
       <div className="w-full rounded-xl bg-yellow-300 text-black font-extrabold text-xl md:text-2xl px-4 py-2 mb-4 shadow-sm text-center">
         Cheat Sheet
       </div>
@@ -328,193 +272,154 @@ export default function MlbCheatSheet() {
         <div className="text-gray-600">Loading…</div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* LEFT */}
+          {/* LEFT COLUMN */}
           <div className="flex flex-col gap-4">
-            {/* Pitcher */}
-            <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-              <div className="px-3 py-2 font-bold text-[13px]">Pitcher</div>
-              <SectionHeader>
-                <div className="col-span-2">Player</div>
-                <div>Salary</div>
-                <div>Team</div>
-                <div>Matchup</div>
-                <div>Vegas</div>
-                <div>Time</div>
-                <div>Proj</div>
-                <div>Value</div>
-                <div>pOWN</div>
-              </SectionHeader>
-              <div>
-                {pRows.map((r, i) => (
-                  <RowPitcher key={`${r.player}-${i}`} r={r} />
-                ))}
-              </div>
-            </div>
+            <Block title="Pitcher">
+              <table className="w-full border-separate" style={{ borderSpacing: 0 }}>
+                <HeadRow cols={[...smallCols, ""] /* keep width like stacks by adding dummy */} />
+                <tbody>
+                  {pRows.map((r, i) => (
+                    <tr key={`${r.player}-${i}`} className="odd:bg-white even:bg-gray-50 align-middle">
+                      {smallRow(r)}
+                      <td className={td} /> {/* dummy for consistent width */}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Block>
 
-            {/* C */}
-            <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-              <div className="px-3 py-2 font-bold text-[13px]">C</div>
-              <SectionHeader>
-                <div className="col-span-2">Player</div>
-                <div>Salary</div>
-                <div>Team</div>
-                <div>Matchup</div>
-                <div>Vegas</div>
-                <div>Time</div>
-                <div>Proj</div>
-                <div>Value</div>
-                <div>pOWN</div>
-              </SectionHeader>
-              <div>{cTop.map((r, i) => <RowBatter key={`${r.player}-${i}`} r={r} />)}</div>
-            </div>
+            <Block title="C">
+              <table className="w-full border-separate" style={{ borderSpacing: 0 }}>
+                <HeadRow cols={smallCols} />
+                <tbody>
+                  {cTop.map((r, i) => (
+                    <tr key={`${r.player}-c-${i}`} className="odd:bg-white even:bg-gray-50">
+                      {smallRow(r)}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Block>
 
-            {/* 1B */}
-            <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-              <div className="px-3 py-2 font-bold text-[13px]">1B</div>
-              <SectionHeader>
-                <div className="col-span-2">Player</div>
-                <div>Salary</div>
-                <div>Team</div>
-                <div>Matchup</div>
-                <div>Vegas</div>
-                <div>Time</div>
-                <div>Proj</div>
-                <div>Value</div>
-                <div>pOWN</div>
-              </SectionHeader>
-              <div>{b1Top.map((r, i) => <RowBatter key={`${r.player}-${i}`} r={r} />)}</div>
-            </div>
+            <Block title="1B">
+              <table className="w-full border-separate" style={{ borderSpacing: 0 }}>
+                <HeadRow cols={smallCols} />
+                <tbody>
+                  {b1Top.map((r, i) => (
+                    <tr key={`${r.player}-1b-${i}`} className="odd:bg-white even:bg-gray-50">
+                      {smallRow(r)}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Block>
 
-            {/* 2B */}
-            <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-              <div className="px-3 py-2 font-bold text-[13px]">2B</div>
-              <SectionHeader>
-                <div className="col-span-2">Player</div>
-                <div>Salary</div>
-                <div>Team</div>
-                <div>Matchup</div>
-                <div>Vegas</div>
-                <div>Time</div>
-                <div>Proj</div>
-                <div>Value</div>
-                <div>pOWN</div>
-              </SectionHeader>
-              <div>{b2Top.map((r, i) => <RowBatter key={`${r.player}-${i}`} r={r} />)}</div>
-            </div>
+            <Block title="2B">
+              <table className="w-full border-separate" style={{ borderSpacing: 0 }}>
+                <HeadRow cols={smallCols} />
+                <tbody>
+                  {b2Top.map((r, i) => (
+                    <tr key={`${r.player}-2b-${i}`} className="odd:bg-white even:bg-gray-50">
+                      {smallRow(r)}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Block>
 
-            {/* 3B */}
-            <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-              <div className="px-3 py-2 font-bold text-[13px]">3B</div>
-              <SectionHeader>
-                <div className="col-span-2">Player</div>
-                <div>Salary</div>
-                <div>Team</div>
-                <div>Matchup</div>
-                <div>Vegas</div>
-                <div>Time</div>
-                <div>Proj</div>
-                <div>Value</div>
-                <div>pOWN</div>
-              </SectionHeader>
-              <div>{b3Top.map((r, i) => <RowBatter key={`${r.player}-${i}`} r={r} />)}</div>
-            </div>
+            <Block title="3B">
+              <table className="w-full border-separate" style={{ borderSpacing: 0 }}>
+                <HeadRow cols={smallCols} />
+                <tbody>
+                  {b3Top.map((r, i) => (
+                    <tr key={`${r.player}-3b-${i}`} className="odd:bg-white even:bg-gray-50">
+                      {smallRow(r)}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Block>
 
-            {/* SS */}
-            <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-              <div className="px-3 py-2 font-bold text-[13px]">SS</div>
-              <SectionHeader>
-                <div className="col-span-2">Player</div>
-                <div>Salary</div>
-                <div>Team</div>
-                <div>Matchup</div>
-                <div>Vegas</div>
-                <div>Time</div>
-                <div>Proj</div>
-                <div>Value</div>
-                <div>pOWN</div>
-              </SectionHeader>
-              <div>{ssTop.map((r, i) => <RowBatter key={`${r.player}-${i}`} r={r} />)}</div>
-            </div>
+            <Block title="SS">
+              <table className="w-full border-separate" style={{ borderSpacing: 0 }}>
+                <HeadRow cols={smallCols} />
+                <tbody>
+                  {ssTop.map((r, i) => (
+                    <tr key={`${r.player}-ss-${i}`} className="odd:bg-white even:bg-gray-50">
+                      {smallRow(r)}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Block>
           </div>
 
-          {/* RIGHT */}
+          {/* RIGHT COLUMN */}
           <div className="flex flex-col gap-4">
-            {/* OF block 1 */}
-            <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-              <div className="px-3 py-2 font-bold text-[13px]">OF</div>
-              <SectionHeader>
-                <div className="col-span-2">Player</div>
-                <div>Salary</div>
-                <div>Team</div>
-                <div>Matchup</div>
-                <div>Vegas</div>
-                <div>Time</div>
-                <div>Proj</div>
-                <div>Value</div>
-                <div>pOWN</div>
-              </SectionHeader>
-              <div>{ofTop.map((r, i) => <RowBatter key={`${r.player}-${i}`} r={r} />)}</div>
-            </div>
+            <Block title="OF">
+              <table className="w-full border-separate" style={{ borderSpacing: 0 }}>
+                <HeadRow cols={smallCols} />
+                <tbody>
+                  {ofTop.map((r, i) => (
+                    <tr key={`${r.player}-of1-${i}`} className="odd:bg-white even:bg-gray-50">
+                      {smallRow(r)}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Block>
 
-            {/* OF block 2 */}
-            <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-              <div className="px-3 py-2 font-bold text-[13px]">OF</div>
-              <SectionHeader>
-                <div className="col-span-2">Player</div>
-                <div>Salary</div>
-                <div>Team</div>
-                <div>Matchup</div>
-                <div>Vegas</div>
-                <div>Time</div>
-                <div>Proj</div>
-                <div>Value</div>
-                <div>pOWN</div>
-              </SectionHeader>
-              <div>{ofNext.map((r, i) => <RowBatter key={`${r.player}-${i}`} r={r} />)}</div>
-            </div>
+            <Block title="OF">
+              <table className="w-full border-separate" style={{ borderSpacing: 0 }}>
+                <HeadRow cols={smallCols} />
+                <tbody>
+                  {ofNext.map((r, i) => (
+                    <tr key={`${r.player}-of2-${i}`} className="odd:bg-white even:bg-gray-50">
+                      {smallRow(r)}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Block>
 
-            {/* Cash Core */}
-            <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-              <div className="px-3 py-2 font-bold text-[13px]">Cash Core</div>
-              <SectionHeader>
-                <div className="col-span-2">Player</div>
-                <div>Salary</div>
-                <div>Team</div>
-                <div>Matchup</div>
-                <div>Vegas</div>
-                <div>Time</div>
-                <div>Proj</div>
-                <div>Value</div>
-                <div>pOWN</div>
-              </SectionHeader>
-              <div>
-                {cashP ? <RowPitcher r={cashP} /> : null}
-                {coreBats.map((r, i) => (
-                  <RowBatter key={`${r.player}-core-${i}`} r={r} />
-                ))}
-              </div>
-            </div>
+            <Block title="Cash Core">
+              <table className="w-full border-separate" style={{ borderSpacing: 0 }}>
+                <HeadRow cols={smallCols} />
+                <tbody>
+                  {cashP ? (
+                    <tr className="odd:bg-white even:bg-gray-50">{smallRow(cashP)}</tr>
+                  ) : null}
+                  {coreBats.map((r, i) => (
+                    <tr key={`${r.player}-core-${i}`} className="odd:bg-white even:bg-gray-50">
+                      {smallRow(r)}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Block>
 
-            {/* Top Stacks */}
-            <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-              <div className="px-3 py-2 font-bold text-[13px]">Top Stacks</div>
-              <div className="bg-gray-100 text-[11px] font-semibold grid grid-cols-10 gap-1 px-2 py-1 rounded-t">
-                <div>Team</div>
-                <div>Salary</div>
-                <div>Opp</div>
-                <div>Opp Pitcher</div>
-                <div>Vegas</div>
-                <div>Time</div>
-                <div>Proj</div>
-                <div>Value</div>
-                <div>pOWN</div>
-              </div>
-              <div>
-                {sRows.map((r, i) => (
-                  <RowStack key={`${r.team}-${i}`} r={r} />
-                ))}
-              </div>
-            </div>
+            <Block title="Top Stacks">
+              <table className="w-full border-separate" style={{ borderSpacing: 0 }}>
+                <HeadRow cols={["Team", "Salary", "Opp", "Opp Pitcher", "Vegas", "Time", "Proj", "Value", "pOWN"]} />
+                <tbody>
+                  {sRows.map((r, i) => (
+                    <tr key={`${r.team}-${i}`} className="odd:bg-white even:bg-gray-50">
+                      <td className={td}>
+                        <TeamCell team={r.team} />
+                      </td>
+                      <td className={`${td} tabular-nums`}>{fmtMoney0(r.dkSal)}</td>
+                      <td className={td}>{String(r.opp || "")}</td>
+                      <td className={`${td} text-left`}>{r.oppPitcher || ""}</td>
+                      <td className={td}>{fmt1(r.vegas)}</td>
+                      <td className={td}>{time12(r.time)}</td>
+                      <td className={`${td} tabular-nums`}>{fmt1(r.dkProj)}</td>
+                      <td className={`${td} tabular-nums`}>{fmt1(r.dkVal)}</td>
+                      <td className={td}>{fmtPct1(r.dkOwn)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Block>
           </div>
         </div>
       )}
