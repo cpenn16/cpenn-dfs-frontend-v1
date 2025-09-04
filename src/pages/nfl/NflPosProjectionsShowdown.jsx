@@ -182,7 +182,7 @@ export default function NflPosProjectionsShowdown({ pos="QB" }){
     const pa_att   = getVal(k, "pa att","pass attempts","pa attempts","pa_att");
     let   pa_comp  = getVal(k, "pa comp","pass comp","pa_comp");
     const pa_pct   = getVal(k, "pa_comp_pct","comp%","completion%","pass comp%","pa comp%");
-    const pa_td    = getVal(k, "pa td","pa_td");
+    const pa_td    = getVal(k, "pa td","pa_td","pass td");
     const int      = getVal(k, "int");
 
     // derive Pa Comp if missing (common in some feeds)
