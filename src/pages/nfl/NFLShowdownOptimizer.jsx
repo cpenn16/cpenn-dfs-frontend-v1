@@ -1,10 +1,7 @@
 // src/pages/nfl/NFLShowdownOptimizer.jsx
-// FULL DROP-IN — v3.4
-// New:
-// - IF-side team condition: "on team" picker. Rule fires only when the IF-slot
-//   player is on that specific team. Sent as if_team_exact to the solver.
-// - Retains "from team" (destination) control incl. exact team.
-// - Stable sorting (no jumpiness) + existing fixes preserved.
+// FULL DROP-IN — v3.5
+// Adds per-slot (CPT/MVP vs FLEX) Min%/Max% exposures via min_pct_tag/max_pct_tag.
+// Keeps IF-side team condition and stable sorting from v3.4.
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API_BASE from "../../utils/api";
@@ -168,8 +165,10 @@ export default function NFLShowdownOptimizer() {
   const [locks, setLocks] = useState(() => new Set());
   const [excls, setExcls] = useState(() => new Set());
   const [boost, setBoost] = useState(() => ({}));
-  const [minPct, setMinPct] = useState(() => ({}));
-  const [maxPct, setMaxPct] = useState(() => ({}));
+
+  // NEW: per-slot exposure maps, keyed by "Player::CPT" or "Player::FLEX"
+  const [minPctTag, setMinPctTag] = useStickyState(`sd.${site}.minPctTag`, {});
+  const [maxPctTag, setMaxPctTag] = useStickyState(`sd.${site}.maxPctTag`, {});
 
   // team override per slate team
   const [teamMaxPct, setTeamMaxPct] = useStickyState(`sd.${site}.teamMax`, {});
@@ -205,7 +204,8 @@ export default function NFLShowdownOptimizer() {
 
   useEffect(() => {
     setLineups([]); setProgressActual(0); setProgressUI(0); setIsOptimizing(false);
-    setLocks(new Set()); setExcls(new Set()); setBoost({}); setMinPct({}); setMaxPct({});
+    setLocks(new Set()); setExcls(new Set()); setBoost({});
+    setMinPctTag({}); setMaxPctTag({});
   }, [site]);
 
   /* ------------------------------ rows ------------------------------ */
@@ -263,7 +263,7 @@ export default function NFLShowdownOptimizer() {
   }, [rows]);
 
   /* -------------------- table + search + sorting ------------------- */
-  const [sort, setSortState] = useState({ col: "proj", dir: "desc" }); // stable sorting state
+  const [sort, setSortState] = useState({ col: "proj", dir: "desc" });
 
   const usagePct = useMemo(() => {
     if (!lineups.length) return {}; const m = new Map(); for (const L of lineups) { const [cap, ...flex] = L.players; m.set(cap + "::CPT", (m.get(cap + "::CPT") || 0) + 1); for (const n of flex) m.set(n + "::FLEX", (m.get(n + "::FLEX") || 0) + 1); }
@@ -278,7 +278,6 @@ export default function NFLShowdownOptimizer() {
     return res;
   }, [rows]);
 
-  // Filter (by tag + search)
   const filteredRows = useMemo(() => {
     const needle = q.trim().toLowerCase();
     const okTag = (t) => tagFilter === "ALL" ? true : (t === "FLEX" ? "FLEX" : cfg.capTag) === tagFilter;
@@ -295,10 +294,8 @@ export default function NFLShowdownOptimizer() {
     );
   }, [expandedRows, q, tagFilter, cfg.capTag]);
 
-  // Comparator (stable)
   const cmp = useMemo(() => {
-    const { col, dir } = sort;
-    const mult = dir === "asc" ? 1 : -1;
+    const { col, dir } = sort; const mult = dir === "asc" ? 1 : -1;
     return (a, b) => {
       if (["tag","pos","team","opp"].includes(col)) {
         const va = (col === "tag" ? (a.tag === "FLEX" ? "FLEX" : cfg.capTag) :
@@ -323,10 +320,7 @@ export default function NFLShowdownOptimizer() {
   const sortedRows = useMemo(() => [...filteredRows].sort(cmp), [filteredRows, cmp]);
 
   const sortable = new Set(["tag","pos","team","opp","salary","proj","floor","ceil","pown","opt","usage"]);
-  const setSort = (col) => {
-    if (!sortable.has(col)) return;
-    setSortState((prev) => ({ col, dir: prev.col === col ? (prev.dir === "asc" ? "desc" : "asc") : "desc" }));
-  };
+  const setSort = (col) => { if (!sortable.has(col)) return; setSortState((prev) => ({ col, dir: prev.col === col ? (prev.dir === "asc" ? "desc" : "asc") : "desc" })); };
   const sortArrow = (key) => sort.col === key ? (sort.dir === "asc" ? " ▲" : " ▼") : "";
 
   /* ------------------------------ actions ---------------------------- */
@@ -334,7 +328,10 @@ export default function NFLShowdownOptimizer() {
   const toggleExcl = (name, tag) => setExcls((s) => { const k = tagKey(name, tag); const n = new Set(s); n.has(k) ? n.delete(k) : n.add(k); return n; });
   const bumpBoost = (name, step) => setBoost((m) => ({ ...m, [name]: clamp((m[name] || 0) + step, -6, 6) }));
 
-  const resetConstraints = () => { setLocks(new Set()); setExcls(new Set()); setBoost({}); setMinPct({}); setMaxPct({}); setRules([]); setTeamMaxPct({}); };
+  const resetConstraints = () => {
+    setLocks(new Set()); setExcls(new Set()); setBoost({});
+    setMinPctTag({}); setMaxPctTag({}); setRules([]); setTeamMaxPct({});
+  };
 
   /* --------------------------- optimize (SSE) ------------------------ */
   async function optimize() {
@@ -353,7 +350,7 @@ export default function NFLShowdownOptimizer() {
     const apiRules = (rules || []).map((r) => ({
       if_slot: r.if_slot || (cfg.capTag),
       if_pos: r.if_pos || ["QB"],
-      if_team_exact: r.if_team ? r.if_team : null,          // NEW: IF-side team condition
+      if_team_exact: r.if_team ? r.if_team : null, // IF-side team condition
       then_at_least: Math.max(0, Number(r.then_at_least) || 0),
       from_pos: r.from_pos || ["WR","TE"],
       team_scope: r.team_scope || "any",
@@ -367,6 +364,14 @@ export default function NFLShowdownOptimizer() {
       if (String(teamMaxPct[tm] ?? "").trim() !== "") teamMax[tm] = v;
     }
 
+    // NEW: per-slot min/max exposure maps
+    const min_pct_tag = Object.fromEntries(
+      Object.entries(minPctTag).map(([k,v]) => [k, clamp(Number(v) || 0, 0, 100)])
+    );
+    const max_pct_tag = Object.fromEntries(
+      Object.entries(maxPctTag).map(([k,v]) => [k, clamp(Number(v) || 100, 0, 100)])
+    );
+
     const payload = {
       site, slots, players,
       n: Math.max(1, Number(numLineups) || 1),
@@ -378,8 +383,12 @@ export default function NFLShowdownOptimizer() {
       randomness: clamp(Number(randomness) || 0, 0, 100),
       global_max_pct: clamp(Number(globalMax) || 100, 0, 100),
       team_max_pct: teamMax,
-      min_pct: Object.fromEntries(Object.entries(minPct).map(([k, v]) => [k, clamp(Number(v) || 0, 0, 100)])),
-      max_pct: Object.fromEntries(Object.entries(maxPct).map(([k, v]) => [k, clamp(Number(v) || 100, 0, 100)])),
+      // Leave legacy blank so they don't conflict; solver should use *_tag
+      min_pct: {},
+      max_pct: {},
+      // NEW fields:
+      min_pct_tag,
+      max_pct_tag,
       time_limit_ms: 1500,
       max_overlap: clamp(Number(maxOverlap) || 0, 0, 5),
       lineup_pown_max: String(lineupPownCap).trim() === "" ? null : clamp(Number(lineupPownCap) || 0, 0, 100),
@@ -497,24 +506,19 @@ export default function NFLShowdownOptimizer() {
           <button
             className="px-2 py-1 text-sm rounded-md border hover:bg-gray-50"
             onClick={() => setRules((R) => [...R, {
-              if_slot: cfg.capTag, if_pos:["QB"], if_team:"", // NEW: IF-side team unset
+              if_slot: cfg.capTag, if_pos:["QB"], if_team:"",
               then_at_least:1, from_pos:["WR","TE"], team_scope:"same_team", team_exact:""
             }])}
-          >
-            + Add Rule
-          </button>
+          >+ Add Rule</button>
         </div>
         {rules.length === 0 ? (
           <div className="text-xs text-gray-500">No rules yet.</div>
         ) : (
           <div className="space-y-2">
             {rules.map((r, i) => {
-              // destination team select (same/opp/any/exact)
               const destSelectValue = (r.team_scope === "exact_team" && r.team_exact)
                 ? `exact:${r.team_exact}` : (r.team_scope || "any");
-
-              const ifTeamValue = r.if_team || ""; // "" = any team
-
+              const ifTeamValue = r.if_team || "";
               return (
                 <div key={i} className="flex flex-wrap items-center gap-2">
                   <span className="text-sm">IF</span>
@@ -526,7 +530,6 @@ export default function NFLShowdownOptimizer() {
                       >{slot}</button>
                     ))}
                   </div>
-
                   <span className="text-sm">is</span>
                   {["QB","RB","WR","TE","DST","K"].map((p) => (
                     <button key={p}
@@ -534,14 +537,11 @@ export default function NFLShowdownOptimizer() {
                       onClick={() => setRules((R) => { const copy=[...R]; const cur=new Set(copy[i].if_pos||[]); cur.has(p)?cur.delete(p):cur.add(p); copy[i]={...copy[i], if_pos:[...cur]}; return copy; })}
                     >{p}</button>
                   ))}
-
-                  {/* NEW: IF-side team condition */}
                   <span className="text-sm">on team</span>
                   <select
                     className="border rounded-md px-2 py-1 text-sm"
                     value={ifTeamValue}
                     onChange={(e)=>setRules((R)=>{ const c=[...R]; c[i]={...c[i], if_team:e.target.value}; return c; })}
-                    title="Only apply this rule when the IF player is on the selected team"
                   >
                     <option value="">any team</option>
                     {slateTeams.map((abbr)=> {
@@ -549,7 +549,6 @@ export default function NFLShowdownOptimizer() {
                       return <option key={abbr} value={abbr}>{label}</option>;
                     })}
                   </select>
-
                   <span className="text-sm">THEN require at least</span>
                   <input className="w-14 border rounded-md px-2 py-1 text-sm" value={r.then_at_least ?? 1}
                     onChange={(e) => setRules((R)=>{const c=[...R]; c[i]={...c[i], then_at_least:e.target.value}; return c;})}
@@ -561,8 +560,6 @@ export default function NFLShowdownOptimizer() {
                       onClick={() => setRules((R) => { const copy=[...R]; const cur=new Set(copy[i].from_pos||[]); cur.has(p)?cur.delete(p):cur.add(p); copy[i]={...copy[i], from_pos:[...cur]}; return copy; })}
                     >{p}</button>
                   ))}
-
-                  {/* Destination team scope (same/opp/any/exact) */}
                   <select
                     className="border rounded-md px-2 py-1 text-sm"
                     value={destSelectValue}
@@ -588,7 +585,6 @@ export default function NFLShowdownOptimizer() {
                       return <option key={abbr} value={`exact:${abbr}`}>{label}</option>;
                     })}
                   </select>
-
                   <button className="ml-auto px-2 py-1 text-sm rounded-md border hover:bg-gray-50" onClick={()=>setRules((R)=>R.filter((_,j)=>j!==i))}>Delete</button>
                 </div>
               );
@@ -635,8 +631,9 @@ export default function NFLShowdownOptimizer() {
               {!loading && !err && sortedRows.map((r) => {
                 const teamTitle = `${NFL_TEAMS[r.team]?.city ?? r.team} ${NFL_TEAMS[r.team]?.nickname ?? ""}`.trim();
                 const oppTitle  = `${NFL_TEAMS[r.opp]?.city ?? r.opp} ${NFL_TEAMS[r.opp]?.nickname ?? ""}`.trim();
+                const key = r.key; // Player::CPT or Player::FLEX
                 return (
-                  <tr key={r.key} className="odd:bg-white even:bg-gray-50 hover:bg-blue-50/60 transition-colors">
+                  <tr key={key} className="odd:bg-white even:bg-gray-50 hover:bg-blue-50/60 transition-colors">
                     <td className={cell}><input type="checkbox" checked={locks.has(tagKey(r.name, r.tag))} onChange={() => toggleLock(r.name, r.tag)} /></td>
                     <td className={cell}><input type="checkbox" checked={excls.has(tagKey(r.name, r.tag))} onChange={() => toggleExcl(r.name, r.tag)} /></td>
                     <td className={cell}>
@@ -657,20 +654,37 @@ export default function NFLShowdownOptimizer() {
                     <td className={`${cell} tabular-nums`}>{fmt1(r.ceilDisplay)}</td>
                     <td className={`${cell} tabular-nums`}>{fmt1(r.pownDisplay * 100)}</td>
                     <td className={`${cell} tabular-nums`}>{fmt1(r.optDisplay * 100)}</td>
+
+                    {/* NEW: per-slot Min/Max wired to key = Player::CPT|FLEX */}
                     <td className={cell}>
                       <div className="inline-flex items-center gap-1">
-                        <button className="px-1.5 py-0.5 border rounded" onClick={() => setMinPct((m) => ({ ...m, [r.name]: clamp((num(m[r.name]) || 0) - 5, 0, 100) }))} title="-5%">–</button>
-                        <input className="w-12 border rounded px-1.5 py-0.5 text-center" value={String(minPct[r.name] ?? "")} onChange={(e) => setMinPct((m) => ({ ...m, [r.name]: e.target.value }))} placeholder="—" />
-                        <button className="px-1.5 py-0.5 border rounded" onClick={() => setMinPct((m) => ({ ...m, [r.name]: clamp((num(m[r.name]) || 0) + 5, 0, 100) }))} title="+5%">+</button>
+                        <button className="px-1.5 py-0.5 border rounded"
+                          onClick={() => setMinPctTag((m) => ({ ...m, [key]: clamp((num(m[key]) || 0) - 5, 0, 100) }))}
+                          title="-5%">–</button>
+                        <input className="w-12 border rounded px-1.5 py-0.5 text-center"
+                          value={String(minPctTag[key] ?? "")}
+                          onChange={(e) => setMinPctTag((m) => ({ ...m, [key]: e.target.value }))}
+                          placeholder="—" />
+                        <button className="px-1.5 py-0.5 border rounded"
+                          onClick={() => setMinPctTag((m) => ({ ...m, [key]: clamp((num(m[key]) || 0) + 5, 0, 100) }))}
+                          title="+5%">+</button>
                       </div>
                     </td>
                     <td className={cell}>
                       <div className="inline-flex items-center gap-1">
-                        <button className="px-1.5 py-0.5 border rounded" onClick={() => setMaxPct((m) => ({ ...m, [r.name]: clamp((num(m[r.name]) || 100) - 5, 0, 100) }))} title="-5%">–</button>
-                        <input className="w-12 border rounded px-1.5 py-0.5 text-center" value={String(maxPct[r.name] ?? "")} onChange={(e) => setMaxPct((m) => ({ ...m, [r.name]: e.target.value }))} placeholder="—" />
-                        <button className="px-1.5 py-0.5 border rounded" onClick={() => setMaxPct((m) => ({ ...m, [r.name]: clamp((num(m[r.name]) || 100) + 5, 0, 100) }))} title="+5%">+</button>
+                        <button className="px-1.5 py-0.5 border rounded"
+                          onClick={() => setMaxPctTag((m) => ({ ...m, [key]: clamp((num(m[key]) || 100) - 5, 0, 100) }))}
+                          title="-5%">–</button>
+                        <input className="w-12 border rounded px-1.5 py-0.5 text-center"
+                          value={String(maxPctTag[key] ?? "")}
+                          onChange={(e) => setMaxPctTag((m) => ({ ...m, [key]: e.target.value }))}
+                          placeholder="—" />
+                        <button className="px-1.5 py-0.5 border rounded"
+                          onClick={() => setMaxPctTag((m) => ({ ...m, [key]: clamp((num(m[key]) || 100) + 5, 0, 100) }))}
+                          title="+5%">+</button>
                       </div>
                     </td>
+
                     <td className={`${cell} tabular-nums`}>{usagePct[r.key] != null ? fmt1(usagePct[r.key]) : "—"}</td>
                   </tr>
                 );
@@ -794,7 +808,6 @@ function downloadSiteLineupsCSV({ lineups, site, rows, siteIds, cfg, fname = "nf
     } else {
       const pos = normPos(posOrSlot); // map D/DEF → DST
       fdAny.set(keyFD(nameFromSite, team, pos), { id: baseId, nameFromSite, team, pos });
-      // DST team aliases
       const meta = NFL_TEAMS[team];
       if (pos === "DST" && meta) {
         fdAny.set(keyFD(`${meta.city} ${meta.nickname}`, team, pos), { id: baseId, nameFromSite, team, pos });
