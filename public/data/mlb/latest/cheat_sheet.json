@@ -47,51 +47,40 @@
   ],
   "C": [
     {
+      "Player": "Carter Jensen",
+      "Salary": "2000",
+      "Team": "KC",
+      "Opp": "LAA",
+      "Vegas": "4.6",
+      "Time": "7:40 PM",
+      "Proj": "5.5",
+      "Value": "2.74",
+      "pOWN": "12.5%"
+    },
+    {
       "Player": "Bo Naylor",
       "Salary": "2600",
       "Team": "CLE",
       "Opp": "TB",
       "Vegas": "4.2",
       "Time": "7:35 PM",
-      "Proj": "6.6",
-      "Value": "2.53",
-      "pOWN": "14.4%"
+      "Proj": "6.3",
+      "Value": "2.42",
+      "pOWN": "12.2%"
     },
     {
-      "Player": "Hunter Feduccia",
-      "Salary": "2400",
-      "Team": "TB",
-      "Opp": "CLE",
-      "Vegas": "4.3",
-      "Time": "7:35 PM",
-      "Proj": "5.9",
-      "Value": "2.44",
-      "pOWN": "11.4%"
-    },
-    {
-      "Player": "Ryan Jeffers",
-      "Salary": "3600",
-      "Team": "MIN",
-      "Opp": "CWS",
-      "Vegas": "4.3",
+      "Player": "Edgar Quero",
+      "Salary": "3100",
+      "Team": "CWS",
+      "Opp": "MIN",
+      "Vegas": "4.2",
       "Time": "7:40 PM",
-      "Proj": "7.7",
-      "Value": "2.14",
-      "pOWN": "12.1%"
+      "Proj": "6.8",
+      "Value": "2.18",
+      "pOWN": "10.5%"
     }
   ],
   "1B": [
-    {
-      "Player": "Bob Seymour",
-      "Salary": "2900",
-      "Team": "TB",
-      "Opp": "CLE",
-      "Vegas": "4.3",
-      "Time": "7:35 PM",
-      "Proj": "7.8",
-      "Value": "2.69",
-      "pOWN": "16.6%"
-    },
     {
       "Player": "Yandy Diaz",
       "Salary": "4900",
@@ -100,8 +89,19 @@
       "Vegas": "4.3",
       "Time": "7:35 PM",
       "Proj": "10.0",
+      "Value": "2.05",
+      "pOWN": "18.4%"
+    },
+    {
+      "Player": "Vinnie Pasquantino",
+      "Salary": "4200",
+      "Team": "KC",
+      "Opp": "LAA",
+      "Vegas": "4.6",
+      "Time": "7:40 PM",
+      "Proj": "8.6",
       "Value": "2.04",
-      "pOWN": "15.9%"
+      "pOWN": "15.8%"
     },
     {
       "Player": "C.J. Kayfus",
@@ -110,12 +110,23 @@
       "Opp": "TB",
       "Vegas": "4.2",
       "Time": "7:35 PM",
-      "Proj": "7.1",
-      "Value": "2.28",
-      "pOWN": "10.1%"
+      "Proj": "6.8",
+      "Value": "2.20",
+      "pOWN": "10.8%"
     }
   ],
   "2B": [
+    {
+      "Player": "Michael Massey",
+      "Salary": "2100",
+      "Team": "KC",
+      "Opp": "LAA",
+      "Vegas": "4.6",
+      "Time": "7:40 PM",
+      "Proj": "5.4",
+      "Value": "2.57",
+      "pOWN": "9.2%"
+    },
     {
       "Player": "Jazz Chisholm Jr.",
       "Salary": "5200",
@@ -125,29 +136,18 @@
       "Time": "7:40 PM",
       "Proj": "9.6",
       "Value": "1.85",
-      "pOWN": "13.1%"
+      "pOWN": "9.5%"
     },
     {
-      "Player": "Michael Massey",
-      "Salary": "2100",
-      "Team": "KC",
-      "Opp": "LAA",
-      "Vegas": "4.6",
+      "Player": "Luis Rengifo",
+      "Salary": "3000",
+      "Team": "LAA",
+      "Opp": "KC",
+      "Vegas": "4.4",
       "Time": "7:40 PM",
-      "Proj": "5.1",
-      "Value": "2.43",
-      "pOWN": "8.6%"
-    },
-    {
-      "Player": "Luke Keaschall",
-      "Salary": "4800",
-      "Team": "MIN",
-      "Opp": "CWS",
-      "Vegas": "4.3",
-      "Time": "7:40 PM",
-      "Proj": "9.1",
-      "Value": "1.89",
-      "pOWN": "13.1%"
+      "Proj": "6.7",
+      "Value": "2.23",
+      "pOWN": "9.6%"
     }
   ],
   "3B": [
@@ -158,31 +158,31 @@
       "Opp": "CWS",
       "Vegas": "4.3",
       "Time": "7:40 PM",
-      "Proj": "6.5",
-      "Value": "2.04",
-      "pOWN": "12.0%"
+      "Proj": "7.7",
+      "Value": "2.40",
+      "pOWN": "18.5%"
     },
     {
-      "Player": "Cam Devanney",
-      "Salary": "2000",
-      "Team": "PIT",
-      "Opp": "LAD",
-      "Vegas": "3.5",
-      "Time": "6:40 PM",
-      "Proj": "4.5",
-      "Value": "2.26",
-      "pOWN": "7.6%"
+      "Player": "Junior Caminero",
+      "Salary": "6000",
+      "Team": "TB",
+      "Opp": "CLE",
+      "Vegas": "4.3",
+      "Time": "7:35 PM",
+      "Proj": "10.3",
+      "Value": "1.72",
+      "pOWN": "18.5%"
     },
     {
-      "Player": "Maikel Garcia",
-      "Salary": "4600",
-      "Team": "KC",
-      "Opp": "LAA",
-      "Vegas": "4.6",
+      "Player": "Luis Rengifo",
+      "Salary": "3000",
+      "Team": "LAA",
+      "Opp": "KC",
+      "Vegas": "4.4",
       "Time": "7:40 PM",
-      "Proj": "8.0",
-      "Value": "1.73",
-      "pOWN": "15.9%"
+      "Proj": "6.7",
+      "Value": "2.23",
+      "pOWN": "9.6%"
     }
   ],
   "SS": [
@@ -193,9 +193,9 @@
       "Opp": "KC",
       "Vegas": "4.4",
       "Time": "7:40 PM",
-      "Proj": "9.5",
-      "Value": "2.17",
-      "pOWN": "23.9%"
+      "Proj": "9.7",
+      "Value": "2.20",
+      "pOWN": "27.5%"
     },
     {
       "Player": "Bobby Witt Jr.",
@@ -204,9 +204,9 @@
       "Opp": "LAA",
       "Vegas": "4.6",
       "Time": "7:40 PM",
-      "Proj": "10.5",
-      "Value": "1.88",
-      "pOWN": "21.3%"
+      "Proj": "10.7",
+      "Value": "1.91",
+      "pOWN": "24.8%"
     },
     {
       "Player": "Colson Montgomery",
@@ -216,8 +216,8 @@
       "Vegas": "4.2",
       "Time": "7:40 PM",
       "Proj": "8.1",
-      "Value": "1.98",
-      "pOWN": "13.8%"
+      "Value": "1.97",
+      "pOWN": "14.7%"
     }
   ],
   "OF": [
@@ -228,9 +228,9 @@
       "Opp": "HOU",
       "Vegas": "4.3",
       "Time": "7:40 PM",
-      "Proj": "14.2",
-      "Value": "2.26",
-      "pOWN": "38.1%"
+      "Proj": "14.3",
+      "Value": "2.27",
+      "pOWN": "44.6%"
     },
     {
       "Player": "Jo Adell",
@@ -239,9 +239,9 @@
       "Opp": "KC",
       "Vegas": "4.4",
       "Time": "7:40 PM",
-      "Proj": "9.4",
-      "Value": "2.47",
-      "pOWN": "22.2%"
+      "Proj": "9.7",
+      "Value": "2.54",
+      "pOWN": "26.3%"
     },
     {
       "Player": "Trent Grisham",
@@ -252,7 +252,7 @@
       "Time": "7:40 PM",
       "Proj": "10.0",
       "Value": "2.33",
-      "pOWN": "21.4%"
+      "pOWN": "22.7%"
     },
     {
       "Player": "Chandler Simpson",
@@ -261,9 +261,9 @@
       "Opp": "CLE",
       "Vegas": "4.3",
       "Time": "7:35 PM",
-      "Proj": "10.1",
-      "Value": "2.19",
-      "pOWN": "19.1%"
+      "Proj": "10.3",
+      "Value": "2.24",
+      "pOWN": "22.3%"
     },
     {
       "Player": "Mike Yastrzemski",
@@ -272,20 +272,9 @@
       "Opp": "LAA",
       "Vegas": "4.6",
       "Time": "7:40 PM",
-      "Proj": "8.7",
-      "Value": "2.34",
-      "pOWN": "18.1%"
-    },
-    {
-      "Player": "Trevor Larnach",
-      "Salary": "3700",
-      "Team": "MIN",
-      "Opp": "CWS",
-      "Vegas": "4.3",
-      "Time": "7:40 PM",
-      "Proj": "8.3",
-      "Value": "2.25",
-      "pOWN": "14.0%"
+      "Proj": "8.6",
+      "Value": "2.33",
+      "pOWN": "18.8%"
     },
     {
       "Player": "Matt Wallner",
@@ -295,19 +284,30 @@
       "Vegas": "4.3",
       "Time": "7:40 PM",
       "Proj": "8.4",
-      "Value": "2.21",
-      "pOWN": "13.8%"
+      "Value": "2.22",
+      "pOWN": "12.6%"
     },
     {
-      "Player": "Byron Buxton",
-      "Salary": "5800",
+      "Player": "Trevor Larnach",
+      "Salary": "3700",
       "Team": "MIN",
       "Opp": "CWS",
       "Vegas": "4.3",
       "Time": "7:40 PM",
-      "Proj": "10.8",
-      "Value": "1.87",
-      "pOWN": "16.0%"
+      "Proj": "8.1",
+      "Value": "2.19",
+      "pOWN": "13.5%"
+    },
+    {
+      "Player": "Yordan Alvarez",
+      "Salary": "4500",
+      "Team": "HOU",
+      "Opp": "NYY",
+      "Vegas": "4.2",
+      "Time": "7:40 PM",
+      "Proj": "9.1",
+      "Value": "2.02",
+      "pOWN": "13.7%"
     },
     {
       "Player": "Mike Trout",
@@ -317,8 +317,8 @@
       "Vegas": "4.4",
       "Time": "7:40 PM",
       "Proj": "8.5",
-      "Value": "2.13",
-      "pOWN": "13.7%"
+      "Value": "2.11",
+      "pOWN": "14.1%"
     }
   ],
   "Cash Core": [
@@ -340,9 +340,9 @@
       "Opp": "HOU",
       "Vegas": "4.3",
       "Time": "7:40 PM",
-      "Proj": "14.2",
-      "Value": "2.26",
-      "pOWN": "38.1%"
+      "Proj": "14.3",
+      "Value": "2.27",
+      "pOWN": "44.6%"
     },
     {
       "Player": "Zach Neto",
@@ -351,9 +351,9 @@
       "Opp": "KC",
       "Vegas": "4.4",
       "Time": "7:40 PM",
-      "Proj": "9.5",
-      "Value": "2.17",
-      "pOWN": "23.9%"
+      "Proj": "9.7",
+      "Value": "2.20",
+      "pOWN": "27.5%"
     }
   ],
   "Top Stacks": [
@@ -364,42 +364,42 @@
       "Opp Pitcher": "Cristian Javier",
       "Vegas": "4.3",
       "Time": "7:40 PM",
-      "Proj": "77.53",
-      "Value": "1.88",
-      "pOWN": "12.8%"
+      "Proj": "76.91",
+      "Value": "1.86",
+      "pOWN": "13.1%"
     },
     {
       "Team": "TB",
-      "Salary": "4288.9",
+      "Salary": "4255.6",
       "Opp": "CLE",
       "Opp Pitcher": "Logan Allen",
       "Vegas": "4.3",
       "Time": "7:35 PM",
-      "Proj": "72.32",
-      "Value": "1.87",
-      "pOWN": "11.3%"
+      "Proj": "69.90",
+      "Value": "1.83",
+      "pOWN": "10.7%"
     },
     {
       "Team": "MIN",
-      "Salary": "3744.4",
+      "Salary": "3355.6",
       "Opp": "CWS",
       "Opp Pitcher": "Jonathan Cannon",
       "Vegas": "4.3",
       "Time": "7:40 PM",
-      "Proj": "67.25",
-      "Value": "2.00",
-      "pOWN": "10.5%"
+      "Proj": "62.16",
+      "Value": "2.06",
+      "pOWN": "9.8%"
     },
     {
       "Team": "KC",
-      "Salary": "3577.8",
+      "Salary": "3544.4",
       "Opp": "LAA",
       "Opp Pitcher": "Kyle Hendricks",
       "Vegas": "4.6",
       "Time": "7:40 PM",
-      "Proj": "64.29",
-      "Value": "2.00",
-      "pOWN": "11.3%"
+      "Proj": "65.11",
+      "Value": "2.04",
+      "pOWN": "12.4%"
     },
     {
       "Team": "HOU",
@@ -408,20 +408,20 @@
       "Opp Pitcher": "Carlos Rodon",
       "Vegas": "4.2",
       "Time": "7:40 PM",
-      "Proj": "63.30",
-      "Value": "1.85",
+      "Proj": "63.46",
+      "Value": "1.86",
       "pOWN": "8.0%"
     },
     {
       "Team": "LAA",
-      "Salary": "3433.3",
+      "Salary": "3288.9",
       "Opp": "KC",
       "Opp Pitcher": "Noah Cameron",
       "Vegas": "4.4",
       "Time": "7:40 PM",
-      "Proj": "61.57",
-      "Value": "1.99",
-      "pOWN": "10.8%"
+      "Proj": "61.59",
+      "Value": "2.08",
+      "pOWN": "11.7%"
     }
   ]
 }
