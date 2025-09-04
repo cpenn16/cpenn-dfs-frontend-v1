@@ -25,7 +25,6 @@ const pct = (v) => {
 const normTeam = (s) => (s || "").toUpperCase().trim();
 
 /* ------------------------------ data ------------------------------- */
-// Adjust these to your MLB export paths
 const SOURCE = "/data/mlb/latest/projections.json";
 const SITE_IDS_SOURCE = "/data/mlb/latest/site_ids.json";
 
@@ -167,10 +166,10 @@ async function solveStreamMLB(payload, onItem, onDone) {
     const { done, value } = await reader.read();
     if (done) break;
     buf += decoder.decode(value, { stream: true });
-    const parts = buf.split("\n\n");
+    const parts = buf.split("\\n\\n");
     buf = parts.pop() ?? "";
     for (const chunk of parts) {
-      const line = chunk.split("\n").find((l) => l.startsWith("data: "));
+      const line = chunk.split("\\n").find((l) => l.startsWith("data: "));
       if (!line) continue;
       try {
         const evt = JSON.parse(line.slice(6));
@@ -183,7 +182,7 @@ async function solveStreamMLB(payload, onItem, onDone) {
 
 /* ---------------- CSV + ID helpers (DK/FD) ------------------------- */
 function downloadCSV(rows, header, fname) {
-  const blob = new Blob([header + "\n" + rows.join("\n")], { type:"text/csv;charset=utf-8;" });
+  const blob = new Blob([header + "\\n" + rows.join("\\n")], { type:"text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url; a.download = fname; a.click();
@@ -283,7 +282,7 @@ export default function MLBOptimizer() {
 
   // filters
   const [posFilter, setPosFilter] = useState("ALL");
-  const [selectedTeams, setSelectedTeams] = useState(() => new Set());
+  const [selectedGames, setSelectedGames] = useState(() => new Set());
   const [q, setQ] = useState("");
 
   // exposure pane pos filter
@@ -373,9 +372,10 @@ export default function MLBOptimizer() {
     return mapped.filter((r) => r.name && r.eligible.length);
   }, [data, cfg]);
 
-  const allTeams = useMemo(() => {
+  /* games derived from rows */
+  const allGames = useMemo(() => {
     const s = new Set();
-    for (const r of rows) { if (r.team) s.add(r.team); if (r.opp) s.add(r.opp); }
+    for (const r of rows) if (r.team && r.opp) s.add(`${r.team} @ ${r.opp}`);
     return [...s].sort();
   }, [rows]);
 
@@ -412,15 +412,15 @@ export default function MLBOptimizer() {
       r.opp.toLowerCase().includes(needle) ||
       r.eligible.join("/").toLowerCase().includes(needle) ||
       String(r.salary).includes(needle);
-    const teamOK = (r) => selectedTeams.size === 0 || selectedTeams.has(r.team);
+    const gameOK = (r) => selectedGames.size === 0 || selectedGames.has(`${r.team} @ ${r.opp}`);
 
     const byName = new Map(rows.map((r) => [r.name, r]));
     const ordered = order.map((n) => byName.get(n)).filter(Boolean);
     const others = rows.filter((r) => !order.includes(r.name));
     const base = [...ordered, ...others];
 
-    return base.filter((r) => posOK(r.eligible) && textOK(r) && teamOK(r));
-  }, [rows, order, q, posFilter, selectedTeams]);
+    return base.filter((r) => posOK(r.eligible) && textOK(r) && gameOK(r));
+  }, [rows, order, q, posFilter, selectedGames]);
 
   const sortable = new Set(["team","opp","salary","proj","val","floor","ceil","pown","opt","usage"]);
   const setSort = (col) => {
@@ -467,10 +467,9 @@ export default function MLBOptimizer() {
 
     const N = Math.max(1, Number(numLineups) || 1);
     const capVal = Math.min(cfg.cap, Number(maxSalary) || cfg.cap);
-    const stackSet = new Set(selectedTeams);
-    const allowedHittersOnly = onlyUseStackTeams && stackSet.size > 0;
 
-    // pitchers always included, hitters filtered if teams are selected
+    // limit hitters to selected stack teams, pitchers always allowed
+    const allowedHittersOnly = onlyUseStackTeams && stackSet.size > 0;
     const playerPool = allowedHittersOnly
       ? rows.filter(r => r.isPitcher || stackSet.has(r.team))
       : rows;
@@ -501,7 +500,7 @@ export default function MLBOptimizer() {
       avoid_hitters_vs_opp_pitcher: !!avoidHittersVsOppP,
       max_hitters_vs_opp_pitcher: Math.max(0, Number(maxHittersVsOppP) || 0),
       lineup_pown_max: String(lineupPownCap).trim() === "" ? null : clamp(Number(lineupPownCap)||0, 0, 500),
-      min_distinct_teams: site === "fd" ? 3 : 2, // FD constraint
+      min_distinct_teams: site === "fd" ? 3 : 2,
       allowed_teams: onlyUseStackTeams ? Array.from(stackSet) : [],
     };
 
@@ -706,12 +705,12 @@ export default function MLBOptimizer() {
                 checked={onlyUseStackTeams}
                 onChange={(e) => setOnlyUseStackTeams(e.target.checked)}
               />
-              Only use selected teams
+              Only use selected teams (hitters)
             </label>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {allTeams.map((t) => {
+            {[...new Set(rows.map(r=>r.team).filter(Boolean))].sort().map((t) => {
               const active = stackSet.has(t);
               return (
                 <button
@@ -731,7 +730,7 @@ export default function MLBOptimizer() {
             <div className="flex gap-2 ml-2">
               <button
                 className="px-2 py-1 text-sm rounded-md border bg-white hover:bg-gray-50"
-                onClick={() => setStackTeams(allTeams)}
+                onClick={() => setStackTeams([...new Set(rows.map(r=>r.team).filter(Boolean))])}
               >
                 All
               </button>
@@ -781,36 +780,39 @@ export default function MLBOptimizer() {
         <input className="border rounded-md px-3 py-1.5 w-80 text-sm" placeholder="Search player / team / pos…" value={q} onChange={(e) => setQ(e.target.value)} />
         <button
           className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50"
-          onClick={() => setSelectedTeams(new Set(allTeams))}
+          onClick={() => setSelectedGames(new Set(allGames))}
         >
-          Select all teams
+          Select all games
         </button>
         <button
           className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50"
-          onClick={() => setSelectedTeams(new Set())}
+          onClick={() => setSelectedGames(new Set())}
         >
-          Clear teams
+          Clear games
         </button>
       </div>
 
-      {/* Team chips (table filter) */}
+      {/* Game chips (table filter) */}
       <div className="mb-3 flex flex-wrap gap-2">
-        {allTeams.map((t) => {
-          const active = selectedTeams.has(t);
+        {allGames.map((g) => {
+          const active = selectedGames.has(g);
+          const [a, , b] = g.split(" ");
           return (
             <button
-              key={t}
+              key={g}
               onClick={() =>
-                setSelectedTeams((S) => {
+                setSelectedGames((S) => {
                   const n = new Set(S);
-                  active ? n.delete(t) : n.add(t);
+                  active ? n.delete(g) : n.add(g);
                   return n;
                 })
               }
-              className="px-2 py-1 rounded-md border text-sm"
-              style={chipStyle(t, active)}
+              className="px-2 py-1 rounded-md border text-sm flex items-center gap-1"
+              style={{ background: active ? "#eef2ff" : "white" }}
             >
-              {t}
+              <span className="px-1.5 py-0.5 rounded text-[11px]" style={chipStyle(a)}>{a}</span>
+              <span>@</span>
+              <span className="px-1.5 py-0.5 rounded text-[11px]" style={chipStyle(b)}>{b}</span>
             </button>
           );
         })}
