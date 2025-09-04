@@ -166,10 +166,10 @@ async function solveStreamMLB(payload, onItem, onDone) {
     const { done, value } = await reader.read();
     if (done) break;
     buf += decoder.decode(value, { stream: true });
-    const parts = buf.split("\\n\\n");
+    const parts = buf.split("\n\n");
     buf = parts.pop() ?? "";
     for (const chunk of parts) {
-      const line = chunk.split("\\n").find((l) => l.startsWith("data: "));
+      const line = chunk.split("\n").find((l) => l.startsWith("data: "));
       if (!line) continue;
       try {
         const evt = JSON.parse(line.slice(6));
@@ -328,6 +328,57 @@ export default function MLBOptimizer() {
     return m;
   }, [siteIds]);
 
+  // --- robust position parsing & pitcher detection ---
+const POS_KEYS = [
+  "pos","Pos","POS","Position",
+  "DK Pos","FD Pos","POS_DK","POS_FD",
+  "dk_pos","fd_pos",
+];
+
+function rawPositionsFromRow(r, siteKey) {
+  const vals = [];
+  for (const k of POS_KEYS) {
+    if (r[k] != null && String(r[k]).trim() !== "") vals.push(String(r[k]));
+  }
+  // site-specific singletons sometimes live on *_pos keys
+  if (siteKey === "dk" && r.dk_pos) vals.push(String(r.dk_pos));
+  if (siteKey === "fd" && r.fd_pos) vals.push(String(r.fd_pos));
+  // fallback: sometimes they stuff position in the name like "John Smith P"
+  if (!vals.length && typeof r.name === "string") {
+    const m = r.name.match(/\b(C|1B|2B|3B|SS|OF|SP|RP|P)\b/i);
+    if (m) vals.push(m[0]);
+  }
+  return vals.join("/");
+}
+
+function normalizeEligible(raw) {
+  const txt = String(raw || "").toUpperCase();
+  if (!txt) return [];
+  const parts = txt
+    .split(/[\/,;|]+/)
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(p => (p === "SP" || p === "RP") ? "P" : p);
+  return Array.from(new Set(parts));
+}
+
+function pitcherish(r) {
+  // boolean-ish flags commonly seen
+  const flags = ["isPitcher","Pitcher","is_p","is_pitcher","PITCHER","p"].some(k => r[k] === true || r[k] === 1 || String(r[k]).toLowerCase() === "true");
+  if (flags) return true;
+
+  // hints from stat columns often present only for pitchers
+  const statKeys = ["IP","ip","GS","ERA","era","FIP","xFIP","SIERA","K/9","BB/9","KBB","WHIP","pitch_count","PitchCount","pitcher_team","starting_pitcher","is_sp","probable_pitcher"];
+  if (statKeys.some(k => r[k] != null)) return true;
+
+  // texty hints
+  const posTxt = (r.PositionText || r.Role || "").toString().toUpperCase();
+  if (/\b(SP|RP|PITCH|STARTER|RELIEF)\b/.test(posTxt)) return true;
+
+  return false;
+}
+
+
   /* ------------------------------ rows ------------------------------ */
   const rows = useMemo(() => {
     if (!data) return [];
@@ -350,19 +401,34 @@ export default function MLBOptimizer() {
 
     const mapped = arr.map((r) => {
       const name = r.player ?? r.Player ?? r.Name ?? r.playerName ?? r.name ?? "";
-      const rawPos = String(r.pos ?? r.Pos ?? r.POS ?? r.Position ?? "").toUpperCase();
-      const parts = rawPos.split("/").map(s => s.trim()).filter(Boolean).map(p => (p === "SP" || p === "RP") ? "P" : p);
-      const eligible = Array.from(new Set(parts));
+
+      // 1) gather raw pos from multiple possible columns
+      const rawPosJoined = rawPositionsFromRow(r, siteKey);
+
+      // 2) normalize to DK/FD view (SP/RP -> P)
+      let eligible = normalizeEligible(rawPosJoined);
+
+      // 3) if still empty, try to infer pitchers and at least give them P
+      if (eligible.length === 0 && pitcherish(r)) {
+        eligible = ["P"];
+      }
+
+      // 4) if site gave weird lowercase or spacey strings, normalize again
+      eligible = normalizeEligible(eligible.join("/"));
+
       const team = normTeam(r.team ?? r.Team ?? r.Tm ?? r.TEAM ?? r.team_abbr ?? r.TeamAbbrev ?? "");
       const opp  = normTeam(r.opp  ?? r.Opp  ?? r.OPP ?? r.opponent ?? r.Opponent ?? "");
-      const salary = num(r[salKeyLC] ?? r[cfg.salKey] ?? r.Salary ?? r.salary);
-      const proj   = num(r[projKeyLC] ?? r[cfg.projKey] ?? r.Projection ?? r.Points);
-      const floor  = num(r[`${cfg.key}_floor`] ?? r[cfg.floorKey] ?? r.Floor);
-      const ceil   = num(r[`${cfg.key}_ceil`]  ?? r[cfg.ceilKey]  ?? r.Ceiling);
-      const pown   = pct(r[pownKeyLC] ?? r[cfg.pown?.[0]] ?? r[cfg.pown?.[1]]);
-      const opt    = pct(r[optKeyLC]  ?? r[cfg.opt?.[0]]  ?? r[cfg.opt?.[1]]);
+
+      const salary = num(r[`${siteKey}_sal`] ?? r[cfg.salKey] ?? r.Salary ?? r.salary);
+      const proj   = num(r[`${siteKey}_proj`] ?? r[cfg.projKey] ?? r.Projection ?? r.Points);
+      const floor  = num(r[`${siteKey}_floor`] ?? r[cfg.floorKey] ?? r.Floor);
+      const ceil   = num(r[`${siteKey}_ceil`]  ?? r[cfg.ceilKey]  ?? r.Ceiling);
+      const pown   = pct(r[`${siteKey}_pown`] ?? r[cfg.pown?.[0]] ?? r[cfg.pown?.[1]]);
+      const opt    = pct(r[`${siteKey}_opt`]  ?? r[cfg.opt?.[0]]  ?? r[cfg.opt?.[1]]);
+
       const isPitcher = eligible.includes("P");
       const val    = Number.isFinite(proj) && salary > 0 ? (proj / salary) * 1000 : 0;
+
       return {
         name, team, opp, eligible, isPitcher, salary, proj, floor, ceil, pown, opt, val,
         __raw: r,
