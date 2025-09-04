@@ -26,8 +26,8 @@ const normTeam = (s) => (s || "").toUpperCase().trim();
 
 /* ------------------------------ data ------------------------------- */
 // Adjust these to your MLB export paths
-const SOURCE = `${API_BASE}/data/mlb/classic/latest/projections.json`;
-const SITE_IDS_SOURCE = `${API_BASE}/data/mlb/classic/latest/site_ids.json`;
+const SOURCE = "/data/mlb/classic/latest/projections.json";
+const SITE_IDS_SOURCE = "/data/mlb/classic/latest/site_ids.json";
 
 /* ----------------------------- sites ------------------------------- */
 const SITES = {
