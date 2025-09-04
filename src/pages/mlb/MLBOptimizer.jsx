@@ -86,6 +86,7 @@ function useJson(url) {
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
   const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -93,20 +94,35 @@ function useJson(url) {
         setLoading(true);
         const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+
+        // Read the body ONCE
         const ct = (res.headers.get("content-type") || "").toLowerCase();
+        const raw = await res.text();
+
+        // Try to parse as JSON regardless of CT (many CDNs send text/plain)
+        // Strip BOM and tolerate trailing commas / weird whitespace
+        const cleaned = raw.replace(/^\uFEFF/, "").trim();
+
         let j;
         try {
-          j = ct.includes("application/json") ? await res.json() : JSON.parse(await res.text());
+          j = cleaned ? JSON.parse(cleaned) : null;
         } catch (e) {
-          const preview = await res.text();
-          throw new Error(`Could not parse JSON. CT=${ct}. Preview: ${preview.slice(0, 200)}`);
+          // If the server truly didn’t return JSON, surface a helpful preview
+          throw new Error(
+            `Could not parse JSON. CT=${ct}. Preview: ${cleaned.slice(0, 200)}`
+          );
         }
+
         if (alive) { setData(j); setErr(null); }
-      } catch (e) { if (alive) { setData(null); setErr(e); } }
-      finally { if (alive) setLoading(false); }
+      } catch (e) {
+        if (alive) { setData(null); setErr(e); }
+      } finally {
+        if (alive) setLoading(false);
+      }
     })();
     return () => { alive = false; };
   }, [url]);
+
   return { data, err, loading };
 }
 
