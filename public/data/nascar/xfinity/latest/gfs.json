@@ -6,7 +6,7 @@
     "2022":"",
     "2023":"",
     "2024":3.0,
-    "2025":2.3,
+    "2025":2.2,
     "Intermediate":2.0,
     "Short\/Flat":4.2,
     "Road Course":0.0,
@@ -24,7 +24,7 @@
     "2025":0.2,
     "Intermediate":"",
     "Short\/Flat":4.0,
-    "Road Course":1.1,
+    "Road Course":1.0,
     "High Tire Wear":4.0,
     "Tire Codes":0,
     "Overall":3.5
@@ -36,10 +36,10 @@
     "2022":"",
     "2023":"",
     "2024":7.0,
-    "2025":6.3,
+    "2025":6.2,
     "Intermediate":5.1,
     "Short\/Flat":6.0,
-    "Road Course":3.6,
+    "Road Course":3.7,
     "High Tire Wear":9.2,
     "Tire Codes":0,
     "Overall":6.2
@@ -51,28 +51,28 @@
     "2022":"",
     "2023":9.0,
     "2024":9.9,
-    "2025":2.6,
+    "2025":2.5,
     "Intermediate":3.5,
     "Short\/Flat":3.4,
-    "Road Course":9.0,
+    "Road Course":8.1,
     "High Tire Wear":1.8,
     "Tire Codes":0,
-    "Overall":5.6
+    "Overall":5.5
   },
   {
     "Driver":"Justin Allgaier",
-    "Manufacturer":"",
-    "Team":"",
+    "Manufacturer":"Chevrolet",
+    "Team":"JR Motorsports",
     "2022":6.0,
     "2023":7.5,
     "2024":8.2,
-    "2025":7.0,
+    "2025":7.5,
     "Intermediate":4.6,
     "Short\/Flat":7.2,
-    "Road Course":8.7,
+    "Road Course":9.2,
     "High Tire Wear":5.0,
     "Tire Codes":0,
-    "Overall":6.8
+    "Overall":6.9
   },
   {
     "Driver":"Alex Bowman",
@@ -84,7 +84,7 @@
     "2025":0.1,
     "Intermediate":0.0,
     "Short\/Flat":5.2,
-    "Road Course":1.2,
+    "Road Course":1.0,
     "High Tire Wear":0.0,
     "Tire Codes":0,
     "Overall":6.1
@@ -96,10 +96,10 @@
     "2022":10.3,
     "2023":12.3,
     "2024":17.0,
-    "2025":2.0,
+    "2025":1.9,
     "Intermediate":7.0,
     "Short\/Flat":5.5,
-    "Road Course":4.0,
+    "Road Course":3.3,
     "High Tire Wear":10.2,
     "Tire Codes":0,
     "Overall":8.5
@@ -111,13 +111,13 @@
     "2022":"",
     "2023":"",
     "2024":"",
-    "2025":15.5,
+    "2025":15.6,
     "Intermediate":12.4,
     "Short\/Flat":11.3,
-    "Road Course":21.5,
+    "Road Course":20.6,
     "High Tire Wear":5.7,
     "Tire Codes":0,
-    "Overall":13.3
+    "Overall":13.1
   },
   {
     "Driver":"Sam Mayer",
@@ -126,13 +126,13 @@
     "2022":10.6,
     "2023":9.5,
     "2024":8.3,
-    "2025":10.6,
+    "2025":11.3,
     "Intermediate":8.8,
     "Short\/Flat":8.8,
-    "Road Course":8.7,
+    "Road Course":9.5,
     "High Tire Wear":9.3,
     "Tire Codes":0,
-    "Overall":9.3
+    "Overall":9.5
   },
   {
     "Driver":"Riley Herbst",
@@ -144,10 +144,10 @@
     "2025":1.3,
     "Intermediate":8.1,
     "Short\/Flat":7.8,
-    "Road Course":13.6,
+    "Road Course":13.0,
     "High Tire Wear":9.1,
     "Tire Codes":0,
-    "Overall":9.2
+    "Overall":9.1
   },
   {
     "Driver":"Corey Heim",
@@ -159,7 +159,7 @@
     "2025":1.5,
     "Intermediate":10.5,
     "Short\/Flat":5.5,
-    "Road Course":1.5,
+    "Road Course":1.2,
     "High Tire Wear":10.3,
     "Tire Codes":0,
     "Overall":8.7
@@ -171,13 +171,13 @@
     "2022":11.7,
     "2023":8.2,
     "2024":10.1,
-    "2025":11.6,
+    "2025":11.9,
     "Intermediate":9.0,
     "Short\/Flat":12.0,
-    "Road Course":9.5,
+    "Road Course":10.0,
     "High Tire Wear":9.4,
     "Tire Codes":0,
-    "Overall":10.2
+    "Overall":10.3
   },
   {
     "Driver":"Jesse Love",
@@ -186,13 +186,13 @@
     "2022":"",
     "2023":"",
     "2024":12.7,
-    "2025":9.0,
+    "2025":8.7,
     "Intermediate":11.2,
     "Short\/Flat":9.8,
-    "Road Course":12.1,
+    "Road Course":11.1,
     "High Tire Wear":9.5,
     "Tire Codes":0,
-    "Overall":10.7
+    "Overall":10.5
   },
   {
     "Driver":"Sheldon Creed",
@@ -204,7 +204,7 @@
     "2025":8.2,
     "Intermediate":11.5,
     "Short\/Flat":10.6,
-    "Road Course":8.9,
+    "Road Course":9.0,
     "High Tire Wear":10.8,
     "Tire Codes":0,
     "Overall":10.5
@@ -216,13 +216,13 @@
     "2022":"",
     "2023":"",
     "2024":13.1,
-    "2025":11.9,
+    "2025":12.9,
     "Intermediate":13.1,
     "Short\/Flat":10.2,
-    "Road Course":11.0,
+    "Road Course":15.8,
     "High Tire Wear":15.5,
     "Tire Codes":0,
-    "Overall":12.5
+    "Overall":13.4
   },
   {
     "Driver":"Caesar Bacarella",
@@ -231,28 +231,28 @@
     "2022":"",
     "2023":"",
     "2024":25.0,
-    "2025":3.1,
+    "2025":4.3,
     "Intermediate":8.3,
     "Short\/Flat":0.0,
-    "Road Course":0.0,
+    "Road Course":6.6,
     "High Tire Wear":0.0,
     "Tire Codes":0,
-    "Overall":12.1
+    "Overall":11.1
   },
   {
     "Driver":"Austin Green",
-    "Manufacturer":"Chevrolet",
-    "Team":"Jordan Anderson Racing",
+    "Manufacturer":"",
+    "Team":"",
     "2022":"",
     "2023":"",
     "2024":18.6,
-    "2025":5.4,
+    "2025":5.2,
     "Intermediate":6.9,
     "Short\/Flat":0.0,
-    "Road Course":16.3,
+    "Road Course":14.7,
     "High Tire Wear":8.0,
     "Tire Codes":0,
-    "Overall":11.0
+    "Overall":10.7
   },
   {
     "Driver":"Sammy Smith",
@@ -261,10 +261,10 @@
     "2022":9.9,
     "2023":10.2,
     "2024":14.4,
-    "2025":13.3,
+    "2025":13.5,
     "Intermediate":12.2,
     "Short\/Flat":9.7,
-    "Road Course":11.1,
+    "Road Course":11.4,
     "High Tire Wear":12.4,
     "Tire Codes":0,
     "Overall":11.7
@@ -276,7 +276,7 @@
     "2022":9.2,
     "2023":13.4,
     "2024":11.9,
-    "2025":10.8,
+    "2025":11.0,
     "Intermediate":9.9,
     "Short\/Flat":10.2,
     "Road Course":15.7,
@@ -294,10 +294,10 @@
     "2025":0.9,
     "Intermediate":11.8,
     "Short\/Flat":2.8,
-    "Road Course":9.1,
+    "Road Course":8.2,
     "High Tire Wear":14.1,
     "Tire Codes":0,
-    "Overall":11.5
+    "Overall":11.4
   },
   {
     "Driver":"Taylor Gray",
@@ -306,13 +306,13 @@
     "2022":"",
     "2023":"",
     "2024":13.1,
-    "2025":11.9,
+    "2025":12.0,
     "Intermediate":13.6,
     "Short\/Flat":9.2,
-    "Road Course":17.5,
+    "Road Course":16.8,
     "High Tire Wear":14.3,
     "Tire Codes":0,
-    "Overall":13.3
+    "Overall":13.2
   },
   {
     "Driver":"Sage Karam",
@@ -321,13 +321,13 @@
     "2022":21.6,
     "2023":"",
     "2024":21.7,
-    "2025":3.7,
+    "2025":3.6,
     "Intermediate":6.7,
     "Short\/Flat":0.0,
-    "Road Course":16.8,
+    "Road Course":15.3,
     "High Tire Wear":0.0,
     "Tire Codes":0,
-    "Overall":14.1
+    "Overall":13.8
   },
   {
     "Driver":"Harrison Burton",
@@ -336,22 +336,22 @@
     "2022":"",
     "2023":"",
     "2024":"",
-    "2025":16.8,
+    "2025":16.4,
     "Intermediate":15.5,
     "Short\/Flat":12.7,
-    "Road Course":19.5,
+    "Road Course":17.0,
     "High Tire Wear":12.0,
     "Tire Codes":0,
-    "Overall":15.3
+    "Overall":14.7
   },
   {
     "Driver":"Jordan Anderson",
-    "Manufacturer":"",
-    "Team":"",
+    "Manufacturer":"Chevrolet",
+    "Team":"Jordan Anderson Racing",
     "2022":"",
     "2023":21.0,
     "2024":23.0,
-    "2025":1.3,
+    "2025":1.2,
     "Intermediate":4.0,
     "Short\/Flat":0.0,
     "Road Course":0.0,
@@ -366,13 +366,13 @@
     "2022":"",
     "2023":"",
     "2024":28.8,
-    "2025":5.9,
+    "2025":5.6,
     "Intermediate":10.9,
     "Short\/Flat":0.0,
     "Road Course":0.0,
     "High Tire Wear":0.0,
     "Tire Codes":0,
-    "Overall":15.2
+    "Overall":15.1
   },
   {
     "Driver":"Preston Pardus",
@@ -381,28 +381,28 @@
     "2022":22.2,
     "2023":23.2,
     "2024":25.8,
-    "2025":3.7,
+    "2025":3.5,
     "Intermediate":6.3,
     "Short\/Flat":8.2,
-    "Road Course":22.7,
+    "Road Course":21.2,
     "High Tire Wear":0.0,
     "Tire Codes":0,
-    "Overall":16.0
+    "Overall":15.8
   },
   {
     "Driver":"Alex Labbe",
-    "Manufacturer":"Chevrolet",
-    "Team":"SS-Green Light Racing",
+    "Manufacturer":"",
+    "Team":"",
     "2022":21.5,
     "2023":20.1,
     "2024":22.5,
-    "2025":4.1,
+    "2025":3.9,
     "Intermediate":15.6,
     "Short\/Flat":16.2,
-    "Road Course":14.9,
+    "Road Course":14.2,
     "High Tire Wear":14.7,
     "Tire Codes":0,
-    "Overall":16.2
+    "Overall":16.1
   },
   {
     "Driver":"Nicholas Sanchez",
@@ -414,10 +414,10 @@
     "2025":11.7,
     "Intermediate":13.6,
     "Short\/Flat":14.7,
-    "Road Course":12.8,
+    "Road Course":12.4,
     "High Tire Wear":12.5,
     "Tire Codes":0,
-    "Overall":13.8
+    "Overall":13.7
   },
   {
     "Driver":"William Sawalich",
@@ -426,7 +426,7 @@
     "2022":"",
     "2023":"",
     "2024":16.0,
-    "2025":12.4,
+    "2025":12.2,
     "Intermediate":17.1,
     "Short\/Flat":11.8,
     "Road Course":7.8,
@@ -441,10 +441,10 @@
     "2022":18.0,
     "2023":19.1,
     "2024":16.9,
-    "2025":13.7,
+    "2025":13.8,
     "Intermediate":15.9,
     "Short\/Flat":17.3,
-    "Road Course":22.0,
+    "Road Course":21.8,
     "High Tire Wear":15.4,
     "Tire Codes":0,
     "Overall":17.3
@@ -456,13 +456,13 @@
     "2022":"",
     "2023":"",
     "2024":36.0,
-    "2025":4.9,
+    "2025":4.7,
     "Intermediate":4.5,
     "Short\/Flat":19.0,
     "Road Course":0.0,
     "High Tire Wear":0.0,
     "Tire Codes":0,
-    "Overall":16.1
+    "Overall":16.0
   },
   {
     "Driver":"Parker Retzlaff",
@@ -471,13 +471,13 @@
     "2022":22.7,
     "2023":19.4,
     "2024":16.8,
-    "2025":20.5,
+    "2025":19.9,
     "Intermediate":19.7,
     "Short\/Flat":17.0,
-    "Road Course":21.5,
+    "Road Course":20.6,
     "High Tire Wear":19.8,
     "Tire Codes":0,
-    "Overall":19.7
+    "Overall":19.5
   },
   {
     "Driver":"Daniel Dye",
@@ -486,13 +486,13 @@
     "2022":"",
     "2023":24.5,
     "2024":18.4,
-    "2025":19.4,
+    "2025":19.5,
     "Intermediate":18.4,
     "Short\/Flat":15.6,
-    "Road Course":28.8,
+    "Road Course":27.4,
     "High Tire Wear":22.0,
     "Tire Codes":0,
-    "Overall":21.0
+    "Overall":20.8
   },
   {
     "Driver":"Thomas Annunziata",
@@ -501,13 +501,13 @@
     "2022":"",
     "2023":"",
     "2024":34.0,
-    "2025":9.8,
+    "2025":9.4,
     "Intermediate":12.0,
     "Short\/Flat":29.7,
-    "Road Course":20.3,
+    "Road Course":17.8,
     "High Tire Wear":9.2,
     "Tire Codes":0,
-    "Overall":19.2
+    "Overall":18.7
   },
   {
     "Driver":"Mason Massey",
@@ -516,13 +516,13 @@
     "2022":"",
     "2023":"",
     "2024":30.7,
-    "2025":14.1,
+    "2025":13.5,
     "Intermediate":22.4,
     "Short\/Flat":23.2,
     "Road Course":0.0,
     "High Tire Wear":10.0,
     "Tire Codes":0,
-    "Overall":20.1
+    "Overall":20.0
   },
   {
     "Driver":"Jeb Burton",
@@ -531,13 +531,13 @@
     "2022":17.3,
     "2023":21.4,
     "2024":22.7,
-    "2025":21.7,
+    "2025":21.2,
     "Intermediate":21.0,
     "Short\/Flat":19.8,
-    "Road Course":22.8,
+    "Road Course":22.1,
     "High Tire Wear":22.8,
     "Tire Codes":0,
-    "Overall":21.2
+    "Overall":21.0
   },
   {
     "Driver":"Josh Bilicki",
@@ -546,28 +546,28 @@
     "2022":"",
     "2023":23.9,
     "2024":22.5,
-    "2025":19.0,
+    "2025":18.4,
     "Intermediate":22.6,
     "Short\/Flat":24.8,
-    "Road Course":19.6,
+    "Road Course":18.7,
     "High Tire Wear":23.0,
     "Tire Codes":0,
-    "Overall":22.2
+    "Overall":22.0
   },
   {
     "Driver":"Nick Leitz",
-    "Manufacturer":"",
-    "Team":"",
+    "Manufacturer":"Chevrolet",
+    "Team":"SS-Green Light Racing",
     "2022":"",
     "2023":"",
     "2024":26.5,
-    "2025":11.9,
+    "2025":11.4,
     "Intermediate":20.6,
     "Short\/Flat":16.0,
     "Road Course":0.0,
     "High Tire Wear":26.2,
     "Tire Codes":0,
-    "Overall":20.3
+    "Overall":20.2
   },
   {
     "Driver":"Anthony Alfredo",
@@ -576,28 +576,28 @@
     "2022":21.0,
     "2023":22.1,
     "2024":20.1,
-    "2025":23.7,
+    "2025":24.2,
     "Intermediate":21.6,
     "Short\/Flat":22.4,
-    "Road Course":26.1,
+    "Road Course":26.6,
     "High Tire Wear":21.4,
     "Tire Codes":0,
-    "Overall":22.3
+    "Overall":22.4
   },
   {
     "Driver":"Dawson Cram",
-    "Manufacturer":"",
-    "Team":"",
+    "Manufacturer":"Chevrolet",
+    "Team":"Mike Harmon Racing",
     "2022":"",
     "2023":"",
     "2024":32.8,
-    "2025":7.7,
+    "2025":7.4,
     "Intermediate":20.9,
     "Short\/Flat":29.7,
-    "Road Course":7.6,
+    "Road Course":6.3,
     "High Tire Wear":19.7,
     "Tire Codes":0,
-    "Overall":19.7
+    "Overall":19.5
   },
   {
     "Driver":"Mason Maggio",
@@ -606,28 +606,28 @@
     "2022":"",
     "2023":"",
     "2024":34.0,
-    "2025":10.3,
+    "2025":11.4,
     "Intermediate":18.8,
     "Short\/Flat":17.2,
-    "Road Course":0.0,
+    "Road Course":7.2,
     "High Tire Wear":18.2,
     "Tire Codes":0,
-    "Overall":19.7
+    "Overall":17.8
   },
   {
     "Driver":"Josh Williams",
-    "Manufacturer":"Chevrolet",
-    "Team":"DGM Racing x JIM",
+    "Manufacturer":"",
+    "Team":"",
     "2022":"",
     "2023":"",
     "2024":21.7,
-    "2025":20.5,
+    "2025":20.9,
     "Intermediate":23.2,
     "Short\/Flat":20.0,
-    "Road Course":17.4,
+    "Road Course":18.6,
     "High Tire Wear":25.4,
     "Tire Codes":0,
-    "Overall":21.4
+    "Overall":21.6
   },
   {
     "Driver":"Dean Thompson",
@@ -636,13 +636,13 @@
     "2022":"",
     "2023":"",
     "2024":21.0,
-    "2025":20.7,
+    "2025":20.3,
     "Intermediate":21.9,
     "Short\/Flat":20.7,
-    "Road Course":25.8,
+    "Road Course":23.0,
     "High Tire Wear":21.0,
     "Tire Codes":0,
-    "Overall":21.8
+    "Overall":21.3
   },
   {
     "Driver":"Jeremy Clements",
@@ -651,13 +651,13 @@
     "2022":20.0,
     "2023":21.9,
     "2024":23.4,
-    "2025":24.3,
+    "2025":23.5,
     "Intermediate":24.2,
     "Short\/Flat":24.8,
-    "Road Course":23.6,
+    "Road Course":22.6,
     "High Tire Wear":24.4,
     "Tire Codes":0,
-    "Overall":23.3
+    "Overall":23.1
   },
   {
     "Driver":"Patrick Emerling",
@@ -666,28 +666,28 @@
     "2022":"",
     "2023":"",
     "2024":30.5,
-    "2025":10.3,
+    "2025":10.9,
     "Intermediate":24.0,
     "Short\/Flat":23.3,
-    "Road Course":0.0,
+    "Road Course":4.6,
     "High Tire Wear":22.3,
     "Tire Codes":0,
-    "Overall":22.1
+    "Overall":19.3
   },
   {
     "Driver":"Joey Gase",
-    "Manufacturer":"",
-    "Team":"",
+    "Manufacturer":"Chevrolet",
+    "Team":"Joey Gase Motorsports",
     "2022":"",
     "2023":"",
     "2024":31.9,
-    "2025":13.6,
+    "2025":14.2,
     "Intermediate":20.1,
     "Short\/Flat":28.0,
-    "Road Course":0.0,
+    "Road Course":6.0,
     "High Tire Wear":15.5,
     "Tire Codes":0,
-    "Overall":21.8
+    "Overall":19.3
   },
   {
     "Driver":"Brennan Poole",
@@ -696,7 +696,7 @@
     "2022":"",
     "2023":"",
     "2024":23.9,
-    "2025":23.4,
+    "2025":23.5,
     "Intermediate":21.7,
     "Short\/Flat":24.4,
     "Road Course":24.9,
@@ -711,13 +711,13 @@
     "2022":"",
     "2023":"",
     "2024":23.1,
-    "2025":22.8,
+    "2025":22.4,
     "Intermediate":21.0,
     "Short\/Flat":23.9,
-    "Road Course":28.9,
+    "Road Course":27.3,
     "High Tire Wear":23.4,
     "Tire Codes":0,
-    "Overall":23.9
+    "Overall":23.5
   },
   {
     "Driver":"Leland Honeyman Jr",
@@ -726,13 +726,13 @@
     "2022":"",
     "2023":"",
     "2024":29.8,
-    "2025":13.5,
+    "2025":13.8,
     "Intermediate":26.6,
     "Short\/Flat":21.3,
-    "Road Course":17.1,
+    "Road Course":17.5,
     "High Tire Wear":31.2,
     "Tire Codes":0,
-    "Overall":23.3
+    "Overall":23.4
   },
   {
     "Driver":"Greg Van Alst",
@@ -741,25 +741,25 @@
     "2022":"",
     "2023":"",
     "2024":36.6,
-    "2025":12.9,
+    "2025":12.4,
     "Intermediate":14.6,
     "Short\/Flat":30.0,
     "Road Course":0.0,
     "High Tire Wear":18.8,
     "Tire Codes":0,
-    "Overall":22.6
+    "Overall":22.5
   },
   {
     "Driver":"Kyle Sieg",
-    "Manufacturer":"",
-    "Team":"",
+    "Manufacturer":"Ford",
+    "Team":"RSS Racing",
     "2022":"",
     "2023":"",
     "2024":27.8,
     "2025":24.6,
     "Intermediate":26.2,
     "Short\/Flat":25.6,
-    "Road Course":29.4,
+    "Road Course":29.1,
     "High Tire Wear":27.8,
     "Tire Codes":0,
     "Overall":26.9
@@ -774,7 +774,7 @@
     "2025":26.8,
     "Intermediate":27.8,
     "Short\/Flat":28.4,
-    "Road Course":27.3,
+    "Road Course":27.4,
     "High Tire Wear":30.9,
     "Tire Codes":0,
     "Overall":28.5
@@ -786,13 +786,13 @@
     "2022":"",
     "2023":"",
     "2024":29.9,
-    "2025":26.6,
+    "2025":27.0,
     "Intermediate":30.7,
     "Short\/Flat":31.1,
-    "Road Course":26.1,
+    "Road Course":27.4,
     "High Tire Wear":30.9,
     "Tire Codes":0,
-    "Overall":29.2
+    "Overall":29.5
   },
   {
     "Driver":"Kris Wright",
@@ -801,13 +801,13 @@
     "2022":"",
     "2023":"",
     "2024":"",
-    "2025":22.4,
+    "2025":21.5,
     "Intermediate":26.2,
     "Short\/Flat":19.7,
-    "Road Course":17.5,
+    "Road Course":14.0,
     "High Tire Wear":19.0,
     "Tire Codes":0,
-    "Overall":21.0
+    "Overall":20.1
   },
   {
     "Driver":"Garrett Smithley",
@@ -816,12 +816,12 @@
     "2022":"",
     "2023":"",
     "2024":34.3,
-    "2025":24.9,
+    "2025":25.1,
     "Intermediate":30.0,
     "Short\/Flat":34.1,
-    "Road Course":16.2,
+    "Road Course":18.3,
     "High Tire Wear":36.1,
     "Tire Codes":0,
-    "Overall":29.3
+    "Overall":29.7
   }
 ]

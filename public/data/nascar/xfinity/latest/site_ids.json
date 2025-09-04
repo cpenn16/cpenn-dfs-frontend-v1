@@ -1,294 +1,310 @@
 {
   "fd": [
     {
-      "name": "Connor Zilisch",
-      "id": "39804611"
-    },
-    {
-      "name": "Sam Mayer",
-      "id": "39804612"
-    },
-    {
       "name": "Justin Allgaier",
-      "id": "39804613"
+      "id": "39879167"
     },
     {
-      "name": "Will Brown",
-      "id": "39804614"
+      "name": "Connor Zilisch",
+      "id": "39879168"
+    },
+    {
+      "name": "Aric Almirola",
+      "id": "39879169"
     },
     {
       "name": "Austin Hill",
-      "id": "39804615"
+      "id": "39879170"
     },
     {
-      "name": "Sheldon Creed",
-      "id": "39804616"
-    },
-    {
-      "name": "Sammy Smith",
-      "id": "39804617"
+      "name": "Sam Mayer",
+      "id": "39879171"
     },
     {
       "name": "Jesse Love",
-      "id": "39804618"
+      "id": "39879172"
     },
     {
-      "name": "Taylor Gray",
-      "id": "39804619"
+      "name": "Sheldon Creed",
+      "id": "39879173"
     },
     {
-      "name": "Nicholas Sanchez",
-      "id": "39804620"
-    },
-    {
-      "name": "Joey Hand",
-      "id": "39804621"
-    },
-    {
-      "name": "Christian Eckes",
-      "id": "39804622"
-    },
-    {
-      "name": "Jack Perkins",
-      "id": "39804623"
+      "name": "Sammy Smith",
+      "id": "39879174"
     },
     {
       "name": "Carson Kvapil",
-      "id": "39804624"
+      "id": "39879175"
     },
     {
-      "name": "Austin Green",
-      "id": "39804625"
-    },
-    {
-      "name": "William Sawalich",
-      "id": "39804626"
+      "name": "Taylor Gray",
+      "id": "39879176"
     },
     {
       "name": "Brandon Jones",
-      "id": "39804627"
+      "id": "39879177"
     },
     {
-      "name": "Harrison Burton",
-      "id": "39804628"
+      "name": "Christian Eckes",
+      "id": "39879178"
     },
     {
-      "name": "Alon Day",
-      "id": "39804629"
+      "name": "Daniel Hemric",
+      "id": "39879179"
     },
     {
-      "name": "Alex Labbe",
-      "id": "39804630"
-    },
-    {
-      "name": "Daniel Dye",
-      "id": "39804631"
-    },
-    {
-      "name": "Jeb Burton",
-      "id": "39804632"
-    },
-    {
-      "name": "Matt DiBenedetto",
-      "id": "39804633"
-    },
-    {
-      "name": "Dean Thompson",
-      "id": "39804634"
+      "name": "Nicholas Sanchez",
+      "id": "39879180"
     },
     {
       "name": "Ryan Sieg",
-      "id": "39804635"
+      "id": "39879181"
     },
     {
-      "name": "Brennan Poole",
-      "id": "39804636"
+      "name": "Corey Day",
+      "id": "39879182"
+    },
+    {
+      "name": "William Sawalich",
+      "id": "39879183"
+    },
+    {
+      "name": "Harrison Burton",
+      "id": "39879184"
+    },
+    {
+      "name": "Daniel Dye",
+      "id": "39879185"
+    },
+    {
+      "name": "Jeb Burton",
+      "id": "39879186"
+    },
+    {
+      "name": "Matt DiBenedetto",
+      "id": "39879187"
+    },
+    {
+      "name": "Dean Thompson",
+      "id": "39879188"
     },
     {
       "name": "Parker Retzlaff",
-      "id": "39804637"
-    },
-    {
-      "name": "Josh Williams",
-      "id": "39804638"
-    },
-    {
-      "name": "Blaine Perkins",
-      "id": "39804639"
+      "id": "39879189"
     },
     {
       "name": "Anthony Alfredo",
-      "id": "39804640"
+      "id": "39879190"
+    },
+    {
+      "name": "Jordan Anderson",
+      "id": "39879191"
     },
     {
       "name": "Jeremy Clements",
-      "id": "39804641"
+      "id": "39879192"
+    },
+    {
+      "name": "Kyle Sieg",
+      "id": "39879193"
+    },
+    {
+      "name": "Brennan Poole",
+      "id": "39879194"
     },
     {
       "name": "Thomas Annunziata",
-      "id": "39804642"
+      "id": "39879195"
     },
     {
-      "name": "Garrett Smithley",
-      "id": "39804643"
+      "name": "Blaine Perkins",
+      "id": "39879196"
+    },
+    {
+      "name": "Matt Mills",
+      "id": "39879197"
+    },
+    {
+      "name": "Kole Raz",
+      "id": "39879198"
+    },
+    {
+      "name": "Joey Gase",
+      "id": "39879199"
     },
     {
       "name": "Ryan Ellis",
-      "id": "39804644"
+      "id": "39879200"
     },
     {
-      "name": "Austin J Hill",
-      "id": "39804645"
+      "name": "Lavar Scott",
+      "id": "39879201"
     },
     {
-      "name": "Vicente Salas",
-      "id": "39804646"
+      "name": "Glen Reen",
+      "id": "39879202"
+    },
+    {
+      "name": "Garrett Smithley",
+      "id": "39879203"
+    },
+    {
+      "name": "Nick Leitz",
+      "id": "39879204"
     }
   ],
   "dk": [
     {
-      "name": "Connor Zilisch",
-      "id": "39804611"
-    },
-    {
-      "name": "Sam Mayer",
-      "id": "39804612"
-    },
-    {
       "name": "Justin Allgaier",
-      "id": "39804613"
+      "id": "39879167"
     },
     {
-      "name": "Will Brown",
-      "id": "39804614"
+      "name": "Connor Zilisch",
+      "id": "39879168"
+    },
+    {
+      "name": "Aric Almirola",
+      "id": "39879169"
     },
     {
       "name": "Austin Hill",
-      "id": "39804615"
+      "id": "39879170"
     },
     {
-      "name": "Sheldon Creed",
-      "id": "39804616"
-    },
-    {
-      "name": "Sammy Smith",
-      "id": "39804617"
+      "name": "Sam Mayer",
+      "id": "39879171"
     },
     {
       "name": "Jesse Love",
-      "id": "39804618"
+      "id": "39879172"
     },
     {
-      "name": "Taylor Gray",
-      "id": "39804619"
+      "name": "Sheldon Creed",
+      "id": "39879173"
     },
     {
-      "name": "Nicholas Sanchez",
-      "id": "39804620"
-    },
-    {
-      "name": "Joey Hand",
-      "id": "39804621"
-    },
-    {
-      "name": "Christian Eckes",
-      "id": "39804622"
-    },
-    {
-      "name": "Jack Perkins",
-      "id": "39804623"
+      "name": "Sammy Smith",
+      "id": "39879174"
     },
     {
       "name": "Carson Kvapil",
-      "id": "39804624"
+      "id": "39879175"
     },
     {
-      "name": "Austin Green",
-      "id": "39804625"
-    },
-    {
-      "name": "William Sawalich",
-      "id": "39804626"
+      "name": "Taylor Gray",
+      "id": "39879176"
     },
     {
       "name": "Brandon Jones",
-      "id": "39804627"
+      "id": "39879177"
     },
     {
-      "name": "Harrison Burton",
-      "id": "39804628"
+      "name": "Christian Eckes",
+      "id": "39879178"
     },
     {
-      "name": "Alon Day",
-      "id": "39804629"
+      "name": "Daniel Hemric",
+      "id": "39879179"
     },
     {
-      "name": "Alex Labbe",
-      "id": "39804630"
-    },
-    {
-      "name": "Daniel Dye",
-      "id": "39804631"
-    },
-    {
-      "name": "Jeb Burton",
-      "id": "39804632"
-    },
-    {
-      "name": "Matt DiBenedetto",
-      "id": "39804633"
-    },
-    {
-      "name": "Dean Thompson",
-      "id": "39804634"
+      "name": "Nicholas Sanchez",
+      "id": "39879180"
     },
     {
       "name": "Ryan Sieg",
-      "id": "39804635"
+      "id": "39879181"
     },
     {
-      "name": "Brennan Poole",
-      "id": "39804636"
+      "name": "Corey Day",
+      "id": "39879182"
+    },
+    {
+      "name": "William Sawalich",
+      "id": "39879183"
+    },
+    {
+      "name": "Harrison Burton",
+      "id": "39879184"
+    },
+    {
+      "name": "Daniel Dye",
+      "id": "39879185"
+    },
+    {
+      "name": "Jeb Burton",
+      "id": "39879186"
+    },
+    {
+      "name": "Matt DiBenedetto",
+      "id": "39879187"
+    },
+    {
+      "name": "Dean Thompson",
+      "id": "39879188"
     },
     {
       "name": "Parker Retzlaff",
-      "id": "39804637"
-    },
-    {
-      "name": "Josh Williams",
-      "id": "39804638"
-    },
-    {
-      "name": "Blaine Perkins",
-      "id": "39804639"
+      "id": "39879189"
     },
     {
       "name": "Anthony Alfredo",
-      "id": "39804640"
+      "id": "39879190"
+    },
+    {
+      "name": "Jordan Anderson",
+      "id": "39879191"
     },
     {
       "name": "Jeremy Clements",
-      "id": "39804641"
+      "id": "39879192"
+    },
+    {
+      "name": "Kyle Sieg",
+      "id": "39879193"
+    },
+    {
+      "name": "Brennan Poole",
+      "id": "39879194"
     },
     {
       "name": "Thomas Annunziata",
-      "id": "39804642"
+      "id": "39879195"
     },
     {
-      "name": "Garrett Smithley",
-      "id": "39804643"
+      "name": "Blaine Perkins",
+      "id": "39879196"
+    },
+    {
+      "name": "Matt Mills",
+      "id": "39879197"
+    },
+    {
+      "name": "Kole Raz",
+      "id": "39879198"
+    },
+    {
+      "name": "Joey Gase",
+      "id": "39879199"
     },
     {
       "name": "Ryan Ellis",
-      "id": "39804644"
+      "id": "39879200"
     },
     {
-      "name": "Austin J Hill",
-      "id": "39804645"
+      "name": "Lavar Scott",
+      "id": "39879201"
     },
     {
-      "name": "Vicente Salas",
-      "id": "39804646"
+      "name": "Glen Reen",
+      "id": "39879202"
+    },
+    {
+      "name": "Garrett Smithley",
+      "id": "39879203"
+    },
+    {
+      "name": "Nick Leitz",
+      "id": "39879204"
     }
   ]
 }
