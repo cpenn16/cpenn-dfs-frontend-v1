@@ -1,10 +1,10 @@
 // src/pages/nfl/NFLShowdownOptimizer.jsx
-// FULL DROP-IN — v3.3
-// Changes vs v3.2:
-// - IF→THEN team scope control now includes slate teams directly in the dropdown
-//   (e.g., "PHI — Philadelphia Eagles"). Selecting one sets team_scope=exact_team
-//   and team_exact=<ABBR>. Much easier to discover.
-// - Stable sorting and all previous fixes retained.
+// FULL DROP-IN — v3.4
+// New:
+// - IF-side team condition: "on team" picker. Rule fires only when the IF-slot
+//   player is on that specific team. Sent as if_team_exact to the solver.
+// - Retains "from team" (destination) control incl. exact team.
+// - Stable sorting (no jumpiness) + existing fixes preserved.
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API_BASE from "../../utils/api";
@@ -271,7 +271,11 @@ export default function NFLShowdownOptimizer() {
   }, [lineups]);
 
   const expandedRows = useMemo(() => {
-    const res = []; for (const r of rows) { res.push({ ...r, tag: "CPT",  projDisplay: r.cap_proj,  floorDisplay: r.cap_floor,  ceilDisplay: r.cap_ceil,  pownDisplay: r.cap_pown, optDisplay: r.cap_opt, salaryDisplay: r.cap_salary, key: r.name + "::CPT" }); res.push({ ...r, tag: "FLEX", projDisplay: r.proj, floorDisplay: r.floor, ceilDisplay: r.ceil, pownDisplay: r.pown, optDisplay: r.opt, salaryDisplay: r.salary, key: r.name + "::FLEX" }); } return res;
+    const res = []; for (const r of rows) {
+      res.push({ ...r, tag: "CPT",  projDisplay: r.cap_proj,  floorDisplay: r.cap_floor,  ceilDisplay: r.cap_ceil,  pownDisplay: r.cap_pown, optDisplay: r.cap_opt, salaryDisplay: r.cap_salary, key: r.name + "::CPT" });
+      res.push({ ...r, tag: "FLEX", projDisplay: r.proj, floorDisplay: r.floor, ceilDisplay: r.ceil, pownDisplay: r.pown, optDisplay: r.opt, salaryDisplay: r.salary, key: r.name + "::FLEX" });
+    }
+    return res;
   }, [rows]);
 
   // Filter (by tag + search)
@@ -295,7 +299,6 @@ export default function NFLShowdownOptimizer() {
   const cmp = useMemo(() => {
     const { col, dir } = sort;
     const mult = dir === "asc" ? 1 : -1;
-
     return (a, b) => {
       if (["tag","pos","team","opp"].includes(col)) {
         const va = (col === "tag" ? (a.tag === "FLEX" ? "FLEX" : cfg.capTag) :
@@ -308,37 +311,21 @@ export default function NFLShowdownOptimizer() {
         if (va > vb) return  1 * mult;
         return a.name.localeCompare(b.name) * mult;
       }
-
-      const map = {
-        salary: "salaryDisplay",
-        proj:   "projDisplay",
-        floor:  "floorDisplay",
-        ceil:   "ceilDisplay",
-        pown:   "pownDisplay",
-        opt:    "optDisplay",
-        usage:  null
-      };
-
+      const map = { salary:"salaryDisplay", proj:"projDisplay", floor:"floorDisplay", ceil:"ceilDisplay", pown:"pownDisplay", opt:"optDisplay", usage:null };
       const aV = col === "usage" ? (usagePct[a.key] || 0) : (a[map[col]] ?? 0);
       const bV = col === "usage" ? (usagePct[b.key] || 0) : (b[map[col]] ?? 0);
-
       if (aV < bV) return -1 * mult;
       if (aV > bV) return  1 * mult;
       return a.name.localeCompare(b.name) * mult;
     };
   }, [sort, cfg.capTag, usagePct]);
 
-  const sortedRows = useMemo(() => {
-    return [...filteredRows].sort(cmp);
-  }, [filteredRows, cmp]);
+  const sortedRows = useMemo(() => [...filteredRows].sort(cmp), [filteredRows, cmp]);
 
   const sortable = new Set(["tag","pos","team","opp","salary","proj","floor","ceil","pown","opt","usage"]);
   const setSort = (col) => {
     if (!sortable.has(col)) return;
-    setSortState((prev) => {
-      const dir = prev.col === col ? (prev.dir === "asc" ? "desc" : "asc") : "desc";
-      return { col, dir };
-    });
+    setSortState((prev) => ({ col, dir: prev.col === col ? (prev.dir === "asc" ? "desc" : "asc") : "desc" }));
   };
   const sortArrow = (key) => sort.col === key ? (sort.dir === "asc" ? " ▲" : " ▼") : "";
 
@@ -352,13 +339,21 @@ export default function NFLShowdownOptimizer() {
   /* --------------------------- optimize (SSE) ------------------------ */
   async function optimize() {
     if (!rows.length) return; setLineups([]); setProgressActual(0); setProgressUI(0); setIsOptimizing(true);
-    const basePos = ["QB","RB","WR","TE","DST","K"]; const slots = [ { name: cfg.capTag === "CPT" ? "CPT" : "MVP", eligible: basePos }, ...Array.from({length:5},()=>({ name:"FLEX", eligible: basePos })) ];
+    const basePos = ["QB","RB","WR","TE","DST","K"];
+    const slots = [ { name: cfg.capTag === "CPT" ? "CPT" : "MVP", eligible: basePos }, ...Array.from({length:5},()=>({ name:"FLEX", eligible: basePos })) ];
 
-    const players = rows.map((r) => ({ name: r.name, pos: r.pos, team: r.team, opp: r.opp, salary: Math.round(r.salary || 0), proj: r.proj || 0, floor: r.floor || 0, ceil: r.ceil || 0, pown: r.pown || 0, opt: r.opt || 0, cap_salary: Math.round(r.cap_salary || Math.round(r.salary * 1.5)), cap_proj: r.cap_proj, cap_floor: r.cap_floor, cap_ceil: r.cap_ceil, cap_pown: r.cap_pown, cap_opt: r.cap_opt }));
+    const players = rows.map((r) => ({
+      name: r.name, pos: r.pos, team: r.team, opp: r.opp,
+      salary: Math.round(r.salary || 0), proj: r.proj || 0, floor: r.floor || 0, ceil: r.ceil || 0,
+      pown: r.pown || 0, opt: r.opt || 0,
+      cap_salary: Math.round(r.cap_salary || Math.round(r.salary * 1.5)),
+      cap_proj: r.cap_proj, cap_floor: r.cap_floor, cap_ceil: r.cap_ceil, cap_pown: r.cap_pown, cap_opt: r.cap_opt
+    }));
 
     const apiRules = (rules || []).map((r) => ({
       if_slot: r.if_slot || (cfg.capTag),
       if_pos: r.if_pos || ["QB"],
+      if_team_exact: r.if_team ? r.if_team : null,          // NEW: IF-side team condition
       then_at_least: Math.max(0, Number(r.then_at_least) || 0),
       from_pos: r.from_pos || ["WR","TE"],
       team_scope: r.team_scope || "any",
@@ -366,12 +361,14 @@ export default function NFLShowdownOptimizer() {
     }));
 
     // prepare team max overrides (only provided teams)
-    const teamMax = {}; for (const tm of slateTeams) { const v = clamp(Number(teamMaxPct[tm]) || 0, 0, 100); if (String(teamMaxPct[tm] ?? "").trim() !== "") teamMax[tm] = v; }
+    const teamMax = {};
+    for (const tm of slateTeams) {
+      const v = clamp(Number(teamMaxPct[tm]) || 0, 0, 100);
+      if (String(teamMaxPct[tm] ?? "").trim() !== "") teamMax[tm] = v;
+    }
 
     const payload = {
-      site,
-      slots,
-      players,
+      site, slots, players,
       n: Math.max(1, Number(numLineups) || 1),
       cap: Math.min(cfg.cap, Number(maxSalary) || cfg.cap),
       objective: optBy,
@@ -497,40 +494,78 @@ export default function NFLShowdownOptimizer() {
       <div className="mb-3 rounded-md border p-2">
         <div className="flex items-center justify-between mb-2">
           <div className="text-[11px] text-gray-600">Conditional Rules (IF → THEN)</div>
-          <button className="px-2 py-1 text-sm rounded-md border hover:bg-gray-50" onClick={() => setRules((R) => [...R, { if_slot: cfg.capTag, if_pos:["QB"], then_at_least:1, from_pos:["WR","TE"], team_scope:"same_team", team_exact:"" }])}>+ Add Rule</button>
+          <button
+            className="px-2 py-1 text-sm rounded-md border hover:bg-gray-50"
+            onClick={() => setRules((R) => [...R, {
+              if_slot: cfg.capTag, if_pos:["QB"], if_team:"", // NEW: IF-side team unset
+              then_at_least:1, from_pos:["WR","TE"], team_scope:"same_team", team_exact:""
+            }])}
+          >
+            + Add Rule
+          </button>
         </div>
         {rules.length === 0 ? (
           <div className="text-xs text-gray-500">No rules yet.</div>
         ) : (
           <div className="space-y-2">
             {rules.map((r, i) => {
-              const teamSelectValue = (r.team_scope === "exact_team" && r.team_exact)
-                ? `exact:${r.team_exact}`
-                : (r.team_scope || "any");
+              // destination team select (same/opp/any/exact)
+              const destSelectValue = (r.team_scope === "exact_team" && r.team_exact)
+                ? `exact:${r.team_exact}` : (r.team_scope || "any");
+
+              const ifTeamValue = r.if_team || ""; // "" = any team
 
               return (
                 <div key={i} className="flex flex-wrap items-center gap-2">
                   <span className="text-sm">IF</span>
                   <div className="inline-flex rounded-md overflow-hidden border">
                     {[cfg.capTag, "FLEX"].map((slot) => (
-                      <button key={slot} className={`px-2 py-1 text-sm ${ (r.if_slot||cfg.capTag)===slot ? "bg-blue-600 text-white" : "bg-white" }`} onClick={()=>setRules((R)=>{const c=[...R]; c[i]={...c[i], if_slot:slot}; return c;})}>{slot}</button>
+                      <button key={slot}
+                        className={`px-2 py-1 text-sm ${ (r.if_slot||cfg.capTag)===slot ? "bg-blue-600 text-white" : "bg-white" }`}
+                        onClick={()=>setRules((R)=>{const c=[...R]; c[i]={...c[i], if_slot:slot}; return c;})}
+                      >{slot}</button>
                     ))}
                   </div>
+
                   <span className="text-sm">is</span>
                   {["QB","RB","WR","TE","DST","K"].map((p) => (
-                    <button key={p} className={`px-2 py-1 rounded border text-sm ${r.if_pos?.includes(p) ? "bg-blue-600 text-white" : "bg-white"}`} onClick={() => setRules((R) => { const copy=[...R]; const cur=new Set(copy[i].if_pos||[]); cur.has(p)?cur.delete(p):cur.add(p); copy[i]={...copy[i], if_pos:[...cur]}; return copy; })}>{p}</button>
-                  ))}
-                  <span className="text-sm">THEN require at least</span>
-                  <input className="w-14 border rounded-md px-2 py-1 text-sm" value={r.then_at_least ?? 1} onChange={(e) => setRules((R)=>{const c=[...R]; c[i]={...c[i], then_at_least:e.target.value}; return c;})}/>
-                  <span className="text-sm">from</span>
-                  {["QB","RB","WR","TE","DST","K"].map((p) => (
-                    <button key={p} className={`px-2 py-1 rounded border text-sm ${r.from_pos?.includes(p) ? "bg-green-600 text-white" : "bg-white"}`} onClick={() => setRules((R) => { const copy=[...R]; const cur=new Set(copy[i].from_pos||[]); cur.has(p)?cur.delete(p):cur.add(p); copy[i]={...copy[i], from_pos:[...cur]}; return copy; })}>{p}</button>
+                    <button key={p}
+                      className={`px-2 py-1 rounded border text-sm ${r.if_pos?.includes(p) ? "bg-blue-600 text-white" : "bg-white"}`}
+                      onClick={() => setRules((R) => { const copy=[...R]; const cur=new Set(copy[i].if_pos||[]); cur.has(p)?cur.delete(p):cur.add(p); copy[i]={...copy[i], if_pos:[...cur]}; return copy; })}
+                    >{p}</button>
                   ))}
 
-                  {/* Team scope + exact team combined dropdown */}
+                  {/* NEW: IF-side team condition */}
+                  <span className="text-sm">on team</span>
                   <select
                     className="border rounded-md px-2 py-1 text-sm"
-                    value={teamSelectValue}
+                    value={ifTeamValue}
+                    onChange={(e)=>setRules((R)=>{ const c=[...R]; c[i]={...c[i], if_team:e.target.value}; return c; })}
+                    title="Only apply this rule when the IF player is on the selected team"
+                  >
+                    <option value="">any team</option>
+                    {slateTeams.map((abbr)=> {
+                      const label = `${abbr} — ${(NFL_TEAMS[abbr]?.city ?? abbr)} ${NFL_TEAMS[abbr]?.nickname ?? ""}`.trim();
+                      return <option key={abbr} value={abbr}>{label}</option>;
+                    })}
+                  </select>
+
+                  <span className="text-sm">THEN require at least</span>
+                  <input className="w-14 border rounded-md px-2 py-1 text-sm" value={r.then_at_least ?? 1}
+                    onChange={(e) => setRules((R)=>{const c=[...R]; c[i]={...c[i], then_at_least:e.target.value}; return c;})}
+                  />
+                  <span className="text-sm">from</span>
+                  {["QB","RB","WR","TE","DST","K"].map((p) => (
+                    <button key={p}
+                      className={`px-2 py-1 rounded border text-sm ${r.from_pos?.includes(p) ? "bg-green-600 text-white" : "bg-white"}`}
+                      onClick={() => setRules((R) => { const copy=[...R]; const cur=new Set(copy[i].from_pos||[]); cur.has(p)?cur.delete(p):cur.add(p); copy[i]={...copy[i], from_pos:[...cur]}; return copy; })}
+                    >{p}</button>
+                  ))}
+
+                  {/* Destination team scope (same/opp/any/exact) */}
+                  <select
+                    className="border rounded-md px-2 py-1 text-sm"
+                    value={destSelectValue}
                     onChange={(e)=>{
                       const val = e.target.value;
                       setRules((R)=> {
@@ -548,7 +583,6 @@ export default function NFLShowdownOptimizer() {
                     <option value="same_team">same team</option>
                     <option value="opp_team">opp team</option>
                     <option value="any">any</option>
-                    {/* exact team options (slate teams) */}
                     {slateTeams.map((abbr)=> {
                       const label = `${abbr} — ${(NFL_TEAMS[abbr]?.city ?? abbr)} ${NFL_TEAMS[abbr]?.nickname ?? ""}`.trim();
                       return <option key={abbr} value={`exact:${abbr}`}>{label}</option>;
@@ -605,7 +639,13 @@ export default function NFLShowdownOptimizer() {
                   <tr key={r.key} className="odd:bg-white even:bg-gray-50 hover:bg-blue-50/60 transition-colors">
                     <td className={cell}><input type="checkbox" checked={locks.has(tagKey(r.name, r.tag))} onChange={() => toggleLock(r.name, r.tag)} /></td>
                     <td className={cell}><input type="checkbox" checked={excls.has(tagKey(r.name, r.tag))} onChange={() => toggleExcl(r.name, r.tag)} /></td>
-                    <td className={cell}><div className="inline-flex items-center gap-1"><button className="px-1.5 py-0.5 border rounded" title="+3%" onClick={() => bumpBoost(r.name, +1)}>▲</button><span className="w-5 text-center">{boost[r.name] || 0}</span><button className="px-1.5 py-0.5 border rounded" title="-3%" onClick={() => bumpBoost(r.name, -1)}>▼</button></div></td>
+                    <td className={cell}>
+                      <div className="inline-flex items-center gap-1">
+                        <button className="px-1.5 py-0.5 border rounded" title="+3%" onClick={() => bumpBoost(r.name, +1)}>▲</button>
+                        <span className="w-5 text-center">{boost[r.name] || 0}</span>
+                        <button className="px-1.5 py-0.5 border rounded" title="-3%" onClick={() => bumpBoost(r.name, -1)}>▼</button>
+                      </div>
+                    </td>
                     <td className={cell}>{r.tag === "FLEX" ? "FLEX" : cfg.capTag}</td>
                     <td className={`${cell} whitespace-nowrap`}>{r.name}</td>
                     <td className={cell}><TeamPill abbr={r.team} title={teamTitle} /></td>
@@ -617,8 +657,20 @@ export default function NFLShowdownOptimizer() {
                     <td className={`${cell} tabular-nums`}>{fmt1(r.ceilDisplay)}</td>
                     <td className={`${cell} tabular-nums`}>{fmt1(r.pownDisplay * 100)}</td>
                     <td className={`${cell} tabular-nums`}>{fmt1(r.optDisplay * 100)}</td>
-                    <td className={cell}><div className="inline-flex items-center gap-1"><button className="px-1.5 py-0.5 border rounded" onClick={() => setMinPct((m) => ({ ...m, [r.name]: clamp((num(m[r.name]) || 0) - 5, 0, 100) }))} title="-5%">–</button><input className="w-12 border rounded px-1.5 py-0.5 text-center" value={String(minPct[r.name] ?? "")} onChange={(e) => setMinPct((m) => ({ ...m, [r.name]: e.target.value }))} placeholder="—" /><button className="px-1.5 py-0.5 border rounded" onClick={() => setMinPct((m) => ({ ...m, [r.name]: clamp((num(m[r.name]) || 0) + 5, 0, 100) }))} title="+5%">+</button></div></td>
-                    <td className={cell}><div className="inline-flex items-center gap-1"><button className="px-1.5 py-0.5 border rounded" onClick={() => setMaxPct((m) => ({ ...m, [r.name]: clamp((num(m[r.name]) || 100) - 5, 0, 100) }))} title="-5%">–</button><input className="w-12 border rounded px-1.5 py-0.5 text-center" value={String(maxPct[r.name] ?? "")} onChange={(e) => setMaxPct((m) => ({ ...m, [r.name]: e.target.value }))} placeholder="—" /><button className="px-1.5 py-0.5 border rounded" onClick={() => setMaxPct((m) => ({ ...m, [r.name]: clamp((num(m[r.name]) || 100) + 5, 0, 100) }))} title="+5%">+</button></div></td>
+                    <td className={cell}>
+                      <div className="inline-flex items-center gap-1">
+                        <button className="px-1.5 py-0.5 border rounded" onClick={() => setMinPct((m) => ({ ...m, [r.name]: clamp((num(m[r.name]) || 0) - 5, 0, 100) }))} title="-5%">–</button>
+                        <input className="w-12 border rounded px-1.5 py-0.5 text-center" value={String(minPct[r.name] ?? "")} onChange={(e) => setMinPct((m) => ({ ...m, [r.name]: e.target.value }))} placeholder="—" />
+                        <button className="px-1.5 py-0.5 border rounded" onClick={() => setMinPct((m) => ({ ...m, [r.name]: clamp((num(m[r.name]) || 0) + 5, 0, 100) }))} title="+5%">+</button>
+                      </div>
+                    </td>
+                    <td className={cell}>
+                      <div className="inline-flex items-center gap-1">
+                        <button className="px-1.5 py-0.5 border rounded" onClick={() => setMaxPct((m) => ({ ...m, [r.name]: clamp((num(m[r.name]) || 100) - 5, 0, 100) }))} title="-5%">–</button>
+                        <input className="w-12 border rounded px-1.5 py-0.5 text-center" value={String(maxPct[r.name] ?? "")} onChange={(e) => setMaxPct((m) => ({ ...m, [r.name]: e.target.value }))} placeholder="—" />
+                        <button className="px-1.5 py-0.5 border rounded" onClick={() => setMaxPct((m) => ({ ...m, [r.name]: clamp((num(m[r.name]) || 100) + 5, 0, 100) }))} title="+5%">+</button>
+                      </div>
+                    </td>
                     <td className={`${cell} tabular-nums`}>{usagePct[r.key] != null ? fmt1(usagePct[r.key]) : "—"}</td>
                   </tr>
                 );
