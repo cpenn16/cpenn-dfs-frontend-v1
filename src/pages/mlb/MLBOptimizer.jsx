@@ -26,8 +26,8 @@ const normTeam = (s) => (s || "").toUpperCase().trim();
 
 /* ------------------------------ data ------------------------------- */
 // Adjust these to your MLB export paths
-const SOURCE = "/data/mlb/classic/latest/projections.json";
-const SITE_IDS_SOURCE = "/data/mlb/classic/latest/site_ids.json";
+const SOURCE = `${API_BASE}/data/mlb/classic/latest/projections.json`;
+const SITE_IDS_SOURCE = `${API_BASE}/data/mlb/classic/latest/site_ids.json`;
 
 /* ----------------------------- sites ------------------------------- */
 const SITES = {
@@ -47,7 +47,6 @@ const SITES = {
       { name: "OF1",  eligible: ["OF"] },
       { name: "OF2",  eligible: ["OF"] },
       { name: "OF3",  eligible: ["OF"] },
-      { name: "UTIL", eligible: ["C","1B","2B","3B","SS","OF"] },
     ],
     pown: ["DK pOWN%","DK pOWN"],
     opt:  ["DK Opt%","DK Opt"],
@@ -826,7 +825,6 @@ function orderPlayersForSite(site, names, rowsMap) {
     out.push(take((r) => r.eligible.includes("OF")));
     out.push(take((r) => r.eligible.includes("OF")));
     out.push(take((r) => r.eligible.includes("OF")));
-    out.push(take((r) => ["C","1B","2B","3B","SS","OF"].some(p => r.eligible.includes(p)))); // UTIL
   } else {
     out.push(take((r) => r.eligible.includes("P")));
     out.push(take((r) => r.eligible.includes("C") || r.eligible.includes("1B")));
