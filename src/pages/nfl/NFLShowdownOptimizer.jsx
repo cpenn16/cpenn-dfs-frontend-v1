@@ -1,11 +1,10 @@
 // src/pages/nfl/NFLShowdownOptimizer.jsx
-// FULL DROP‑IN — v3.1
-// Fixes:
-// 1) DK CSV now outputs "Player (ID)" correctly by matching DK site_ids entries
-//    using the site_ids `pos` field which is "FLEX" or "CPT" per-slot.
-// 2) FD DST salary shows correctly on load by leniently matching
-//    "Philadelphia Eagles" (FD) to "Eagles" (optimizer) when salary was 0.
-//    (Export behavior unchanged: still uses FD's full DST name.)
+// FULL DROP-IN — v3.2
+// Updates from v3.1:
+// A) Stable sorting (no jumpiness). We removed the old "order weaving" and now
+//    sort a single filtered list with a proper comparator.
+// B) IF→THEN rules: added "exact team" override. When selected, you can pick one
+//    slate team; the rule passes team_exact through to the solver payload.
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API_BASE from "../../utils/api";
@@ -193,11 +192,21 @@ export default function NFLShowdownOptimizer() {
 
   useEffect(() => {
     if (!isOptimizing) return; clearInterval(tickRef.current);
-    tickRef.current = setInterval(() => { setProgressUI((p) => { const N = Math.max(1, Number(numLineups) || 1); const target = Math.max(progressActual, 1); const ceiling = Math.max(0, N - 1); return Math.min(Math.max(p + 1, target), ceiling); }); }, 250);
+    tickRef.current = setInterval(() => {
+      setProgressUI((p) => {
+        const N = Math.max(1, Number(numLineups) || 1);
+        const target = Math.max(progressActual, 1);
+        const ceiling = Math.max(0, N - 1);
+        return Math.min(Math.max(p + 1, target), ceiling);
+      });
+    }, 250);
     return () => clearInterval(tickRef.current);
   }, [isOptimizing, progressActual, numLineups]);
 
-  useEffect(() => { setLineups([]); setProgressActual(0); setProgressUI(0); setIsOptimizing(false); setLocks(new Set()); setExcls(new Set()); setBoost({}); setMinPct({}); setMaxPct({}); }, [site]);
+  useEffect(() => {
+    setLineups([]); setProgressActual(0); setProgressUI(0); setIsOptimizing(false);
+    setLocks(new Set()); setExcls(new Set()); setBoost({}); setMinPct({}); setMaxPct({});
+  }, [site]);
 
   /* ------------------------------ rows ------------------------------ */
   const rows = useMemo(() => {
@@ -254,9 +263,7 @@ export default function NFLShowdownOptimizer() {
   }, [rows]);
 
   /* -------------------- table + search + sorting ------------------- */
-  const [order, setOrder] = useState([]);
-  const sortRef = useRef({ col: "proj", dir: "desc" });
-  useEffect(() => { const initial = [...rows].sort((a, b) => b.proj - a.proj || a.name.localeCompare(b.name)); setOrder(initial.map((r) => r.name + "::FLEX")); }, [rows.length, site]);
+  const [sort, setSortState] = useState({ col: "proj", dir: "desc" }); // stable sorting state (not ref)
 
   const usagePct = useMemo(() => {
     if (!lineups.length) return {}; const m = new Map(); for (const L of lineups) { const [cap, ...flex] = L.players; m.set(cap + "::CPT", (m.get(cap + "::CPT") || 0) + 1); for (const n of flex) m.set(n + "::FLEX", (m.get(n + "::FLEX") || 0) + 1); }
@@ -267,15 +274,73 @@ export default function NFLShowdownOptimizer() {
     const res = []; for (const r of rows) { res.push({ ...r, tag: "CPT",  projDisplay: r.cap_proj,  floorDisplay: r.cap_floor,  ceilDisplay: r.cap_ceil,  pownDisplay: r.cap_pown, optDisplay: r.cap_opt, salaryDisplay: r.cap_salary, key: r.name + "::CPT" }); res.push({ ...r, tag: "FLEX", projDisplay: r.proj, floorDisplay: r.floor, ceilDisplay: r.ceil, pownDisplay: r.pown, optDisplay: r.opt, salaryDisplay: r.salary, key: r.name + "::FLEX" }); } return res;
   }, [rows]);
 
-  const displayRows = useMemo(() => {
-    const needle = q.trim().toLowerCase(); const okTag = (t) => tagFilter === "ALL" ? true : (t === "FLEX" ? "FLEX" : cfg.capTag) === tagFilter;
-    const filtered = expandedRows.filter((r) => okTag(r.tag) && ( !needle || r.name.toLowerCase().includes(needle) || r.team.toLowerCase().includes(needle) || r.opp.toLowerCase().includes(needle) || r.pos.toLowerCase().includes(needle) || String(r.salaryDisplay).includes(needle) ));
-    const ids = new Set(order); const withKnown = filtered.filter((r) => ids.has(r.key)); const others = filtered.filter((r) => !ids.has(r.key)); return [...withKnown, ...others];
-  }, [expandedRows, order, q, tagFilter, cfg.capTag]);
+  // Filter (by tag + search)
+  const filteredRows = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    const okTag = (t) => tagFilter === "ALL" ? true : (t === "FLEX" ? "FLEX" : cfg.capTag) === tagFilter;
+    return expandedRows.filter((r) =>
+      okTag(r.tag) &&
+      (
+        !needle ||
+        r.name.toLowerCase().includes(needle) ||
+        r.team.toLowerCase().includes(needle) ||
+        r.opp.toLowerCase().includes(needle) ||
+        r.pos.toLowerCase().includes(needle) ||
+        String(r.salaryDisplay).includes(needle)
+      )
+    );
+  }, [expandedRows, q, tagFilter, cfg.capTag]);
+
+  // Comparator (stable)
+  const cmp = useMemo(() => {
+    const { col, dir } = sort;
+    const mult = dir === "asc" ? 1 : -1;
+
+    return (a, b) => {
+      if (["tag","pos","team","opp"].includes(col)) {
+        const va = (col === "tag" ? (a.tag === "FLEX" ? "FLEX" : cfg.capTag) :
+                    col === "pos" ? a.pos :
+                    col === "team" ? a.team : a.opp) || "";
+        const vb = (col === "tag" ? (b.tag === "FLEX" ? "FLEX" : cfg.capTag) :
+                    col === "pos" ? b.pos :
+                    col === "team" ? b.team : b.opp) || "";
+        if (va < vb) return -1 * mult;
+        if (va > vb) return  1 * mult;
+        return a.name.localeCompare(b.name) * mult;
+      }
+
+      const map = {
+        salary: "salaryDisplay",
+        proj:   "projDisplay",
+        floor:  "floorDisplay",
+        ceil:   "ceilDisplay",
+        pown:   "pownDisplay",
+        opt:    "optDisplay",
+        usage:  null
+      };
+
+      const aV = col === "usage" ? (usagePct[a.key] || 0) : (a[map[col]] ?? 0);
+      const bV = col === "usage" ? (usagePct[b.key] || 0) : (b[map[col]] ?? 0);
+
+      if (aV < bV) return -1 * mult;
+      if (aV > bV) return  1 * mult;
+      return a.name.localeCompare(b.name) * mult;
+    };
+  }, [sort, cfg.capTag, usagePct]);
+
+  const sortedRows = useMemo(() => {
+    return [...filteredRows].sort(cmp);
+  }, [filteredRows, cmp]);
 
   const sortable = new Set(["tag","pos","team","opp","salary","proj","floor","ceil","pown","opt","usage"]);
-  const setSort = (col) => { if (!sortable.has(col)) return; const dir = sortRef.current.col === col ? (sortRef.current.dir === "asc" ? "desc" : "asc") : "desc"; sortRef.current = { col, dir }; const mult = dir === "asc" ? 1 : -1; const sorted = [...displayRows].sort((a, b) => { if (["tag","pos","team","opp"].includes(col)) { const va = (col === "tag" ? a.tag : col === "pos" ? a.pos : col === "team" ? a.team : a.opp) || ""; const vb = (col === "tag" ? b.tag : col === "pos" ? b.pos : col === "team" ? b.team : b.opp) || ""; if (va < vb) return -1*mult; if (va > vb) return 1*mult; return a.name.localeCompare(b.name) * mult; } const map = { salary: "salaryDisplay", proj: "projDisplay", floor: "floorDisplay", ceil: "ceilDisplay", pown: "pownDisplay", opt: "optDisplay", usage: null, }; const aV = col === "usage" ? (usagePct[a.key] || 0) : (a[map[col]] ?? 0); const bV = col === "usage" ? (usagePct[b.key] || 0) : (b[map[col]] ?? 0); if (aV < bV) return -1*mult; if (aV > bV) return 1*mult; return a.name.localeCompare(b.name) * mult; }); setOrder(sorted.map((r) => r.key)); };
-  const sortArrow = (key) => sortRef.current.col === key ? (sortRef.current.dir === "asc" ? " ▲" : " ▼") : "";
+  const setSort = (col) => {
+    if (!sortable.has(col)) return;
+    setSortState((prev) => {
+      const dir = prev.col === col ? (prev.dir === "asc" ? "desc" : "asc") : "desc";
+      return { col, dir };
+    });
+  };
+  const sortArrow = (key) => sort.col === key ? (sort.dir === "asc" ? " ▲" : " ▼") : "";
 
   /* ------------------------------ actions ---------------------------- */
   const toggleLock = (name, tag) => setLocks((s) => { const k = tagKey(name, tag); const n = new Set(s); n.has(k) ? n.delete(k) : n.add(k); return n; });
@@ -291,23 +356,80 @@ export default function NFLShowdownOptimizer() {
 
     const players = rows.map((r) => ({ name: r.name, pos: r.pos, team: r.team, opp: r.opp, salary: Math.round(r.salary || 0), proj: r.proj || 0, floor: r.floor || 0, ceil: r.ceil || 0, pown: r.pown || 0, opt: r.opt || 0, cap_salary: Math.round(r.cap_salary || Math.round(r.salary * 1.5)), cap_proj: r.cap_proj, cap_floor: r.cap_floor, cap_ceil: r.cap_ceil, cap_pown: r.cap_pown, cap_opt: r.cap_opt }));
 
-    const apiRules = (rules || []).map((r) => ({ if_slot: r.if_slot || (cfg.capTag), if_pos: r.if_pos || ["QB"], then_at_least: Math.max(0, Number(r.then_at_least) || 0), from_pos: r.from_pos || ["WR","TE"], team_scope: r.team_scope || "same_team" }));
+    const apiRules = (rules || []).map((r) => ({
+      if_slot: r.if_slot || (cfg.capTag),
+      if_pos: r.if_pos || ["QB"],
+      then_at_least: Math.max(0, Number(r.then_at_least) || 0),
+      from_pos: r.from_pos || ["WR","TE"],
+      team_scope: r.team_scope || "any",
+      team_exact: (r.team_scope === "exact_team" && r.team_exact) ? r.team_exact : null
+    }));
 
     // prepare team max overrides (only provided teams)
     const teamMax = {}; for (const tm of slateTeams) { const v = clamp(Number(teamMaxPct[tm]) || 0, 0, 100); if (String(teamMaxPct[tm] ?? "").trim() !== "") teamMax[tm] = v; }
 
-    const payload = { site, slots, players, n: Math.max(1, Number(numLineups) || 1), cap: Math.min(cfg.cap, Number(maxSalary) || cfg.cap), objective: optBy, locks: Array.from(locks), excludes: Array.from(excls), boosts: boost, randomness: clamp(Number(randomness) || 0, 0, 100), global_max_pct: clamp(Number(globalMax) || 100, 0, 100), team_max_pct: teamMax, min_pct: Object.fromEntries(Object.entries(minPct).map(([k, v]) => [k, clamp(Number(v) || 0, 0, 100)])), max_pct: Object.fromEntries(Object.entries(maxPct).map(([k, v]) => [k, clamp(Number(v) || 100, 0, 100)])), time_limit_ms: 1500, max_overlap: clamp(Number(maxOverlap) || 0, 0, 5), lineup_pown_max: String(lineupPownCap).trim() === "" ? null : clamp(Number(lineupPownCap) || 0, 0, 100), rules: apiRules };
+    const payload = {
+      site,
+      slots,
+      players,
+      n: Math.max(1, Number(numLineups) || 1),
+      cap: Math.min(cfg.cap, Number(maxSalary) || cfg.cap),
+      objective: optBy,
+      locks: Array.from(locks),
+      excludes: Array.from(excls),
+      boosts: boost,
+      randomness: clamp(Number(randomness) || 0, 0, 100),
+      global_max_pct: clamp(Number(globalMax) || 100, 0, 100),
+      team_max_pct: teamMax,
+      min_pct: Object.fromEntries(Object.entries(minPct).map(([k, v]) => [k, clamp(Number(v) || 0, 0, 100)])),
+      max_pct: Object.fromEntries(Object.entries(maxPct).map(([k, v]) => [k, clamp(Number(v) || 100, 0, 100)])),
+      time_limit_ms: 1500,
+      max_overlap: clamp(Number(maxOverlap) || 0, 0, 5),
+      lineup_pown_max: String(lineupPownCap).trim() === "" ? null : clamp(Number(lineupPownCap) || 0, 0, 100),
+      rules: apiRules
+    };
 
-    const out = []; try { await solveStreamShowdown(payload, (evt) => { const L = { players: evt.drivers, salary: evt.salary, total: evt.total }; out.push(L); setLineups((prev) => [...prev, L]); setProgressActual(out.length); }, () => { setProgressActual(out.length || payload.n); setProgressUI(out.length || payload.n); setIsOptimizing(false); clearInterval(tickRef.current); }); } catch (e) { alert(`Solve failed: ${String(e?.message || e)}`); setIsOptimizing(false); clearInterval(tickRef.current); }
+    const out = [];
+    try {
+      await solveStreamShowdown(
+        payload,
+        (evt) => {
+          const L = { players: evt.drivers, salary: evt.salary, total: evt.total };
+          out.push(L); setLineups((prev) => [...prev, L]); setProgressActual(out.length);
+        },
+        () => { setProgressActual(out.length || payload.n); setProgressUI(out.length || payload.n); setIsOptimizing(false); clearInterval(tickRef.current); }
+      );
+    } catch (e) {
+      alert(`Solve failed: ${String(e?.message || e)}`);
+      setIsOptimizing(false); clearInterval(tickRef.current);
+    }
   }
 
   /* --------------------------- table schema ------------------------- */
-  const TABLE_COLS = [ { key: "lock", label: "Lock" }, { key: "excl", label: "Excl" }, { key: "boosts", label: "Boosts" }, { key: "tag", label: cfg.capTag, sortable: true }, { key: "name", label: "Player" }, { key: "team", label: "Tm", sortable: true }, { key: "opp", label: "Opp", sortable: true }, { key: "pos", label: "Pos", sortable: true }, { key: "salary", label: "Salary", sortable: true }, { key: "proj", label: "Proj", sortable: true }, { key: "floor", label: "Floor", sortable: true }, { key: "ceil", label: "Ceiling", sortable: true }, { key: "pown", label: "pOWN%", sortable: true }, { key: "opt", label: "Opt%", sortable: true }, { key: "min", label: "Min%" }, { key: "max", label: "Max%" }, { key: "usage", label: "Usage%", sortable: true } ];
+  const TABLE_COLS = [
+    { key: "lock", label: "Lock" },
+    { key: "excl", label: "Excl" },
+    { key: "boosts", label: "Boosts" },
+    { key: "tag", label: cfg.capTag, sortable: true },
+    { key: "name", label: "Player" },
+    { key: "team", label: "Tm", sortable: true },
+    { key: "opp", label: "Opp", sortable: true },
+    { key: "pos", label: "Pos", sortable: true },
+    { key: "salary", label: "Salary", sortable: true },
+    { key: "proj", label: "Proj", sortable: true },
+    { key: "floor", label: "Floor", sortable: true },
+    { key: "ceil", label: "Ceiling", sortable: true },
+    { key: "pown", label: "pOWN%", sortable: true },
+    { key: "opt", label: "Opt%", sortable: true },
+    { key: "min", label: "Min%" },
+    { key: "max", label: "Max%" },
+    { key: "usage", label: "Usage%", sortable: true }
+  ];
 
   const totalLabel = optBy === "proj" ? "Proj" : optBy === "floor" ? "Floor" : optBy === "ceil" ? "Ceil" : optBy === "pown" ? "pOWN%" : "Opt%";
   const cell = "px-2 py-1 text-center"; const header = "px-2 py-1 font-semibold text-center"; const textSz = "text-[12px]";
 
-  /* --------------------- right‑panel aggregates --------------------- */
+  /* --------------------- right-panel aggregates --------------------- */
   function filterByExposureView(names, view){ if(view==="ALL") return names; return names.filter((_,i)=> view==="CAP" ? i===0 : i>0 ); }
   const exposures = useMemo(() => {
     const map = new Map(); const count = lineups.length || 1;
@@ -403,7 +525,35 @@ export default function NFLShowdownOptimizer() {
                   <option value="same_team">same team</option>
                   <option value="opp_team">opp team</option>
                   <option value="any">any team</option>
+                  <option value="exact_team">exact team</option>
                 </select>
+
+                {(r.team_scope === "exact_team") && (
+                  <div className="inline-flex items-center gap-2 ml-2">
+                    {slateTeams.map((abbr) => (
+                      <button
+                        key={abbr}
+                        className={`px-2 py-1 rounded border text-sm ${r.team_exact === abbr ? "bg-purple-600 text-white" : "bg-white"}`}
+                        onClick={() => setRules((R) => {
+                          const c = [...R];
+                          c[i] = { ...c[i], team_exact: (c[i].team_exact === abbr ? "" : abbr) };
+                          return c;
+                        })}
+                        title={`${NFL_TEAMS[abbr]?.city ?? abbr} ${NFL_TEAMS[abbr]?.nickname ?? ""}`.trim()}
+                      >
+                        <TeamPill abbr={abbr} />
+                      </button>
+                    ))}
+                    <button
+                      className="px-2 py-1 rounded border text-sm bg-white"
+                      onClick={() => setRules((R)=>{ const c=[...R]; c[i]={...c[i], team_exact:""}; return c; })}
+                      title="Clear team"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
+
                 <button className="ml-auto px-2 py-1 text-sm rounded-md border hover:bg-gray-50" onClick={()=>setRules((R)=>R.filter((_,j)=>j!==i))}>Delete</button>
               </div>
             ))}
@@ -446,7 +596,7 @@ export default function NFLShowdownOptimizer() {
             <tbody>
               {loading && (<tr><td className={`${header} text-gray-500`} colSpan={TABLE_COLS.length}>Loading…</td></tr>)}
               {err && (<tr><td className={`${header} text-red-600`} colSpan={TABLE_COLS.length}>Failed to load: {String(err)}</td></tr>)}
-              {!loading && !err && displayRows.map((r) => {
+              {!loading && !err && sortedRows.map((r) => {
                 const teamTitle = `${NFL_TEAMS[r.team]?.city ?? r.team} ${NFL_TEAMS[r.team]?.nickname ?? ""}`.trim();
                 const oppTitle  = `${NFL_TEAMS[r.opp]?.city ?? r.opp} ${NFL_TEAMS[r.opp]?.nickname ?? ""}`.trim();
                 return (
@@ -587,7 +737,6 @@ function downloadSiteLineupsCSV({ lineups, site, rows, siteIds, cfg, fname = "nf
     if (siteKey === "dk") {
       if (posOrSlot === "CPT") dkCPT.set(keyDK(nameFromSite, team, "CPT"), { id: baseId, nameFromSite, team });
       else dkFLEX.set(keyDK(nameFromSite, team, "FLEX"), { id: baseId, nameFromSite, team });
-      // also add DST aliases for safety (Eagles vs Philadelphia Eagles won't apply to DK, DK uses "Eagles")
     } else {
       const pos = normPos(posOrSlot); // map D/DEF → DST
       fdAny.set(keyFD(nameFromSite, team, pos), { id: baseId, nameFromSite, team, pos });
@@ -604,17 +753,14 @@ function downloadSiteLineupsCSV({ lineups, site, rows, siteIds, cfg, fname = "nf
   const header = ["#", "Salary", "Total", "D1","D2","D3","D4","D5","D6"];
 
   const findDK = (name, team, slot) => {
-    // try strict key with original site name variants
     let rec = dkCPT.get(keyDK(name, team, slot)) || dkFLEX.get(keyDK(name, team, slot));
     if (rec) return rec;
-    // try normalized variants (DST nicknames etc. — DK already uses "Eagles"/"Cowboys")
     const meta = NFL_TEAMS[team];
     if (meta) {
       rec = (slot==="CPT"?dkCPT:dkFLEX).get(keyDK(meta.nickname, team, slot)) ||
             (slot==="CPT"?dkCPT:dkFLEX).get(keyDK(`${meta.city} ${meta.nickname}`, team, slot));
       if (rec) return rec;
     }
-    // final fallback: ignore team (rare) — match by name only
     for (const [k,v] of (slot==="CPT"?dkCPT:dkFLEX).entries()) {
       if (k.startsWith(`${normName(name)}|`) ) return v;
     }
