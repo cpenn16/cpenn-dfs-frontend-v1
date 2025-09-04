@@ -1,3 +1,4 @@
+// src/pages/mlb/MLBOptimizer.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API_BASE from "../../utils/api";
 
@@ -12,10 +13,6 @@ const num = (v) => {
 };
 const fmt0 = (n) => (Number.isFinite(n) ? n.toLocaleString() : "—");
 const fmt1 = (n) => (Number.isFinite(n) ? n.toFixed(1) : "—");
-const escapeCSV = (s) => {
-  const v = String(s ?? "");
-  return /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
-};
 const pct = (v) => {
   if (v == null) return 0;
   const s = String(v).replace(/[%\s]/g, "");
@@ -25,9 +22,37 @@ const pct = (v) => {
 const normTeam = (s) => (s || "").toUpperCase().trim();
 
 /* ------------------------------ data ------------------------------- */
-// Adjust these to your MLB export paths
-const SOURCE = "/data/mlb/latest/projections.json";
-const SITE_IDS_SOURCE = "/data/mlb/latest/site_ids.json";
+/** We now read pitchers & batters separately; if either is missing we fall back
+ *  to /data/mlb/latest/projections.json (your old combined export). */
+const BATTERS_SRC  = "/data/mlb/latest/batter_projections.json";
+const PITCHERS_SRC = "/data/mlb/latest/pitcher_projections.json";
+const LEGACY_SRC   = "/data/mlb/latest/projections.json";
+const SITE_IDS_SRC = "/data/mlb/latest/site_ids.json";
+
+/* ----------------------------- team colors ------------------------- */
+const TEAM_COLORS = {
+  // primary brand colors (feel free to tweak)
+  ARI: "#A71930", ATL: "#CE1141", BAL: "#DF4601", BOS: "#BD3039",
+  CHC: "#0E3386", CIN: "#C6011F", CLE: "#00385D", COL: "#333366",
+  CWS: "#27251F", DET: "#0C2340", HOU: "#EB6E1F", KC:  "#004687",
+  LAA: "#BA0021", LAD: "#005A9C", MIA: "#00A3E0", MIL: "#FFC52F",
+  MIN: "#002B5C", NYM: "#FF5910", NYY: "#0C2340", OAK: "#003831",
+  PHI: "#E81828", PIT: "#FDB827", SD:  "#2F241D", SEA: "#0C2C56",
+  SF:  "#FD5A1E", STL: "#C41E3A", TB:  "#092C5C", TEX:"#003278",
+  TOR:"#134A8E", WSH:"#AB0003",
+};
+/* returns a nice pill style for team chips */
+const teamStyle = (abbr, active) => {
+  const bg = TEAM_COLORS[abbr] || "#e5e7eb";
+  const txt = "#fff";
+  const cls = `px-2 py-1 rounded-md text-sm border transition-colors`;
+  return {
+    className: cls,
+    style: active
+      ? { backgroundColor: bg, color: txt, borderColor: bg }
+      : { backgroundColor: "#fff", color: "#111827", borderColor: "#d1d5db" },
+  };
+};
 
 /* ----------------------------- sites ------------------------------- */
 const SITES = {
@@ -48,12 +73,8 @@ const SITES = {
       { name: "OF2",  eligible: ["OF"] },
       { name: "OF3",  eligible: ["OF"] },
     ],
-    pown: ["DK pOWN%","DK pOWN"],
-    opt:  ["DK Opt%","DK Opt"],
-    salKey: "DK Sal",
-    projKey: "DK Proj",
-    floorKey: "DK Floor",
-    ceilKey: "DK Ceiling",
+    pown: ["DK pOWN%","DK pOWN"], opt: ["DK Opt%","DK Opt"],
+    salKey: "DK Sal", projKey: "DK Proj", floorKey: "DK Floor", ceilKey: "DK Ceiling",
   },
   fd: {
     key: "fd",
@@ -71,12 +92,8 @@ const SITES = {
       { name: "OF3",  eligible: ["OF"] },
       { name: "UTIL", eligible: ["C","1B","2B","3B","SS","OF"] },
     ],
-    pown: ["FD pOWN%","FD pOWN"],
-    opt:  ["FD Opt%","FD Opt"],
-    salKey: "FD Sal",
-    projKey: "FD Proj",
-    floorKey: "FD Floor",
-    ceilKey: "FD Ceiling",
+    pown: ["FD pOWN%","FD pOWN"], opt: ["FD Opt%","FD Opt"],
+    salKey: "FD Sal", projKey: "FD Proj", floorKey: "FD Floor", ceilKey: "FD Ceiling",
   },
 };
 
@@ -84,34 +101,19 @@ const SITES = {
 function useJson(url) {
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!url);
 
   useEffect(() => {
+    if (!url) return;
     let alive = true;
     (async () => {
       try {
         setLoading(true);
         const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-
-        // Read the body ONCE
-        const ct = (res.headers.get("content-type") || "").toLowerCase();
         const raw = await res.text();
-
-        // Try to parse as JSON regardless of CT (many CDNs send text/plain)
-        // Strip BOM and tolerate trailing commas / weird whitespace
         const cleaned = raw.replace(/^\uFEFF/, "").trim();
-
-        let j;
-        try {
-          j = cleaned ? JSON.parse(cleaned) : null;
-        } catch (e) {
-          // If the server truly didn’t return JSON, surface a helpful preview
-          throw new Error(
-            `Could not parse JSON. CT=${ct}. Preview: ${cleaned.slice(0, 200)}`
-          );
-        }
-
+        const j = cleaned ? JSON.parse(cleaned) : null;
         if (alive) { setData(j); setErr(null); }
       } catch (e) {
         if (alive) { setData(null); setErr(e); }
@@ -168,8 +170,11 @@ async function solveStreamMLB(payload, onItem, onDone) {
 
 /* ---------------------------- page -------------------------------- */
 export default function MLBOptimizer() {
-  const { data, err, loading } = useJson(SOURCE);
-  const { data: siteIds } = useJson(SITE_IDS_SOURCE);
+  // Load separate feeds (falls back to legacy)
+  const { data: batters, err: batErr, loading: batLoading } = useJson(BATTERS_SRC);
+  const { data: pitchers, err: pitErr, loading: pitLoading } = useJson(PITCHERS_SRC);
+  const legacy = useJson(!batters && !pitchers ? LEGACY_SRC : null);
+  const { data: siteIds } = useJson(SITE_IDS_SRC);
 
   const [site, setSite] = useStickyState("mlbOpt.site", "dk");
   const cfg = SITES[site];
@@ -201,6 +206,7 @@ export default function MLBOptimizer() {
   // filters
   const [posFilter, setPosFilter] = useState("ALL");
   const [selectedTeams, setSelectedTeams] = useState(() => new Set());
+  const [selectedGames, setSelectedGames] = useState(() => new Set());
   const [q, setQ] = useState("");
 
   const [lineups, setLineups] = useState([]);
@@ -231,25 +237,27 @@ export default function MLBOptimizer() {
 
   /* ------------------------------ rows ------------------------------ */
   const rows = useMemo(() => {
-    if (!data) return [];
+    const pickArray = (obj) => Array.isArray(obj?.rows) ? obj.rows
+      : Array.isArray(obj?.players) ? obj.players
+      : Array.isArray(obj?.data) ? obj.data
+      : Array.isArray(obj) ? obj : [];
 
-    const arr = Array.isArray(data?.rows)
-      ? data.rows
-      : Array.isArray(data?.players)
-      ? data.players
-      : Array.isArray(data?.data)
-      ? data.data
-      : Array.isArray(data)
-      ? data
-      : [];
+    // Build from separate sources if available; otherwise legacy
+    const bat = pickArray(batters);
+    const pit = pickArray(pitchers);
+    const legacyArr = pickArray(legacy.data);
 
-    const siteKey = cfg.key; // "dk" | "fd"
+    const useSeparate = bat.length || pit.length;
+    const srcBat = useSeparate ? bat : legacyArr.filter(r => String(r.Pos||r.POS||"").toUpperCase().includes("C") || String(r.Pos||"").includes("B") || /1B|2B|3B|SS|OF/i.test(String(r.Pos||"")));
+    const srcPit = useSeparate ? pit : legacyArr.filter(r => /P|SP|RP/i.test(String(r.Pos||r.POS||"")));
+
+    const siteKey = cfg.key;
     const projKeyLC = `${siteKey}_proj`;
     const salKeyLC  = `${siteKey}_sal`;
     const pownKeyLC = `${siteKey}_pown`;
     const optKeyLC  = `${siteKey}_opt`;
 
-    const mapped = arr.map((r) => {
+    const mapBatter = (r) => {
       const name = r.player ?? r.Player ?? r.Name ?? r.playerName ?? r.name ?? "";
       const rawPos = String(r.pos ?? r.Pos ?? r.POS ?? r.Position ?? "").toUpperCase();
       const parts = rawPos.split("/").map(s => s.trim()).filter(Boolean).map(p => (p === "SP" || p === "RP") ? "P" : p);
@@ -262,20 +270,44 @@ export default function MLBOptimizer() {
       const ceil   = num(r[`${cfg.key}_ceil`]  ?? r[cfg.ceilKey]  ?? r.Ceiling);
       const pown   = pct(r[pownKeyLC] ?? r[cfg.pown?.[0]] ?? r[cfg.pown?.[1]]);
       const opt    = pct(r[optKeyLC]  ?? r[cfg.opt?.[0]]  ?? r[cfg.opt?.[1]]);
-      const isPitcher = eligible.includes("P");
       const val    = Number.isFinite(proj) && salary > 0 ? (proj / salary) * 1000 : 0;
-      return {
-        name, team, opp, eligible, isPitcher, salary, proj, floor, ceil, pown, opt, val,
-        __raw: r,
-      };
-    });
+      return { name, team, opp, eligible, isPitcher: false, salary, proj, floor, ceil, pown, opt, val, __raw: r };
+    };
 
-    return mapped.filter((r) => r.name && r.eligible.length);
-  }, [data, cfg]);
+    const mapPitcher = (r) => {
+      const name = r.player ?? r.Player ?? r.Name ?? r.playerName ?? r.name ?? "";
+      const team = normTeam(r.team ?? r.Team ?? r.Tm ?? r.TEAM ?? r.team_abbr ?? r.TeamAbbrev ?? "");
+      const opp  = normTeam(r.opp  ?? r.Opp  ?? r.OPP ?? r.opponent ?? r.Opponent ?? "");
+      const salary = num(r[`${siteKey}_sal`] ?? r[cfg.salKey] ?? r.Salary ?? r.salary);
+      const proj   = num(r[`${siteKey}_proj`] ?? r[cfg.projKey] ?? r.Projection ?? r.Points);
+      const floor  = num(r[`${cfg.key}_floor`] ?? r[cfg.floorKey] ?? r.Floor);
+      const ceil   = num(r[`${cfg.key}_ceil`]  ?? r[cfg.ceilKey]  ?? r.Ceiling);
+      const pown   = pct(r[`${siteKey}_pown`] ?? r[cfg.pown?.[0]] ?? r[cfg.pown?.[1]]);
+      const opt    = pct(r[`${siteKey}_opt`]  ?? r[cfg.opt?.[0]]  ?? r[cfg.opt?.[1]]);
+
+      // 🔴 KEY FIX: if no position exists, FORCE ['P'] for pitchers
+      const eligible = ["P"];
+      const val = Number.isFinite(proj) && salary > 0 ? (proj / salary) * 1000 : 0;
+      return { name, team, opp, eligible, isPitcher: true, salary, proj, floor, ceil, pown, opt, val, __raw: r };
+    };
+
+    const mapped = [...srcBat.map(mapBatter), ...srcPit.map(mapPitcher)]
+      .filter(r => r.name && r.eligible.length);
+
+    return mapped;
+  }, [batters, pitchers, legacy.data, cfg]);
 
   const allTeams = useMemo(() => {
     const s = new Set();
     for (const r of rows) { if (r.team) s.add(r.team); if (r.opp) s.add(r.opp); }
+    return [...s].sort();
+  }, [rows]);
+
+  const allGames = useMemo(() => {
+    const s = new Set();
+    for (const r of rows) {
+      if (r.team && r.opp) s.add(`${r.team} @ ${r.opp}`);
+    }
     return [...s].sort();
   }, [rows]);
 
@@ -303,6 +335,7 @@ export default function MLBOptimizer() {
     if (posFilter === "UTIL") return eligible.some((p) => ["C","1B","2B","3B","SS","OF"].includes(p));
     return eligible.includes(posFilter);
   };
+
   const displayRows = useMemo(() => {
     const needle = q.trim().toLowerCase();
     const textOK = (r) =>
@@ -312,15 +345,18 @@ export default function MLBOptimizer() {
       r.opp.toLowerCase().includes(needle) ||
       r.eligible.join("/").toLowerCase().includes(needle) ||
       String(r.salary).includes(needle);
+
     const teamOK = (r) => selectedTeams.size === 0 || selectedTeams.has(r.team);
+    const gameOK = (r) =>
+      selectedGames.size === 0 || selectedGames.has(`${r.team} @ ${r.opp}`);
 
     const byName = new Map(rows.map((r) => [r.name, r]));
     const ordered = order.map((n) => byName.get(n)).filter(Boolean);
     const others = rows.filter((r) => !order.includes(r.name));
     const base = [...ordered, ...others];
 
-    return base.filter((r) => posOK(r.eligible) && textOK(r) && teamOK(r));
-  }, [rows, order, q, posFilter, selectedTeams]);
+    return base.filter((r) => posOK(r.eligible) && textOK(r) && teamOK(r) && gameOK(r));
+  }, [rows, order, q, posFilter, selectedTeams, selectedGames]);
 
   const sortable = new Set(["team","opp","salary","proj","val","floor","ceil","pown","opt","usage"]);
   const setSort = (col) => {
@@ -394,7 +430,7 @@ export default function MLBOptimizer() {
       avoid_hitters_vs_opp_pitcher: !!avoidHittersVsOppP,
       max_hitters_vs_opp_pitcher: Math.max(0, Number(maxHittersVsOppP) || 0),
       lineup_pown_max: String(lineupPownCap).trim() === "" ? null : clamp(Number(lineupPownCap)||0, 0, 500),
-      min_distinct_teams: site === "fd" ? 3 : 2, // FD constraint
+      min_distinct_teams: site === "fd" ? 3 : 2,
     };
 
     const out = [];
@@ -465,7 +501,8 @@ export default function MLBOptimizer() {
     { key: "usage",  label: "Usage%", sortable: true },
   ];
 
-  const allPlayerNames = useMemo(() => rows.map((r) => r.name), [rows]);
+  const loading = (batLoading || pitLoading) && !legacy.data;
+  const err = batErr || pitErr || legacy.err;
 
   return (
     <div className="px-4 md:px-6 py-5">
@@ -537,41 +574,17 @@ export default function MLBOptimizer() {
 
           <div className="flex flex-wrap items-center gap-2 mb-2">
             <label className="text-sm">Primary Stack</label>
-            <input
-              type="number"
-              className="w-16 border rounded-md px-2 py-1 text-sm"
-              value={primaryStack}
-              onChange={(e) => setPrimaryStack(e.target.value)}
-            />
-
+            <input type="number" className="w-16 border rounded-md px-2 py-1 text-sm" value={primaryStack} onChange={(e) => setPrimaryStack(e.target.value)} />
             <label className="text-sm ml-2">Secondary Stack</label>
-            <input
-              type="number"
-              className="w-16 border rounded-md px-2 py-1 text-sm"
-              value={secondaryStack}
-              onChange={(e) => setSecondaryStack(e.target.value)}
-            />
-
+            <input type="number" className="w-16 border rounded-md px-2 py-1 text-sm" value={secondaryStack} onChange={(e) => setSecondaryStack(e.target.value)} />
             <label className="inline-flex items-center gap-2 text-sm">
               <input type="checkbox" checked={avoidHittersVsOppP} onChange={(e) => setAvoidHittersVsOppP(e.target.checked)} />
               Avoid hitters vs opp P
             </label>
-
             <label className="text-sm">Max hitters vs opp P</label>
-            <input
-              type="number"
-              className="w-16 border rounded-md px-2 py-1 text-sm"
-              value={maxHittersVsOppP}
-              onChange={(e) => setMaxHittersVsOppP(e.target.value)}
-            />
-
+            <input type="number" className="w-16 border rounded-md px-2 py-1 text-sm" value={maxHittersVsOppP} onChange={(e) => setMaxHittersVsOppP(e.target.value)} />
             <label className="text-sm">Min lineup diff</label>
-            <input
-              type="number"
-              className="w-16 border rounded-md px-2 py-1 text-sm"
-              value={minDiff}
-              onChange={(e) => setMinDiff(e.target.value)}
-            />
+            <input type="number" className="w-16 border rounded-md px-2 py-1 text-sm" value={minDiff} onChange={(e) => setMinDiff(e.target.value)} />
           </div>
 
           <div className="flex items-center gap-2">
@@ -596,16 +609,8 @@ export default function MLBOptimizer() {
             {`Optimize ${numLineups}`}
           </button>
           <div className="flex-1 max-w-xs h-2 bg-gray-200 rounded overflow-hidden">
-            <div
-              className="h-2 bg-blue-500 rounded transition-all duration-300"
-              style={{
-                width: `${
-                  (Math.min(progressUI, Math.max(1, Number(numLineups) || 1)) /
-                    Math.max(1, Number(numLineups) || 1)) *
-                  100
-                }%`,
-              }}
-            />
+            <div className="h-2 bg-blue-500 rounded transition-all duration-300"
+              style={{ width: `${(Math.min(progressUI, Math.max(1, Number(numLineups) || 1)) / Math.max(1, Number(numLineups) || 1)) * 100}%` }} />
           </div>
           <div className="text-sm text-gray-600 min-w-[60px] text-right">
             {progressUI}/{numLineups}
@@ -622,26 +627,51 @@ export default function MLBOptimizer() {
         ))}
       </div>
 
+      {/* Games filter */}
+      {allGames.length > 0 && (
+        <div className="mb-2 flex flex-wrap gap-2">
+          <button
+            className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50"
+            onClick={() => setSelectedGames(new Set())}
+          >
+            All games
+          </button>
+          {allGames.map((g) => {
+            const active = selectedGames.has(g);
+            return (
+              <button
+                key={g}
+                onClick={() =>
+                  setSelectedGames((S) => {
+                    const n = new Set(S);
+                    active ? n.delete(g) : n.add(g);
+                    return n;
+                  })
+                }
+                className={`px-2 py-1 rounded-md border text-sm ${active ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300"}`}
+              >
+                {g}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       <div className="mb-2 flex gap-2">
         <input className="border rounded-md px-3 py-1.5 w-80 text-sm" placeholder="Search player / team / pos…" value={q} onChange={(e) => setQ(e.target.value)} />
-        <button
-          className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50"
-          onClick={() => setSelectedTeams(new Set(allTeams))}
-        >
+        <button className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50" onClick={() => setSelectedTeams(new Set(allTeams))}>
           Select all teams
         </button>
-        <button
-          className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50"
-          onClick={() => setSelectedTeams(new Set())}
-        >
+        <button className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50" onClick={() => setSelectedTeams(new Set())}>
           Clear teams
         </button>
       </div>
 
-      {/* Team chips */}
+      {/* Team chips (colored) */}
       <div className="mb-3 flex flex-wrap gap-2">
         {allTeams.map((t) => {
           const active = selectedTeams.has(t);
+          const style = teamStyle(t, active);
           return (
             <button
               key={t}
@@ -652,9 +682,7 @@ export default function MLBOptimizer() {
                   return n;
                 })
               }
-              className={`px-2 py-1 rounded-md border text-sm ${
-                active ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300"
-              }`}
+              {...style}
             >
               {t}
             </button>
@@ -680,14 +708,10 @@ export default function MLBOptimizer() {
           </thead>
           <tbody>
             {loading && (
-              <tr>
-                <td className={`${cell} text-gray-500`} colSpan={TABLE_COLS.length}>Loading…</td>
-              </tr>
+              <tr><td className={`${cell} text-gray-500`} colSpan={TABLE_COLS.length}>Loading…</td></tr>
             )}
             {err && (
-              <tr>
-                <td className={`${cell} text-red-600`} colSpan={TABLE_COLS.length}>Failed to load: {String(err)}</td>
-              </tr>
+              <tr><td className={`${cell} text-red-600`} colSpan={TABLE_COLS.length}>Failed to load: {String(err)}</td></tr>
             )}
             {!loading && !err && displayRows.map((r) => (
               <tr key={r.name} className="odd:bg-white even:bg-gray-50 hover:bg-blue-50/60 transition-colors">
@@ -732,100 +756,37 @@ export default function MLBOptimizer() {
         </table>
       </div>
 
-      {/* results & exposures */}
+      {/* results & exposures (unchanged) */}
       {!!lineups.length && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Lineups */}
-          <section className="lg:col-span-8 rounded-lg border bg-white p-3">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-base font-bold">Lineups ({lineups.length})</h2>
-              <div className="flex items-center gap-2">
-                <button className="px-3 py-1.5 border rounded text-sm" onClick={() => downloadPlainCSV(lineups)}>
-                  Export CSV
-                </button>
-              </div>
-            </div>
-            <div className="overflow-auto max-h-[440px]">
-              <table className="min-w-full text-[12px] border-separate" style={{ borderSpacing: 0 }}>
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className={header}>#</th>
-                    <th className={header}>Salary</th>
-                    <th className={header}>Total pOWN%</th>
-                    <th className={header}>
-                      Total {optBy === "pown" || optBy === "opt" ? "Projection" : metricLabel}
-                    </th>
-                    <th className={header}>Players</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lineups.map((L, i) => {
-                    const rowsByName = new Map(rows.map((r) => [r.name, r]));
-                    const ordered = orderPlayersForSite(site, L.players, rowsByName);
-                    const totalPown = ordered.reduce((s, r) => s + ((r.pown || 0) * 100), 0);
-                    return (
-                      <tr key={i} className="odd:bg-white even:bg-gray-50">
-                        <td className={cell}>{i + 1}</td>
-                        <td className={`${cell} tabular-nums`}>{fmt0(L.salary)}</td>
-                        <td className={`${cell} tabular-nums`}>{fmt1(totalPown)}</td>
-                        <td className={`${cell} tabular-nums`}>{fmt1(L.total)}</td>
-                        <td className={`${cell} leading-snug`}>
-                          <span className="break-words">{ordered.map((r) => r.name).join(" • ")}</span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          {/* Player Exposure */}
-          <section className="lg:col-span-4 rounded-lg border bg-white p-3">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-base font-semibold">Exposure</h3>
-            </div>
-            <ExposureTable lineups={lineups} rows={rows} />
-          </section>
-
-          {/* Team Exposure */}
-          <section className="lg:col-span-4 rounded-lg border bg-white p-3">
-            <h3 className="text-base font-semibold mb-2">Team Exposure</h3>
-            <TeamExposureTable lineups={lineups} rows={rows} />
-          </section>
-
-          {/* Stack Shapes */}
-          <section className="lg:col-span-4 rounded-lg border bg-white p-3">
-            <h3 className="text-base font-semibold mb-2">Hitter Stack Shapes</h3>
-            <StackShapesTable lineups={lineups} rows={rows} />
-          </section>
-        </div>
+        <ResultsAndExposure
+          lineups={lineups}
+          rows={rows}
+          optBy={optBy}
+          TEAM_COLORS={TEAM_COLORS}
+        />
       )}
     </div>
   );
 }
 
-/* ---------------------- ordering helpers --------------------------- */
-function orderPlayersForSite(site, names, rowsMap) {
-  const pool = names.map((n) => rowsMap.get(n)).filter(Boolean);
-  const take = (pred) => {
-    const i = pool.findIndex(pred);
-    if (i === -1) return null;
-    return pool.splice(i, 1)[0];
-  };
-  const out = [];
-  if (site === "dk") {
+/* ---------------------- results/exposure blocks -------------------- */
+function ResultsAndExposure({ lineups, rows, optBy }) {
+  const cell = "px-2 py-1 text-center";
+  const header = "px-2 py-1 font-semibold text-center";
+  const metricLabel =
+    optBy === "proj" ? "Proj" : optBy === "floor" ? "Floor" : optBy === "ceil" ? "Ceiling" : optBy === "pown" ? "pOWN%" : "Opt%";
+
+  const rowsByName = useMemo(() => new Map(rows.map(r => [r.name, r])), [rows]);
+
+  const orderedForDisplay = (names) => {
+    const pool = names.map((n) => rowsByName.get(n)).filter(Boolean);
+    const take = (pred) => {
+      const i = pool.findIndex(pred);
+      if (i === -1) return null;
+      return pool.splice(i, 1)[0];
+    };
+    const out = [];
     out.push(take((r) => r.eligible.includes("P")));
-    out.push(take((r) => r.eligible.includes("P")));
-    out.push(take((r) => r.eligible.includes("C")));
-    out.push(take((r) => r.eligible.includes("1B")));
-    out.push(take((r) => r.eligible.includes("2B")));
-    out.push(take((r) => r.eligible.includes("3B")));
-    out.push(take((r) => r.eligible.includes("SS")));
-    out.push(take((r) => r.eligible.includes("OF")));
-    out.push(take((r) => r.eligible.includes("OF")));
-    out.push(take((r) => r.eligible.includes("OF")));
-  } else {
     out.push(take((r) => r.eligible.includes("P")));
     out.push(take((r) => r.eligible.includes("C") || r.eligible.includes("1B")));
     out.push(take((r) => r.eligible.includes("2B")));
@@ -834,17 +795,75 @@ function orderPlayersForSite(site, names, rowsMap) {
     out.push(take((r) => r.eligible.includes("OF")));
     out.push(take((r) => r.eligible.includes("OF")));
     out.push(take((r) => r.eligible.includes("OF")));
-    out.push(take((r) => ["C","1B","2B","3B","SS","OF"].some(p => r.eligible.includes(p)))); // UTIL
-  }
-  return out.filter(Boolean).concat(pool);
+    out.push(take((r) => ["C","1B","2B","3B","SS","OF"].some(p => r.eligible.includes(p))));
+    return out.filter(Boolean).concat(pool);
+  };
+
+  const textSz = "text-[12px]";
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      {/* Lineups */}
+      <section className="lg:col-span-8 rounded-lg border bg-white p-3">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-base font-bold">Lineups ({lineups.length})</h2>
+        </div>
+        <div className="overflow-auto max-h-[440px]">
+          <table className={`min-w-full ${textSz} border-separate`} style={{ borderSpacing: 0 }}>
+            <thead className="bg-gray-50">
+              <tr>
+                <th className={header}>#</th>
+                <th className={header}>Salary</th>
+                <th className={header}>Total pOWN%</th>
+                <th className={header}>Total {optBy === "pown" || optBy === "opt" ? "Projection" : metricLabel}</th>
+                <th className={header}>Players</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lineups.map((L, i) => {
+                const ordered = orderedForDisplay(L.players);
+                const totalPown = ordered.reduce((s, r) => s + ((r.pown || 0) * 100), 0);
+                return (
+                  <tr key={i} className="odd:bg-white even:bg-gray-50">
+                    <td className={cell}>{i + 1}</td>
+                    <td className={`${cell} tabular-nums`}>{fmt0(L.salary)}</td>
+                    <td className={`${cell} tabular-nums`}>{fmt1(totalPown)}</td>
+                    <td className={`${cell} tabular-nums`}>{fmt1(L.total)}</td>
+                    <td className={`${cell} leading-snug`}><span className="break-words">{ordered.map((r) => r.name).join(" • ")}</span></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Player Exposure */}
+      <section className="lg:col-span-4 rounded-lg border bg-white p-3">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-base font-semibold">Exposure</h3>
+        </div>
+        <ExposureTable lineups={lineups} rows={rows} />
+      </section>
+
+      {/* Team Exposure */}
+      <section className="lg:col-span-4 rounded-lg border bg-white p-3">
+        <h3 className="text-base font-semibold mb-2">Team Exposure</h3>
+        <TeamExposureTable lineups={lineups} rows={rows} />
+      </section>
+
+      {/* Stack Shapes */}
+      <section className="lg:col-span-4 rounded-lg border bg-white p-3">
+        <h3 className="text-base font-semibold mb-2">Hitter Stack Shapes</h3>
+        <StackShapesTable lineups={lineups} rows={rows} />
+      </section>
+    </div>
+  );
 }
 
 /* ---------------------- CSV exposures helper ---------------------- */
 function downloadPlainCSV(lineups, fname = "mlb_lineups.csv") {
   const header = ["#", "Salary", "Total", "Players"].join(",");
-  const lines = lineups.map((L, i) => {
-    return [i + 1, L.salary, L.total.toFixed(1), `"${L.players.join(" • ")}"`].join(",");
-  });
+  const lines = lineups.map((L, i) => [i + 1, L.salary, L.total.toFixed(1), `"${L.players.join(" • ")}"`].join(","));
   const blob = new Blob([header + "\n" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -855,7 +874,6 @@ function downloadPlainCSV(lineups, fname = "mlb_lineups.csv") {
 /* --------------------------- Exposure tables --------------------------- */
 function ExposureTable({ lineups, rows }) {
   const meta = useMemo(() => new Map(rows.map(r => [r.name, r])), [rows]);
-
   const allRows = useMemo(() => {
     const m = new Map();
     for (const L of lineups) for (const p of L.players) m.set(p, (m.get(p) || 0) + 1);
@@ -867,22 +885,15 @@ function ExposureTable({ lineups, rows }) {
       })
       .sort((a, b) => b.pct - a.pct || a.name.localeCompare(b.name));
   }, [lineups, meta]);
-
   if (!allRows.length) return null;
 
   const cell = "px-2 py-1 text-center";
   const header = "px-2 py-1 font-semibold text-center";
-
   return (
     <div className="overflow-auto max-h-[440px]">
       <table className="min-w-full text-[12px] border-separate" style={{ borderSpacing: 0 }}>
         <thead className="bg-gray-50">
-          <tr>
-            <th className={header}>Player</th>
-            <th className={header}>Pos</th>
-            <th className={header}>Count</th>
-            <th className={header}>Exposure %</th>
-          </tr>
+          <tr><th className={header}>Player</th><th className={header}>Pos</th><th className={header}>Count</th><th className={header}>Exposure %</th></tr>
         </thead>
         <tbody>
           {allRows.map((r) => (
@@ -914,12 +925,10 @@ function TeamExposureTable({ lineups, rows }) {
       .map(([team, cnt]) => ({ team, count: cnt, pct: (cnt / total) * 100 }))
       .sort((a, b) => b.pct - a.pct || a.team.localeCompare(b.team));
   }, [lineups, rowsByName]);
-
   if (!data.length) return null;
 
   const cell = "px-2 py-1 text-center";
   const header = "px-2 py-1 font-semibold text-center";
-
   return (
     <table className="min-w-full text:[12px]">
       <thead><tr><th className={header}>Team</th><th className={header}>Count</th><th className={header}>Exposure %</th></tr></thead>
@@ -947,12 +956,10 @@ function StackShapesTable({ lineups, rows }) {
     return Object.entries(counts).map(([shape, cnt]) => ({ shape, count: cnt, pct: (cnt / total) * 100 }))
       .sort((a,b)=> b.count - a.count || a.shape.localeCompare(b.shape));
   }, [lineups, rowsByName]);
-
   if (!data.length) return null;
 
   const cell = "px-2 py-1 text-center";
   const header = "px-2 py-1 font-semibold text-center";
-
   return (
     <table className="min-w-full text-[12px]">
       <thead><tr><th className={header}>Shape</th><th className={header}>Count</th><th className={header}>%</th></tr></thead>
