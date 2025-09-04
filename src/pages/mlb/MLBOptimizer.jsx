@@ -467,11 +467,18 @@ export default function MLBOptimizer() {
 
     const N = Math.max(1, Number(numLineups) || 1);
     const capVal = Math.min(cfg.cap, Number(maxSalary) || cfg.cap);
+    const stackSet = new Set(selectedTeams);
+    const allowedHittersOnly = onlyUseStackTeams && stackSet.size > 0;
+
+    // pitchers always included, hitters filtered if teams are selected
+    const playerPool = allowedHittersOnly
+      ? rows.filter(r => r.isPitcher || stackSet.has(r.team))
+      : rows;
 
     const payload = {
       site,
       slots: cfg.slots,
-      players: rows.map((r) => ({
+      players: playerPool.map((r) => ({
         name: r.name, team: r.team, opp: r.opp, eligible: r.eligible,
         salary: Math.round(r.salary || 0),
         proj: r.proj || 0, floor: r.floor || 0, ceil: r.ceil || 0,
