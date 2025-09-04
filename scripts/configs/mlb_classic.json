@@ -80,6 +80,8 @@
     "sheet": ["MLB Dashboard", "Game Dashboard", "Dashboard"],
     "out_rel": "data/mlb/latest/matchups",
     "title_regex": "^[A-Z]{2,3}\\s*@\\s*[A-Z]{2,3}$",
+    "max_scan_rows": 200,
+    "end_after_blank_rows": 15,
     "header_yellow_rgb": ["FFFFE699","FFFFF2CC","FFFFFF00","FFFDE9D9","FFEEE8AA"]
   }
 }

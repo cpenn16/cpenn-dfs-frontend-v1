@@ -496,100 +496,129 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
 
 # ---------------------- MLB GAMEBOARD (Dashboard) -----------------------
 
-_TITLE_RE = re.compile(r"^\s*([A-Z]{2,3})\s*@\s*([A-Z]{2,3})\s*$")
-
 def _cell(ws: Worksheet, r: int, c: int) -> str:
     v = ws.cell(r, c).value
     return "" if v is None else str(v).strip()
+
+def _row_any_text(ws: Worksheet, r: int, c0: int = 1, c1: int | None = None) -> bool:
+    if c1 is None:
+        c1 = ws.max_column
+    for c in range(c0, c1 + 1):
+        if _cell(ws, r, c):
+            return True
+    return False
+
+# Flexible parser: pull AAA and BBB anywhere in the string (not anchored)
+_HEADER_PAT = re.compile(r"([A-Z]{2,4})\s*@\s*([A-Z]{2,4})")
+
+def _parse_header(text: str) -> tuple[str, str] | None:
+    if not text:
+        return None
+    m = _HEADER_PAT.search(text.strip().upper())
+    if not m:
+        return None
+    a, b = m.group(1), m.group(2)
+    # MLB oddities we want to allow: SF, TB, CHC, CWS, etc. (2–4 letters)
+    if 2 <= len(a) <= 4 and 2 <= len(b) <= 4:
+        return a, b
+    return None
 
 def _row_text_range(ws: Worksheet, r: int, c0: int, c1: int) -> str:
     parts = [_cell(ws, r, c) for c in range(max(1, c0), max(1, c1) + 1)]
     parts = [p for p in parts if p]
     return " | ".join(parts)
 
-def _find_header_cols_in_row(ws: Worksheet, r: int, max_col: int,
-                             yellow_rgbs: set, title_re: re.Pattern) -> list[int]:
+def _find_header_cols_in_row(ws: Worksheet, r: int, max_col: int) -> list[int]:
+    """
+    Return column indices in row r whose cell *text* contains 'AAA @ BBB'.
+    We don't depend on yellow fill; merged cells are fine (value on top-left).
+    """
     cols = []
     for c in range(1, max_col + 1):
         txt = ws.cell(r, c).value
-        if txt is None or str(txt).strip() == "":
-            continue
-        is_header = False
-        try:
-            fill = ws.cell(r, c).fill
-            if fill and fill.patternType == "solid":
-                rgb = (fill.fgColor.rgb or "").upper()
-                if rgb in yellow_rgbs:
-                    is_header = True
-        except Exception:
-            pass
-        if isinstance(txt, str) and title_re.match(txt.strip()):
-            is_header = True
-        if is_header:
+        if isinstance(txt, str) and _parse_header(txt):
             cols.append(c)
     return cols
 
 def run_matchups(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> None:
     gb = cfg.get("gameboard")
-    if not gb: return
+    if not gb:
+        return
 
     out_rel = (gb.get("out_rel") or "").lstrip(r"\\/") or "data/mlb/latest/matchups"
-    yellow_rgbs = {str(x).upper() for x in gb.get("header_yellow_rgb", ["FFFFE699","FFFFF2CC","FFFFFF00"])}
-    title_re = re.compile(gb.get("title_regex", r"^[A-Z]{2,3}\s*@\s*[A-Z]{2,3}$"))
 
-    # pick dashboard sheet (case-insensitive, partial ok)
+    # Safe scan limits (tweak via config if needed)
+    max_scan_rows = int(gb.get("max_scan_rows", 400))
+    end_after_blank_rows = int(gb.get("end_after_blank_rows", 15))
+    debug = bool(gb.get("debug", False))
+
     wb = load_workbook(xlsm_path, data_only=True, read_only=True, keep_links=False)
     try:
-        want = gb.get("sheet") or ["MLB Dashboard", "Game Dashboard", "Dashboard"]
+        # pick dashboard sheet (case-insensitive, partial ok)
+        want = gb.get("sheet") or ["MLB Game Dashboard", "MLB Dashboard", "Dashboard"]
         want_list = [want] if isinstance(want, str) else list(want)
 
-        def pick_sheet(want_list: List[str]) -> Optional[str]:
-            if not want_list: return None
-            lowmap = {s.lower(): s for s in wb.sheetnames}
-            for w in want_list:
+        def pick_sheet(wants: list[str]) -> Optional[str]:
+            if not wants: return None
+            lower = {s.lower(): s for s in wb.sheetnames}
+            for w in wants:
                 if w in wb.sheetnames: return w
-                if w.lower() in lowmap: return lowmap[w.lower()]
-            for w in want_list:
+                if w.lower() in lower: return lower[w.lower()]
+            for w in wants:
                 wl = w.lower()
-                for actual in wb.sheetnames:
-                    if wl in actual.lower():
-                        return actual
+                for s in wb.sheetnames:
+                    if wl in s.lower():
+                        return s
             return None
 
         sheet_name = pick_sheet(want_list) or wb.sheetnames[0]
         print(f"• MLB Matchups: using sheet '{sheet_name}'")
         ws = wb[sheet_name]
-        max_row, max_col = ws.max_row, ws.max_column
+        max_col = ws.max_column
 
-        games: List[Dict[str, Any]] = []
+        games: list[dict] = []
+        header_hits = 0
+
         r = 1
-        while r <= max_row:
-            header_cols = _find_header_cols_in_row(ws, r, max_col, yellow_rgbs, title_re)
+        blank_streak = 0
+        while r <= ws.max_row and r <= max_scan_rows:
+            header_cols = _find_header_cols_in_row(ws, r, max_col)
+
             if not header_cols:
+                if _row_any_text(ws, r, 1, max_col):
+                    blank_streak = 0
+                else:
+                    blank_streak += 1
+                    # If we've already captured some games and now hit a long blank stretch, we're done
+                    if blank_streak >= end_after_blank_rows and games:
+                        if debug:
+                            print(f"• stop at row {r}: blank streak {blank_streak}")
+                        break
                 r += 1
                 continue
+
+            header_hits += len(header_cols)
+            if debug:
+                titles = []
+                for c in header_cols:
+                    titles.append(str(ws.cell(r, c).value).strip())
+                print(f"  row {r} headers: {titles}")
 
             header_cols_sorted = sorted(header_cols)
             for idx, c_start in enumerate(header_cols_sorted):
                 c_end = (header_cols_sorted[idx + 1] - 1) if idx + 1 < len(header_cols_sorted) else max_col
 
-                # header/title for this window
+                # Extract and parse "AAA @ BBB"
                 title_line = _row_text_range(ws, r, c_start, c_end)
-                title = (title_line.split("|", 1)[0] or "").strip()
-                m = title_re.match(title)
-                if not m:
+                parsed = _parse_header(title_line.split("|", 1)[0])
+                if not parsed:
                     continue
-                away, home = m.group(1), m.group(2)
+                away, home = parsed
 
                 g: Dict[str, Any] = {
-                    "away": away,
-                    "home": home,
-                    "ou": None,
-                    "spread_home": None,
-                    "ml_home": None,
-                    "ml_away": None,
-                    "imp_home": None,
-                    "imp_away": None,
+                    "away": away, "home": home,
+                    "ou": None, "spread_home": None, "ml_home": None, "ml_away": None,
+                    "imp_home": None, "imp_away": None,
                     "weather": {"temp_f": None, "wind_mph": None, "desc": None, "is_dome": None},
                     "team_blocks": {
                         "away": {"header": away, "lines": []},
@@ -597,10 +626,10 @@ def run_matchups(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> No
                     },
                 }
 
-                # Walk down inside the window until we hit the team-bar row like "SEA (4.2) | TB (3.9)"
+                # Walk down inside this panel until we find the team-bar row
                 k = r + 1
                 team_bar_row = None
-                while k <= max_row:
+                while k <= ws.max_row and k <= max_scan_rows:
                     vals = [_cell(ws, k, c) for c in range(c_start, c_end + 1)]
                     left  = next((x for x in vals if x), "")
                     right = next((x for x in reversed(vals) if x), "")
@@ -608,9 +637,9 @@ def run_matchups(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> No
                         k += 1
                         continue
 
-                    # Team bar heuristic: looks like "AAA (x.x)" on each side
-                    mL = re.match(r"^\s*([A-Z]{2,3})\s*\(([0-9.]+)\)", left or "")
-                    mR = re.match(r"^\s*([A-Z]{2,3})\s*\(([0-9.]+)\)", right or "")
+                    # Team bar like "SEA (4.3 Runs)" each side
+                    mL = re.match(r"^\s*([A-Z]{2,4})\s*\(([0-9.]+)", left or "")
+                    mR = re.match(r"^\s*([A-Z]{2,4})\s*\(([0-9.]+)", right or "")
                     if mL and mR:
                         g["team_blocks"]["away"]["header"] = f"{mL.group(1)} ({mL.group(2)})"
                         g["team_blocks"]["home"]["header"] = f"{mR.group(1)} ({mR.group(2)})"
@@ -622,13 +651,13 @@ def run_matchups(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> No
                         team_bar_row = k
                         break
 
-                    # Parse meta rows (O/U, ML, Spread, Totals, Weather) if you include them
+                    # Parse optional meta rows (O/U, ML, Spread, Totals, Weather)
                     whole = " | ".join([x for x in vals if x])
                     U = whole.upper()
                     if "O/U" in U:
                         m_ou = re.search(r"O/?U:\s*([0-9.]+)", whole, flags=re.I)
                         if m_ou: g["ou"] = float(m_ou.group(1))
-                        for tm, ml in re.findall(r"\b([A-Z]{2,3})\s*ML:\s*([+-]?\d+)", whole, flags=re.I):
+                        for tm, ml in re.findall(r"\b([A-Z]{2,4})\s*ML:\s*([+-]?\d+)", whole, flags=re.I):
                             if tm.upper() == away: g["ml_away"] = int(ml)
                             if tm.upper() == home: g["ml_home"]  = int(ml)
                     elif "SPREAD" in U:
@@ -640,21 +669,22 @@ def run_matchups(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> No
                         if mA: g["imp_away"] = float(mA.group(1))
                         if mH: g["imp_home"]  = float(mH.group(1))
                     elif "WEATHER" in U:
-                        is_dome = "dome" in U
+                        is_dome = "DOME" in U
                         g["weather"]["is_dome"] = is_dome
-                        g["weather"]["desc"] = None if is_dome else whole.replace("|"," ").strip()
+                        g["weather"]["desc"] = None if is_dome else whole.replace("|", " ").strip()
 
                     k += 1
 
                 if not team_bar_row:
+                    # Couldn't find the "AAA (x.x)" row beneath this header; skip panel
                     continue
 
-                # Collect left/right lines until a new header in this window or double-blank
+                # Collect player lines until next header in this window or double-blank
                 k = team_bar_row + 1
-                blanks = 0
-                while k <= max_row:
-                    row_hdr_cols = _find_header_cols_in_row(ws, k, c_end, yellow_rgbs, title_re)
-                    row_hdr_cols = [c for c in row_hdr_cols if c_start <= c <= c_end]
+                local_blanks = 0
+                while k <= ws.max_row and k <= max_scan_rows:
+                    # stop if new panel header appears inside our window
+                    row_hdr_cols = [c for c in _find_header_cols_in_row(ws, k, c_end) if c_start <= c <= c_end]
                     if row_hdr_cols:
                         break
 
@@ -662,23 +692,24 @@ def run_matchups(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> No
                     left  = next((x for x in vals if x), "")
                     right = next((x for x in reversed(vals) if x), "")
 
-                    # bail if we see another team-bar row
-                    if re.match(r"^\s*[A-Z]{2,3}\s*\([0-9.]+\)", left or "") and re.match(r"^\s*[A-Z]{2,3}\s*\([0-9.]+\)", right or ""):
+                    # also stop if team-bar repeats
+                    if re.match(r"^\s*[A-Z]{2,4}\s*\([0-9.]+", left or "") and \
+                       re.match(r"^\s*[A-Z]{2,4}\s*\([0-9.]+", right or ""):
                         break
 
                     if not left and not right:
-                        blanks += 1
-                        if blanks >= 2:
+                        local_blanks += 1
+                        if local_blanks >= 2:
                             break
                         k += 1
                         continue
 
-                    blanks = 0
+                    local_blanks = 0
                     if left:  g["team_blocks"]["away"]["lines"].append(left)
                     if right: g["team_blocks"]["home"]["lines"].append(right)
                     k += 1
 
-                # Backfill OU if implieds are present
+                # Backfill OU from implied totals if needed
                 if g.get("ou") is None and all(isinstance(g.get(k2), (int, float)) for k2 in ("imp_home","imp_away")):
                     g["ou"] = float(g["imp_home"]) + float(g["imp_away"])
 
@@ -686,13 +717,15 @@ def run_matchups(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> No
 
             r += 1
 
+        if debug:
+            print(f"• header candidates seen: {header_hits}")
+
         out_path = (project_root / "public" / Path(out_rel)).with_suffix(".json")
         ensure_parent(out_path)
         out_path.write_text(json.dumps(games, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"✔️  JSON → {out_path}  (games: {len(games)})")
     finally:
         wb.close()
-
 
 # --------------------------------- config --------------------------------
 
