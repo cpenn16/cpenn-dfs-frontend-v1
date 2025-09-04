@@ -96,6 +96,7 @@ import MlbCheatSheet from "./pages/mlb/MlbCheatSheet"; // ← separate page
 import PitcherData from "./pages/mlb/PitcherData";
 import BatterData from "./pages/mlb/BatterData";
 import MlbMatchups from "./pages/mlb/MlbMatchups"; // ← NEW
+import MLBOptimizer from "./pages/mlb/MLBOptimizer";
 
 function NotFound() {
   return (
@@ -272,6 +273,9 @@ export default function App() {
 
               {/* NEW: MLB Matchups */}
               <Route path="/mlb/matchups" element={<MlbMatchups />} />
+
+              {/* Optimizer */}
+              <Route path="/mlb/optimizer" element={<MLBOptimizer />} />
 
               {/* Default MLB redirect */}
               <Route path="/mlb" element={<Navigate to="/mlb/pitcher-projections" replace />} />
