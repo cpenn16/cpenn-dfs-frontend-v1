@@ -1061,6 +1061,15 @@ function pitcherish(r) {
   );
 }
 
+{/* --- NEW: Lineup Cards (MLB) --- */}
+{!!lineups.length && (
+  <div className="mt-6">
+    <h2 className="text-base font-bold mb-2">Lineup Cards</h2>
+    <LineupCardsMLB lineups={lineups} rows={rows} site={site} />
+  </div>
+)}
+
+
 /* ---------------------- ordering helpers --------------------------- */
 function orderPlayersForSite(site, names, rowsMap) {
   const pool = names.map((n) => rowsMap.get(n)).filter(Boolean);
@@ -1212,5 +1221,76 @@ function StackShapesTable({ lineups, rows }) {
         <tr key={r.shape}><td className={cell}>{r.shape}</td><td className={`${cell} tabular-nums`}>{fmt0(r.count)}</td><td className={`${cell} tabular-nums`}>{fmt1(r.pct)}</td></tr>
       ))}</tbody>
     </table>
+  );
+}
+
+/* ----------------------------- Lineup Cards (MLB) ----------------------------- */
+function LineupCardsMLB({ lineups, rows, site }) {
+  const rowsByName = React.useMemo(() => new Map(rows.map((r) => [r.name, r])), [rows]);
+  const slotNames = React.useMemo(() => (SITES[site]?.slots || []).map((s) => s.name), [site]);
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      {lineups.map((L, idx) => {
+        const orderedRows = orderPlayersForSite(site, L.players, rowsByName);
+        const rowsWithSlots = orderedRows.map((r, i) => ({
+          slot: slotNames[i] || (r?.eligible?.[0] ?? ""),
+          row: r,
+        }));
+
+        const totals = rowsWithSlots.reduce(
+          (a, x) => {
+            const r = x.row || {};
+            a.proj += r.proj || 0;
+            a.salary += r.salary || 0;
+            a.pown += ((r.pown || 0) * 100);
+            return a;
+          },
+          { proj: 0, salary: 0, pown: 0 }
+        );
+
+        return (
+          <div key={idx} className="rounded-lg border bg-white p-3">
+            <div className="flex items-center justify-between mb-1">
+              <div className="font-semibold">Lineup #{idx + 1}</div>
+              <div className="text-xs text-gray-600">pOWN {fmt1(totals.pown)}%</div>
+            </div>
+
+            <table className="w-full text-[12px]">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-2 py-1 text-left">Slot</th>
+                  <th className="px-2 py-1 text-left">Player</th>
+                  <th className="px-2 py-1 text-right">Proj</th>
+                  <th className="px-2 py-1 text-right">pOWN%</th>
+                  <th className="px-2 py-1 text-right">Sal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rowsWithSlots.map(({ slot, row }, i) => (
+                  <tr key={i} className={i % 2 ? "bg-gray-50" : ""}>
+                    <td className="px-2 py-1">{slot}</td>
+                    <td className="px-2 py-1">
+                      {row?.name} <span className="text-xs text-gray-500">({row?.team || "—"})</span>
+                    </td>
+                    <td className="px-2 py-1 text-right">{fmt1(row?.proj ?? 0)}</td>
+                    <td className="px-2 py-1 text-right">{fmt1(((row?.pown ?? 0) * 100))}</td>
+                    <td className="px-2 py-1 text-right">{fmt0(row?.salary ?? 0)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="font-semibold">
+                  <td className="px-2 py-1" colSpan={2}>Totals</td>
+                  <td className="px-2 py-1 text-right">{fmt1(totals.proj)}</td>
+                  <td className="px-2 py-1 text-right">{fmt1(totals.pown)}</td>
+                  <td className="px-2 py-1 text-right">{fmt0(totals.salary)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        );
+      })}
+    </div>
   );
 }
