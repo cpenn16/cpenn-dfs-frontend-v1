@@ -89,5 +89,34 @@
     "batters_rel": "data/mlb/latest/batter_projections",
     "pitchers_rel": "data/mlb/latest/pitcher_projections",
     "out_rel":      "data/mlb/latest/projections"
+  },
+
+  "site_ids": {
+    "out_rel": "data/mlb/latest/site_ids",
+
+    "dk_sheet": "DK Sals",
+    "fd_sheet": "FD Sals",
+
+    "dk_autodetect": false,
+    "fd_autodetect": false,
+
+    "dk_name_col": "C",
+    "dk_id_col":   "D",
+    "dk_team_col": "E",
+    "dk_pos_col":  "F",
+
+    "fd_name_col": "E",
+    "fd_id_col":   "B",
+    "fd_team_col": "C",
+    "fd_pos_col":  "D",
+
+    "row_hard_cap": 2000
+  },
+
+  "name_xwalk": {
+    "out_rel": "data/mlb/latest/name_xwalk",
+    "projection_sheets": ["Batter Projections", "Pitcher Projections"],
+    "header_row": 2,
+    "data_start_row": 3
   }
 }
