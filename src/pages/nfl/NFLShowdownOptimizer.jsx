@@ -1,10 +1,10 @@
 // src/pages/nfl/NFLShowdownOptimizer.jsx
-// FULL DROP-IN — v3.2
-// Updates from v3.1:
-// A) Stable sorting (no jumpiness). We removed the old "order weaving" and now
-//    sort a single filtered list with a proper comparator.
-// B) IF→THEN rules: added "exact team" override. When selected, you can pick one
-//    slate team; the rule passes team_exact through to the solver payload.
+// FULL DROP-IN — v3.3
+// Changes vs v3.2:
+// - IF→THEN team scope control now includes slate teams directly in the dropdown
+//   (e.g., "PHI — Philadelphia Eagles"). Selecting one sets team_scope=exact_team
+//   and team_exact=<ABBR>. Much easier to discover.
+// - Stable sorting and all previous fixes retained.
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API_BASE from "../../utils/api";
@@ -174,7 +174,7 @@ export default function NFLShowdownOptimizer() {
   // team override per slate team
   const [teamMaxPct, setTeamMaxPct] = useStickyState(`sd.${site}.teamMax`, {});
 
-  // IF→THEN rules — add toggle for IF {MVP|FLEX}
+  // IF→THEN rules
   const [rules, setRules] = useStickyState(`sd.${site}.rules`, []);
 
   // CPT/MVP vs FLEX table filter
@@ -263,7 +263,7 @@ export default function NFLShowdownOptimizer() {
   }, [rows]);
 
   /* -------------------- table + search + sorting ------------------- */
-  const [sort, setSortState] = useState({ col: "proj", dir: "desc" }); // stable sorting state (not ref)
+  const [sort, setSortState] = useState({ col: "proj", dir: "desc" }); // stable sorting state
 
   const usagePct = useMemo(() => {
     if (!lineups.length) return {}; const m = new Map(); for (const L of lineups) { const [cap, ...flex] = L.players; m.set(cap + "::CPT", (m.get(cap + "::CPT") || 0) + 1); for (const n of flex) m.set(n + "::FLEX", (m.get(n + "::FLEX") || 0) + 1); }
@@ -493,70 +493,72 @@ export default function NFLShowdownOptimizer() {
         <input className="border rounded-md px-3 py-1.5 w-80 text-sm ml-auto" placeholder="Search player / team / pos…" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
 
-      {/* IF → THEN rules + IF SLOT (MVP/FLEX) */}
+      {/* IF → THEN rules */}
       <div className="mb-3 rounded-md border p-2">
         <div className="flex items-center justify-between mb-2">
           <div className="text-[11px] text-gray-600">Conditional Rules (IF → THEN)</div>
-          <button className="px-2 py-1 text-sm rounded-md border hover:bg-gray-50" onClick={() => setRules((R) => [...R, { if_slot: cfg.capTag, if_pos:["QB"], then_at_least:1, from_pos:["WR","TE"], team_scope:"same_team" }])}>+ Add Rule</button>
+          <button className="px-2 py-1 text-sm rounded-md border hover:bg-gray-50" onClick={() => setRules((R) => [...R, { if_slot: cfg.capTag, if_pos:["QB"], then_at_least:1, from_pos:["WR","TE"], team_scope:"same_team", team_exact:"" }])}>+ Add Rule</button>
         </div>
         {rules.length === 0 ? (
           <div className="text-xs text-gray-500">No rules yet.</div>
         ) : (
           <div className="space-y-2">
-            {rules.map((r, i) => (
-              <div key={i} className="flex flex-wrap items-center gap-2">
-                <span className="text-sm">IF</span>
-                <div className="inline-flex rounded-md overflow-hidden border">
-                  {[cfg.capTag, "FLEX"].map((slot) => (
-                    <button key={slot} className={`px-2 py-1 text-sm ${ (r.if_slot||cfg.capTag)===slot ? "bg-blue-600 text-white" : "bg-white" }`} onClick={()=>setRules((R)=>{const c=[...R]; c[i]={...c[i], if_slot:slot}; return c;})}>{slot}</button>
-                  ))}
-                </div>
-                <span className="text-sm">is</span>
-                {["QB","RB","WR","TE","DST","K"].map((p) => (
-                  <button key={p} className={`px-2 py-1 rounded border text-sm ${r.if_pos?.includes(p) ? "bg-blue-600 text-white" : "bg-white"}`} onClick={() => setRules((R) => { const copy=[...R]; const cur=new Set(copy[i].if_pos||[]); cur.has(p)?cur.delete(p):cur.add(p); copy[i]={...copy[i], if_pos:[...cur]}; return copy; })}>{p}</button>
-                ))}
-                <span className="text-sm">THEN require at least</span>
-                <input className="w-14 border rounded-md px-2 py-1 text-sm" value={r.then_at_least ?? 1} onChange={(e) => setRules((R)=>{const c=[...R]; c[i]={...c[i], then_at_least:e.target.value}; return c;})}/>
-                <span className="text-sm">from</span>
-                {["QB","RB","WR","TE","DST","K"].map((p) => (
-                  <button key={p} className={`px-2 py-1 rounded border text-sm ${r.from_pos?.includes(p) ? "bg-green-600 text-white" : "bg-white"}`} onClick={() => setRules((R) => { const copy=[...R]; const cur=new Set(copy[i].from_pos||[]); cur.has(p)?cur.delete(p):cur.add(p); copy[i]={...copy[i], from_pos:[...cur]}; return copy; })}>{p}</button>
-                ))}
-                <select className="border rounded-md px-2 py-1 text-sm" value={r.team_scope || "any"} onChange={(e)=>setRules((R)=>{const c=[...R]; c[i]={...c[i], team_scope:e.target.value}; return c;})}>
-                  <option value="same_team">same team</option>
-                  <option value="opp_team">opp team</option>
-                  <option value="any">any team</option>
-                  <option value="exact_team">exact team</option>
-                </select>
+            {rules.map((r, i) => {
+              const teamSelectValue = (r.team_scope === "exact_team" && r.team_exact)
+                ? `exact:${r.team_exact}`
+                : (r.team_scope || "any");
 
-                {(r.team_scope === "exact_team") && (
-                  <div className="inline-flex items-center gap-2 ml-2">
-                    {slateTeams.map((abbr) => (
-                      <button
-                        key={abbr}
-                        className={`px-2 py-1 rounded border text-sm ${r.team_exact === abbr ? "bg-purple-600 text-white" : "bg-white"}`}
-                        onClick={() => setRules((R) => {
-                          const c = [...R];
-                          c[i] = { ...c[i], team_exact: (c[i].team_exact === abbr ? "" : abbr) };
-                          return c;
-                        })}
-                        title={`${NFL_TEAMS[abbr]?.city ?? abbr} ${NFL_TEAMS[abbr]?.nickname ?? ""}`.trim()}
-                      >
-                        <TeamPill abbr={abbr} />
-                      </button>
+              return (
+                <div key={i} className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm">IF</span>
+                  <div className="inline-flex rounded-md overflow-hidden border">
+                    {[cfg.capTag, "FLEX"].map((slot) => (
+                      <button key={slot} className={`px-2 py-1 text-sm ${ (r.if_slot||cfg.capTag)===slot ? "bg-blue-600 text-white" : "bg-white" }`} onClick={()=>setRules((R)=>{const c=[...R]; c[i]={...c[i], if_slot:slot}; return c;})}>{slot}</button>
                     ))}
-                    <button
-                      className="px-2 py-1 rounded border text-sm bg-white"
-                      onClick={() => setRules((R)=>{ const c=[...R]; c[i]={...c[i], team_exact:""}; return c; })}
-                      title="Clear team"
-                    >
-                      Clear
-                    </button>
                   </div>
-                )}
+                  <span className="text-sm">is</span>
+                  {["QB","RB","WR","TE","DST","K"].map((p) => (
+                    <button key={p} className={`px-2 py-1 rounded border text-sm ${r.if_pos?.includes(p) ? "bg-blue-600 text-white" : "bg-white"}`} onClick={() => setRules((R) => { const copy=[...R]; const cur=new Set(copy[i].if_pos||[]); cur.has(p)?cur.delete(p):cur.add(p); copy[i]={...copy[i], if_pos:[...cur]}; return copy; })}>{p}</button>
+                  ))}
+                  <span className="text-sm">THEN require at least</span>
+                  <input className="w-14 border rounded-md px-2 py-1 text-sm" value={r.then_at_least ?? 1} onChange={(e) => setRules((R)=>{const c=[...R]; c[i]={...c[i], then_at_least:e.target.value}; return c;})}/>
+                  <span className="text-sm">from</span>
+                  {["QB","RB","WR","TE","DST","K"].map((p) => (
+                    <button key={p} className={`px-2 py-1 rounded border text-sm ${r.from_pos?.includes(p) ? "bg-green-600 text-white" : "bg-white"}`} onClick={() => setRules((R) => { const copy=[...R]; const cur=new Set(copy[i].from_pos||[]); cur.has(p)?cur.delete(p):cur.add(p); copy[i]={...copy[i], from_pos:[...cur]}; return copy; })}>{p}</button>
+                  ))}
 
-                <button className="ml-auto px-2 py-1 text-sm rounded-md border hover:bg-gray-50" onClick={()=>setRules((R)=>R.filter((_,j)=>j!==i))}>Delete</button>
-              </div>
-            ))}
+                  {/* Team scope + exact team combined dropdown */}
+                  <select
+                    className="border rounded-md px-2 py-1 text-sm"
+                    value={teamSelectValue}
+                    onChange={(e)=>{
+                      const val = e.target.value;
+                      setRules((R)=> {
+                        const c=[...R];
+                        if (val.startsWith("exact:")) {
+                          const abbr = val.split(":")[1] || "";
+                          c[i] = { ...c[i], team_scope: "exact_team", team_exact: abbr };
+                        } else {
+                          c[i] = { ...c[i], team_scope: val, team_exact: "" };
+                        }
+                        return c;
+                      });
+                    }}
+                  >
+                    <option value="same_team">same team</option>
+                    <option value="opp_team">opp team</option>
+                    <option value="any">any</option>
+                    {/* exact team options (slate teams) */}
+                    {slateTeams.map((abbr)=> {
+                      const label = `${abbr} — ${(NFL_TEAMS[abbr]?.city ?? abbr)} ${NFL_TEAMS[abbr]?.nickname ?? ""}`.trim();
+                      return <option key={abbr} value={`exact:${abbr}`}>{label}</option>;
+                    })}
+                  </select>
+
+                  <button className="ml-auto px-2 py-1 text-sm rounded-md border hover:bg-gray-50" onClick={()=>setRules((R)=>R.filter((_,j)=>j!==i))}>Delete</button>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
