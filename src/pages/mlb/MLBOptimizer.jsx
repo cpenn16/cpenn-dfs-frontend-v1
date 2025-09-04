@@ -1,4 +1,3 @@
-// src/pages/mlb/MLBOptimizer.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API_BASE from "../../utils/api";
 
@@ -13,6 +12,10 @@ const num = (v) => {
 };
 const fmt0 = (n) => (Number.isFinite(n) ? n.toLocaleString() : "—");
 const fmt1 = (n) => (Number.isFinite(n) ? n.toFixed(1) : "—");
+const escapeCSV = (s) => {
+  const v = String(s ?? "");
+  return /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+};
 const pct = (v) => {
   if (v == null) return 0;
   const s = String(v).replace(/[%\s]/g, "");
@@ -22,37 +25,9 @@ const pct = (v) => {
 const normTeam = (s) => (s || "").toUpperCase().trim();
 
 /* ------------------------------ data ------------------------------- */
-/** We now read pitchers & batters separately; if either is missing we fall back
- *  to /data/mlb/latest/projections.json (your old combined export). */
-const BATTERS_SRC  = "/data/mlb/latest/batter_projections.json";
-const PITCHERS_SRC = "/data/mlb/latest/pitcher_projections.json";
-const LEGACY_SRC   = "/data/mlb/latest/projections.json";
-const SITE_IDS_SRC = "/data/mlb/latest/site_ids.json";
-
-/* ----------------------------- team colors ------------------------- */
-const TEAM_COLORS = {
-  // primary brand colors (feel free to tweak)
-  ARI: "#A71930", ATL: "#CE1141", BAL: "#DF4601", BOS: "#BD3039",
-  CHC: "#0E3386", CIN: "#C6011F", CLE: "#00385D", COL: "#333366",
-  CWS: "#27251F", DET: "#0C2340", HOU: "#EB6E1F", KC:  "#004687",
-  LAA: "#BA0021", LAD: "#005A9C", MIA: "#00A3E0", MIL: "#FFC52F",
-  MIN: "#002B5C", NYM: "#FF5910", NYY: "#0C2340", OAK: "#003831",
-  PHI: "#E81828", PIT: "#FDB827", SD:  "#2F241D", SEA: "#0C2C56",
-  SF:  "#FD5A1E", STL: "#C41E3A", TB:  "#092C5C", TEX:"#003278",
-  TOR:"#134A8E", WSH:"#AB0003",
-};
-/* returns a nice pill style for team chips */
-const teamStyle = (abbr, active) => {
-  const bg = TEAM_COLORS[abbr] || "#e5e7eb";
-  const txt = "#fff";
-  const cls = `px-2 py-1 rounded-md text-sm border transition-colors`;
-  return {
-    className: cls,
-    style: active
-      ? { backgroundColor: bg, color: txt, borderColor: bg }
-      : { backgroundColor: "#fff", color: "#111827", borderColor: "#d1d5db" },
-  };
-};
+// Adjust these to your MLB export paths
+const SOURCE = "/data/mlb/latest/projections.json";
+const SITE_IDS_SOURCE = "/data/mlb/latest/site_ids.json";
 
 /* ----------------------------- sites ------------------------------- */
 const SITES = {
@@ -73,8 +48,12 @@ const SITES = {
       { name: "OF2",  eligible: ["OF"] },
       { name: "OF3",  eligible: ["OF"] },
     ],
-    pown: ["DK pOWN%","DK pOWN"], opt: ["DK Opt%","DK Opt"],
-    salKey: "DK Sal", projKey: "DK Proj", floorKey: "DK Floor", ceilKey: "DK Ceiling",
+    pown: ["DK pOWN%","DK pOWN"],
+    opt:  ["DK Opt%","DK Opt"],
+    salKey: "DK Sal",
+    projKey: "DK Proj",
+    floorKey: "DK Floor",
+    ceilKey: "DK Ceiling",
   },
   fd: {
     key: "fd",
@@ -92,28 +71,62 @@ const SITES = {
       { name: "OF3",  eligible: ["OF"] },
       { name: "UTIL", eligible: ["C","1B","2B","3B","SS","OF"] },
     ],
-    pown: ["FD pOWN%","FD pOWN"], opt: ["FD Opt%","FD Opt"],
-    salKey: "FD Sal", projKey: "FD Proj", floorKey: "FD Floor", ceilKey: "FD Ceiling",
+    pown: ["FD pOWN%","FD pOWN"],
+    opt:  ["FD Opt%","FD Opt"],
+    salKey: "FD Sal",
+    projKey: "FD Proj",
+    floorKey: "FD Floor",
+    ceilKey: "FD Ceiling",
   },
+};
+
+/* ----------------------------- team colors ------------------------- */
+const TEAM_COLORS = {
+  ARI: "#A71930", ATL: "#CE1141", BAL: "#DF4601", BOS: "#BD3039",
+  CHC: "#0E3386", CIN: "#C6011F", CLE: "#00385D", COL: "#33006F",
+  CWS: "#27251F", DET: "#0C2340", HOU: "#002D62", KC:  "#004687",
+  LAA: "#BA0021", LAD: "#005A9C", MIA: "#00A3E0", MIL: "#12284B",
+  MIN: "#002B5C", NYM: "#002D72", NYY: "#003087", OAK: "#003831",
+  PHI: "#E81828", PIT: "#FDB827", SD:  "#2F241D", SEA: "#0C2C56",
+  SF:  "#FD5A1E", STL: "#C41E3A", TB:  "#092C5C", TEX:"#003278",
+  TOR:"#134A8E", WSH:"#AB0003",
+};
+const chipStyle = (abbr, active=false) => {
+  const bg = TEAM_COLORS[abbr] || "#e5e7eb";
+  const color = "#fff";
+  return {
+    background: bg, color,
+    borderRadius: 6, padding: "2px 8px",
+    border: active ? "2px solid rgba(255,255,255,0.8)" : "1px solid rgba(0,0,0,0.05)",
+    boxShadow: active ? "0 0 0 2px rgba(0,0,0,0.08) inset" : "none",
+  };
 };
 
 /* ----------------------------- fetchers ---------------------------- */
 function useJson(url) {
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
-  const [loading, setLoading] = useState(!!url);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!url) return;
     let alive = true;
     (async () => {
       try {
         setLoading(true);
         const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+
+        const ct = (res.headers.get("content-type") || "").toLowerCase();
         const raw = await res.text();
         const cleaned = raw.replace(/^\uFEFF/, "").trim();
-        const j = cleaned ? JSON.parse(cleaned) : null;
+
+        let j;
+        try {
+          j = cleaned ? JSON.parse(cleaned) : null;
+        } catch (e) {
+          throw new Error(`Could not parse JSON. CT=${ct}. Preview: ${cleaned.slice(0, 200)}`);
+        }
+
         if (alive) { setData(j); setErr(null); }
       } catch (e) {
         if (alive) { setData(null); setErr(e); }
@@ -168,13 +181,78 @@ async function solveStreamMLB(payload, onItem, onDone) {
   }
 }
 
+/* ---------------- CSV + ID helpers (DK/FD) ------------------------- */
+function downloadCSV(rows, header, fname) {
+  const blob = new Blob([header + "\n" + rows.join("\n")], { type:"text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = fname; a.click();
+  URL.revokeObjectURL(url);
+}
+function dkNameWithId(name, idMap) {
+  const id = idMap.dk.get(name);
+  return id ? `${name} (${id})` : name;
+}
+function fdNameWithId(name, idMap) {
+  const id = idMap.fd.get(name);
+  return id ? `${id}:${name}` : name;
+}
+function siteNameWithId(site, name, idMap) {
+  return site === "dk" ? dkNameWithId(name, idMap) : fdNameWithId(name, idMap);
+}
+function exportLineupsCSV(lineups, rows, site, idMap, fname="mlb_lineups.csv") {
+  const hdr = ["#","Salary","Total","Players"].join(",");
+  const toNames = (arr) => arr.map(n => siteNameWithId(site, n, idMap)).join(" • ");
+  const lines = lineups.map((L,i)=>[i+1,L.salary,L.total.toFixed(1),`"${toNames(L.players)}"`].join(","));
+  downloadCSV(lines, hdr, fname);
+}
+function exportPlayerExposureCSV(lineups, rows, site, idMap, fname="mlb_player_exposure.csv") {
+  const meta = new Map(rows.map(r=>[r.name, r]));
+  const count = new Map();
+  for (const L of lineups) for (const p of L.players) count.set(p, (count.get(p)||0)+1);
+  const total = Math.max(1, lineups.length);
+  const hdr = ["Player","Pos","Count","Exposure %"].join(",");
+  const lines = [...count.entries()].sort((a,b)=>b[1]-a[1]).map(([name,cnt])=>{
+    const r = meta.get(name);
+    const pos = r?.eligible?.join("/") || "?";
+    const withId = siteNameWithId(site, name, idMap);
+    return [escapeCSV(withId), pos, cnt, ((cnt/total)*100).toFixed(1)].join(",");
+  });
+  downloadCSV(lines, hdr, fname);
+}
+function exportTeamExposureCSV(lineups, rows, fname="mlb_team_exposure.csv") {
+  const rowsByName = new Map(rows.map(r=>[r.name, r]));
+  const counts = new Map();
+  for (const L of lineups) {
+    const teams = new Set(L.players.map(n=>rowsByName.get(n)).filter(Boolean).map(r=>r.team));
+    for (const t of teams) counts.set(t,(counts.get(t)||0)+1);
+  }
+  const total = Math.max(1, lineups.length);
+  const hdr = ["Team","Count","Exposure %"].join(",");
+  const lines = [...counts.entries()].sort((a,b)=>b[1]-a[1]).map(([t,c])=>[t,c,((c/total)*100).toFixed(1)].join(","));
+  downloadCSV(lines, hdr, fname);
+}
+function exportStackShapesCSV(lineups, rows, fname="mlb_stack_shapes.csv") {
+  const meta = new Map(rows.map(r=>[r.name,r]));
+  const counts = {};
+  for (const L of lineups) {
+    const chosen = L.players.map(n=>meta.get(n)).filter(Boolean);
+    const hitters = chosen.filter(r=>!r.isPitcher);
+    const byTeam = new Map();
+    for (const h of hitters) byTeam.set(h.team,(byTeam.get(h.team)||0)+1);
+    const shape = [...byTeam.values()].sort((a,b)=>b-a).join("-") || "—";
+    counts[shape] = (counts[shape]||0)+1;
+  }
+  const total = Math.max(1, lineups.length);
+  const hdr = ["Shape","Count","%"].join(",");
+  const lines = Object.entries(counts).map(([shape,c]) => [shape,c,((c/total)*100).toFixed(1)].join(","));
+  downloadCSV(lines, hdr, fname);
+}
+
 /* ---------------------------- page -------------------------------- */
 export default function MLBOptimizer() {
-  // Load separate feeds (falls back to legacy)
-  const { data: batters, err: batErr, loading: batLoading } = useJson(BATTERS_SRC);
-  const { data: pitchers, err: pitErr, loading: pitLoading } = useJson(PITCHERS_SRC);
-  const legacy = useJson(!batters && !pitchers ? LEGACY_SRC : null);
-  const { data: siteIds } = useJson(SITE_IDS_SRC);
+  const { data, err, loading } = useJson(SOURCE);
+  const { data: siteIds } = useJson(SITE_IDS_SOURCE);
 
   const [site, setSite] = useStickyState("mlbOpt.site", "dk");
   const cfg = SITES[site];
@@ -206,8 +284,15 @@ export default function MLBOptimizer() {
   // filters
   const [posFilter, setPosFilter] = useState("ALL");
   const [selectedTeams, setSelectedTeams] = useState(() => new Set());
-  const [selectedGames, setSelectedGames] = useState(() => new Set());
   const [q, setQ] = useState("");
+
+  // exposure pane pos filter
+  const [expPosFilter, setExpPosFilter] = useState("ALL");
+
+  // team restriction for stacks
+  const [stackTeams, setStackTeams] = useStickyState(`mlbOpt.stackTeams.${site}`, []);
+  const [onlyUseStackTeams, setOnlyUseStackTeams] = useStickyState(`mlbOpt.onlyUseStackTeams.${site}`, false);
+  const stackSet = useMemo(() => new Set(stackTeams), [stackTeams]);
 
   const [lineups, setLineups] = useState([]);
   const [stopInfo, setStopInfo] = useState(null);
@@ -235,29 +320,36 @@ export default function MLBOptimizer() {
     setLocks(new Set()); setExcls(new Set());
   }, [site]);
 
+  // Build ID maps for CSV
+  const idMap = useMemo(() => {
+    const m = { dk: new Map(), fd: new Map() };
+    const rows = siteIds || {};
+    for (const row of (rows.dk || [])) m.dk.set(row.name, String(row.id));
+    for (const row of (rows.fd || [])) m.fd.set(row.name, String(row.id));
+    return m;
+  }, [siteIds]);
+
   /* ------------------------------ rows ------------------------------ */
   const rows = useMemo(() => {
-    const pickArray = (obj) => Array.isArray(obj?.rows) ? obj.rows
-      : Array.isArray(obj?.players) ? obj.players
-      : Array.isArray(obj?.data) ? obj.data
-      : Array.isArray(obj) ? obj : [];
+    if (!data) return [];
 
-    // Build from separate sources if available; otherwise legacy
-    const bat = pickArray(batters);
-    const pit = pickArray(pitchers);
-    const legacyArr = pickArray(legacy.data);
+    const arr = Array.isArray(data?.rows)
+      ? data.rows
+      : Array.isArray(data?.players)
+      ? data.players
+      : Array.isArray(data?.data)
+      ? data.data
+      : Array.isArray(data)
+      ? data
+      : [];
 
-    const useSeparate = bat.length || pit.length;
-    const srcBat = useSeparate ? bat : legacyArr.filter(r => String(r.Pos||r.POS||"").toUpperCase().includes("C") || String(r.Pos||"").includes("B") || /1B|2B|3B|SS|OF/i.test(String(r.Pos||"")));
-    const srcPit = useSeparate ? pit : legacyArr.filter(r => /P|SP|RP/i.test(String(r.Pos||r.POS||"")));
-
-    const siteKey = cfg.key;
+    const siteKey = cfg.key; // "dk" | "fd"
     const projKeyLC = `${siteKey}_proj`;
     const salKeyLC  = `${siteKey}_sal`;
     const pownKeyLC = `${siteKey}_pown`;
     const optKeyLC  = `${siteKey}_opt`;
 
-    const mapBatter = (r) => {
+    const mapped = arr.map((r) => {
       const name = r.player ?? r.Player ?? r.Name ?? r.playerName ?? r.name ?? "";
       const rawPos = String(r.pos ?? r.Pos ?? r.POS ?? r.Position ?? "").toUpperCase();
       const parts = rawPos.split("/").map(s => s.trim()).filter(Boolean).map(p => (p === "SP" || p === "RP") ? "P" : p);
@@ -270,44 +362,20 @@ export default function MLBOptimizer() {
       const ceil   = num(r[`${cfg.key}_ceil`]  ?? r[cfg.ceilKey]  ?? r.Ceiling);
       const pown   = pct(r[pownKeyLC] ?? r[cfg.pown?.[0]] ?? r[cfg.pown?.[1]]);
       const opt    = pct(r[optKeyLC]  ?? r[cfg.opt?.[0]]  ?? r[cfg.opt?.[1]]);
+      const isPitcher = eligible.includes("P");
       const val    = Number.isFinite(proj) && salary > 0 ? (proj / salary) * 1000 : 0;
-      return { name, team, opp, eligible, isPitcher: false, salary, proj, floor, ceil, pown, opt, val, __raw: r };
-    };
+      return {
+        name, team, opp, eligible, isPitcher, salary, proj, floor, ceil, pown, opt, val,
+        __raw: r,
+      };
+    });
 
-    const mapPitcher = (r) => {
-      const name = r.player ?? r.Player ?? r.Name ?? r.playerName ?? r.name ?? "";
-      const team = normTeam(r.team ?? r.Team ?? r.Tm ?? r.TEAM ?? r.team_abbr ?? r.TeamAbbrev ?? "");
-      const opp  = normTeam(r.opp  ?? r.Opp  ?? r.OPP ?? r.opponent ?? r.Opponent ?? "");
-      const salary = num(r[`${siteKey}_sal`] ?? r[cfg.salKey] ?? r.Salary ?? r.salary);
-      const proj   = num(r[`${siteKey}_proj`] ?? r[cfg.projKey] ?? r.Projection ?? r.Points);
-      const floor  = num(r[`${cfg.key}_floor`] ?? r[cfg.floorKey] ?? r.Floor);
-      const ceil   = num(r[`${cfg.key}_ceil`]  ?? r[cfg.ceilKey]  ?? r.Ceiling);
-      const pown   = pct(r[`${siteKey}_pown`] ?? r[cfg.pown?.[0]] ?? r[cfg.pown?.[1]]);
-      const opt    = pct(r[`${siteKey}_opt`]  ?? r[cfg.opt?.[0]]  ?? r[cfg.opt?.[1]]);
-
-      // 🔴 KEY FIX: if no position exists, FORCE ['P'] for pitchers
-      const eligible = ["P"];
-      const val = Number.isFinite(proj) && salary > 0 ? (proj / salary) * 1000 : 0;
-      return { name, team, opp, eligible, isPitcher: true, salary, proj, floor, ceil, pown, opt, val, __raw: r };
-    };
-
-    const mapped = [...srcBat.map(mapBatter), ...srcPit.map(mapPitcher)]
-      .filter(r => r.name && r.eligible.length);
-
-    return mapped;
-  }, [batters, pitchers, legacy.data, cfg]);
+    return mapped.filter((r) => r.name && r.eligible.length);
+  }, [data, cfg]);
 
   const allTeams = useMemo(() => {
     const s = new Set();
     for (const r of rows) { if (r.team) s.add(r.team); if (r.opp) s.add(r.opp); }
-    return [...s].sort();
-  }, [rows]);
-
-  const allGames = useMemo(() => {
-    const s = new Set();
-    for (const r of rows) {
-      if (r.team && r.opp) s.add(`${r.team} @ ${r.opp}`);
-    }
     return [...s].sort();
   }, [rows]);
 
@@ -335,7 +403,6 @@ export default function MLBOptimizer() {
     if (posFilter === "UTIL") return eligible.some((p) => ["C","1B","2B","3B","SS","OF"].includes(p));
     return eligible.includes(posFilter);
   };
-
   const displayRows = useMemo(() => {
     const needle = q.trim().toLowerCase();
     const textOK = (r) =>
@@ -345,18 +412,15 @@ export default function MLBOptimizer() {
       r.opp.toLowerCase().includes(needle) ||
       r.eligible.join("/").toLowerCase().includes(needle) ||
       String(r.salary).includes(needle);
-
     const teamOK = (r) => selectedTeams.size === 0 || selectedTeams.has(r.team);
-    const gameOK = (r) =>
-      selectedGames.size === 0 || selectedGames.has(`${r.team} @ ${r.opp}`);
 
     const byName = new Map(rows.map((r) => [r.name, r]));
     const ordered = order.map((n) => byName.get(n)).filter(Boolean);
     const others = rows.filter((r) => !order.includes(r.name));
     const base = [...ordered, ...others];
 
-    return base.filter((r) => posOK(r.eligible) && textOK(r) && teamOK(r) && gameOK(r));
-  }, [rows, order, q, posFilter, selectedTeams, selectedGames]);
+    return base.filter((r) => posOK(r.eligible) && textOK(r) && teamOK(r));
+  }, [rows, order, q, posFilter, selectedTeams]);
 
   const sortable = new Set(["team","opp","salary","proj","val","floor","ceil","pown","opt","usage"]);
   const setSort = (col) => {
@@ -430,7 +494,8 @@ export default function MLBOptimizer() {
       avoid_hitters_vs_opp_pitcher: !!avoidHittersVsOppP,
       max_hitters_vs_opp_pitcher: Math.max(0, Number(maxHittersVsOppP) || 0),
       lineup_pown_max: String(lineupPownCap).trim() === "" ? null : clamp(Number(lineupPownCap)||0, 0, 500),
-      min_distinct_teams: site === "fd" ? 3 : 2,
+      min_distinct_teams: site === "fd" ? 3 : 2, // FD constraint
+      allowed_teams: onlyUseStackTeams ? Array.from(stackSet) : [],
     };
 
     const out = [];
@@ -500,9 +565,6 @@ export default function MLBOptimizer() {
     { key: "max",    label: "Max%" },
     { key: "usage",  label: "Usage%", sortable: true },
   ];
-
-  const loading = (batLoading || pitLoading) && !legacy.data;
-  const err = batErr || pitErr || legacy.err;
 
   return (
     <div className="px-4 md:px-6 py-5">
@@ -574,20 +636,44 @@ export default function MLBOptimizer() {
 
           <div className="flex flex-wrap items-center gap-2 mb-2">
             <label className="text-sm">Primary Stack</label>
-            <input type="number" className="w-16 border rounded-md px-2 py-1 text-sm" value={primaryStack} onChange={(e) => setPrimaryStack(e.target.value)} />
+            <input
+              type="number"
+              className="w-16 border rounded-md px-2 py-1 text-sm"
+              value={primaryStack}
+              onChange={(e) => setPrimaryStack(e.target.value)}
+            />
+
             <label className="text-sm ml-2">Secondary Stack</label>
-            <input type="number" className="w-16 border rounded-md px-2 py-1 text-sm" value={secondaryStack} onChange={(e) => setSecondaryStack(e.target.value)} />
+            <input
+              type="number"
+              className="w-16 border rounded-md px-2 py-1 text-sm"
+              value={secondaryStack}
+              onChange={(e) => setSecondaryStack(e.target.value)}
+            />
+
             <label className="inline-flex items-center gap-2 text-sm">
               <input type="checkbox" checked={avoidHittersVsOppP} onChange={(e) => setAvoidHittersVsOppP(e.target.checked)} />
               Avoid hitters vs opp P
             </label>
+
             <label className="text-sm">Max hitters vs opp P</label>
-            <input type="number" className="w-16 border rounded-md px-2 py-1 text-sm" value={maxHittersVsOppP} onChange={(e) => setMaxHittersVsOppP(e.target.value)} />
+            <input
+              type="number"
+              className="w-16 border rounded-md px-2 py-1 text-sm"
+              value={maxHittersVsOppP}
+              onChange={(e) => setMaxHittersVsOppP(e.target.value)}
+            />
+
             <label className="text-sm">Min lineup diff</label>
-            <input type="number" className="w-16 border rounded-md px-2 py-1 text-sm" value={minDiff} onChange={(e) => setMinDiff(e.target.value)} />
+            <input
+              type="number"
+              className="w-16 border rounded-md px-2 py-1 text-sm"
+              value={minDiff}
+              onChange={(e) => setMinDiff(e.target.value)}
+            />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-2">
             <button className="px-2 py-1 text-sm rounded-md border hover:bg-gray-50" onClick={() => {
               if (site === "dk") { setPrimaryStack(5); setSecondaryStack(3); }
               else { setPrimaryStack(4); setSecondaryStack(4); }
@@ -601,6 +687,55 @@ export default function MLBOptimizer() {
               Preset: 4-3-1
             </button>
           </div>
+
+          <hr className="my-2" />
+
+          {/* stack team limiter */}
+          <div className="flex items-center justify-between mb-1">
+            <div className="text-[11px] text-gray-600">Limit to specific teams (optional)</div>
+            <label className="inline-flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={onlyUseStackTeams}
+                onChange={(e) => setOnlyUseStackTeams(e.target.checked)}
+              />
+              Only use selected teams
+            </label>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {allTeams.map((t) => {
+              const active = stackSet.has(t);
+              return (
+                <button
+                  key={`stack-${t}`}
+                  onClick={() => {
+                    const arr = new Set(stackSet);
+                    active ? arr.delete(t) : arr.add(t);
+                    setStackTeams(Array.from(arr));
+                  }}
+                  className="text-[12px]"
+                  style={chipStyle(t, active)}
+                >
+                  {t}
+                </button>
+              );
+            })}
+            <div className="flex gap-2 ml-2">
+              <button
+                className="px-2 py-1 text-sm rounded-md border bg-white hover:bg-gray-50"
+                onClick={() => setStackTeams(allTeams)}
+              >
+                All
+              </button>
+              <button
+                className="px-2 py-1 text-sm rounded-md border bg-white hover:bg-gray-50"
+                onClick={() => setStackTeams([])}
+              >
+                Clear
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* progress + button */}
@@ -609,8 +744,16 @@ export default function MLBOptimizer() {
             {`Optimize ${numLineups}`}
           </button>
           <div className="flex-1 max-w-xs h-2 bg-gray-200 rounded overflow-hidden">
-            <div className="h-2 bg-blue-500 rounded transition-all duration-300"
-              style={{ width: `${(Math.min(progressUI, Math.max(1, Number(numLineups) || 1)) / Math.max(1, Number(numLineups) || 1)) * 100}%` }} />
+            <div
+              className="h-2 bg-blue-500 rounded transition-all duration-300"
+              style={{
+                width: `${
+                  (Math.min(progressUI, Math.max(1, Number(numLineups) || 1)) /
+                    Math.max(1, Number(numLineups) || 1)) *
+                  100
+                }%`,
+              }}
+            />
           </div>
           <div className="text-sm text-gray-600 min-w-[60px] text-right">
             {progressUI}/{numLineups}
@@ -627,51 +770,26 @@ export default function MLBOptimizer() {
         ))}
       </div>
 
-      {/* Games filter */}
-      {allGames.length > 0 && (
-        <div className="mb-2 flex flex-wrap gap-2">
-          <button
-            className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50"
-            onClick={() => setSelectedGames(new Set())}
-          >
-            All games
-          </button>
-          {allGames.map((g) => {
-            const active = selectedGames.has(g);
-            return (
-              <button
-                key={g}
-                onClick={() =>
-                  setSelectedGames((S) => {
-                    const n = new Set(S);
-                    active ? n.delete(g) : n.add(g);
-                    return n;
-                  })
-                }
-                className={`px-2 py-1 rounded-md border text-sm ${active ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300"}`}
-              >
-                {g}
-              </button>
-            );
-          })}
-        </div>
-      )}
-
       <div className="mb-2 flex gap-2">
         <input className="border rounded-md px-3 py-1.5 w-80 text-sm" placeholder="Search player / team / pos…" value={q} onChange={(e) => setQ(e.target.value)} />
-        <button className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50" onClick={() => setSelectedTeams(new Set(allTeams))}>
+        <button
+          className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50"
+          onClick={() => setSelectedTeams(new Set(allTeams))}
+        >
           Select all teams
         </button>
-        <button className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50" onClick={() => setSelectedTeams(new Set())}>
+        <button
+          className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50"
+          onClick={() => setSelectedTeams(new Set())}
+        >
           Clear teams
         </button>
       </div>
 
-      {/* Team chips (colored) */}
+      {/* Team chips (table filter) */}
       <div className="mb-3 flex flex-wrap gap-2">
         {allTeams.map((t) => {
           const active = selectedTeams.has(t);
-          const style = teamStyle(t, active);
           return (
             <button
               key={t}
@@ -682,7 +800,8 @@ export default function MLBOptimizer() {
                   return n;
                 })
               }
-              {...style}
+              className="px-2 py-1 rounded-md border text-sm"
+              style={chipStyle(t, active)}
             >
               {t}
             </button>
@@ -708,10 +827,14 @@ export default function MLBOptimizer() {
           </thead>
           <tbody>
             {loading && (
-              <tr><td className={`${cell} text-gray-500`} colSpan={TABLE_COLS.length}>Loading…</td></tr>
+              <tr>
+                <td className={`${cell} text-gray-500`} colSpan={TABLE_COLS.length}>Loading…</td>
+              </tr>
             )}
             {err && (
-              <tr><td className={`${cell} text-red-600`} colSpan={TABLE_COLS.length}>Failed to load: {String(err)}</td></tr>
+              <tr>
+                <td className={`${cell} text-red-600`} colSpan={TABLE_COLS.length}>Failed to load: {String(err)}</td>
+              </tr>
             )}
             {!loading && !err && displayRows.map((r) => (
               <tr key={r.name} className="odd:bg-white even:bg-gray-50 hover:bg-blue-50/60 transition-colors">
@@ -726,8 +849,12 @@ export default function MLBOptimizer() {
                   </div>
                 </td>
                 <td className={`${cell} whitespace-nowrap`}>{r.name}</td>
-                <td className={cell}>{r.team}</td>
-                <td className={cell}>{r.opp}</td>
+                <td className={cell}>
+                  <span className="px-1.5 py-0.5 rounded text-[11px]" style={chipStyle(r.team)}>{r.team || "—"}</span>
+                </td>
+                <td className={cell}>
+                  <span className="px-1.5 py-0.5 rounded text-[11px]" style={chipStyle(r.opp)}>{r.opp || "—"}</span>
+                </td>
                 <td className={`${cell} tabular-nums`}>{fmt0(r.salary)}</td>
                 <td className={`${cell} tabular-nums`}>{fmt1(r.proj * (1 + 0.03 * (boost[r.name] || 0)))}</td>
                 <td className={`${cell} tabular-nums`}>{fmt1(r.val)}</td>
@@ -756,37 +883,130 @@ export default function MLBOptimizer() {
         </table>
       </div>
 
-      {/* results & exposures (unchanged) */}
+      {/* results & exposures */}
       {!!lineups.length && (
-        <ResultsAndExposure
-          lineups={lineups}
-          rows={rows}
-          optBy={optBy}
-          TEAM_COLORS={TEAM_COLORS}
-        />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          {/* Lineups */}
+          <section className="lg:col-span-8 rounded-lg border bg-white p-3">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-base font-bold">Lineups ({lineups.length})</h2>
+              <div className="flex items-center gap-2">
+                <button className="px-3 py-1.5 border rounded text-sm"
+                  onClick={() => exportLineupsCSV(lineups, rows, site, idMap)}>
+                  Export CSV
+                </button>
+              </div>
+            </div>
+            <div className="overflow-auto max-h-[440px]">
+              <table className="min-w-full text-[12px] border-separate" style={{ borderSpacing: 0 }}>
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className={header}>#</th>
+                    <th className={header}>Salary</th>
+                    <th className={header}>Total pOWN%</th>
+                    <th className={header}>
+                      Total {optBy === "pown" || optBy === "opt" ? "Projection" : metricLabel}
+                    </th>
+                    <th className={header}>Players</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {lineups.map((L, i) => {
+                    const rowsByName = new Map(rows.map((r) => [r.name, r]));
+                    const ordered = orderPlayersForSite(site, L.players, rowsByName);
+                    const totalPown = ordered.reduce((s, r) => s + ((r.pown || 0) * 100), 0);
+                    return (
+                      <tr key={i} className="odd:bg-white even:bg-gray-50">
+                        <td className={cell}>{i + 1}</td>
+                        <td className={`${cell} tabular-nums`}>{fmt0(L.salary)}</td>
+                        <td className={`${cell} tabular-nums`}>{fmt1(totalPown)}</td>
+                        <td className={`${cell} tabular-nums`}>{fmt1(L.total)}</td>
+                        <td className={`${cell} leading-snug`}>
+                          <span className="break-words">
+                            {ordered.map((r) => siteNameWithId(site, r.name, idMap)).join(" • ")}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {/* Player Exposure */}
+          <section className="lg:col-span-4 rounded-lg border bg-white p-3">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-base font-semibold">Exposure</h3>
+              <div className="flex items-center gap-2">
+                {["ALL","P","C","1B","2B","3B","SS","OF","UTIL","2B/3B","C/1B"].map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setExpPosFilter(p)}
+                    className={`px-2 py-0.5 text-xs rounded ${expPosFilter===p?"bg-blue-600 text-white":"bg-gray-100"}`}
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button className="px-2 py-1 border rounded text-xs"
+                  onClick={() => exportPlayerExposureCSV(lineups, rows, site, idMap)}>
+                  Export CSV
+                </button>
+              </div>
+            </div>
+            <ExposureTable lineups={lineups} rows={rows} posFilter={expPosFilter} />
+          </section>
+
+          {/* Team Exposure */}
+          <section className="lg:col-span-4 rounded-lg border bg-white p-3">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-base font-semibold">Team Exposure</h3>
+              <button className="px-2 py-1 border rounded text-xs"
+                onClick={() => exportTeamExposureCSV(lineups, rows)}>
+                Export CSV
+              </button>
+            </div>
+            <TeamExposureTable lineups={lineups} rows={rows} />
+          </section>
+
+          {/* Stack Shapes */}
+          <section className="lg:col-span-4 rounded-lg border bg-white p-3">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-base font-semibold">Hitter Stack Shapes</h3>
+              <button className="px-2 py-1 border rounded text-xs"
+                onClick={() => exportStackShapesCSV(lineups, rows)}>
+                Export CSV
+              </button>
+            </div>
+            <StackShapesTable lineups={lineups} rows={rows} />
+          </section>
+        </div>
       )}
     </div>
   );
 }
 
-/* ---------------------- results/exposure blocks -------------------- */
-function ResultsAndExposure({ lineups, rows, optBy }) {
-  const cell = "px-2 py-1 text-center";
-  const header = "px-2 py-1 font-semibold text-center";
-  const metricLabel =
-    optBy === "proj" ? "Proj" : optBy === "floor" ? "Floor" : optBy === "ceil" ? "Ceiling" : optBy === "pown" ? "pOWN%" : "Opt%";
-
-  const rowsByName = useMemo(() => new Map(rows.map(r => [r.name, r])), [rows]);
-
-  const orderedForDisplay = (names) => {
-    const pool = names.map((n) => rowsByName.get(n)).filter(Boolean);
-    const take = (pred) => {
-      const i = pool.findIndex(pred);
-      if (i === -1) return null;
-      return pool.splice(i, 1)[0];
-    };
-    const out = [];
+/* ---------------------- ordering helpers --------------------------- */
+function orderPlayersForSite(site, names, rowsMap) {
+  const pool = names.map((n) => rowsMap.get(n)).filter(Boolean);
+  const take = (pred) => {
+    const i = pool.findIndex(pred);
+    if (i === -1) return null;
+    return pool.splice(i, 1)[0];
+  };
+  const out = [];
+  if (site === "dk") {
     out.push(take((r) => r.eligible.includes("P")));
+    out.push(take((r) => r.eligible.includes("P")));
+    out.push(take((r) => r.eligible.includes("C")));
+    out.push(take((r) => r.eligible.includes("1B")));
+    out.push(take((r) => r.eligible.includes("2B")));
+    out.push(take((r) => r.eligible.includes("3B")));
+    out.push(take((r) => r.eligible.includes("SS")));
+    out.push(take((r) => r.eligible.includes("OF")));
+    out.push(take((r) => r.eligible.includes("OF")));
+    out.push(take((r) => r.eligible.includes("OF")));
+  } else {
     out.push(take((r) => r.eligible.includes("P")));
     out.push(take((r) => r.eligible.includes("C") || r.eligible.includes("1B")));
     out.push(take((r) => r.eligible.includes("2B")));
@@ -795,105 +1015,45 @@ function ResultsAndExposure({ lineups, rows, optBy }) {
     out.push(take((r) => r.eligible.includes("OF")));
     out.push(take((r) => r.eligible.includes("OF")));
     out.push(take((r) => r.eligible.includes("OF")));
-    out.push(take((r) => ["C","1B","2B","3B","SS","OF"].some(p => r.eligible.includes(p))));
-    return out.filter(Boolean).concat(pool);
-  };
-
-  const textSz = "text-[12px]";
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-      {/* Lineups */}
-      <section className="lg:col-span-8 rounded-lg border bg-white p-3">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-base font-bold">Lineups ({lineups.length})</h2>
-        </div>
-        <div className="overflow-auto max-h-[440px]">
-          <table className={`min-w-full ${textSz} border-separate`} style={{ borderSpacing: 0 }}>
-            <thead className="bg-gray-50">
-              <tr>
-                <th className={header}>#</th>
-                <th className={header}>Salary</th>
-                <th className={header}>Total pOWN%</th>
-                <th className={header}>Total {optBy === "pown" || optBy === "opt" ? "Projection" : metricLabel}</th>
-                <th className={header}>Players</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lineups.map((L, i) => {
-                const ordered = orderedForDisplay(L.players);
-                const totalPown = ordered.reduce((s, r) => s + ((r.pown || 0) * 100), 0);
-                return (
-                  <tr key={i} className="odd:bg-white even:bg-gray-50">
-                    <td className={cell}>{i + 1}</td>
-                    <td className={`${cell} tabular-nums`}>{fmt0(L.salary)}</td>
-                    <td className={`${cell} tabular-nums`}>{fmt1(totalPown)}</td>
-                    <td className={`${cell} tabular-nums`}>{fmt1(L.total)}</td>
-                    <td className={`${cell} leading-snug`}><span className="break-words">{ordered.map((r) => r.name).join(" • ")}</span></td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {/* Player Exposure */}
-      <section className="lg:col-span-4 rounded-lg border bg-white p-3">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-base font-semibold">Exposure</h3>
-        </div>
-        <ExposureTable lineups={lineups} rows={rows} />
-      </section>
-
-      {/* Team Exposure */}
-      <section className="lg:col-span-4 rounded-lg border bg-white p-3">
-        <h3 className="text-base font-semibold mb-2">Team Exposure</h3>
-        <TeamExposureTable lineups={lineups} rows={rows} />
-      </section>
-
-      {/* Stack Shapes */}
-      <section className="lg:col-span-4 rounded-lg border bg-white p-3">
-        <h3 className="text-base font-semibold mb-2">Hitter Stack Shapes</h3>
-        <StackShapesTable lineups={lineups} rows={rows} />
-      </section>
-    </div>
-  );
-}
-
-/* ---------------------- CSV exposures helper ---------------------- */
-function downloadPlainCSV(lineups, fname = "mlb_lineups.csv") {
-  const header = ["#", "Salary", "Total", "Players"].join(",");
-  const lines = lineups.map((L, i) => [i + 1, L.salary, L.total.toFixed(1), `"${L.players.join(" • ")}"`].join(","));
-  const blob = new Blob([header + "\n" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = fname; a.click();
-  URL.revokeObjectURL(url);
+    out.push(take((r) => ["C","1B","2B","3B","SS","OF"].some(p => r.eligible.includes(p)))); // UTIL
+  }
+  return out.filter(Boolean).concat(pool);
 }
 
 /* --------------------------- Exposure tables --------------------------- */
-function ExposureTable({ lineups, rows }) {
+function ExposureTable({ lineups, rows, posFilter="ALL" }) {
   const meta = useMemo(() => new Map(rows.map(r => [r.name, r])), [rows]);
+
   const allRows = useMemo(() => {
     const m = new Map();
     for (const L of lineups) for (const p of L.players) m.set(p, (m.get(p) || 0) + 1);
     const total = Math.max(1, lineups.length);
-    return [...m.entries()]
+    let arr = [...m.entries()]
       .map(([name, cnt]) => {
         const r = meta.get(name);
         return { name, count: cnt, pct: (cnt / total) * 100, pos: r?.eligible?.join("/") || "?" };
-      })
-      .sort((a, b) => b.pct - a.pct || a.name.localeCompare(b.name));
-  }, [lineups, meta]);
+      });
+    if (posFilter !== "ALL") {
+      arr = arr.filter(x => (x.pos || "").split("/").includes(posFilter));
+    }
+    return arr.sort((a, b) => b.pct - a.pct || a.name.localeCompare(b.name));
+  }, [lineups, meta, posFilter]);
+
   if (!allRows.length) return null;
 
   const cell = "px-2 py-1 text-center";
   const header = "px-2 py-1 font-semibold text-center";
+
   return (
     <div className="overflow-auto max-h-[440px]">
       <table className="min-w-full text-[12px] border-separate" style={{ borderSpacing: 0 }}>
         <thead className="bg-gray-50">
-          <tr><th className={header}>Player</th><th className={header}>Pos</th><th className={header}>Count</th><th className={header}>Exposure %</th></tr>
+          <tr>
+            <th className={header}>Player</th>
+            <th className={header}>Pos</th>
+            <th className={header}>Count</th>
+            <th className={header}>Exposure %</th>
+          </tr>
         </thead>
         <tbody>
           {allRows.map((r) => (
@@ -925,15 +1085,23 @@ function TeamExposureTable({ lineups, rows }) {
       .map(([team, cnt]) => ({ team, count: cnt, pct: (cnt / total) * 100 }))
       .sort((a, b) => b.pct - a.pct || a.team.localeCompare(b.team));
   }, [lineups, rowsByName]);
+
   if (!data.length) return null;
 
   const cell = "px-2 py-1 text-center";
   const header = "px-2 py-1 font-semibold text-center";
+
   return (
     <table className="min-w-full text:[12px]">
       <thead><tr><th className={header}>Team</th><th className={header}>Count</th><th className={header}>Exposure %</th></tr></thead>
       <tbody>{data.map(r => (
-        <tr key={r.team}><td className={cell}>{r.team}</td><td className={`${cell} tabular-nums`}>{fmt0(r.count)}</td><td className={`${cell} tabular-nums`}>{fmt1(r.pct)}</td></tr>
+        <tr key={r.team}>
+          <td className={cell}>
+            <span className="px-1.5 py-0.5 rounded text-[11px]" style={chipStyle(r.team)}>{r.team}</span>
+          </td>
+          <td className={`${cell} tabular-nums`}>{fmt0(r.count)}</td>
+          <td className={`${cell} tabular-nums`}>{fmt1(r.pct)}</td>
+        </tr>
       ))}</tbody>
     </table>
   );
@@ -956,10 +1124,12 @@ function StackShapesTable({ lineups, rows }) {
     return Object.entries(counts).map(([shape, cnt]) => ({ shape, count: cnt, pct: (cnt / total) * 100 }))
       .sort((a,b)=> b.count - a.count || a.shape.localeCompare(b.shape));
   }, [lineups, rowsByName]);
+
   if (!data.length) return null;
 
   const cell = "px-2 py-1 text-center";
   const header = "px-2 py-1 font-semibold text-center";
+
   return (
     <table className="min-w-full text-[12px]">
       <thead><tr><th className={header}>Shape</th><th className={header}>Count</th><th className={header}>%</th></tr></thead>
