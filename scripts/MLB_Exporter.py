@@ -394,95 +394,98 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
             return best_r
 
         out_obj: Dict[str, Any] = {}
+
         for i, t in enumerate(titles_cfg):
             title = str(t.get("title") or f"Table {i+1}").strip()
             width = max(1, int(t.get("width", 8)))
             limit_rows = int(t.get("limit_rows", default_limit))
-            locs = index.get(norm(title), [])
+
+            # ⬇️ get ALL locations for this title, not just the first
+            locs = sorted(index.get(norm(title), []), key=lambda rc: (rc[0], rc[1]))
             if not locs:
                 print(f"⚠️  cheatsheets: title not found: '{title}'")
                 continue
 
-            start_r, start_c = min(locs, key=lambda rc: (rc[0], rc[1]))
-            header_r = pick_header_row(start_r, start_c, width)
-            data_r0  = header_r + 1
+            for (start_r, start_c) in locs:
+                header_r = pick_header_row(start_r, start_c, width)
+                data_r0  = header_r + 1
 
-            # headers within span
-            hdr = [ws.cell(header_r, c) for c in range(start_c, min(start_c + width, n_cols + 1))]
-            headers = dedup([_norm_header_label(_format_cell(c)) for c in hdr])
+                # headers within span
+                hdr = [ws.cell(header_r, c) for c in range(start_c, min(start_c + width, n_cols + 1))]
+                headers = dedup([_norm_header_label(_format_cell(c)) for c in hdr])
 
-            # locate special columns
-            col_l = [h.lower() for h in headers]
-            idx_player = col_l.index("player") if "player" in col_l else None
-            idx_time   = col_l.index("time")   if "time"   in col_l else None
+                # locate special columns
+                col_l = [h.lower() for h in headers]
+                idx_player = col_l.index("player") if "player" in col_l else None
+                idx_time   = col_l.index("time")   if "time"   in col_l else None
 
-            rows = []
-            r = data_r0
-            blanks = 0
-            while r <= n_rows and len(rows) < limit_rows:
-                # stop when a new section title appears in the first column of the panel
-                first = norm(ws.cell(r, start_c).value)
-                if first and first in all_titles_norm:
-                    break
-
-                row_cells = [ws.cell(r, c) for c in range(start_c, start_c + len(headers))]
-                display   = [_format_cell(c) for c in row_cells]
-
-                # fill 'Player' from formula if needed
-                if idx_player is not None and not display[idx_player]:
-                    raw = wsf.cell(r, start_c + idx_player).value
-                    disp = _hyperlink_display(raw)
-                    if disp:
-                        display[idx_player] = disp
-
-                # normalize time
-                if idx_time is not None and display[idx_time]:
-                    display[idx_time] = _to_12h(display[idx_time])
-
-                if all(x == "" for x in display):
-                    blanks += 1
-                    if blanks >= 2:
-                        break
-                    r += 1
-                    continue
-
+                # -------- rows in this occurrence --------
+                rows = []
+                r = data_r0
                 blanks = 0
-                rows.append(display)
-                r += 1
+                while r <= n_rows and len(rows) < limit_rows:
+                    # stop when a new section title appears in the first cell (any title)
+                    first = norm(ws.cell(r, start_c).value)
+                    if first and first in all_titles_norm:
+                        break
 
+                    row_cells = [ws.cell(r, c) for c in range(start_c, start_c + len(headers))]
+                    display   = [_format_cell(c) for c in row_cells]
+
+                    # fill 'Player' from formula if needed
+                    if idx_player is not None and not display[idx_player]:
+                        raw = wsf.cell(r, start_c + idx_player).value
+                        disp = _hyperlink_display(raw)
+                        if disp:
+                            display[idx_player] = disp
+
+                    # normalize time
+                    if idx_time is not None and display[idx_time]:
+                        display[idx_time] = _to_12h(display[idx_time])
+
+                    if all(x == "" for x in display):
+                        blanks += 1
+                        if blanks >= 2:
+                            break
+                        r += 1
+                        continue
+
+                    blanks = 0
+                    rows.append(display)
+                    r += 1
+
+                # Build frame for this occurrence
                 sub = pd.DataFrame(rows, columns=headers)
 
-                # ==== START normalization block ====
-                # Sections where the first column is the actual player name
+                # ==== normalization (unchanged) ====
                 _PLAYER_SECTIONS = {"Pitcher","C","1B","2B","3B","SS","OF","Cash Core"}
-
                 cols = list(sub.columns)
-
-                # If the first header equals the section title, rename it to 'Player'
                 if title in _PLAYER_SECTIONS and cols and cols[0] == title:
                     cols[0] = "Player"
-
-                # Standardize Matchup/Opp headers to 'Opp'
                 cols = ["Opp" if (c or "").lower() in ("matchup","opp") else c for c in cols]
-
-                # Fix Top Stacks: make first col 'Team', then next 'Team' -> 'Opp', next 'Opp' -> 'Opp Pitcher'
                 if title == "Top Stacks":
                     if cols and cols[0] in ("Top Stacks","Stacks","Stack"):
                         cols[0] = "Team"
                     seen_first_team = False
-                    for i in range(1, len(cols)):
-                        if not seen_first_team and cols[i] == "Team":
-                            cols[i] = "Opp"
+                    for i2 in range(1, len(cols)):
+                        if not seen_first_team and cols[i2] == "Team":
+                            cols[i2] = "Opp"
                             seen_first_team = True
                             continue
-                        if seen_first_team and cols[i] == "Opp":
-                            cols[i] = "Opp Pitcher"
+                        if seen_first_team and cols[i2] == "Opp":
+                            cols[i2] = "Opp Pitcher"
                             break
-
                 sub.columns = cols
-                # ==== END normalization block ====
+                # ===================================
 
-                out_obj[title] = sub.astype(object).where(pd.notna(sub), "").to_dict(orient="records")
+                recs = sub.astype(object).where(pd.notna(sub), "").to_dict(orient="records")
+
+                # ⬇️ merge multiple occurrences (e.g., all three "OF" blocks)
+                if title in out_obj and isinstance(out_obj[title], list):
+                    out_obj[title].extend(recs)
+                else:
+                    out_obj[title] = recs
+
 
 
         out_path = (project_root / "public" / Path(out_rel)).with_suffix(".json")

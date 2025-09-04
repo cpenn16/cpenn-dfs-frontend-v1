@@ -253,6 +253,72 @@
       "Proj": "9.0",
       "Value": "2.82",
       "pOWN": "14.6%"
+    },
+    {
+      "Player": "Ian Happ",
+      "Salary": "3300",
+      "Team": "CHC",
+      "Opp": "ATL",
+      "Vegas": "4.1",
+      "Time": "7:40 PM",
+      "Proj": "8.8",
+      "Value": "2.67",
+      "pOWN": "11.4%"
+    },
+    {
+      "Player": "Trent Grisham",
+      "Salary": "4400",
+      "Team": "NYY",
+      "Opp": "HOU",
+      "Vegas": "4.5",
+      "Time": "8:10 PM",
+      "Proj": "10.1",
+      "Value": "2.29",
+      "pOWN": "11.7%"
+    },
+    {
+      "Player": "Byron Buxton",
+      "Salary": "5800",
+      "Team": "MIN",
+      "Opp": "CWS",
+      "Vegas": "4.3",
+      "Time": "7:40 PM",
+      "Proj": "11.3",
+      "Value": "1.95",
+      "pOWN": "11.0%"
+    },
+    {
+      "Player": "Brenton Doyle",
+      "Salary": "3700",
+      "Team": "COL",
+      "Opp": "SF",
+      "Vegas": "5.4",
+      "Time": "8:40 PM",
+      "Proj": "8.9",
+      "Value": "2.39",
+      "pOWN": "10.8%"
+    },
+    {
+      "Player": "Jo Adell",
+      "Salary": "3800",
+      "Team": "LAA",
+      "Opp": "KC",
+      "Vegas": "4.4",
+      "Time": "7:40 PM",
+      "Proj": "8.8",
+      "Value": "2.32",
+      "pOWN": "9.2%"
+    },
+    {
+      "Player": "Andrew Benintendi",
+      "Salary": "3200",
+      "Team": "CWS",
+      "Opp": "MIN",
+      "Vegas": "4.1",
+      "Time": "7:40 PM",
+      "Proj": "7.9",
+      "Value": "2.48",
+      "pOWN": "7.5%"
     }
   ],
   "Cash Core": [
