@@ -13,14 +13,11 @@ const PROJECTIONS_URL = "/data/nfl/showdown/latest/projections.json";
 const teamLogo = (abbr) => (abbr ? `/logos/nfl/${abbr}.png` : "");
 
 /* ---------------- helpers ---------------- */
-const num = (v) => {
-  const n = Number(String(v ?? "").replace(/[,%\s]/g, ""));
-  return Number.isFinite(n) ? n : null;
-};
-const pct = (v) => {
+const num = (v) => { const n = Number(String(v ?? "").replace(/[,%\s]/g, "")); return Number.isFinite(n) ? n : null; };
+const pctFmt = (v) => {
   if (v == null || v === "") return "";
   const s = String(v).trim();
-  if (/%/.test(s)) return s.replace(/%+$/, "%"); // collapse “%%” → “%”
+  if (/%/.test(s)) return s.replace(/%+$/, "%");
   const n = num(s);
   return n == null ? "" : (Math.abs(n) <= 1 ? (n * 100).toFixed(1) : n.toFixed(1)) + "%";
 };
@@ -37,17 +34,17 @@ const normalizeName = (s) =>
     .replace(/\s+/g, " ")
     .trim();
 
-/* canonicalize header keys (more forgiving for variations) */
+/* canonicalize header keys */
 const canonKey = (s = "") =>
   String(s)
-    .replace(/\u00A0|\u202F/g, " ")   // NBSP → space
+    .replace(/\u00A0|\u202F/g, " ")
     .toLowerCase()
-    .replace(/[()]/g, "")             // strip parentheses
-    .replace(/[%]/g, "")              // drop percent signs
-    .replace(/[_\.]/g, " ")           // underscores/dots → space
-    .replace(/\s+/g, " ")             // collapse spaces
+    .replace(/[()]/g, "")
+    .replace(/[%]/g, "")
+    .replace(/[_\.]/g, " ")
+    .replace(/\s+/g, " ")
     .trim()
-    .replace(/\s+/g, "");             // compact key (no spaces)
+    .replace(/\s+/g, "");
 
 const buildKeyMap = (row) => { const m = {}; for (const [k,v] of Object.entries(row)) m[canonKey(k)] = v; return m; };
 const getVal = (kmap, ...cands) => { for (const c of cands) { const v = kmap[canonKey(c)]; if (v !== undefined) return v; } return ""; };
@@ -64,7 +61,7 @@ function useJson(url){
   return { rows,loading,err };
 }
 
-/* ---------------- column sets (no ownership cols) ---------------- */
+/* ---------------- columns ---------------- */
 const COLS_COMMON = [
   { id:"player", label:"Player", type:"text",  w:"min-w-[12rem] text-left" },
   { id:"team",   label:"Team",   type:"team",  w:"min-w-[4.5rem]" },
@@ -125,7 +122,7 @@ const POS_TO_COLS = { QB: COLS_QB, RB: COLS_RB, WR: COLS_WR, TE: COLS_TE };
 
 /* ---------------- CSV ---------------- */
 const escapeCSV = (s) => /[",\r\n]/.test(String(s ?? "")) ? `"${String(s ?? "").replace(/"/g,'""')}"` : String(s ?? "");
-const formatVal = (type, raw) => (type==="money" ? int0(raw) : type==="pct" ? pct(raw) : type==="num1" ? smart1(raw) : (raw ?? ""));
+const formatVal = (type, raw) => (type==="money" ? int0(raw) : type==="pct" ? pctFmt(raw) : type==="num1" ? smart1(raw) : (raw ?? ""));
 function downloadCSV(rows, cols, fname){
   const header = cols.map(c=>c.label).join(",");
   const body = rows.map(r => cols.map(c => escapeCSV(formatVal(c.type, r[c.id]))).join(",")).join("\n");
@@ -161,60 +158,71 @@ export default function NflPosProjections({ pos="QB" }){
     }catch{ setNameToTeam({}); }
   })(); },[]);
 
-  // columns
   const cols = POS_TO_COLS[pos] || POS_TO_COLS.QB;
 
-  // normalize each row to a stable shape (accept both “nice” headers and generic JSON keys)
   const rows = useMemo(() => rawRows.map((row) => {
     const k = buildKeyMap(row);
 
-    // Player (supports QB / RB1 / WR1 / TE1 headings)
+    // Player (handles QB / RB1 / WR1 / TE1)
     const player = (getVal(k,
       "player","player name","name",
       "qb","rb","rb1","wr","wr1","te","te1"
     ) || "").toString().trim();
 
-    // Team (backfill from xwalk if missing)
-    let team  = (getVal(k, "team","teamabbrev") || "").toString().trim().toUpperCase();
-    if(!team && player){
+    // Team (backfill)
+    let team = (getVal(k, "team","teamabbrev") || "").toString().trim().toUpperCase();
+    if (!team && player) {
       const t = nameToTeam[normalizeName(player)];
-      if(t) team = t;
+      if (t) team = t;
     }
 
-    // salaries
+    // Salaries
     const dk_sal = getVal(k, "dk sal","dksal","dk_sal");
     const fd_sal = getVal(k, "fd sal","fdsal","fd_sal");
 
-    // passing (accept both “Pa …” and generic)
+    // Passing (now robust + derived Pa Comp)
     const pa_yards = getVal(k, "pa yards","pass yards","pa_yards","yards");
     const pa_att   = getVal(k, "pa attempts","pa att","pass attempts","pa_att","attempts","att");
-    const pa_comp  = getVal(k, "pa comp","pass comp","pa_comp");
+    let   pa_comp  = getVal(k, "pa comp","pass comp","pa_comp");
     const pa_pct   = getVal(k, "comp%","pa comp%","pa_comp_pct","completion%");
     const pa_td    = getVal(k, "pa td","pa_td","td");
     const int      = getVal(k, "int","INT");
 
-    // rushing / receiving
-    const ru_att = getVal(
-      k,
+    // Derive Pa Comp if missing/zero and we have attempts + pct
+    const compNum = num(pa_comp);
+    const attNum  = num(pa_att);
+    const pctNum  = num(pa_pct); // already stripped of %
+    if ((compNum == null || compNum === 0) && attNum != null && pctNum != null) {
+      const pctFrac = pctNum > 1 ? pctNum / 100 : pctNum;
+      pa_comp = attNum * pctFrac;
+    }
+
+    // Rushing / receiving
+    const ru_att = getVal(k,
       "ru attempts","ru att","ru_att","ru atts","ru attempts.",
       "rush attempts","rush atts","rush att","rushing attempts","rushing att",
       "carries","rushes","rush","rsh att","rsh attempts"
     );
-    const ypc      = getVal(k, "ypc");
-    const ru_yds   = getVal(k, "ru yards","ru_yards","ru yds","ru_yds","rush yards");
-    const ru_td    = getVal(k, "ru td","ru_td","rush td");
+    const ypc    = getVal(k, "ypc");
+    let   ru_yds = getVal(k, "ru yards","ru_yards","ru yds","ru_yds","rush yards","rush yds"); // <-- added "rush yds"
+    const ru_td  = getVal(k, "ru td","ru_td","rush td");
 
-    const targets  = getVal(k, "targets");
-    const tgt_share= getVal(k, "tgt share","target share","tgt_share");
-    const rec      = getVal(k, "rec");
-    const rec_yds  = getVal(k, "rec yards","rec yards","rec_yards","rec yds","receiving yards");
-    const rec_td   = getVal(k, "rec td","rec_td");
+    // Fallback Ru Yds if missing but we have ypc & carries
+    if ((ru_yds === "" || num(ru_yds) == null) && num(ypc) != null && num(ru_att) != null) {
+      ru_yds = num(ypc) * num(ru_att);
+    }
 
-    // DFS site stats (map DK Pts / Proj / Proj_1 / Value / Value_1)
-    const dk_proj  = getVal(k, "dk proj","dk_proj","dk pts","dk points","proj");
-    const dk_val   = getVal(k, "dk val","dk_val","value");
-    const fd_proj  = getVal(k, "fd proj","fd_proj","fd pts","fd points","proj_1");
-    const fd_val   = getVal(k, "fd val","fd_val","value_1");
+    const targets   = getVal(k, "targets");
+    const tgt_share = getVal(k, "tgt share","target share","tgt_share");
+    const rec       = getVal(k, "rec");
+    const rec_yds   = getVal(k, "rec yards","rec_yards","rec yds","receiving yards");
+    const rec_td    = getVal(k, "rec td","rec_td");
+
+    // DFS projections/values
+    const dk_proj = getVal(k, "dk proj","dk_proj","dk pts","dk points","proj");
+    const dk_val  = getVal(k, "dk val","dk_val","value");
+    const fd_proj = getVal(k, "fd proj","fd_proj","fd pts","fd points","proj_1");
+    const fd_val  = getVal(k, "fd val","fd_val","value_1");
 
     return {
       player, team, dk_sal, fd_sal,
@@ -256,14 +264,10 @@ export default function NflPosProjections({ pos="QB" }){
       <div className="flex items-center justify-between gap-3 mb-3">
         <h1 className="text-xl md:text-2xl font-extrabold mb-0.5">NFL — {pos} Projections</h1>
         <div className="flex items-center gap-2">
-          <input
-            className="h-9 w-64 rounded-lg border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Search player / team…" value={q} onChange={(e)=>setQ(e.target.value)}
-          />
-          <button
-            className="ml-1 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700"
-            onClick={()=>downloadCSV(sorted, cols, `nfl_${pos.toLowerCase()}_projections.csv`)}
-          >
+          <input className="h-9 w-64 rounded-lg border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                 placeholder="Search player / team…" value={q} onChange={(e)=>setQ(e.target.value)} />
+          <button className="ml-1 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700"
+                  onClick={()=>downloadCSV(sorted, cols, `nfl_${pos.toLowerCase()}_projections.csv`)}>
             Export CSV
           </button>
         </div>
@@ -307,7 +311,7 @@ export default function NflPosProjections({ pos="QB" }){
                   }
                   let val=r[c.id] ?? "";
                   if(c.type==="money") val=int0(val);
-                  else if(c.type==="pct") val=pct(val);
+                  else if(c.type==="pct") val=pctFmt(val);
                   else if(c.type==="num1") val=smart1(val);
                   const left = c.id==="player";
                   const stickyCls = idx===0 ? "sticky left-0 z-10 bg-white" : "";
