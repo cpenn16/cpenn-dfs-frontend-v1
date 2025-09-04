@@ -83,5 +83,11 @@
     "max_scan_rows": 200,
     "end_after_blank_rows": 15,
     "header_yellow_rgb": ["FFFFE699","FFFFF2CC","FFFFFF00","FFFDE9D9","FFEEE8AA"]
+  },
+
+  "projections_merge": {
+    "batters_rel": "data/mlb/latest/batter_projections",
+    "pitchers_rel": "data/mlb/latest/pitcher_projections",
+    "out_rel":      "data/mlb/latest/projections"
   }
 }

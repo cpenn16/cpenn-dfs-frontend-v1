@@ -11,7 +11,7 @@ Speed tricks:
 
 from __future__ import annotations
 
-import argparse, json, re, sys, shutil, tempfile, datetime
+import argparse, json, re, sys, shutil, tempfile, datetime, os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -518,6 +518,75 @@ def run_name_xwalk(wb, project_root: Path, cfg: Dict[str, Any]) -> None:
     out_path.write_text(json.dumps(out_rows, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"✔️  JSON → {out_path}  (xwalk rows: {len(out_rows)})")
 
+# ------------------------ projections merge (NEW) ------------------
+
+def _read_json_file(path: Path):
+    with path.open("r", encoding="utf-8") as f:
+        return json.load(f)
+
+def _atomic_write_json(path: Path, payload):
+    ensure_parent(path)
+    fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=".tmp_", suffix=".json")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False)
+        os.replace(tmp, path)
+    finally:
+        try:
+            if os.path.exists(tmp):
+                os.remove(tmp)
+        except Exception:
+            pass
+
+def run_merge_projections(project_root: Path, cfg: Dict[str, Any]) -> None:
+    """
+    Merge batters_projections.json + pitchers_projections.json -> projections.json
+    Config (scripts/configs/mlb_classic.json):
+      "projections_merge": {
+        "batters_rel":  "data/mlb/latest/batters_projections",
+        "pitchers_rel": "data/mlb/latest/pitchers_projections",
+        "out_rel":      "data/mlb/latest/projections"
+      }
+    """
+    pm = cfg.get("projections_merge")
+    if not pm:
+        print("ℹ️  projections_merge config missing — skipping merge.")
+        return
+
+    bat_rel = (pm.get("batters_rel") or "").lstrip(r"\\/")
+    pit_rel = (pm.get("pitchers_rel") or "").lstrip(r"\\/")
+    out_rel = (pm.get("out_rel")      or "").lstrip(r"\\/")
+    if not (bat_rel and pit_rel and out_rel):
+        print("⚠️  projections_merge.* missing paths — skipping.")
+        return
+
+    bat_p = (project_root / "public" / Path(bat_rel)).with_suffix(".json")
+    pit_p = (project_root / "public" / Path(pit_rel)).with_suffix(".json")
+    out_p = (project_root / "public" / Path(out_rel)).with_suffix(".json")
+
+    if not bat_p.exists() or not pit_p.exists():
+        print(f"⚠️  source projections not found (bat={bat_p.exists()} pit={pit_p.exists()}) — skipping.")
+        return
+
+    try:
+        bat = _read_json_file(bat_p)
+        pit = _read_json_file(pit_p)
+
+        def rows(x):
+            if isinstance(x, list): return x
+            if isinstance(x, dict):
+                for k in ("rows","players","data"):
+                    v = x.get(k)
+                    if isinstance(v, list):
+                        return v
+            return []
+
+        merged = rows(bat) + rows(pit)
+        _atomic_write_json(out_p, merged)
+        print(f"✔️  projections merged → {out_p}  (bat={len(rows(bat))}, pit={len(rows(pit))}, total={len(merged)})")
+    except Exception as e:
+        print(f"ERROR merging projections: {e}", file=sys.stderr)
+
 # ----------------------------- main --------------------------------
 
 def _choose_project_root(arg_proj: Optional[str]) -> Path:
@@ -562,6 +631,10 @@ def main() -> None:
         if not args.only_site_ids:
             print("\n=== NAME XWALK ===")
             run_name_xwalk(wb, project_root, cfg)
+
+        # NEW: always attempt to merge projections after the above
+        print("\n=== MERGE PROJECTIONS ===")
+        run_merge_projections(project_root, cfg)
 
         print("\nDone.")
         wb.close()
