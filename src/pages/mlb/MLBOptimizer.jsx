@@ -127,9 +127,9 @@ async function solveStreamMLB(payload, onItem, onDone) {
   const res = await fetch(`${API_BASE}/solve_mlb_stream`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(payload)
   });
-  if (!res.ok || !res.body) throw new Error("Stream failed to start");
+  if (!res.ok || !res.body) throw new Error("Stream failed");
   const reader = res.body.getReader();
   const decoder = new TextDecoder("utf-8");
   let buf = "";
@@ -144,7 +144,8 @@ async function solveStreamMLB(payload, onItem, onDone) {
       if (!line) continue;
       try {
         const evt = JSON.parse(line.slice(6));
-        if (evt.done) onDone?.(evt); else onItem?.(evt);
+        if (evt.done) onDone?.(evt);
+        else onItem?.(evt);
       } catch {}
     }
   }
