@@ -10,6 +10,7 @@ import React, { useEffect, useMemo, useState } from "react";
    - PNG logos
    - FD DST salary fix: backfill from site_ids.json by team if missing
    - Frozen first column + auto-fit column widths
+   - Width capped so it doesn't look ridiculous on ultrawide screens :)
 ------------------------------------------------------------------- */
 
 const PROJ_SRC = "/data/nfl/showdown/latest/projections.json";
@@ -137,7 +138,7 @@ export default function NflProjectionsShowdown() {
     return out;
   }, [idsRaw]);
 
-  const [site, setSite] = useState("fd");  // default to FD since that's where issue was
+  const [site, setSite] = useState("fd");  // default to FD
   const [slot, setSlot] = useState("flex");
   const [q, setQ] = useState("");
 
@@ -318,7 +319,7 @@ export default function NflProjectionsShowdown() {
   };
 
   /* compact look */
-  const textSz = "text-[11px]"; // slightly smaller
+  const textSz = "text-[11px]"; // smaller font
   const cell   = "px-1.5 py-1 text-center tabular-nums";
   const header = "px-1.5 py-1 font-semibold text-center";
 
@@ -326,7 +327,8 @@ export default function NflProjectionsShowdown() {
   const err = projErr || idsErr;
 
   return (
-    <div className="px-4 md:px-6 py-5">
+    // WIDTH CAP + centered content
+    <div className="mx-auto max-w-[1200px] 2xl:max-w-[1400px] px-4 md:px-6 py-5">
       <div className="flex items-center justify-between gap-3 mb-2">
         <h1 className="text-2xl md:text-3xl font-extrabold mb-0.5">NFL — DFS Projections (Showdown)</h1>
         <div className="flex items-center gap-2">
@@ -391,10 +393,10 @@ export default function NflProjectionsShowdown() {
         </div>
       </div>
 
-      {/* table */}
-      <div className="rounded-xl border bg-white shadow-sm overflow-auto">
+      {/* table wrapper keeps horizontal scroll if needed */}
+      <div className="rounded-xl border bg-white shadow-sm overflow-x-auto">
         <table
-          className={`w-full border-separate table-auto ${textSz}`}
+          className={`border-separate table-auto w-max min-w-full ${textSz}`}
           style={{ borderSpacing: 0 }}
         >
           <thead className="bg-gray-50 sticky top-0 z-10">
@@ -422,14 +424,14 @@ export default function NflProjectionsShowdown() {
           </thead>
 
           <tbody>
-            {loading && (
+            { (projLoading || idsLoading) && (
               <tr><td className={`${cell} text-gray-500`} colSpan={columns.length}>Loading…</td></tr>
             )}
-            {err && !loading && (
-              <tr><td className={`${cell} text-red-600`} colSpan={columns.length}>Failed to load: {err}</td></tr>
+            { (projErr || idsErr) && !(projLoading || idsLoading) && (
+              <tr><td className={`${cell} text-red-600`} colSpan={columns.length}>Failed to load: {projErr || idsErr}</td></tr>
             )}
 
-            {!loading && !err && sorted.map((r, i) => (
+            {!projLoading && !idsLoading && !(projErr || idsErr) && sorted.map((r, i) => (
               <tr key={`${r.player}-${i}`} className="odd:bg-white even:bg-gray-50">
                 {columns.map((c, idx) => {
                   if (c.key === "player") {
@@ -473,7 +475,7 @@ export default function NflProjectionsShowdown() {
               </tr>
             ))}
 
-            {!loading && !err && !sorted.length && (
+            {!projLoading && !idsLoading && !(projErr || idsErr) && !sorted.length && (
               <tr><td className={`${cell} text-gray-500`} colSpan={columns.length}>No data.</td></tr>
             )}
           </tbody>
