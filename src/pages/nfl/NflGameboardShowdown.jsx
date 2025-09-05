@@ -1,3 +1,4 @@
+// src/pages/nfl/NflGameboard.jsx
 import React, { useEffect, useMemo, useState } from "react";
 
 /* ----------------------------- tiny helpers ----------------------------- */
@@ -15,12 +16,109 @@ const COLORS = {
 const YELLOW = "#f5c842";
 const CHIP_BG = "#2c62f0";
 
-const onlyPlayers = (lines = []) => {
-  const re = /^(QB|RB\d?|WR\d?|TE\d?):/i;
-  return lines.filter((s) => re.test((s || "").trim()));
-};
+const RE_TAG = /^(QB|RB\d?|WR\d?|TE\d?):/i;
 
+const onlyPlayers = (lines = []) => lines.filter((s) => RE_TAG.test((s || "").trim()));
 const logoSrc = (abbr) => `/logos/nfl/${(abbr || "").toUpperCase()}.png`;
+
+/* ------------------- legacy → structured normalization ------------------- */
+/** Split “QB: … | QB: …” into the away/home halves while keeping the tag. */
+function splitPlayerRow(row) {
+  const m = row.match(RE_TAG);
+  if (!m) return { away: row.trim(), home: "" };
+  const tag = m[1];
+  // capture: (TAG: ...)( | TAG: ... )
+  const re = new RegExp(`^(${tag}:.*?)(?:\\s\\|\\s*)(${tag}:.*)$`, "i");
+  const parts = row.match(re);
+  if (parts) return { away: parts[1].trim(), home: parts[2].trim() };
+  return { away: row.trim(), home: "" };
+}
+
+/** Build the full object the UI needs from a record that only has “lines”. */
+function normalizeFromLines(g) {
+  // If it already looks structured, keep it (but make sure keys exist).
+  if (g && g.team_blocks && (g.team_blocks.away || g.team_blocks.home)) {
+    const a = (g.away || "").toUpperCase();
+    const h = (g.home || "").toUpperCase();
+    const imp_away = g.imp_away ?? null;
+    const imp_home = g.imp_home ?? null;
+    return {
+      away: a, home: h,
+      ou: g.ou ?? null,
+      ml_away: g.ml_away ?? null,
+      ml_home: g.ml_home ?? null,
+      spread_home: g.spread_home ?? null,
+      imp_away, imp_home,
+      weather: g.weather ?? null,
+      team_blocks: {
+        away: {
+          header: (g.team_blocks.away?.header) ?? `${a} (${fmtNum(imp_away)})`,
+          lines: Array.isArray(g.team_blocks.away?.lines) ? g.team_blocks.away.lines : []
+        },
+        home: {
+          header: (g.team_blocks.home?.header) ?? `${h} (${fmtNum(imp_home)})`,
+          lines: Array.isArray(g.team_blocks.home?.lines) ? g.team_blocks.home.lines : []
+        }
+      }
+    };
+  }
+
+  // Legacy shape with a single “lines” array.
+  const a = (g.away || "").toUpperCase();
+  const h = (g.home || "").toUpperCase();
+  const all = Array.isArray(g.lines) ? g.lines : [];
+
+  let ou = null, ml_away = null, ml_home = null, spread_home = null, imp_away = null, imp_home = null;
+
+  for (const s of all) {
+    const t = String(s || "").trim();
+
+    // O/U: 45.5 | KC ML: -170 | LAC ML: 142
+    if (/^O\/U:/i.test(t)) {
+      const mOU = t.match(/O\/U:\s*([0-9.]+)/i);
+      if (mOU) ou = Number(mOU[1]);
+      const mA  = t.match(new RegExp(`${a}\\s*ML:\\s*([+-]?\\d+)`, "i"));
+      const mH  = t.match(new RegExp(`${h}\\s*ML:\\s*([+-]?\\d+)`, "i"));
+      if (mA) ml_away = Number(mA[1]);
+      if (mH) ml_home = Number(mH[1]);
+      continue;
+    }
+
+    // Spread: KC -3 | LAC 3
+    if (/^Spread:/i.test(t)) {
+      const mH = t.match(new RegExp(`${h}\\s*([+-]?\\d+(?:\\.\\d+)?)`, "i"));
+      if (mH) spread_home = Number(mH[1]);
+      continue;
+    }
+
+    // Totals: KC 24.5 | LAC 21.5
+    if (/^Totals:/i.test(t)) {
+      const tA = t.match(new RegExp(`${a}\\s*([\\d.]+)`, "i"));
+      const tH = t.match(new RegExp(`${h}\\s*([\\d.]+)`, "i"));
+      if (tA) imp_away = Number(tA[1]);
+      if (tH) imp_home = Number(tH[1]);
+      continue;
+    }
+  }
+
+  const playerRows = onlyPlayers(all);
+  const awayLines = [], homeLines = [];
+  for (const row of playerRows) {
+    const { away, home } = splitPlayerRow(row);
+    if (away) awayLines.push(away);
+    if (home) homeLines.push(home);
+  }
+
+  return {
+    away: a, home: h,
+    ou, ml_away, ml_home, spread_home, imp_away, imp_home,
+    weather: g.weather ?? null,
+    team_blocks: {
+      away: { header: `${a} (${fmtNum(imp_away)})`, lines: awayLines },
+      home: { header: `${h} (${fmtNum(imp_home)})`, lines: homeLines },
+    },
+  };
+}
 
 /* --------------------------- gameboard component --------------------------- */
 
@@ -33,8 +131,9 @@ export default function NflGameboard() {
       .then((r) => r.json())
       .then((arr) => {
         const clean = Array.isArray(arr) ? arr : [];
-        setGames(clean);
-        setSel(new Set(clean.map((_, i) => i)));
+        const normalized = clean.map(normalizeFromLines);
+        setGames(normalized);
+        setSel(new Set(normalized.map((_, i) => i)));
       })
       .catch(() => setGames([]));
   }, []);
@@ -118,11 +217,11 @@ function GameCard({ g }) {
   const a = (g.away || "").toUpperCase();
   const h = (g.home || "").toUpperCase();
 
-  const awayLines = onlyPlayers((((g.team_blocks || {}).away || {}).lines) || []);
-  const homeLines = onlyPlayers((((g.team_blocks || {}).home || {}).lines) || []);
+  const awayLines = onlyPlayers(g?.team_blocks?.away?.lines || []);
+  const homeLines = onlyPlayers(g?.team_blocks?.home?.lines || []);
 
-  const awayHdr = ((g.team_blocks || {}).away || {}).header || `${a} (${fmtNum(g.imp_away)})`;
-  const homeHdr = ((g.team_blocks || {}).home || {}).header || `${h} (${fmtNum(g.imp_home)})`;
+  const awayHdr = g?.team_blocks?.away?.header ?? `${a} (${fmtNum(g.imp_away)})`;
+  const homeHdr = g?.team_blocks?.home?.header ?? `${h} (${fmtNum(g.imp_home)})`;
 
   const barA = COLORS[a] || "#1e3a8a";
   const barH = COLORS[h] || "#1e3a8a";
@@ -156,12 +255,10 @@ function GameCard({ g }) {
           <span className="font-medium">Totals:</span> {a} {fmtNum(g.imp_away)}{" "}
           <span className="mx-1">|</span> {h} {fmtNum(g.imp_home)}
         </div>
-        {g.weather && (
-          <div className="text-slate-500">{fmtWeather(g.weather)}</div>
-        )}
+        {g.weather && <div className="text-slate-500">{fmtWeather(g.weather)}</div>}
       </div>
 
-      {/* Team headers (centered) */}
+      {/* Team headers */}
       <div className="grid grid-cols-2">
         <div className="text-white font-semibold text-sm px-3 py-1.5 text-center" style={{ background: barA }}>
           {awayHdr}
@@ -213,20 +310,16 @@ function fmtMl(x) {
 function fmtWeather(w) {
   if (!w || typeof w !== "object") return "";
   const parts = [];
-
   if (typeof w.temp_f === "number") parts.push(`${fmtNum(w.temp_f)}°F`);
   if (typeof w.wind_mph === "number") parts.push(`${fmtNum(w.wind_mph)} mph`);
-
-  // Clean desc so it doesn't repeat temp/wind (e.g., "90.5°F 8.1 mph Clear Sky")
   if (w.desc) {
     const cleaned = String(w.desc)
-      .replace(/\b\d+(\.\d+)?\s*(°?F|mph)\b/gi, "") // drop "90.5°F", "8.1 mph"
+      .replace(/\b\d+(\.\d+)?\s*(°?F|mph)\b/gi, "")
       .replace(/\s{2,}/g, " ")
       .trim();
     if (cleaned) parts.push(cleaned);
   } else if (w.is_dome) {
     parts.push("Dome");
   }
-
   return parts.join(" | ");
 }
