@@ -278,7 +278,7 @@ export default function NflProjectionsShowdown() {
                       : (slot === "flex" ? "FD Flex Opt%"  : "FD MVP Opt%");
 
     return [
-      { key: "player", label: "Player", type: "text",  thClass: "min-w-[180px]", tdClass: "" },
+      { key: "player", label: "Player", type: "text", thClass: "w-[160px]", tdClass: "w-[160px] max-w-[160px]" },
       { key: "pos",    label: "Pos",    type: "text",  thClass: "w-[52px]",     tdClass: "w-[52px]" },
       { key: "team",   label: "Team",   type: "text",  thClass: "w-[64px]",     tdClass: "w-[64px]" },
       { key: "opp",    label: "Opp",    type: "text",  thClass: "w-[64px]",     tdClass: "w-[64px]" },
@@ -438,19 +438,21 @@ export default function NflProjectionsShowdown() {
                     // Frozen first column with logo + name
                     return (
                       <td
-                        key={c.key}
-                        className={`px-2 py-1 text-left whitespace-nowrap sticky left-0 z-10 ${
+                        className={`sticky left-0 z-10 px-2 py-1 text-left ${
                           i % 2 === 0 ? "bg-white" : "bg-gray-50"
-                        } shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)] ${c.tdClass || ""}`}
+                        } shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)] w-[160px] max-w-[160px]`}
                       >
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 min-w-0">
                           <img
                             src={logoSrc(r.team)}
                             alt={r.team}
-                            className="w-5 h-5"
-                            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = logoSrcAlt(r.team); }}
+                            className="w-4 h-4 flex-none"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = logoSrcAlt(r.team);
+                            }}
                           />
-                          <span>{r.player}</span>
+                          <span className="truncate">{r.player}</span>
                         </div>
                       </td>
                     );
