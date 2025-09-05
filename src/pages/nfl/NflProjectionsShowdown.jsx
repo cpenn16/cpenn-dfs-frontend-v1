@@ -8,7 +8,8 @@ import React, { useEffect, useMemo, useState } from "react";
    - Auto 1.5x for CPT/MVP
    - Sort, search, CSV export
    - PNG logos
-   - **FD DST salary fix**: backfill from site_ids.json by team if missing
+   - FD DST salary fix: backfill from site_ids.json by team if missing
+   - Frozen first column + auto-fit column widths
 ------------------------------------------------------------------- */
 
 const PROJ_SRC = "/data/nfl/showdown/latest/projections.json";
@@ -55,7 +56,7 @@ const computeVal = (proj, sal) => {
 };
 const isDSTPos = (pos) => /^(DST|D\/ST|DEF|DEFENSE|D)$/i.test(String(pos).trim());
 
-/* PNG logos (adjust paths if needed) */
+/* PNG logos */
 const logoSrc    = (abbr) => `/logos/nfl/${String(abbr || "").toUpperCase()}.png`;
 const logoSrcAlt = (abbr) => `/logos/${String(abbr || "").toUpperCase()}.png`;
 
@@ -125,7 +126,6 @@ export default function NflProjectionsShowdown() {
     for (const r of fd) {
       const team = String(r.team || "").toUpperCase();
       const pos  = String(r.pos || "").toUpperCase();
-      // FD's DST position often shows as "D" or "DST"
       if (!team) continue;
       if (pos === "D" || pos === "DST" || pos === "DEF" || pos === "DEFENSE") {
         const f = toNum(r.salary_flex);
@@ -264,7 +264,7 @@ export default function NflProjectionsShowdown() {
     });
   }, [filtered, site, slot, fdSalaryByTeam]);
 
-  // columns
+  // columns with width hints (auto-fit)
   const columns = useMemo(() => {
     const isDK = site === "dk";
     const sal  = isDK ? (slot === "flex" ? "DK Sal"      : "DK CPT Sal")
@@ -277,15 +277,15 @@ export default function NflProjectionsShowdown() {
                       : (slot === "flex" ? "FD Flex Opt%"  : "FD MVP Opt%");
 
     return [
-      { key: "player", label: "Player", type: "text" },
-      { key: "pos",    label: "Pos",    type: "text" },
-      { key: "team",   label: "Team",   type: "text" },
-      { key: "opp",    label: "Opp",    type: "text" },
-      { key: "sal",    label: sal,  type: "money" },
-      { key: "proj",   label: proj, type: "num1"  },
-      { key: "val",    label: isDK ? "DK Val" : "FD Val", type: "num1" },
-      { key: "pOwn",   label: pown, type: "pct"   },
-      { key: "opt",    label: opt,  type: "pct"   },
+      { key: "player", label: "Player", type: "text",  thClass: "min-w-[180px]", tdClass: "" },
+      { key: "pos",    label: "Pos",    type: "text",  thClass: "w-[52px]",     tdClass: "w-[52px]" },
+      { key: "team",   label: "Team",   type: "text",  thClass: "w-[64px]",     tdClass: "w-[64px]" },
+      { key: "opp",    label: "Opp",    type: "text",  thClass: "w-[64px]",     tdClass: "w-[64px]" },
+      { key: "sal",    label: sal,      type: "money", thClass: "w-[92px]",     tdClass: "w-[92px]" },
+      { key: "proj",   label: proj,     type: "num1",  thClass: "w-[72px]",     tdClass: "w-[72px]" },
+      { key: "val",    label: isDK ? "DK Val" : "FD Val", type: "num1", thClass: "w-[72px]", tdClass: "w-[72px]" },
+      { key: "pOwn",   label: pown,     type: "pct",   thClass: "w-[84px]",     tdClass: "w-[84px]" },
+      { key: "opt",    label: opt,      type: "pct",   thClass: "w-[84px]",     tdClass: "w-[84px]" },
     ];
   }, [site, slot]);
 
@@ -317,10 +317,10 @@ export default function NflProjectionsShowdown() {
     });
   };
 
-  // compact look
-  const textSz = "text-[12px]";
-  const cell   = "px-2 py-1 text-center";
-  const header = "px-2 py-1 font-semibold text-center";
+  /* compact look */
+  const textSz = "text-[11px]"; // slightly smaller
+  const cell   = "px-1.5 py-1 text-center tabular-nums";
+  const header = "px-1.5 py-1 font-semibold text-center";
 
   const loading = projLoading || idsLoading;
   const err = projErr || idsErr;
@@ -393,26 +393,20 @@ export default function NflProjectionsShowdown() {
 
       {/* table */}
       <div className="rounded-xl border bg-white shadow-sm overflow-auto">
-        <table className={`w-full border-separate ${textSz}`} style={{ borderSpacing: 0 }}>
+        <table
+          className={`w-full border-separate table-auto ${textSz}`}
+          style={{ borderSpacing: 0 }}
+        >
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
-              {[
-                { key: "player", label: "Player", type: "text" },
-                { key: "pos",    label: "Pos",    type: "text" },
-                { key: "team",   label: "Team",   type: "text" },
-                { key: "opp",    label: "Opp",    type: "text" },
-                { key: "sal",    label: columns[4].label, type: "money" },
-                { key: "proj",   label: columns[5].label, type: "num1"  },
-                { key: "val",    label: columns[6].label, type: "num1"  },
-                { key: "pOwn",   label: columns[7].label, type: "pct"   },
-                { key: "opt",    label: columns[8].label, type: "pct"   },
-              ].map((c) => (
+              {columns.map((c, idx) => (
                 <th
                   key={c.key}
-                  className={`${header} whitespace-nowrap cursor-pointer select-none ${
-                    c.key === "player" ? "sticky left-0 z-20 bg-gray-50" : ""
+                  className={`${header} whitespace-nowrap ${c.thClass || ""} cursor-pointer select-none ${
+                    idx === 0 ? "sticky left-0 z-20 bg-gray-50 shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)]" : ""
                   }`}
                   onClick={() => onSort(c)}
+                  title="Click to sort"
                 >
                   <div className="inline-flex items-center gap-1">
                     <span>{c.label}</span>
@@ -426,44 +420,62 @@ export default function NflProjectionsShowdown() {
               ))}
             </tr>
           </thead>
+
           <tbody>
             {loading && (
-              <tr><td className={`${cell} text-gray-500`} colSpan={9}>Loading…</td></tr>
+              <tr><td className={`${cell} text-gray-500`} colSpan={columns.length}>Loading…</td></tr>
             )}
             {err && !loading && (
-              <tr><td className={`${cell} text-red-600`} colSpan={9}>Failed to load: {err}</td></tr>
+              <tr><td className={`${cell} text-red-600`} colSpan={columns.length}>Failed to load: {err}</td></tr>
             )}
+
             {!loading && !err && sorted.map((r, i) => (
               <tr key={`${r.player}-${i}`} className="odd:bg-white even:bg-gray-50">
-                {/* Player with logo */}
-                <td
-                  className="px-2 py-1 text-left whitespace-nowrap sticky left-0 z-10 bg-white even:bg-gray-50"
-                >
-                  <div className="flex items-center gap-2">
-                    <img
-                      src={logoSrc(r.team)}
-                      alt={r.team}
-                      className="w-5 h-5"
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = logoSrcAlt(r.team);
-                      }}
-                    />
-                    <span>{r.player}</span>
-                  </div>
-                </td>
+                {columns.map((c, idx) => {
+                  if (c.key === "player") {
+                    // Frozen first column with logo + name
+                    return (
+                      <td
+                        key={c.key}
+                        className={`px-2 py-1 text-left whitespace-nowrap sticky left-0 z-10 ${
+                          i % 2 === 0 ? "bg-white" : "bg-gray-50"
+                        } shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)] ${c.tdClass || ""}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={logoSrc(r.team)}
+                            alt={r.team}
+                            className="w-5 h-5"
+                            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = logoSrcAlt(r.team); }}
+                          />
+                          <span>{r.player}</span>
+                        </div>
+                      </td>
+                    );
+                  }
 
-                {/* Other cells */}
-                <td className="px-2 py-1 text-left whitespace-nowrap">{r.pos}</td>
-                <td className="px-2 py-1 text-left whitespace-nowrap">{r.team}</td>
-                <td className="px-2 py-1 text-left whitespace-nowrap">{r.opp}</td>
-                <td className={`${cell} tabular-nums`}>{fmt0(r.sal)}</td>
-                <td className={`${cell} tabular-nums`}>{fmt1(r.proj)}</td>
-                <td className={`${cell} tabular-nums`}>{fmt1(r.val)}</td>
-                <td className={`${cell} tabular-nums`}>{fmtPct(r.pOwn)}</td>
-                <td className={`${cell} tabular-nums`}>{fmtPct(r.opt)}</td>
+                  // other cells
+                  let content = r[c.key];
+                  if (c.type === "money") content = fmt0(content);
+                  if (c.type === "num1")  content = fmt1(content);
+                  if (c.type === "pct")   content = fmtPct(content);
+
+                  const align = c.type === "text" ? "text-left" : "text-center";
+                  return (
+                    <td
+                      key={c.key}
+                      className={`${c.tdClass || ""} ${c.type === "text" ? "px-2" : ""} ${align} py-1 whitespace-nowrap ${c.type !== "text" ? "tabular-nums px-1.5" : ""}`}
+                    >
+                      {content}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
+
+            {!loading && !err && !sorted.length && (
+              <tr><td className={`${cell} text-gray-500`} colSpan={columns.length}>No data.</td></tr>
+            )}
           </tbody>
         </table>
       </div>
