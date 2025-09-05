@@ -738,7 +738,7 @@ export default function NFLOptimizer() {
       names.reduce((s, n) => s + (((rowsByName.get(n)?.pown) || 0) * 100), 0);
     const lineupCap = String(maxLineupPown).trim() === ""
       ? null
-      : clamp(Number(maxLineupPown) || 0, 0, 100);
+      : clamp(Number(maxLineupPown) || 0, 0, 1000); // or just Number(...) with no clamp
 
     const payload = {
       site,
