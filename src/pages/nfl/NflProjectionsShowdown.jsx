@@ -409,7 +409,9 @@ export default function NflProjectionsShowdown() {
               ].map((c) => (
                 <th
                   key={c.key}
-                  className={`${header} whitespace-nowrap cursor-pointer select-none`}
+                  className={`${header} whitespace-nowrap cursor-pointer select-none ${
+                    c.key === "player" ? "sticky left-0 z-20 bg-gray-50" : ""
+                  }`}
                   onClick={() => onSort(c)}
                 >
                   <div className="inline-flex items-center gap-1">
@@ -434,13 +436,18 @@ export default function NflProjectionsShowdown() {
             {!loading && !err && sorted.map((r, i) => (
               <tr key={`${r.player}-${i}`} className="odd:bg-white even:bg-gray-50">
                 {/* Player with logo */}
-                <td className="px-2 py-1 text-left whitespace-nowrap">
+                <td
+                  className="px-2 py-1 text-left whitespace-nowrap sticky left-0 z-10 bg-white even:bg-gray-50"
+                >
                   <div className="flex items-center gap-2">
                     <img
                       src={logoSrc(r.team)}
                       alt={r.team}
                       className="w-5 h-5"
-                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = logoSrcAlt(r.team); }}
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = logoSrcAlt(r.team);
+                      }}
                     />
                     <span>{r.player}</span>
                   </div>
