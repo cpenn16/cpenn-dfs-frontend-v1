@@ -1,9 +1,10 @@
 // src/pages/nfl/NFLShowdownOptimizer.jsx
-// FULL DROP-IN — v3.6
+// FULL DROP-IN — v3.6 (Patched for FD MVP keys)
 // - Robust CPT/MVP detection: uses evt.pairs [{slot,name}] if provided;
-//   otherwise falls back to "first player is CAP".
-// - Keeps per-slot (CPT/FLEX) Min%/Max% via min_pct_tag/max_pct_tag.
+//   otherwise falls back to "first player is CAP" (site-aware tag: CPT on DK, MVP on FD).
+// - Keeps per-slot (CPT/MVP/FLEX) Min%/Max% via min_pct_tag/max_pct_tag.
 // - Keeps IF-side team condition and stable sorting from v3.5.
+// - PATCH: tag keys and exposure use cfg.capTag (MVP on FD, CPT on DK).
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API_BASE from "../../utils/api";
@@ -59,8 +60,8 @@ const readableText = (hex) => { const {r,g,b} = hexToRGB(hex); const L = 0.2126*
 const TeamPill = ({ abbr, title }) => { const bg = TEAM_COLORS[abbr] || "#E5E7EB"; const fg = readableText(bg); return <span className="px-2 py-0.5 rounded" style={{backgroundColor:bg,color:fg}} title={title || abbr}>{abbr||"—"}</span>; };
 
 /* --------- tag normalization for DK CPT vs FD MVP (state keys) ----- */
-const normCapTag = (t) => (t === "FLEX" ? "FLEX" : "CPT");
-const tagKey = (name, tag) => `${name}::${normCapTag(tag)}`;
+// PATCH: site-aware captain tag; keys are "Name::MVP" on FD, "Name::CPT" on DK.
+const makeTagKey = (capTag) => (name, tag) => `${name}::${(tag === "FLEX" ? "FLEX" : capTag)}`;
 
 /* ------------------------------ data IO ---------------------------- */
 const SOURCE = "/data/nfl/showdown/latest/projections.json";
@@ -152,6 +153,7 @@ export default function NFLShowdownOptimizer() {
 
   const [site, setSite] = useStickyState("sd.site", "dk");
   const cfg = SITES[site];
+  const tagKey = useMemo(() => makeTagKey(cfg.capTag), [cfg.capTag]);
 
   const [numLineups, setNumLineups] = useStickyState("sd.N", 20);
   const [maxSalary, setMaxSalary] = useStickyState(`sd.${site}.cap`, cfg.cap);
@@ -168,7 +170,7 @@ export default function NFLShowdownOptimizer() {
   const [excls, setExcls] = useState(() => new Set());
   const [boost, setBoost] = useState(() => ({}));
 
-  // per-slot exposure maps, keyed by "Player::CPT" or "Player::FLEX"
+  // per-slot exposure maps, keyed by "Player::CPT" or "Player::MVP" or "Player::FLEX"
   const [minPctTag, setMinPctTag] = useStickyState(`sd.${site}.minPctTag`, {});
   const [maxPctTag, setMaxPctTag] = useStickyState(`sd.${site}.maxPctTag`, {});
 
@@ -272,7 +274,7 @@ export default function NFLShowdownOptimizer() {
         ? L.pairs
         : (L.players || []).map((n, i) => ({ slot: i === 0 ? cfg.capTag : "FLEX", name: n }));
       for (const p of ps) {
-        const t = p.slot === "FLEX" ? "FLEX" : "CPT";
+        const t = p.slot === "FLEX" ? "FLEX" : cfg.capTag;
         const k = `${p.name}::${t}`;
         m.set(k, (m.get(k) || 0) + 1);
       }
@@ -285,11 +287,11 @@ export default function NFLShowdownOptimizer() {
 
   const expandedRows = useMemo(() => {
     const res = []; for (const r of rows) {
-      res.push({ ...r, tag: "CPT",  projDisplay: r.cap_proj,  floorDisplay: r.cap_floor,  ceilDisplay: r.cap_ceil,  pownDisplay: r.cap_pown, optDisplay: r.cap_opt, salaryDisplay: r.cap_salary, key: r.name + "::CPT" });
+      res.push({ ...r, tag: cfg.capTag,  projDisplay: r.cap_proj,  floorDisplay: r.cap_floor,  ceilDisplay: r.cap_ceil,  pownDisplay: r.cap_pown, optDisplay: r.cap_opt, salaryDisplay: r.cap_salary, key: `${r.name}::${cfg.capTag}` });
       res.push({ ...r, tag: "FLEX", projDisplay: r.proj, floorDisplay: r.floor, ceilDisplay: r.ceil, pownDisplay: r.pown, optDisplay: r.opt, salaryDisplay: r.salary, key: r.name + "::FLEX" });
     }
     return res;
-  }, [rows]);
+  }, [rows, cfg.capTag]);
 
   const filteredRows = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -724,7 +726,7 @@ export default function NFLShowdownOptimizer() {
                   const oppTitle = `${NFL_TEAMS[r.opp]?.city ?? r.opp} ${
                     NFL_TEAMS[r.opp]?.nickname ?? ""
                   }`.trim();
-                  const key = r.key; // Player::CPT or Player::FLEX
+                  const key = r.key; // Player::CPT/MVP or Player::FLEX
                   return (
                     <tr
                       key={key}
@@ -781,7 +783,7 @@ export default function NFLShowdownOptimizer() {
                       <td className={`${cell} tabular-nums`}>{fmt1(r.pownDisplay * 100)}</td>
                       <td className={`${cell} tabular-nums`}>{fmt1(r.optDisplay * 100)}</td>
 
-                      {/* Per-slot Min/Max wired to key = Player::CPT|FLEX */}
+                      {/* Per-slot Min/Max wired to key = Player::CPT|MVP|FLEX */}
                       <td className={cell}>
                         <div className="inline-flex items-center gap-1">
                           <button
@@ -1170,7 +1172,8 @@ function downloadSiteLineupsCSV({
   };
 
   const lines = lineups.map((L, idx) => {
-    const ordered = orderPlayersForSiteShowdown(L.players, rowsByName);
+    const rowsMap = new Map(rows.map((r) => [r.name, r]));
+    const ordered = orderPlayersForSiteShowdown(L.players, rowsMap);
     const cells = ordered.map((meta, i) => {
       const name = meta.name;
       const tm = meta.team;
@@ -1200,4 +1203,3 @@ function downloadSiteLineupsCSV({
   a.click();
   URL.revokeObjectURL(url);
 }
-
