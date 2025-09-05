@@ -59,8 +59,8 @@ const readableText = (hex) => { const {r,g,b} = hexToRGB(hex); const L = 0.2126*
 const TeamPill = ({ abbr, title }) => { const bg = TEAM_COLORS[abbr] || "#E5E7EB"; const fg = readableText(bg); return <span className="px-2 py-0.5 rounded" style={{backgroundColor:bg,color:fg}} title={title || abbr}>{abbr||"—"}</span>; };
 
 /* --------- tag normalization for DK CPT vs FD MVP (state keys) ----- */
-const normCapTag = (t) => (t === "FLEX" ? "FLEX" : "CPT");
-const tagKey = (name, tag) => `${name}::${normCapTag(tag)}`;
+// site-aware: captain tag is cfg.capTag ("CPT" on DK, "MVP" on FD)
+const makeTagKey = (capTag) => (name, tag) => `${name}::${(tag === "FLEX" ? "FLEX" : capTag)}`;
 
 /* ------------------------------ data IO ---------------------------- */
 const SOURCE = "/data/nfl/showdown/latest/projections.json";
@@ -272,7 +272,7 @@ export default function NFLShowdownOptimizer() {
         ? L.pairs
         : (L.players || []).map((n, i) => ({ slot: i === 0 ? cfg.capTag : "FLEX", name: n }));
       for (const p of ps) {
-        const t = p.slot === "FLEX" ? "FLEX" : "CPT";
+        const t = p.slot === "FLEX" ? "FLEX" : cfg.capTag;
         const k = `${p.name}::${t}`;
         m.set(k, (m.get(k) || 0) + 1);
       }
@@ -285,11 +285,11 @@ export default function NFLShowdownOptimizer() {
 
   const expandedRows = useMemo(() => {
     const res = []; for (const r of rows) {
-      res.push({ ...r, tag: "CPT",  projDisplay: r.cap_proj,  floorDisplay: r.cap_floor,  ceilDisplay: r.cap_ceil,  pownDisplay: r.cap_pown, optDisplay: r.cap_opt, salaryDisplay: r.cap_salary, key: r.name + "::CPT" });
+      res.push({ ...r, tag: cfg.capTag, projDisplay: r.cap_proj, floorDisplay: r.cap_floor, ceilDisplay: r.cap_ceil, pownDisplay: r.cap_pown, optDisplay: r.cap_opt, salaryDisplay: r.cap_salary, key: `${r.name}::${cfg.capTag}` });
       res.push({ ...r, tag: "FLEX", projDisplay: r.proj, floorDisplay: r.floor, ceilDisplay: r.ceil, pownDisplay: r.pown, optDisplay: r.opt, salaryDisplay: r.salary, key: r.name + "::FLEX" });
     }
     return res;
-  }, [rows]);
+  }, [rows, cfg.capTag]);
 
   const filteredRows = useMemo(() => {
     const needle = q.trim().toLowerCase();
