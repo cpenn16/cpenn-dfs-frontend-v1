@@ -238,7 +238,7 @@ export default function App() {
               {/* All-positions showdown */}
               <Route path="/nfl/showdown/projections" element={<NflProjectionsShowdown />} />
               <Route path="/nfl/showdown/optimizer" element={<NFLShowdownOptimizer />} />
-              <Route path="/nfl/showdown/matchups" element={<NflGameboardShowdown />} />
+              <Route path="/nfl/showdown/nfl-gameboard" element={<NflGameboardShowdown />} />
 
               {/* Showdown by position — DATA */}
               <Route path="/nfl/showdown/qb-data" element={<NflQBDataShowdown />} />
