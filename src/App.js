@@ -73,6 +73,7 @@ import NflGameboard from "./pages/nfl/NflGameboard";
 /* ---------------- NFL (SHOWDOWN) ---------------- */
 import NflProjectionsShowdown from "./pages/nfl/NflProjectionsShowdown";
 import NFLShowdownOptimizer from "./pages/nfl/NFLShowdownOptimizer"; // ← added
+import NflGameboardShowdown from "./pages/nfl/NflGameboardShowdown";
 
 // If you created these showdown wrappers, keep these imports.
 // Otherwise, remove the ones you don't have yet.
@@ -237,6 +238,7 @@ export default function App() {
               {/* All-positions showdown */}
               <Route path="/nfl/showdown/projections" element={<NflProjectionsShowdown />} />
               <Route path="/nfl/showdown/optimizer" element={<NFLShowdownOptimizer />} />
+              <Route path="/nfl/showdown/matchups" element={<NflGameboardShowdown />} />
 
               {/* Showdown by position — DATA */}
               <Route path="/nfl/showdown/qb-data" element={<NflQBDataShowdown />} />
