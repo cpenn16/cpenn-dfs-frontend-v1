@@ -85,16 +85,18 @@ const num = (v) => {
   const n = Number(String(v).replace(/[,$%\s]/g, ""));
   return Number.isFinite(n) ? n : null;
 };
-const pctNum = (v) => {
+// Treat numbers as already in 0–100. If a % sign is present, just strip it.
+  const pctNum = (v) => {
   const n = num(v);
   if (n === null) return null;
-  return n <= 1 ? n * 100 : n; // accept 0–1 or 0–100 (only for pOWN)
+  return Math.max(0, Math.min(100, n));
 };
 
 const fmtMoney0 = (v) => (num(v) === null ? "" : `$${num(v).toLocaleString()}`);
 const fmt1 = (v) => (num(v) === null ? "" : num(v).toFixed(1));
 const fmt2 = (v) => (num(v) === null ? "" : num(v).toFixed(2)); // W decimal
-const fmtPct1 = (v) => (pctNum(v) === null ? "" : `${pctNum(v).toFixed(1)}%`);
+const fmtPct1 = (v) =>
+  v === null || v === undefined || v === "" ? "" : `${pctNum(v).toFixed(1)}%`;
 
 const teamLogo = (team) => `/logos/mlb/${String(team || "").toUpperCase()}.png`;
 
