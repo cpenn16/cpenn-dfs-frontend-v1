@@ -117,7 +117,7 @@ function useJson(url) {
 
         const ct = (res.headers.get("content-type") || "").toLowerCase();
         const raw = await res.text();
-        const cleaned = raw.replace(/^\uFEFF/, "").trim();
+        const cleaned = raw.replace(/^\\uFEFF/, "").trim();
 
         let j;
         try {
@@ -166,10 +166,10 @@ async function solveStreamMLB(payload, onItem, onDone) {
     const { done, value } = await reader.read();
     if (done) break;
     buf += decoder.decode(value, { stream: true });
-    const parts = buf.split("\n\n");
+    const parts = buf.split("\\n\\n");
     buf = parts.pop() ?? "";
     for (const chunk of parts) {
-      const line = chunk.split("\n").find((l) => l.startsWith("data: "));
+      const line = chunk.split("\\n").find((l) => l.startsWith("data: "));
       if (!line) continue;
       try {
         const evt = JSON.parse(line.slice(6));
@@ -300,6 +300,10 @@ export default function MLBOptimizer() {
   const [isOptimizing, setIsOptimizing] = useState(false);
   const tickRef = useRef(null);
 
+  // NEW: UI toggles
+  const [showIdsInUI, setShowIdsInUI] = useStickyState("mlbOpt.showIdsInUI", false);
+  const [lineupView, setLineupView] = useStickyState("mlbOpt.lineupView", "table"); // 'table' | 'cards'
+
   useEffect(() => {
     if (!isOptimizing) return;
     clearInterval(tickRef.current);
@@ -345,7 +349,7 @@ function rawPositionsFromRow(r, siteKey) {
   if (siteKey === "fd" && r.fd_pos) vals.push(String(r.fd_pos));
   // fallback: sometimes they stuff position in the name like "John Smith P"
   if (!vals.length && typeof r.name === "string") {
-    const m = r.name.match(/\b(C|1B|2B|3B|SS|OF|SP|RP|P)\b/i);
+    const m = r.name.match(/\\b(C|1B|2B|3B|SS|OF|SP|RP|P)\\b/i);
     if (m) vals.push(m[0]);
   }
   return vals.join("/");
@@ -355,7 +359,7 @@ function normalizeEligible(raw) {
   const txt = String(raw || "").toUpperCase();
   if (!txt) return [];
   const parts = txt
-    .split(/[\/,;|]+/)
+    .split(/[\\/,;|]+/)
     .map(s => s.trim())
     .filter(Boolean)
     .map(p => (p === "SP" || p === "RP") ? "P" : p);
@@ -373,7 +377,7 @@ function pitcherish(r) {
 
   // texty hints
   const posTxt = (r.PositionText || r.Role || "").toString().toUpperCase();
-  if (/\b(SP|RP|PITCH|STARTER|RELIEF)\b/.test(posTxt)) return true;
+  if (/\\b(SP|RP|PITCH|STARTER|RELIEF)\\b/.test(posTxt)) return true;
 
   return false;
 }
@@ -394,10 +398,6 @@ function pitcherish(r) {
       : [];
 
     const siteKey = cfg.key; // "dk" | "fd"
-    const projKeyLC = `${siteKey}_proj`;
-    const salKeyLC  = `${siteKey}_sal`;
-    const pownKeyLC = `${siteKey}_pown`;
-    const optKeyLC  = `${siteKey}_opt`;
 
     const mapped = arr.map((r) => {
       const name = r.player ?? r.Player ?? r.Name ?? r.playerName ?? r.name ?? "";
@@ -419,12 +419,13 @@ function pitcherish(r) {
       const team = normTeam(r.team ?? r.Team ?? r.Tm ?? r.TEAM ?? r.team_abbr ?? r.TeamAbbrev ?? "");
       const opp  = normTeam(r.opp  ?? r.Opp  ?? r.OPP ?? r.opponent ?? r.Opponent ?? "");
 
-      const salary = num(r[`${siteKey}_sal`] ?? r[cfg.salKey] ?? r.Salary ?? r.salary);
-      const proj   = num(r[`${siteKey}_proj`] ?? r[cfg.projKey] ?? r.Projection ?? r.Points);
-      const floor  = num(r[`${siteKey}_floor`] ?? r[cfg.floorKey] ?? r.Floor);
-      const ceil   = num(r[`${siteKey}_ceil`]  ?? r[cfg.ceilKey]  ?? r.Ceiling);
-      const pown   = pct(r[`${siteKey}_pown`] ?? r[cfg.pown?.[0]] ?? r[cfg.pown?.[1]]);
-      const opt    = pct(r[`${siteKey}_opt`]  ?? r[cfg.opt?.[0]]  ?? r[cfg.opt?.[1]]);
+      const siteKeyLower = cfg.key;
+      const salary = num(r[`${siteKeyLower}_sal`] ?? r[cfg.salKey] ?? r.Salary ?? r.salary);
+      const proj   = num(r[`${siteKeyLower}_proj`] ?? r[cfg.projKey] ?? r.Projection ?? r.Points);
+      const floor  = num(r[`${siteKeyLower}_floor`] ?? r[cfg.floorKey] ?? r.Floor);
+      const ceil   = num(r[`${siteKeyLower}_ceil`]  ?? r[cfg.ceilKey]  ?? r.Ceiling);
+      const pown   = pct(r[`${siteKeyLower}_pown`] ?? r[cfg.pown?.[0]] ?? r[cfg.pown?.[1]]);
+      const opt    = pct(r[`${siteKeyLower}_opt`]  ?? r[cfg.opt?.[0]]  ?? r[cfg.opt?.[1]]);
 
       const isPitcher = eligible.includes("P");
       const val    = Number.isFinite(proj) && salary > 0 ? (proj / salary) * 1000 : 0;
@@ -648,9 +649,7 @@ function pitcherish(r) {
           <button
             key={s}
             onClick={() => setSite(s)}
-            className={`px-3 py-1.5 rounded-full border text-sm inline-flex items-center gap-2 ${
-              site === s ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300 text-gray-700"
-            }`}
+            className={`px-3 py-1.5 rounded-full border text-sm inline-flex items-center gap-2 ${site === s ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300 text-gray-700"}`}
           >
             <img src={SITES[s].logo} alt="" className="w-4 h-4" />
             <span>{SITES[s].label}</span>
@@ -819,11 +818,7 @@ function pitcherish(r) {
             <div
               className="h-2 bg-blue-500 rounded transition-all duration-300"
               style={{
-                width: `${
-                  (Math.min(progressUI, Math.max(1, Number(numLineups) || 1)) /
-                    Math.max(1, Number(numLineups) || 1)) *
-                  100
-                }%`,
+                width: `${(Math.min(progressUI, Math.max(1, Number(numLineups) || 1)) / Math.max(1, Number(numLineups) || 1)) * 100}%`,
               }}
             />
           </div>
@@ -963,50 +958,93 @@ function pitcherish(r) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Lineups */}
           <section className="lg:col-span-8 rounded-lg border bg-white p-3">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-3">
               <h2 className="text-base font-bold">Lineups ({lineups.length})</h2>
               <div className="flex items-center gap-2">
+                <label className="inline-flex items-center gap-2 text-xs bg-gray-100 px-2 py-1 rounded">
+                  <input type="checkbox" checked={showIdsInUI} onChange={(e)=>setShowIdsInUI(e.target.checked)} />
+                  Show IDs in UI
+                </label>
+                <div className="inline-flex border rounded overflow-hidden">
+                  <button className={`px-2 py-1 text-xs ${lineupView==='table'?'bg-blue-600 text-white':'bg-white'}`} onClick={()=>setLineupView('table')}>Table</button>
+                  <button className={`px-2 py-1 text-xs ${lineupView==='cards'?'bg-blue-600 text-white':'bg-white'}`} onClick={()=>setLineupView('cards')}>Cards</button>
+                </div>
                 <button className="px-3 py-1.5 border rounded text-sm"
                   onClick={() => exportLineupsCSV(lineups, rows, site, idMap)}>
                   Export CSV
                 </button>
               </div>
             </div>
-            <div className="overflow-auto max-h-[440px]">
-              <table className="min-w-full text-[12px] border-separate" style={{ borderSpacing: 0 }}>
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className={header}>#</th>
-                    <th className={header}>Salary</th>
-                    <th className={header}>Total pOWN%</th>
-                    <th className={header}>
-                      Total {optBy === "pown" || optBy === "opt" ? "Projection" : metricLabel}
-                    </th>
-                    <th className={header}>Players</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lineups.map((L, i) => {
-                    const rowsByName = new Map(rows.map((r) => [r.name, r]));
-                    const ordered = orderPlayersForSite(site, L.players, rowsByName);
-                    const totalPown = ordered.reduce((s, r) => s + ((r.pown || 0) * 100), 0);
-                    return (
-                      <tr key={i} className="odd:bg-white even:bg-gray-50">
-                        <td className={cell}>{i + 1}</td>
-                        <td className={`${cell} tabular-nums`}>{fmt0(L.salary)}</td>
-                        <td className={`${cell} tabular-nums`}>{fmt1(totalPown)}</td>
-                        <td className={`${cell} tabular-nums`}>{fmt1(L.total)}</td>
-                        <td className={`${cell} leading-snug`}>
-                          <span className="break-words">
-                            {ordered.map((r) => siteNameWithId(site, r.name, idMap)).join(" • ")}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+
+            {lineupView === 'table' ? (
+              <div className="overflow-auto max-h-[460px]">
+                <table className="min-w-full text-[12px] border-separate" style={{ borderSpacing: 0 }}>
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className={header}>#</th>
+                      <th className={header}>Salary</th>
+                      <th className={header}>Total pOWN%</th>
+                      <th className={header}>
+                        Total {optBy === "pown" || optBy === "opt" ? "Projection" : metricLabel}
+                      </th>
+                      <th className={header}>Players</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lineups.map((L, i) => {
+                      const rowsByName = new Map(rows.map((r) => [r.name, r]));
+                      const ordered = orderPlayersForSite(site, L.players, rowsByName);
+                      const totalPown = ordered.reduce((s, r) => s + ((r.pown || 0) * 100), 0);
+                      const nameFmt = (r) => showIdsInUI ? siteNameWithId(site, r.name, idMap) : r.name;
+                      return (
+                        <tr key={i} className="odd:bg-white even:bg-gray-50">
+                          <td className={cell}>{i + 1}</td>
+                          <td className={`${cell} tabular-nums`}>{fmt0(L.salary)}</td>
+                          <td className={`${cell} tabular-nums`}>{fmt1(totalPown)}</td>
+                          <td className={`${cell} tabular-nums`}>{fmt1(L.total)}</td>
+                          <td className={`${cell} leading-snug`}>
+                            <span className="break-words">
+                              {ordered.map((r) => nameFmt(r)).join(" • ")}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[460px] overflow-auto pr-1">
+                {lineups.map((L, i) => {
+                  const rowsByName = new Map(rows.map((r) => [r.name, r]));
+                  const ordered = orderPlayersForSite(site, L.players, rowsByName);
+                  const totalPown = ordered.reduce((s, r) => s + ((r.pown || 0) * 100), 0);
+                  const nameFmt = (r) => showIdsInUI ? siteNameWithId(site, r.name, idMap) : r.name;
+                  return (
+                    <div key={i} className="border rounded-lg p-3 bg-white shadow-sm">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-sm font-semibold">#{i+1}</div>
+                        <div className="text-xs text-gray-600">Salary: <span className="tabular-nums font-medium">{fmt0(L.salary)}</span></div>
+                      </div>
+                      <div className="text-xs text-gray-600 mb-2">
+                        Total pOWN%: <span className="tabular-nums font-medium">{fmt1(totalPown)}</span> • Total {optBy === "pown" || optBy === "opt" ? "Projection" : metricLabel}: <span className="tabular-nums font-medium">{fmt1(L.total)}</span>
+                      </div>
+                      <ul className="text-[12px] space-y-1">
+                        {ordered.map((r, idx) => (
+                          <li key={idx} className="flex items-center justify-between bg-gray-50 rounded px-2 py-1">
+                            <div className="flex items-center gap-2">
+                              <span className="px-1.5 py-0.5 rounded text-[10px]" style={chipStyle(r.team)}>{r.team}</span>
+                              <span className="font-medium">{nameFmt(r)}</span>
+                            </div>
+                            <div className="tabular-nums text-gray-600">{fmt1((r.pown||0)*100)}%</div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </section>
 
           {/* Player Exposure */}
@@ -1097,9 +1135,9 @@ function orderPlayersForSite(site, names, rowsMap) {
 
 /* --------------------------- Exposure tables --------------------------- */
 function ExposureTable({ lineups, rows, posFilter="ALL" }) {
-  const meta = useMemo(() => new Map(rows.map(r => [r.name, r])), [rows]);
+  const meta = React.useMemo(() => new Map(rows.map(r => [r.name, r])), [rows]);
 
-  const allRows = useMemo(() => {
+  const allRows = React.useMemo(() => {
     const m = new Map();
     for (const L of lineups) for (const p of L.players) m.set(p, (m.get(p) || 0) + 1);
     const total = Math.max(1, lineups.length);
@@ -1146,8 +1184,8 @@ function ExposureTable({ lineups, rows, posFilter="ALL" }) {
 }
 
 function TeamExposureTable({ lineups, rows }) {
-  const rowsByName = useMemo(() => new Map(rows.map(r => [r.name, r])), [rows]);
-  const data = useMemo(() => {
+  const rowsByName = React.useMemo(() => new Map(rows.map(r => [r.name, r])), [rows]);
+  const data = React.useMemo(() => {
     const counts = new Map(); // team -> lineups containing team
     for (const L of lineups) {
       const chosenTeams = new Set(
@@ -1183,8 +1221,8 @@ function TeamExposureTable({ lineups, rows }) {
 }
 
 function StackShapesTable({ lineups, rows }) {
-  const rowsByName = useMemo(() => new Map(rows.map(r => [r.name, r])), [rows]);
-  const data = useMemo(() => {
+  const rowsByName = React.useMemo(() => new Map(rows.map(r => [r.name, r])), [rows]);
+  const data = React.useMemo(() => {
     const counts = {};
     for (const L of lineups) {
       const chosen = L.players.map((n) => rowsByName.get(n)).filter(Boolean);
@@ -1214,4 +1252,3 @@ function StackShapesTable({ lineups, rows }) {
     </table>
   );
 }
-
