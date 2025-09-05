@@ -464,7 +464,7 @@ export default function NflProjectionsShowdown() {
                   if (c.type === "num1")  content = fmt1(content);
                   if (c.type === "pct")   content = fmtPct(content);
 
-                  const align = c.type === "text" ? "text-left" : "text-center";
+                  const align = c.key === "player" ? "text-left" : "text-center";
                   return (
                     <td
                       key={c.key}
