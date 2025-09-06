@@ -155,7 +155,6 @@ export default function NavBar() {
                 <SectionTitle>CUP</SectionTitle>
                 <MenuItem to="/nascar/cup/data">Data</MenuItem>
                 <MenuItem to="/nascar/cup/projections">DFS Projections</MenuItem>
-                <MenuItem to="/nascar/cup/simulator">DFS Simulator</MenuItem>
                 <MenuItem to="/nascar/cup/practice">Practice</MenuItem>
                 <MenuItem to="/nascar/cup/cheatsheets">Cheat Sheets</MenuItem>
                 <MenuItem to="/nascar/cup/gfs">GFS</MenuItem>
@@ -385,7 +384,6 @@ export default function NavBar() {
                   <div className="px-4 py-1 text-xs font-bold tracking-widest text-slate-500">CUP</div>
                   <MobileLink to="/nascar/cup/data" onClick={closeMobile}>Data</MobileLink>
                   <MobileLink to="/nascar/cup/projections" onClick={closeMobile}>DFS Projections</MobileLink>
-                  <MobileLink to="/nascar/cup/simulator" onClick={closeMobile}>DFS Simulator</MobileLink>
                   <MobileLink to="/nascar/cup/practice" onClick={closeMobile}>Practice</MobileLink>
                   <MobileLink to="/nascar/cup/cheatsheets" onClick={closeMobile}>Cheat Sheets</MobileLink>
                   <MobileLink to="/nascar/cup/gfs" onClick={closeMobile}>GFS</MobileLink>
