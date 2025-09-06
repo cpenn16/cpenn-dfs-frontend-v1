@@ -18,29 +18,29 @@
       "away": {
         "header": "TOR (4.7)",
         "lines": [
-          "1 - George Springer (R) 10.0  4.9k |  13.2  3.5k",
-          "2 - Addison Barger (L) 7.0  4.2k |  9.1  2.9k",
-          "3 - Vladimir Guerrero Jr. (R) 10.8  4.8k |  14.1  3.4k",
-          "4 - Bo Bichette (R) 7.8  4.6k |  9.9  3.2k",
-          "5 - Daulton Varsho (L) 8.5  4.7k |  11.1  3.5k",
-          "6 - Alejandro Kirk (R) 6.7  3.7k |  8.7  2.7k",
-          "7 - Nathan Lukes (L) 5.3  3.3k |  7.0  2.7k",
-          "8 - Ernie Clement (R) 4.9  3.2k |  6.2  2.6k",
-          "9 - Andres Gimenez (L) 5.6  3.4k |  7.1  2.6k"
+          "1 - George Springer (N/A) 0.0  0 |  0.0  0",
+          "2 - Addison Barger (N/A) 0.0  0 |  0.0  0",
+          "3 - Vladimir Guerrero Jr. (N/A) 0.0  0 |  0.0  0",
+          "4 - Bo Bichette (N/A) 0.0  0 |  0.0  0",
+          "5 - Daulton Varsho (N/A) 0.0  0 |  0.0  0",
+          "6 - Nathan Lukes (N/A) 0.0  0 |  0.0  0",
+          "7 - Isiah Kiner-Falefa (N/A) 0.0  0 |  0.0  0",
+          "8 - Andres Gimenez (N/A) 0.0  0 |  0.0  0",
+          "9 - Tyler Heineman (N/A) 0.0  0 |  0.0  0"
         ]
       },
       "home": {
         "header": "NYY (4.8)",
         "lines": [
-          "1 - Trent Grisham (L) 8.3  4.5k |  11.0  3.6k",
-          "2 - Ben Rice (L) 7.4  4.6k |  9.7  3.1k",
-          "3 - Aaron Judge (R) 14.3  6.2k |  18.8  4.8k",
-          "4 - Cody Bellinger (L) 8.7  4.9k |  11.4  3.4k",
-          "5 - Giancarlo Stanton (R) 8.1  5.3k |  10.6  3.6k",
-          "6 - Jazz Chisholm Jr. (L) 9.7  5.1k |  12.6  3.8k",
-          "7 - Austin Wells (L) 6.1  3.7k |  8.0  3k",
-          "8 - Anthony Volpe (R) 5.5  4k |  7.1  3k",
-          "9 - Ryan McMahon (L) 5.8  3.4k |  7.5  2.9k"
+          "1 - Trent Grisham (N/A) 0.0  0 |  0.0  0",
+          "2 - Ben Rice (N/A) 0.0  0 |  0.0  0",
+          "3 - Aaron Judge (N/A) 0.0  0 |  0.0  0",
+          "4 - Cody Bellinger (N/A) 0.0  0 |  0.0  0",
+          "5 - Jazz Chisholm Jr. (N/A) 0.0  0 |  0.0  0",
+          "6 - Jasson Dominguez (N/A) 0.0  0 |  0.0  0",
+          "7 - Anthony Volpe (N/A) 0.0  0 |  0.0  0",
+          "8 - Austin Wells (N/A) 0.0  0 |  0.0  0",
+          "9 - Ryan McMahon (N/A) 0.0  0 |  0.0  0"
         ]
       }
     }
@@ -64,29 +64,29 @@
       "away": {
         "header": "WSH (4.3)",
         "lines": [
-          "1 - James Wood (L) 8.6  5.2k |  11.0  3.3k",
-          "2 - CJ Abrams (L) 7.8  5.3k |  9.7  3.1k",
-          "3 - Riley Adams (R) 5.7  2.8k |  7.3  2.5k",
-          "4 - Andres Chaparro (R) 5.2  2.1k |  6.7  2.1k",
-          "5 - Dylan Crews (R) 7.4  3.3k |  9.3  2.7k",
-          "6 - Paul DeJong (R) 6.9  3.2k |  8.7  2.6k",
-          "7 - Brady House (R) 5.1  2.7k |  6.5  2.4k",
-          "8 - Nasim Nunez (N/A) 0.0  0 |  0.0  0",
-          "9 - Jacob Young (R) 4.9  2.3k |  6.0  2.3k"
+          "1 - CJ Abrams (N/A) 0.0  0 |  0.0  0",
+          "2 - James Wood (N/A) 0.0  0 |  0.0  0",
+          "3 - Jorge Alfaro (N/A) 0.0  0 |  0.0  0",
+          "4 - Josh Bell (N/A) 0.0  0 |  0.0  0",
+          "5 - Daylen Lile (N/A) 0.0  0 |  0.0  0",
+          "6 - Dylan Crews (N/A) 0.0  0 |  0.0  0",
+          "7 - Nasim Nunez (N/A) 0.0  0 |  0.0  0",
+          "8 - Brady House (N/A) 0.0  0 |  0.0  0",
+          "9 - Jacob Young (N/A) 0.0  0 |  0.0  0"
         ]
       },
       "home": {
         "header": "CHC (4.7)",
         "lines": [
-          "1 - Michael Busch (L) 8.5  4.3k |  11.2  3.4k",
-          "2 - Kyle Tucker (L) 12.8  5.6k |  16.9  3.7k",
-          "3 - Seiya Suzuki (R) 10.6  4.2k |  13.9  3.4k",
-          "4 - Ian Happ (B) 9.0  3.4k |  11.8  3.4k",
-          "5 - Carson Kelly (R) 7.0  3.8k |  9.0  2.9k",
-          "6 - Pete Crow-Armstrong (L) 10.1  4.5k |  13.1  3.5k",
-          "7 - Nico Hoerner (R) 8.3  3.5k |  10.5  2.9k",
-          "8 - Willi Castro (N/A) 0.0  0 |  0.0  0",
-          "9 - Dansby Swanson (R) 6.2  3.6k |  8.1  3.1k"
+          "1 - Michael Busch (N/A) 0.0  0 |  0.0  0",
+          "2 - Ian Happ (N/A) 0.0  0 |  0.0  0",
+          "3 - Seiya Suzuki (N/A) 0.0  0 |  0.0  0",
+          "4 - Pete Crow-Armstrong (N/A) 0.0  0 |  0.0  0",
+          "5 - Nico Hoerner (N/A) 0.0  0 |  0.0  0",
+          "6 - Carson Kelly (N/A) 0.0  0 |  0.0  0",
+          "7 - Willi Castro (N/A) 0.0  0 |  0.0  0",
+          "8 - Dansby Swanson (N/A) 0.0  0 |  0.0  0",
+          "9 - Matt Shaw (N/A) 0.0  0 |  0.0  0"
         ]
       }
     }
@@ -110,29 +110,29 @@
       "away": {
         "header": "PHI (4.1)",
         "lines": [
-          "1 - Trea Turner (R) 10.9  5.4k |  13.8  3.9k",
-          "2 - Kyle Schwarber (L) 9.3  5.7k |  12.2  4.5k",
-          "3 - Bryce Harper (L) 9.0  5.2k |  11.5  3.9k",
-          "4 - J.T. Realmuto (R) 6.9  4.2k |  8.8  2.9k",
-          "5 - Brandon Marsh (L) 7.9  3.1k |  10.0  2.7k",
-          "6 - Nick Castellanos (N/A) 0.0  0 |  0.0  0",
-          "7 - Alec Bohm (R) 5.1  3.9k |  6.5  2.8k",
-          "8 - Bryson Stott (L) 6.2  4.1k |  7.9  2.9k",
-          "9 - Harrison Bader (R) 5.9  3.2k |  7.5  2.9k"
+          "1 - Kyle Schwarber (N/A) 0.0  0 |  0.0  0",
+          "2 - Alec Bohm (N/A) 0.0  0 |  0.0  0",
+          "3 - Bryce Harper (N/A) 0.0  0 |  0.0  0",
+          "4 - J.T. Realmuto (N/A) 0.0  0 |  0.0  0",
+          "5 - Brandon Marsh (N/A) 0.0  0 |  0.0  0",
+          "6 - Harrison Bader (N/A) 0.0  0 |  0.0  0",
+          "7 - Max Kepler (N/A) 0.0  0 |  0.0  0",
+          "8 - Edmundo Sosa (N/A) 0.0  0 |  0.0  0",
+          "9 - Bryson Stott (N/A) 0.0  0 |  0.0  0"
         ]
       },
       "home": {
         "header": "MIA (3.9)",
         "lines": [
-          "1 - Xavier Edwards (B) 6.6  4.6k |  8.2  2.8k",
-          "2 - Agustin Ramirez (R) 7.0  4.5k |  8.9  3.1k",
-          "3 - Jakob Marsee (L) 7.6  5k |  9.7  3.3k",
-          "4 - Otto Lopez (R) 6.5  4.1k |  8.0  2.8k",
-          "5 - Heriberto Hernandez (R) 6.9  3.6k |  9.0  2.7k",
-          "6 - Eric Wagaman (R) 7.1  3.4k |  8.8  2.6k",
-          "7 - Joey Wiemer (R) 5.6  2.4k |  7.1  2.1k",
-          "8 - Maximo Acosta (R) 4.8  2.8k |  6.1  2k",
-          "9 - Javier Sanoja (R) 5.1  2.9k |  6.3  2.5k"
+          "1 - Otto Lopez (N/A) 0.0  0 |  0.0  0",
+          "2 - Agustin Ramirez (N/A) 0.0  0 |  0.0  0",
+          "3 - Jakob Marsee (N/A) 0.0  0 |  0.0  0",
+          "4 - Heriberto Hernandez (N/A) 0.0  0 |  0.0  0",
+          "5 - Eric Wagaman (N/A) 0.0  0 |  0.0  0",
+          "6 - Joey Wiemer (N/A) 0.0  0 |  0.0  0",
+          "7 - Javier Sanoja (N/A) 0.0  0 |  0.0  0",
+          "8 - Troy Johnston (N/A) 0.0  0 |  0.0  0",
+          "9 - Maximo Acosta (N/A) 0.0  0 |  0.0  0"
         ]
       }
     }
@@ -157,14 +157,14 @@
         "header": "CWS (3.3)",
         "lines": [
           "1 - Chase Meidroth (N/A) 0.0  0 |  0.0  0",
-          "2 - Lenyn Sosa (N/A) 0.0  0 |  0.0  0",
-          "3 - Edgar Quero (N/A) 0.0  0 |  0.0  0",
+          "2 - Edgar Quero (N/A) 0.0  0 |  0.0  0",
+          "3 - Lenyn Sosa (N/A) 0.0  0 |  0.0  0",
           "4 - Colson Montgomery (N/A) 0.0  0 |  0.0  0",
           "5 - Curtis Mead (N/A) 0.0  0 |  0.0  0",
-          "6 - Andrew Benintendi (N/A) 0.0  0 |  0.0  0",
+          "6 - Bryan Ramos (N/A) 0.0  0 |  0.0  0",
           "7 - Michael A. Taylor (N/A) 0.0  0 |  0.0  0",
-          "8 - Korey Lee (N/A) 0.0  0 |  0.0  0",
-          "9 - Brooks Baldwin (N/A) 0.0  0 |  0.0  0"
+          "8 - Brooks Baldwin (N/A) 0.0  0 |  0.0  0",
+          "9 - Dominic Fletcher (N/A) 0.0  0 |  0.0  0"
         ]
       },
       "home": {
@@ -177,8 +177,8 @@
           "5 - Riley Greene (N/A) 0.0  0 |  0.0  0",
           "6 - Andy Ibanez (N/A) 0.0  0 |  0.0  0",
           "7 - Dillon Dingler (N/A) 0.0  0 |  0.0  0",
-          "8 - Javier Baez (N/A) 0.0  0 |  0.0  0",
-          "9 - Jake Rogers (N/A) 0.0  0 |  0.0  0"
+          "8 - Zach McKinstry (N/A) 0.0  0 |  0.0  0",
+          "9 - Javier Baez (N/A) 0.0  0 |  0.0  0"
         ]
       }
     }
@@ -204,13 +204,13 @@
         "lines": [
           "1 - Francisco Lindor (N/A) 0.0  0 |  0.0  0",
           "2 - Juan Soto (N/A) 0.0  0 |  0.0  0",
-          "3 - Pete Alonso (N/A) 0.0  0 |  0.0  0",
-          "4 - Brandon Nimmo (N/A) 0.0  0 |  0.0  0",
-          "5 - Mark Vientos (N/A) 0.0  0 |  0.0  0",
-          "6 - Jeff McNeil (N/A) 0.0  0 |  0.0  0",
-          "7 - Cedric Mullins (N/A) 0.0  0 |  0.0  0",
-          "8 - Francisco Alvarez (N/A) 0.0  0 |  0.0  0",
-          "9 - Brett Baty (N/A) 0.0  0 |  0.0  0"
+          "3 - Brandon Nimmo (N/A) 0.0  0 |  0.0  0",
+          "4 - Pete Alonso (N/A) 0.0  0 |  0.0  0",
+          "5 - Jeff McNeil (N/A) 0.0  0 |  0.0  0",
+          "6 - Mark Vientos (N/A) 0.0  0 |  0.0  0",
+          "7 - Brett Baty (N/A) 0.0  0 |  0.0  0",
+          "8 - Luis Torrens (N/A) 0.0  0 |  0.0  0",
+          "9 - Cedric Mullins (N/A) 0.0  0 |  0.0  0"
         ]
       },
       "home": {
@@ -222,7 +222,7 @@
           "4 - Austin Hays (N/A) 0.0  0 |  0.0  0",
           "5 - Gavin Lux (N/A) 0.0  0 |  0.0  0",
           "6 - Spencer Steer (N/A) 0.0  0 |  0.0  0",
-          "7 - Ke'Bryan Hayes (N/A) 0.0  0 |  0.0  0",
+          "7 - Sal Stewart (N/A) 0.0  0 |  0.0  0",
           "8 - Jose Trevino (N/A) 0.0  0 |  0.0  0",
           "9 - Matt McLain (N/A) 0.0  0 |  0.0  0"
         ]
@@ -248,14 +248,14 @@
       "away": {
         "header": "MIL (4.1)",
         "lines": [
-          "1 - Brice Turang (N/A) 0.0  0 |  0.0  0",
+          "1 - Sal Frelick (N/A) 0.0  0 |  0.0  0",
           "2 - Jackson Chourio (N/A) 0.0  0 |  0.0  0",
-          "3 - Christian Yelich (N/A) 0.0  0 |  0.0  0",
+          "3 - Brice Turang (N/A) 0.0  0 |  0.0  0",
           "4 - William Contreras (N/A) 0.0  0 |  0.0  0",
-          "5 - Sal Frelick (N/A) 0.0  0 |  0.0  0",
+          "5 - Jake Bauers (N/A) 0.0  0 |  0.0  0",
           "6 - Andrew Vaughn (N/A) 0.0  0 |  0.0  0",
-          "7 - Isaac Collins (N/A) 0.0  0 |  0.0  0",
-          "8 - Caleb Durbin (N/A) 0.0  0 |  0.0  0",
+          "7 - Caleb Durbin (N/A) 0.0  0 |  0.0  0",
+          "8 - Blake Perkins (N/A) 0.0  0 |  0.0  0",
           "9 - Joey Ortiz (N/A) 0.0  0 |  0.0  0"
         ]
       },
@@ -266,9 +266,9 @@
           "2 - Spencer Horwitz (N/A) 0.0  0 |  0.0  0",
           "3 - Bryan Reynolds (N/A) 0.0  0 |  0.0  0",
           "4 - Tommy Pham (N/A) 0.0  0 |  0.0  0",
-          "5 - Andrew McCutchen (N/A) 0.0  0 |  0.0  0",
-          "6 - Nick Gonzales (N/A) 0.0  0 |  0.0  0",
-          "7 - Oneil Cruz (N/A) 0.0  0 |  0.0  0",
+          "5 - Nick Gonzales (N/A) 0.0  0 |  0.0  0",
+          "6 - Oneil Cruz (N/A) 0.0  0 |  0.0  0",
+          "7 - Nick Yorke (N/A) 0.0  0 |  0.0  0",
           "8 - Henry Davis (N/A) 0.0  0 |  0.0  0",
           "9 - Cam Devanney (N/A) 0.0  0 |  0.0  0"
         ]
@@ -294,29 +294,29 @@
       "away": {
         "header": "LAD (4.1)",
         "lines": [
-          "1 - Shohei Ohtani (N/A) 0.0  0 |  0.0  0",
-          "2 - Mookie Betts (N/A) 0.0  0 |  0.0  0",
-          "3 - Teoscar Hernandez (N/A) 0.0  0 |  0.0  0",
-          "4 - Freddie Freeman (N/A) 0.0  0 |  0.0  0",
-          "5 - Andy Pages (N/A) 0.0  0 |  0.0  0",
-          "6 - Alex Call (N/A) 0.0  0 |  0.0  0",
-          "7 - Kike Hernandez (N/A) 0.0  0 |  0.0  0",
-          "8 - Miguel Rojas (N/A) 0.0  0 |  0.0  0",
-          "9 - Ben Rortvedt (N/A) 0.0  0 |  0.0  0"
+          "1 - Shohei Ohtani (L) 8.7  6.6k |  11.1  4.6k",
+          "2 - Mookie Betts (R) 7.5  4.5k |  9.7  3.2k",
+          "3 - Teoscar Hernandez (R) 7.6  4.2k |  9.8  3.1k",
+          "4 - Freddie Freeman (L) 7.2  5k |  9.2  3.3k",
+          "5 - Alex Call (R) 5.2  3.3k |  6.7  2.7k",
+          "6 - Andy Pages (R) 7.1  4k |  9.0  3k",
+          "7 - Miguel Rojas (R) 4.6  2.1k |  5.7  2.3k",
+          "8 - Kike Hernandez (R) 4.8  2.4k |  6.1  2.3k",
+          "9 - Ben Rortvedt (L) 3.6  2k |  4.6  2.1k"
         ]
       },
       "home": {
         "header": "BAL (3.9)",
         "lines": [
-          "1 - Jackson Holliday (N/A) 0.0  0 |  0.0  0",
-          "2 - Jeremiah Jackson (N/A) 0.0  0 |  0.0  0",
-          "3 - Gunnar Henderson (N/A) 0.0  0 |  0.0  0",
-          "4 - Ryan Mountcastle (N/A) 0.0  0 |  0.0  0",
-          "5 - Colton Cowser (N/A) 0.0  0 |  0.0  0",
-          "6 - Emmanuel Rivera (N/A) 0.0  0 |  0.0  0",
-          "7 - Dylan Beavers (N/A) 0.0  0 |  0.0  0",
-          "8 - Samuel Basallo (N/A) 0.0  0 |  0.0  0",
-          "9 - Coby Mayo (N/A) 0.0  0 |  0.0  0"
+          "1 - Jackson Holliday (L) 7.1  4.4k |  8.8  3k",
+          "2 - Jeremiah Jackson (R) 7.6  3.4k |  9.5  2.9k",
+          "3 - Gunnar Henderson (L) 7.0  5.2k |  8.9  3.1k",
+          "4 - Ryan Mountcastle (R) 6.5  3.6k |  8.1  2.8k",
+          "5 - Colton Cowser (L) 6.8  3.7k |  8.6  2.7k",
+          "6 - Emmanuel Rivera (R) 4.2  2.5k |  5.2  2.1k",
+          "7 - Dylan Beavers (L) 4.7  3.5k |  6.1  2.7k",
+          "8 - Samuel Basallo (L) 5.5  3.9k |  7.0  2.4k",
+          "9 - Coby Mayo (R) 4.3  2.4k |  5.4  2.3k"
         ]
       }
     }
@@ -340,29 +340,29 @@
       "away": {
         "header": "CLE (3.9)",
         "lines": [
-          "1 - Steven Kwan (N/A) 0.0  0 |  0.0  0",
-          "2 - Daniel Schneemann (N/A) 0.0  0 |  0.0  0",
-          "3 - Jose Ramirez (N/A) 0.0  0 |  0.0  0",
-          "4 - Kyle Manzardo (N/A) 0.0  0 |  0.0  0",
-          "5 - Bo Naylor (N/A) 0.0  0 |  0.0  0",
-          "6 - Nolan Jones (N/A) 0.0  0 |  0.0  0",
-          "7 - Gabriel Arias (N/A) 0.0  0 |  0.0  0",
-          "8 - CJ Kayfus (N/A) 0.0  0 |  0.0  0",
-          "9 - Brayan Rocchio (N/A) 0.0  0 |  0.0  0"
+          "1 - Steven Kwan (L) 9.1  3.8k |  11.4  2.8k",
+          "2 - George Valera (N/A) 0.0  0 |  0.0  0",
+          "3 - Jose Ramirez (B) 9.3  5.6k |  11.9  3.9k",
+          "4 - Kyle Manzardo (L) 8.3  4.1k |  10.7  3k",
+          "5 - Nolan Jones (L) 6.9  2.4k |  8.8  2.4k",
+          "6 - Daniel Schneemann (L) 6.6  3.5k |  8.5  2.5k",
+          "7 - Gabriel Arias (R) 5.1  2.7k |  6.4  2.6k",
+          "8 - Bo Naylor (L) 5.0  2.8k |  6.4  2.5k",
+          "9 - CJ Kayfus (N/A) 0.0  0 |  0.0  0"
         ]
       },
       "home": {
         "header": "TB (4.1)",
         "lines": [
-          "1 - Chandler Simpson (N/A) 0.0  0 |  0.0  0",
-          "2 - Yandy Diaz (N/A) 0.0  0 |  0.0  0",
-          "3 - Brandon Lowe (N/A) 0.0  0 |  0.0  0",
-          "4 - Junior Caminero (N/A) 0.0  0 |  0.0  0",
-          "5 - Josh Lowe (N/A) 0.0  0 |  0.0  0",
-          "6 - Jake Mangum (N/A) 0.0  0 |  0.0  0",
-          "7 - Richie Palacios (N/A) 0.0  0 |  0.0  0",
-          "8 - Carson Williams (N/A) 0.0  0 |  0.0  0",
-          "9 - Hunter Feduccia (N/A) 0.0  0 |  0.0  0"
+          "1 - Chandler Simpson (L) 7.9  4.7k |  9.6  3k",
+          "2 - Yandy Diaz (R) 6.6  5.1k |  8.2  3.2k",
+          "3 - Brandon Lowe (L) 7.9  5.3k |  10.1  3.5k",
+          "4 - Junior Caminero (R) 8.0  5.6k |  10.0  3.8k",
+          "5 - Josh Lowe (L) 8.6  4.2k |  10.7  3.1k",
+          "6 - Jake Mangum (B) 7.4  3.9k |  9.1  2.8k",
+          "7 - Richie Palacios (L) 5.5  3.3k |  6.9  2.3k",
+          "8 - Hunter Feduccia (L) 4.2  2.2k |  5.4  2.2k",
+          "9 - Tristan Gray (L) 5.1  2.8k |  6.5  2.3k"
         ]
       }
     }
@@ -386,29 +386,29 @@
       "away": {
         "header": "SEA (4.4)",
         "lines": [
-          "1 - Randy Arozarena (N/A) 0.0  0 |  0.0  0",
-          "2 - Cal Raleigh (N/A) 0.0  0 |  0.0  0",
-          "3 - Julio Rodriguez (N/A) 0.0  0 |  0.0  0",
-          "4 - Josh Naylor (N/A) 0.0  0 |  0.0  0",
-          "5 - Eugenio Suarez (N/A) 0.0  0 |  0.0  0",
-          "6 - Jorge Polanco (N/A) 0.0  0 |  0.0  0",
-          "7 - Dominic Canzone (N/A) 0.0  0 |  0.0  0",
-          "8 - J.P. Crawford (N/A) 0.0  0 |  0.0  0",
-          "9 - Cole Young (N/A) 0.0  0 |  0.0  0"
+          "1 - Randy Arozarena (R) 10.4  4.8k |  13.5  3.1k",
+          "2 - Cal Raleigh (B) 10.6  6.3k |  14.0  4.2k",
+          "3 - Julio Rodriguez (R) 10.8  5.3k |  14.0  3.4k",
+          "4 - Josh Naylor (L) 8.5  4.4k |  11.0  3.2k",
+          "5 - Eugenio Suarez (R) 7.6  4.6k |  10.1  3.4k",
+          "6 - Jorge Polanco (B) 8.2  3.8k |  10.6  2.9k",
+          "7 - J.P. Crawford (L) 7.2  3.2k |  9.4  2.6k",
+          "8 - Victor Robles (R) 6.7  3.4k |  8.4  2.4k",
+          "9 - Leo Rivas (B) 5.9  3.3k |  7.5  2.2k"
         ]
       },
       "home": {
         "header": "ATL (4.6)",
         "lines": [
-          "1 - Jurickson Profar (N/A) 0.0  0 |  0.0  0",
-          "2 - Matt Olson (N/A) 0.0  0 |  0.0  0",
-          "3 - Ronald Acuna Jr. (N/A) 0.0  0 |  0.0  0",
-          "4 - Ozzie Albies (N/A) 0.0  0 |  0.0  0",
-          "5 - Drake Baldwin (N/A) 0.0  0 |  0.0  0",
-          "6 - Ha-Seong Kim (N/A) 0.0  0 |  0.0  0",
-          "7 - Michael Harris II (N/A) 0.0  0 |  0.0  0",
-          "8 - Sean Murphy (N/A) 0.0  0 |  0.0  0",
-          "9 - Nacho Alvarez Jr. (N/A) 0.0  0 |  0.0  0"
+          "1 - Jurickson Profar (B) 8.2  4.9k |  10.4  3.8k",
+          "2 - Matt Olson (L) 9.0  4.7k |  11.7  3.3k",
+          "3 - Ozzie Albies (B) 8.2  4k |  10.5  2.9k",
+          "4 - Drake Baldwin (L) 7.4  3.8k |  9.5  3k",
+          "5 - Ha-Seong Kim (R) 7.5  3.4k |  9.6  2.6k",
+          "6 - Ronald Acuna Jr. (R) 8.8  5.6k |  11.4  3.9k",
+          "7 - Michael Harris II (L) 6.1  3.6k |  7.6  3k",
+          "8 - Sean Murphy (R) 6.2  3.3k |  8.0  2.8k",
+          "9 - Nacho Alvarez Jr. (R) 4.9  2.4k |  6.1  2.5k"
         ]
       }
     }
@@ -432,29 +432,29 @@
       "away": {
         "header": "HOU (3.5)",
         "lines": [
-          "1 - Jeremy Pena (N/A) 0.0  0 |  0.0  0",
-          "2 - Yordan Alvarez (N/A) 0.0  0 |  0.0  0",
-          "3 - Jose Altuve (N/A) 0.0  0 |  0.0  0",
-          "4 - Carlos Correa (N/A) 0.0  0 |  0.0  0",
-          "5 - Jesus Sanchez (N/A) 0.0  0 |  0.0  0",
-          "6 - Christian Walker (N/A) 0.0  0 |  0.0  0",
-          "7 - Yainer Diaz (N/A) 0.0  0 |  0.0  0",
-          "8 - Taylor Trammell (N/A) 0.0  0 |  0.0  0",
-          "9 - Jake Meyers (N/A) 0.0  0 |  0.0  0"
+          "1 - Jeremy Pena (R) 7.0  4.9k |  8.5  3.2k",
+          "2 - Yordan Alvarez (L) 8.6  4.6k |  10.8  3.7k",
+          "3 - Jose Altuve (R) 7.3  4.7k |  8.9  3.2k",
+          "4 - Carlos Correa (R) 6.7  4.1k |  8.3  2.8k",
+          "5 - Jesus Sanchez (L) 5.4  3.8k |  6.7  2.7k",
+          "6 - Victor Caratini (B) 4.9  2.8k |  6.1  2.6k",
+          "7 - Christian Walker (R) 5.4  3.7k |  6.7  3.1k",
+          "8 - Yainer Diaz (R) 4.9  3.2k |  6.0  2.8k",
+          "9 - Jake Meyers (R) 5.5  3.1k |  6.8  2.8k"
         ]
       },
       "home": {
         "header": "TEX (3.5)",
         "lines": [
-          "1 - Josh Smith (N/A) 0.0  0 |  0.0  0",
-          "2 - Wyatt Langford (N/A) 0.0  0 |  0.0  0",
-          "3 - Joc Pederson (N/A) 0.0  0 |  0.0  0",
-          "4 - Rowdy Tellez (N/A) 0.0  0 |  0.0  0",
-          "5 - Josh Jung (N/A) 0.0  0 |  0.0  0",
-          "6 - Cody Freeman (N/A) 0.0  0 |  0.0  0",
-          "7 - Alejandro Osuna (N/A) 0.0  0 |  0.0  0",
-          "8 - Jonah Heim (N/A) 0.0  0 |  0.0  0",
-          "9 - Michael Helman (N/A) 0.0  0 |  0.0  0"
+          "1 - Josh Smith (L) 6.8  3.6k |  8.5  2.8k",
+          "2 - Wyatt Langford (R) 7.5  4.6k |  9.6  3.6k",
+          "3 - Joc Pederson (L) 6.5  2.6k |  8.2  2.7k",
+          "4 - Jake Burger (R) 6.5  3k |  8.1  2.7k",
+          "5 - Dustin Harris (N/A) 0.0  0 |  0.0  0",
+          "6 - Josh Jung (R) 7.0  3.3k |  8.6  2.8k",
+          "7 - Alejandro Osuna (L) 4.7  2k |  5.9  2.2k",
+          "8 - Jonah Heim (B) 4.8  2.9k |  6.0  2.4k",
+          "9 - Ezequiel Duran (R) 3.8  2.1k |  4.6  2.3k"
         ]
       }
     }
@@ -478,29 +478,29 @@
       "away": {
         "header": "SF (4.3)",
         "lines": [
-          "1 - Heliot Ramos (N/A) 0.0  0 |  0.0  0",
-          "2 - Rafael Devers (N/A) 0.0  0 |  0.0  0",
-          "3 - Willy Adames (N/A) 0.0  0 |  0.0  0",
-          "4 - Dominic Smith (N/A) 0.0  0 |  0.0  0",
-          "5 - Matt Chapman (N/A) 0.0  0 |  0.0  0",
-          "6 - Jung Hoo Lee (N/A) 0.0  0 |  0.0  0",
-          "7 - Casey Schmitt (N/A) 0.0  0 |  0.0  0",
-          "8 - Drew Gilbert (N/A) 0.0  0 |  0.0  0",
-          "9 - Patrick Bailey (N/A) 0.0  0 |  0.0  0"
+          "1 - Jung Hoo Lee (L) 8.9  3.8k |  11.2  3k",
+          "2 - Rafael Devers (L) 11.4  5.4k |  14.9  3.9k",
+          "3 - Willy Adames (R) 8.0  4.9k |  10.4  3.7k",
+          "4 - Dominic Smith (L) 6.9  3.4k |  8.7  3.2k",
+          "5 - Matt Chapman (R) 7.8  4.2k |  10.2  3.3k",
+          "6 - Casey Schmitt (R) 7.1  3.7k |  9.1  2.6k",
+          "7 - Drew Gilbert (L) 7.9  3.1k |  10.2  2.8k",
+          "8 - Luis Matos (R) 5.0  3.2k |  6.3  2.9k",
+          "9 - Patrick Bailey (B) 4.5  2.7k |  5.8  2.4k"
         ]
       },
       "home": {
         "header": "STL (4.2)",
         "lines": [
-          "1 - Lars Nootbaar (N/A) 0.0  0 |  0.0  0",
-          "2 - Ivan Herrera (N/A) 0.0  0 |  0.0  0",
-          "3 - Nolan Gorman (N/A) 0.0  0 |  0.0  0",
-          "4 - Masyn Winn (N/A) 0.0  0 |  0.0  0",
-          "5 - Jimmy Crooks (N/A) 0.0  0 |  0.0  0",
-          "6 - Thomas Saggese (N/A) 0.0  0 |  0.0  0",
-          "7 - Jordan Walker (N/A) 0.0  0 |  0.0  0",
-          "8 - Victor Scott II (N/A) 0.0  0 |  0.0  0",
-          "9 - Jose Fermin (N/A) 0.0  0 |  0.0  0"
+          "1 - Lars Nootbaar (L) 9.2  4k |  11.7  2.9k",
+          "2 - Ivan Herrera (R) 7.7  4.3k |  9.8  3.1k",
+          "3 - Nolan Gorman (L) 7.4  3.8k |  9.5  2.8k",
+          "4 - Masyn Winn (R) 7.1  3.4k |  8.9  2.9k",
+          "5 - Jimmy Crooks (L) 6.5  2.1k |  8.4  2.1k",
+          "6 - Thomas Saggese (R) 6.5  2.3k |  8.1  2.4k",
+          "7 - Jordan Walker (R) 4.9  2.7k |  6.1  2.6k",
+          "8 - Victor Scott II (L) 5.9  2.8k |  7.4  2.5k",
+          "9 - Jose Fermin (R) 3.9  4k |  4.8  5.5k"
         ]
       }
     }
@@ -524,29 +524,29 @@
       "away": {
         "header": "MIN (4)",
         "lines": [
-          "1 - Byron Buxton (N/A) 0.0  0 |  0.0  0",
-          "2 - Trevor Larnach (N/A) 0.0  0 |  0.0  0",
-          "3 - Luke Keaschall (N/A) 0.0  0 |  0.0  0",
-          "4 - Kody Clemens (N/A) 0.0  0 |  0.0  0",
-          "5 - Austin Martin (N/A) 0.0  0 |  0.0  0",
-          "6 - Matt Wallner (N/A) 0.0  0 |  0.0  0",
-          "7 - Royce Lewis (N/A) 0.0  0 |  0.0  0",
-          "8 - Brooks Lee (N/A) 0.0  0 |  0.0  0",
-          "9 - Jhonny Pereda (N/A) 0.0  0 |  0.0  0"
+          "1 - Byron Buxton (R) 10.0  5.9k |  12.8  4.3k",
+          "2 - Trevor Larnach (L) 8.0  3.8k |  10.2  2.9k",
+          "3 - Luke Keaschall (R) 8.5  4.9k |  10.9  3.3k",
+          "4 - Matt Wallner (L) 7.9  3.9k |  10.1  3.1k",
+          "5 - Royce Lewis (R) 7.9  3.6k |  10.0  2.9k",
+          "6 - Edouard Julien (L) 7.1  2.4k |  9.0  2.3k",
+          "7 - Mickey Gasper (B) 4.4  2.1k |  5.8  2.1k",
+          "8 - Brooks Lee (B) 5.4  3.2k |  6.8  2.6k",
+          "9 - James Outman (L) 4.3  2.3k |  5.7  2.3k"
         ]
       },
       "home": {
         "header": "KC (4)",
         "lines": [
-          "1 - Mike Yastrzemski (N/A) 0.0  0 |  0.0  0",
-          "2 - Bobby Witt Jr. (N/A) 0.0  0 |  0.0  0",
-          "3 - Vinnie Pasquantino (N/A) 0.0  0 |  0.0  0",
-          "4 - Maikel Garcia (N/A) 0.0  0 |  0.0  0",
-          "5 - Salvador Perez (N/A) 0.0  0 |  0.0  0",
-          "6 - Adam Frazier (N/A) 0.0  0 |  0.0  0",
-          "7 - Michael Massey (N/A) 0.0  0 |  0.0  0",
-          "8 - Jac Caglianone (N/A) 0.0  0 |  0.0  0",
-          "9 - Kyle Isbel (N/A) 0.0  0 |  0.0  0"
+          "1 - Mike Yastrzemski (L) 7.7  3.8k |  9.7  2.8k",
+          "2 - Maikel Garcia (R) 7.7  4.6k |  9.7  2.9k",
+          "3 - Vinnie Pasquantino (L) 8.0  4.3k |  10.3  3k",
+          "4 - Salvador Perez (R) 6.9  4k |  8.7  2.7k",
+          "5 - Adam Frazier (L) 5.3  3.2k |  6.7  2.5k",
+          "6 - Jac Caglianone (L) 4.7  2.3k |  6.0  2.4k",
+          "7 - Nick Loftin (R) 4.5  2.6k |  5.7  2.4k",
+          "8 - Carter Jensen (L) 7.6  2k |  9.7  2.3k",
+          "9 - Kyle Isbel (L) 5.2  2.5k |  6.3  2.2k"
         ]
       }
     }
@@ -570,29 +570,29 @@
       "away": {
         "header": "BOS (4.5)",
         "lines": [
-          "1 - Jarren Duran (N/A) 0.0  0 |  0.0  0",
-          "2 - Alex Bregman (N/A) 0.0  0 |  0.0  0",
-          "3 - Nathaniel Lowe (N/A) 0.0  0 |  0.0  0",
-          "4 - Trevor Story (N/A) 0.0  0 |  0.0  0",
-          "5 - Masataka Yoshida (N/A) 0.0  0 |  0.0  0",
-          "6 - Romy Gonzalez (N/A) 0.0  0 |  0.0  0",
-          "7 - Ceddanne Rafaela (N/A) 0.0  0 |  0.0  0",
-          "8 - Nick Sogard (N/A) 0.0  0 |  0.0  0",
-          "9 - Carlos Narvaez (N/A) 0.0  0 |  0.0  0"
+          "1 - Masataka Yoshida (L) 8.2  3.2k |  10.6  2.7k",
+          "2 - Alex Bregman (R) 8.5  5.4k |  11.1  3.6k",
+          "3 - Jarren Duran (L) 9.7  5.2k |  12.3  3.5k",
+          "4 - Trevor Story (R) 8.6  5.2k |  11.0  3.5k",
+          "5 - Nathaniel Lowe (L) 8.0  4.1k |  10.4  2.7k",
+          "6 - Romy Gonzalez (R) 7.7  4.6k |  9.8  3.2k",
+          "7 - Carlos Narvaez (R) 5.8  3.6k |  7.5  2.8k",
+          "8 - Ceddanne Rafaela (R) 6.6  4.1k |  8.3  2.9k",
+          "9 - Nate Eaton (R) 5.2  2.7k |  6.5  2.3k"
         ]
       },
       "home": {
         "header": "ARI (4.5)",
         "lines": [
-          "1 - Geraldo Perdomo (N/A) 0.0  0 |  0.0  0",
-          "2 - Ketel Marte (N/A) 0.0  0 |  0.0  0",
-          "3 - Corbin Carroll (N/A) 0.0  0 |  0.0  0",
-          "4 - Gabriel Moreno (N/A) 0.0  0 |  0.0  0",
-          "5 - Adrian Del Castillo (N/A) 0.0  0 |  0.0  0",
-          "6 - Blaze Alexander (N/A) 0.0  0 |  0.0  0",
-          "7 - Alek Thomas (N/A) 0.0  0 |  0.0  0",
-          "8 - Tyler Locklear (N/A) 0.0  0 |  0.0  0",
-          "9 - Jake McCarthy (N/A) 0.0  0 |  0.0  0"
+          "1 - Geraldo Perdomo (B) 8.5  5k |  11.0  3.8k",
+          "2 - Ketel Marte (B) 9.0  5.8k |  11.6  3.9k",
+          "3 - Corbin Carroll (L) 11.4  6k |  14.6  4.1k",
+          "4 - Blaze Alexander (R) 7.5  3.4k |  9.6  3k",
+          "5 - Adrian Del Castillo (L) 8.2  3.2k |  10.5  2.3k",
+          "6 - James McCann (R) 5.2  2.7k |  6.7  2.4k",
+          "7 - Alek Thomas (L) 5.8  2.3k |  7.2  2.3k",
+          "8 - Tyler Locklear (R) 5.7  2.7k |  7.4  2.4k",
+          "9 - Jake McCarthy (L) 5.7  2.4k |  7.2  2.3k"
         ]
       }
     }
@@ -616,29 +616,29 @@
       "away": {
         "header": "SD (6.1)",
         "lines": [
-          "1 - Fernando Tatis Jr. (N/A) 0.0  0 |  0.0  0",
-          "2 - Luis Arraez (N/A) 0.0  0 |  0.0  0",
-          "3 - Manny Machado (N/A) 0.0  0 |  0.0  0",
-          "4 - Ryan O'Hearn (N/A) 0.0  0 |  0.0  0",
-          "5 - Ramon Laureano (N/A) 0.0  0 |  0.0  0",
-          "6 - Jackson Merrill (N/A) 0.0  0 |  0.0  0",
-          "7 - Jake Cronenworth (N/A) 0.0  0 |  0.0  0",
-          "8 - Jose Iglesias (N/A) 0.0  0 |  0.0  0",
-          "9 - Freddy Fermin (N/A) 0.0  0 |  0.0  0"
+          "1 - Fernando Tatis Jr. (R) 14.9  6.3k |  19.5  4k",
+          "2 - Luis Arraez (L) 13.7  4.6k |  17.3  3.2k",
+          "3 - Manny Machado (R) 14.4  6k |  18.9  3.8k",
+          "4 - Ryan O'Hearn (L) 11.6  4.9k |  15.0  3.4k",
+          "5 - Ramon Laureano (R) 11.4  5.5k |  14.7  3.5k",
+          "6 - Jackson Merrill (L) 11.7  5.1k |  15.0  3.4k",
+          "7 - Jake Cronenworth (L) 11.3  4.4k |  14.8  3.2k",
+          "8 - Freddy Fermin (R) 7.2  3.5k |  9.2  2.9k",
+          "9 - Mason McCoy (R) 7.4  3k |  9.5  2.5k"
         ]
       },
       "home": {
         "header": "COL (5.9)",
         "lines": [
-          "1 - Tyler Freeman (N/A) 0.0  0 |  0.0  0",
-          "2 - Mickey Moniak (N/A) 0.0  0 |  0.0  0",
-          "3 - Hunter Goodman (N/A) 0.0  0 |  0.0  0",
-          "4 - Jordan Beck (N/A) 0.0  0 |  0.0  0",
-          "5 - Brenton Doyle (N/A) 0.0  0 |  0.0  0",
-          "6 - Ezequiel Tovar (N/A) 0.0  0 |  0.0  0",
-          "7 - Kyle Karros (N/A) 0.0  0 |  0.0  0",
-          "8 - Warming Bernabel (N/A) 0.0  0 |  0.0  0",
-          "9 - Ryan Ritter (N/A) 0.0  0 |  0.0  0"
+          "1 - Tyler Freeman (R) 8.4  4.8k |  10.6  3.3k",
+          "2 - Mickey Moniak (L) 9.1  3.6k |  11.5  3.3k",
+          "3 - Hunter Goodman (R) 9.8  5.2k |  12.8  3.7k",
+          "4 - Jordan Beck (R) 8.4  4.3k |  10.6  3.1k",
+          "5 - Brenton Doyle (R) 9.1  4k |  11.6  3.6k",
+          "6 - Ezequiel Tovar (R) 8.7  4.2k |  11.0  3.3k",
+          "7 - Kyle Karros (R) 6.0  3.3k |  7.6  3k",
+          "8 - Warming Bernabel (R) 6.4  3.8k |  8.2  2.8k",
+          "9 - Ryan Ritter (R) 6.1  2.8k |  7.8  2.7k"
         ]
       }
     }
