@@ -166,7 +166,8 @@ export default function App() {
               <Route path="/nascar/cup/projections" element={<Navigate to="/nascar/cup/dfs-projections" replace />} />
               <Route path="/nascar/cup/odds" element={<CupOdds />} />
               <Route path="/nascar/cup/betting-sims" element={<CupOdds />} />
-              <Route path="/nascar/cup/sims" element={<Navigate to="/nascar/cup/simulator" replace />} />
+              <Route path="/nascar/cup/sims" element={<CupOdds />} />
+              <Route path="/nascar/cup/simulator" element={<Navigate to="/nascar/cup/betting-sims" replace />} />
               <Route path="/nascar/cup/gfs" element={<CupGfs />} />
               <Route path="/nascar/cup/practice" element={<CupPractice />} />
               <Route path="/nascar/cup/cheatsheets" element={<CupCheatSheets />} />
