@@ -14,7 +14,6 @@ export const sportsNav = [
           { label: "Cheat Sheets", path: "/nascar/cup/cheat-sheets" },
           { label: "GFS", path: "/nascar/cup/gfs" },
           { label: "Optimizer", path: "/nascar/cup/optimizer" },
-          { label: "DFS Simulator", path: "/nascar/cup/simulator" },
         ],
       },
       {

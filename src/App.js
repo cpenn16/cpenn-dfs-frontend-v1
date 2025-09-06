@@ -29,7 +29,6 @@ import CupPractice from "./pages/nascar/CupPractice";
 import CupCheatSheets from "./pages/nascar/CupCheatSheets";
 import CupOptimizer from "./pages/nascar/CupOptimizer";
 import CupData from "./pages/nascar/CupData";
-import CupSimulator from "./pages/nascar/CupSimulator";
 
 /* ---------------- NASCAR — XFINITY ---------------- */
 import XfProjections from "./pages/nascar/XfProjections";
@@ -174,7 +173,6 @@ export default function App() {
               <Route path="/nascar/cup/cheat-sheets" element={<Navigate to="/nascar/cup/cheatsheets" replace />} />
               <Route path="/nascar/cup/optimizer" element={<CupOptimizer />} />
               <Route path="/nascar/cup/data" element={<CupData />} />
-              <Route path="/nascar/cup/simulator" element={<CupSimulator />} />
 
               {/* ============ NASCAR → XFINITY ============ */}
               <Route path="/nascar/xfinity/dfs-projections" element={<XfProjections />} />
