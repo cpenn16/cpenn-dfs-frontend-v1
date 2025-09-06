@@ -26,9 +26,9 @@ import numpy as np
 import pandas as pd
 
 # --------------------- DEFAULTS ---------------------
-DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\2025 NASCAR\Xfinity Nu Way 200 Gateway.xlsm"
+DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\2025 NASCAR\Cup Cook Out 400 Richmond.xlsm"
 DEFAULT_PROJ   = r"C:\Users\cpenn\Downloads\cpenn-dfs_frontend-v1"
-DEFAULT_CONFIG = r"C:\Users\cpenn\Downloads\cpenn-dfs_frontend-v1\scripts\configs\nascar_xfinity.json"
+DEFAULT_CONFIG = r"C:\Users\cpenn\Downloads\cpenn-dfs_frontend-v1\scripts\configs\nascar_cup.json"
 # ---------------------------------------------------
 
 
