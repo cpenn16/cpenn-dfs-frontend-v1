@@ -29,6 +29,7 @@ import CupPractice from "./pages/nascar/CupPractice";
 import CupCheatSheets from "./pages/nascar/CupCheatSheets";
 import CupOptimizer from "./pages/nascar/CupOptimizer";
 import CupData from "./pages/nascar/CupData";
+import CupSimulator from "./pages/nascar/CupSimulator";
 
 /* ---------------- NASCAR — XFINITY ---------------- */
 import XfProjections from "./pages/nascar/XfProjections";
@@ -166,13 +167,14 @@ export default function App() {
               <Route path="/nascar/cup/projections" element={<Navigate to="/nascar/cup/dfs-projections" replace />} />
               <Route path="/nascar/cup/odds" element={<CupOdds />} />
               <Route path="/nascar/cup/betting-sims" element={<CupOdds />} />
-              <Route path="/nascar/cup/sims" element={<CupOdds />} />
+              <Route path="/nascar/cup/sims" element={<Navigate to="/nascar/cup/simulator" replace />} />
               <Route path="/nascar/cup/gfs" element={<CupGfs />} />
               <Route path="/nascar/cup/practice" element={<CupPractice />} />
               <Route path="/nascar/cup/cheatsheets" element={<CupCheatSheets />} />
               <Route path="/nascar/cup/cheat-sheets" element={<Navigate to="/nascar/cup/cheatsheets" replace />} />
               <Route path="/nascar/cup/optimizer" element={<CupOptimizer />} />
               <Route path="/nascar/cup/data" element={<CupData />} />
+              <Route path="/nascar/cup/simulator" element={<CupSimulator />} />
 
               {/* ============ NASCAR → XFINITY ============ */}
               <Route path="/nascar/xfinity/dfs-projections" element={<XfProjections />} />
