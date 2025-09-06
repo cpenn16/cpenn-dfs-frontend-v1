@@ -12,63 +12,63 @@
       "rows": [
         {
           "Driver": "Connor Zilisch",
-          "Qual": 4,
-          "DK Sal": "11.8k",
-          "Value": 65.18
+          "Qual": 1,
+          "DK Sal": "11.0k",
+          "Value": 69.92
+        },
+        {
+          "Driver": "Aric Almirola",
+          "Qual": 7,
+          "DK Sal": "10.5k",
+          "Value": 56.19
         },
         {
           "Driver": "Justin Allgaier",
-          "Qual": 15,
-          "DK Sal": "12.0k",
-          "Value": 59.33
+          "Qual": 14,
+          "DK Sal": "11.5k",
+          "Value": 51.53
         },
         {
           "Driver": "Jesse Love",
-          "Qual": 1,
-          "DK Sal": "10.5k",
-          "Value": 56.39
+          "Qual": 18,
+          "DK Sal": "9.2k",
+          "Value": 44.52
         },
         {
           "Driver": "Taylor Gray",
-          "Qual": 38,
-          "DK Sal": "9.0k",
-          "Value": 56.07
-        },
-        {
-          "Driver": "Carson Hocevar",
-          "Qual": 3,
-          "DK Sal": "11.0k",
-          "Value": 51.28
-        },
-        {
-          "Driver": "Ross Chastain",
-          "Qual": 11,
-          "DK Sal": "11.5k",
-          "Value": 46.36
-        },
-        {
-          "Driver": "Sam Mayer",
           "Qual": 5,
-          "DK Sal": "10.0k",
-          "Value": 45.11
-        },
-        {
-          "Driver": "Ryan Sieg",
-          "Qual": 7,
-          "DK Sal": "8.0k",
-          "Value": 42.14
-        },
-        {
-          "Driver": "Sammy Smith",
-          "Qual": 9,
-          "DK Sal": "9.5k",
-          "Value": 38.47
+          "DK Sal": "8.4k",
+          "Value": 43.42
         },
         {
           "Driver": "Sheldon Creed",
-          "Qual": 14,
+          "Qual": 15,
+          "DK Sal": "9.0k",
+          "Value": 42.43
+        },
+        {
+          "Driver": "Sam Mayer",
+          "Qual": 4,
+          "DK Sal": "9.5k",
+          "Value": 41.74
+        },
+        {
+          "Driver": "Sammy Smith",
+          "Qual": 22,
           "DK Sal": "8.8k",
-          "Value": 37.68
+          "Value": 39.03
+        },
+        {
+          "Driver": "Ryan Sieg",
+          "Qual": 13,
+          "DK Sal": "7.7k",
+          "Value": 34.06
+        },
+        {
+          "Driver": "Brandon Jones",
+          "Qual": 12,
+          "DK Sal": "8.3k",
+          "Value": 34.04
         }
       ]
     },
@@ -83,64 +83,64 @@
       ],
       "rows": [
         {
-          "Driver": "Justin Allgaier",
-          "Qual": 15,
-          "FD Sal": "10.0k",
-          "Value": 66.73
-        },
-        {
           "Driver": "Connor Zilisch",
-          "Qual": 4,
+          "Qual": 1,
           "FD Sal": "10.0k",
-          "Value": 66.69
+          "Value": 58.58
         },
         {
-          "Driver": "Taylor Gray",
-          "Qual": 38,
+          "Driver": "Aric Almirola",
+          "Qual": 7,
           "FD Sal": "10.0k",
-          "Value": 66.1
+          "Value": 56.99
+        },
+        {
+          "Driver": "Justin Allgaier",
+          "Qual": 14,
+          "FD Sal": "10.0k",
+          "Value": 55.83
         },
         {
           "Driver": "Jesse Love",
-          "Qual": 1,
+          "Qual": 18,
           "FD Sal": "10.0k",
-          "Value": 62.84
+          "Value": 53.1
         },
         {
-          "Driver": "Carson Hocevar",
-          "Qual": 3,
+          "Driver": "Sheldon Creed",
+          "Qual": 15,
           "FD Sal": "10.0k",
-          "Value": 62.51
-        },
-        {
-          "Driver": "Ross Chastain",
-          "Qual": 11,
-          "FD Sal": "10.0k",
-          "Value": 62.19
+          "Value": 52.66
         },
         {
           "Driver": "Sam Mayer",
-          "Qual": 5,
+          "Qual": 4,
           "FD Sal": "10.0k",
-          "Value": 61.39
+          "Value": 52.55
         },
         {
-          "Driver": "Ryan Sieg",
-          "Qual": 7,
+          "Driver": "Taylor Gray",
+          "Qual": 5,
           "FD Sal": "10.0k",
-          "Value": 60.91
+          "Value": 51.9
         },
         {
           "Driver": "Sammy Smith",
-          "Qual": 9,
+          "Qual": 22,
           "FD Sal": "10.0k",
-          "Value": 58.02
+          "Value": 48.48
         },
         {
-          "Driver": "Austin Dillon",
-          "Qual": 6,
+          "Driver": "William Sawalich",
+          "Qual": 3,
           "FD Sal": "10.0k",
-          "Value": 57.52
+          "Value": 47.94
+        },
+        {
+          "Driver": "Nicholas Sanchez",
+          "Qual": 2,
+          "FD Sal": "10.0k",
+          "Value": 47.66
         }
       ]
     },
@@ -155,53 +155,53 @@
       "rows": [
         {
           "Driver": "Connor Zilisch",
-          "Qual": 4,
-          "Value": "17.4%"
-        },
-        {
-          "Driver": "Jesse Love",
           "Qual": 1,
-          "Value": "12.8%"
+          "Value": "25.0%"
         },
         {
-          "Driver": "Carson Hocevar",
-          "Qual": 3,
-          "Value": "12.3%"
+          "Driver": "Aric Almirola",
+          "Qual": 7,
+          "Value": "17.6%"
         },
         {
           "Driver": "Sam Mayer",
+          "Qual": 4,
+          "Value": "13.0%"
+        },
+        {
+          "Driver": "Taylor Gray",
           "Qual": 5,
-          "Value": "10.5%"
-        },
-        {
-          "Driver": "Justin Allgaier",
-          "Qual": 15,
-          "Value": "9.1%"
-        },
-        {
-          "Driver": "Ryan Sieg",
-          "Qual": 7,
           "Value": "8.7%"
         },
         {
-          "Driver": "Ross Chastain",
-          "Qual": 11,
-          "Value": "7.2%"
+          "Driver": "Justin Allgaier",
+          "Qual": 14,
+          "Value": "7.4%"
         },
         {
-          "Driver": "Austin Dillon",
-          "Qual": 6,
-          "Value": "4.5%"
-        },
-        {
-          "Driver": "Sammy Smith",
-          "Qual": 9,
-          "Value": "3.9%"
+          "Driver": "Nicholas Sanchez",
+          "Qual": 2,
+          "Value": "5.5%"
         },
         {
           "Driver": "William Sawalich",
-          "Qual": 2,
-          "Value": "3.7%"
+          "Qual": 3,
+          "Value": "5.1%"
+        },
+        {
+          "Driver": "Sheldon Creed",
+          "Qual": 15,
+          "Value": "4.0%"
+        },
+        {
+          "Driver": "Jesse Love",
+          "Qual": 18,
+          "Value": "3.4%"
+        },
+        {
+          "Driver": "Austin Hill",
+          "Qual": 9,
+          "Value": "2.7%"
         }
       ]
     },
@@ -216,64 +216,64 @@
       ],
       "rows": [
         {
-          "Driver": "Taylor Gray",
-          "Qual": 38,
-          "DK Sal": "9.0k",
-          "Value": 6.23
+          "Driver": "Connor Zilisch",
+          "Qual": 1,
+          "DK Sal": "11.0k",
+          "Value": 6.36
         },
         {
-          "Driver": "Connor Zilisch",
-          "Qual": 4,
-          "DK Sal": "11.8k",
-          "Value": 5.52
+          "Driver": "Aric Almirola",
+          "Qual": 7,
+          "DK Sal": "10.5k",
+          "Value": 5.35
+        },
+        {
+          "Driver": "Taylor Gray",
+          "Qual": 5,
+          "DK Sal": "8.4k",
+          "Value": 5.17
         },
         {
           "Driver": "Jesse Love",
-          "Qual": 1,
-          "DK Sal": "10.5k",
-          "Value": 5.37
+          "Qual": 18,
+          "DK Sal": "9.2k",
+          "Value": 4.84
         },
         {
-          "Driver": "Ryan Sieg",
-          "Qual": 7,
-          "DK Sal": "8.0k",
-          "Value": 5.27
-        },
-        {
-          "Driver": "Justin Allgaier",
+          "Driver": "Sheldon Creed",
           "Qual": 15,
-          "DK Sal": "12.0k",
-          "Value": 4.94
-        },
-        {
-          "Driver": "Justin Bonsignore",
-          "Qual": 16,
-          "DK Sal": "7.4k",
-          "Value": 4.67
-        },
-        {
-          "Driver": "Carson Hocevar",
-          "Qual": 3,
-          "DK Sal": "11.0k",
-          "Value": 4.66
-        },
-        {
-          "Driver": "Harrison Burton",
-          "Qual": 17,
-          "DK Sal": "7.1k",
-          "Value": 4.61
-        },
-        {
-          "Driver": "Nicholas Sanchez",
-          "Qual": 26,
-          "DK Sal": "7.8k",
-          "Value": 4.58
+          "DK Sal": "9.0k",
+          "Value": 4.71
         },
         {
           "Driver": "William Sawalich",
-          "Qual": 2,
-          "DK Sal": "7.5k",
-          "Value": 4.55
+          "Qual": 3,
+          "DK Sal": "7.4k",
+          "Value": 4.59
+        },
+        {
+          "Driver": "Justin Allgaier",
+          "Qual": 14,
+          "DK Sal": "11.5k",
+          "Value": 4.48
+        },
+        {
+          "Driver": "Sammy Smith",
+          "Qual": 22,
+          "DK Sal": "8.8k",
+          "Value": 4.44
+        },
+        {
+          "Driver": "Ryan Sieg",
+          "Qual": 13,
+          "DK Sal": "7.7k",
+          "Value": 4.42
+        },
+        {
+          "Driver": "Sam Mayer",
+          "Qual": 4,
+          "DK Sal": "9.5k",
+          "Value": 4.39
         }
       ]
     },
@@ -288,64 +288,64 @@
       ],
       "rows": [
         {
-          "Driver": "Justin Allgaier",
-          "Qual": 15,
-          "FD Sal": "10.0k",
-          "Value": 6.67
-        },
-        {
           "Driver": "Connor Zilisch",
-          "Qual": 4,
+          "Qual": 1,
           "FD Sal": "10.0k",
-          "Value": 6.67
+          "Value": 5.86
         },
         {
-          "Driver": "Taylor Gray",
-          "Qual": 38,
+          "Driver": "Aric Almirola",
+          "Qual": 7,
           "FD Sal": "10.0k",
-          "Value": 6.61
+          "Value": 5.7
+        },
+        {
+          "Driver": "Justin Allgaier",
+          "Qual": 14,
+          "FD Sal": "10.0k",
+          "Value": 5.58
         },
         {
           "Driver": "Jesse Love",
-          "Qual": 1,
+          "Qual": 18,
           "FD Sal": "10.0k",
-          "Value": 6.28
+          "Value": 5.31
         },
         {
-          "Driver": "Carson Hocevar",
-          "Qual": 3,
+          "Driver": "Sheldon Creed",
+          "Qual": 15,
           "FD Sal": "10.0k",
-          "Value": 6.25
-        },
-        {
-          "Driver": "Ross Chastain",
-          "Qual": 11,
-          "FD Sal": "10.0k",
-          "Value": 6.22
+          "Value": 5.27
         },
         {
           "Driver": "Sam Mayer",
-          "Qual": 5,
+          "Qual": 4,
           "FD Sal": "10.0k",
-          "Value": 6.14
+          "Value": 5.26
         },
         {
-          "Driver": "Ryan Sieg",
-          "Qual": 7,
+          "Driver": "Taylor Gray",
+          "Qual": 5,
           "FD Sal": "10.0k",
-          "Value": 6.09
+          "Value": 5.19
         },
         {
           "Driver": "Sammy Smith",
-          "Qual": 9,
+          "Qual": 22,
           "FD Sal": "10.0k",
-          "Value": 5.8
+          "Value": 4.85
         },
         {
-          "Driver": "Austin Dillon",
-          "Qual": 6,
+          "Driver": "William Sawalich",
+          "Qual": 3,
           "FD Sal": "10.0k",
-          "Value": 5.75
+          "Value": 4.79
+        },
+        {
+          "Driver": "Nicholas Sanchez",
+          "Qual": 2,
+          "FD Sal": "10.0k",
+          "Value": 4.77
         }
       ]
     },
@@ -360,53 +360,53 @@
       "rows": [
         {
           "Driver": "Connor Zilisch",
-          "Qual": 4,
-          "Value": "45.3%"
-        },
-        {
-          "Driver": "Jesse Love",
           "Qual": 1,
-          "Value": "34.6%"
+          "Value": "53.7%"
         },
         {
-          "Driver": "Carson Hocevar",
-          "Qual": 3,
-          "Value": "31.7%"
+          "Driver": "Aric Almirola",
+          "Qual": 7,
+          "Value": "43.5%"
         },
         {
           "Driver": "Sam Mayer",
+          "Qual": 4,
+          "Value": "35.7%"
+        },
+        {
+          "Driver": "Taylor Gray",
           "Qual": 5,
-          "Value": "30.1%"
+          "Value": "27.2%"
         },
         {
           "Driver": "Justin Allgaier",
-          "Qual": 15,
-          "Value": "27.5%"
+          "Qual": 14,
+          "Value": "24.8%"
         },
         {
-          "Driver": "Ryan Sieg",
-          "Qual": 7,
-          "Value": "24.5%"
-        },
-        {
-          "Driver": "Ross Chastain",
-          "Qual": 11,
-          "Value": "22.5%"
-        },
-        {
-          "Driver": "Austin Dillon",
-          "Qual": 6,
-          "Value": "15.7%"
-        },
-        {
-          "Driver": "Sammy Smith",
-          "Qual": 9,
-          "Value": "13.8%"
+          "Driver": "Nicholas Sanchez",
+          "Qual": 2,
+          "Value": "19.6%"
         },
         {
           "Driver": "William Sawalich",
-          "Qual": 2,
-          "Value": "12.9%"
+          "Qual": 3,
+          "Value": "18.3%"
+        },
+        {
+          "Driver": "Sheldon Creed",
+          "Qual": 15,
+          "Value": "16.2%"
+        },
+        {
+          "Driver": "Jesse Love",
+          "Qual": 18,
+          "Value": "12.6%"
+        },
+        {
+          "Driver": "Austin Hill",
+          "Qual": 9,
+          "Value": "11.0%"
         }
       ]
     },
@@ -421,64 +421,64 @@
       ],
       "rows": [
         {
-          "Driver": "Taylor Gray",
-          "Qual": 38,
-          "DK Sal": "9.0k",
-          "Value": 28.4
+          "Driver": "Connor Zilisch",
+          "Qual": 1,
+          "DK Sal": "11.0k",
+          "Value": 33.85
+        },
+        {
+          "Driver": "Aric Almirola",
+          "Qual": 7,
+          "DK Sal": "10.5k",
+          "Value": 23.31
         },
         {
           "Driver": "Justin Allgaier",
-          "Qual": 15,
-          "DK Sal": "12.0k",
-          "Value": 19.03
-        },
-        {
-          "Driver": "Connor Zilisch",
-          "Qual": 4,
-          "DK Sal": "11.8k",
-          "Value": 16.54
-        },
-        {
-          "Driver": "Ross Chastain",
-          "Qual": 11,
+          "Qual": 14,
           "DK Sal": "11.5k",
-          "Value": 13.86
-        },
-        {
-          "Driver": "Sam Mayer",
-          "Qual": 5,
-          "DK Sal": "10.0k",
-          "Value": 11.17
-        },
-        {
-          "Driver": "Ryan Sieg",
-          "Qual": 7,
-          "DK Sal": "8.0k",
-          "Value": 11.03
-        },
-        {
-          "Driver": "Carson Hocevar",
-          "Qual": 3,
-          "DK Sal": "11.0k",
-          "Value": 10.88
+          "Value": 19.87
         },
         {
           "Driver": "Jesse Love",
-          "Qual": 1,
-          "DK Sal": "10.5k",
-          "Value": 9.22
-        },
-        {
-          "Driver": "Nicholas Sanchez",
-          "Qual": 26,
-          "DK Sal": "7.8k",
-          "Value": 9.08
+          "Qual": 18,
+          "DK Sal": "9.2k",
+          "Value": 16.72
         },
         {
           "Driver": "Sheldon Creed",
-          "Qual": 14,
+          "Qual": 15,
+          "DK Sal": "9.0k",
+          "Value": 15.33
+        },
+        {
+          "Driver": "Sammy Smith",
+          "Qual": 22,
           "DK Sal": "8.8k",
-          "Value": 8.5
+          "Value": 12.73
+        },
+        {
+          "Driver": "Sam Mayer",
+          "Qual": 4,
+          "DK Sal": "9.5k",
+          "Value": 12.61
+        },
+        {
+          "Driver": "Taylor Gray",
+          "Qual": 5,
+          "DK Sal": "8.4k",
+          "Value": 12.58
+        },
+        {
+          "Driver": "Ryan Sieg",
+          "Qual": 13,
+          "DK Sal": "7.7k",
+          "Value": 8
+        },
+        {
+          "Driver": "Brandon Jones",
+          "Qual": 12,
+          "DK Sal": "8.3k",
+          "Value": 7.15
         }
       ]
     },
@@ -493,64 +493,64 @@
       ],
       "rows": [
         {
-          "Driver": "Taylor Gray",
-          "Qual": 38,
+          "Driver": "Connor Zilisch",
+          "Qual": 1,
           "FD Sal": "10.0k",
-          "Value": 46.05
+          "Value": 39.57
+        },
+        {
+          "Driver": "Aric Almirola",
+          "Qual": 7,
+          "FD Sal": "10.0k",
+          "Value": 37.53
         },
         {
           "Driver": "Justin Allgaier",
-          "Qual": 15,
+          "Qual": 14,
           "FD Sal": "10.0k",
-          "Value": 44.77
-        },
-        {
-          "Driver": "Connor Zilisch",
-          "Qual": 4,
-          "FD Sal": "10.0k",
-          "Value": 44.47
-        },
-        {
-          "Driver": "Ross Chastain",
-          "Qual": 11,
-          "FD Sal": "10.0k",
-          "Value": 41.88
-        },
-        {
-          "Driver": "Sam Mayer",
-          "Qual": 5,
-          "FD Sal": "10.0k",
-          "Value": 41.34
-        },
-        {
-          "Driver": "Carson Hocevar",
-          "Qual": 3,
-          "FD Sal": "10.0k",
-          "Value": 41.33
-        },
-        {
-          "Driver": "Ryan Sieg",
-          "Qual": 7,
-          "FD Sal": "10.0k",
-          "Value": 40.77
+          "Value": 35.62
         },
         {
           "Driver": "Jesse Love",
-          "Qual": 1,
+          "Qual": 18,
           "FD Sal": "10.0k",
-          "Value": 40.54
+          "Value": 33.29
+        },
+        {
+          "Driver": "Sam Mayer",
+          "Qual": 4,
+          "FD Sal": "10.0k",
+          "Value": 33.11
+        },
+        {
+          "Driver": "Sheldon Creed",
+          "Qual": 15,
+          "FD Sal": "10.0k",
+          "Value": 33
+        },
+        {
+          "Driver": "Taylor Gray",
+          "Qual": 5,
+          "FD Sal": "10.0k",
+          "Value": 32.27
         },
         {
           "Driver": "Sammy Smith",
-          "Qual": 9,
+          "Qual": 22,
           "FD Sal": "10.0k",
-          "Value": 37.45
+          "Value": 29.29
         },
         {
-          "Driver": "Austin Dillon",
-          "Qual": 6,
+          "Driver": "William Sawalich",
+          "Qual": 3,
           "FD Sal": "10.0k",
-          "Value": 37.22
+          "Value": 28.51
+        },
+        {
+          "Driver": "Nicholas Sanchez",
+          "Qual": 2,
+          "FD Sal": "10.0k",
+          "Value": 28.41
         }
       ]
     },
@@ -565,53 +565,53 @@
       "rows": [
         {
           "Driver": "Connor Zilisch",
-          "Qual": 4,
-          "Value": "61.3%"
-        },
-        {
-          "Driver": "Jesse Love",
           "Qual": 1,
-          "Value": "51.5%"
+          "Value": "70.5%"
         },
         {
-          "Driver": "Carson Hocevar",
-          "Qual": 3,
-          "Value": "50.7%"
+          "Driver": "Aric Almirola",
+          "Qual": 7,
+          "Value": "61.2%"
         },
         {
           "Driver": "Sam Mayer",
+          "Qual": 4,
+          "Value": "53.8%"
+        },
+        {
+          "Driver": "Taylor Gray",
           "Qual": 5,
-          "Value": "46.2%"
+          "Value": "43.8%"
         },
         {
           "Driver": "Justin Allgaier",
-          "Qual": 15,
-          "Value": "42.4%"
+          "Qual": 14,
+          "Value": "41.3%"
         },
         {
-          "Driver": "Ryan Sieg",
-          "Qual": 7,
-          "Value": "41.2%"
-        },
-        {
-          "Driver": "Ross Chastain",
-          "Qual": 11,
-          "Value": "36.9%"
-        },
-        {
-          "Driver": "Austin Dillon",
-          "Qual": 6,
-          "Value": "27.8%"
+          "Driver": "Nicholas Sanchez",
+          "Qual": 2,
+          "Value": "34.5%"
         },
         {
           "Driver": "William Sawalich",
-          "Qual": 2,
-          "Value": "25.5%"
+          "Qual": 3,
+          "Value": "32.6%"
         },
         {
-          "Driver": "Sammy Smith",
+          "Driver": "Sheldon Creed",
+          "Qual": 15,
+          "Value": "29.4%"
+        },
+        {
+          "Driver": "Jesse Love",
+          "Qual": 18,
+          "Value": "25.0%"
+        },
+        {
+          "Driver": "Austin Hill",
           "Qual": 9,
-          "Value": "24.6%"
+          "Value": "21.6%"
         }
       ]
     },
@@ -626,64 +626,64 @@
       ],
       "rows": [
         {
-          "Driver": "Taylor Gray",
-          "Qual": 38,
-          "DK Sal": "9.0k",
-          "Value": 82.94
+          "Driver": "Connor Zilisch",
+          "Qual": 1,
+          "DK Sal": "11.0k",
+          "Value": 90.16
+        },
+        {
+          "Driver": "Aric Almirola",
+          "Qual": 7,
+          "DK Sal": "10.5k",
+          "Value": 76.34
         },
         {
           "Driver": "Justin Allgaier",
-          "Qual": 15,
-          "DK Sal": "12.0k",
-          "Value": 70.58
+          "Qual": 14,
+          "DK Sal": "11.5k",
+          "Value": 71.14
         },
         {
-          "Driver": "Connor Zilisch",
-          "Qual": 4,
-          "DK Sal": "11.8k",
-          "Value": 67.46
+          "Driver": "Sammy Smith",
+          "Qual": 22,
+          "DK Sal": "8.8k",
+          "Value": 68.15
         },
         {
           "Driver": "Jesse Love",
-          "Qual": 1,
-          "DK Sal": "10.5k",
-          "Value": 64.8
+          "Qual": 18,
+          "DK Sal": "9.2k",
+          "Value": 65.66
         },
         {
-          "Driver": "Nicholas Sanchez",
-          "Qual": 26,
-          "DK Sal": "7.8k",
-          "Value": 62.44
-        },
-        {
-          "Driver": "Justin Bonsignore",
-          "Qual": 16,
-          "DK Sal": "7.4k",
-          "Value": 61.94
-        },
-        {
-          "Driver": "Christian Eckes",
-          "Qual": 25,
-          "DK Sal": "8.2k",
-          "Value": 61.59
-        },
-        {
-          "Driver": "Ross Chastain",
-          "Qual": 11,
-          "DK Sal": "11.5k",
-          "Value": 61.02
+          "Driver": "Taylor Gray",
+          "Qual": 5,
+          "DK Sal": "8.4k",
+          "Value": 63.77
         },
         {
           "Driver": "Sheldon Creed",
-          "Qual": 14,
-          "DK Sal": "8.8k",
-          "Value": 60.23
+          "Qual": 15,
+          "DK Sal": "9.0k",
+          "Value": 61.56
         },
         {
-          "Driver": "Carson Hocevar",
-          "Qual": 3,
-          "DK Sal": "11.0k",
-          "Value": 60.01
+          "Driver": "Brandon Jones",
+          "Qual": 12,
+          "DK Sal": "8.3k",
+          "Value": 59.11
+        },
+        {
+          "Driver": "Ryan Sieg",
+          "Qual": 13,
+          "DK Sal": "7.7k",
+          "Value": 58.83
+        },
+        {
+          "Driver": "Parker Retzlaff",
+          "Qual": 26,
+          "DK Sal": "6.6k",
+          "Value": 58
         }
       ]
     },
@@ -698,64 +698,64 @@
       ],
       "rows": [
         {
-          "Driver": "Taylor Gray",
-          "Qual": 38,
+          "Driver": "Sammy Smith",
+          "Qual": 22,
           "FD Sal": "10.0k",
-          "Value": 86.28
-        },
-        {
-          "Driver": "Justin Allgaier",
-          "Qual": 15,
-          "FD Sal": "10.0k",
-          "Value": 79.03
-        },
-        {
-          "Driver": "Connor Zilisch",
-          "Qual": 4,
-          "FD Sal": "10.0k",
-          "Value": 76.69
-        },
-        {
-          "Driver": "Justin Bonsignore",
-          "Qual": 16,
-          "FD Sal": "10.0k",
-          "Value": 75.43
+          "Value": 69.06
         },
         {
           "Driver": "Jesse Love",
-          "Qual": 1,
+          "Qual": 18,
           "FD Sal": "10.0k",
-          "Value": 75.32
+          "Value": 67.32
         },
         {
-          "Driver": "Ross Chastain",
-          "Qual": 11,
+          "Driver": "Justin Allgaier",
+          "Qual": 14,
           "FD Sal": "10.0k",
-          "Value": 74.81
+          "Value": 67
+        },
+        {
+          "Driver": "Connor Zilisch",
+          "Qual": 1,
+          "FD Sal": "10.0k",
+          "Value": 66.17
+        },
+        {
+          "Driver": "Aric Almirola",
+          "Qual": 7,
+          "FD Sal": "10.0k",
+          "Value": 65.66
         },
         {
           "Driver": "Sheldon Creed",
-          "Qual": 14,
+          "Qual": 15,
           "FD Sal": "10.0k",
-          "Value": 74.79
+          "Value": 65.63
         },
         {
-          "Driver": "Harrison Burton",
-          "Qual": 17,
+          "Driver": "Ryan Sieg",
+          "Qual": 13,
           "FD Sal": "10.0k",
-          "Value": 74.42
+          "Value": 64.5
         },
         {
-          "Driver": "Nicholas Sanchez",
-          "Qual": 26,
+          "Driver": "Brandon Jones",
+          "Qual": 12,
           "FD Sal": "10.0k",
-          "Value": 74.18
+          "Value": 64.23
         },
         {
-          "Driver": "Christian Eckes",
-          "Qual": 25,
+          "Driver": "Taylor Gray",
+          "Qual": 5,
           "FD Sal": "10.0k",
-          "Value": 73.76
+          "Value": 62.79
+        },
+        {
+          "Driver": "Austin Hill",
+          "Qual": 9,
+          "FD Sal": "10.0k",
+          "Value": 62.46
         }
       ]
     },
@@ -770,53 +770,53 @@
       "rows": [
         {
           "Driver": "Connor Zilisch",
-          "Qual": 4,
+          "Qual": 1,
+          "Value": "91.0%"
+        },
+        {
+          "Driver": "Aric Almirola",
+          "Qual": 7,
           "Value": "86.2%"
         },
         {
-          "Driver": "Carson Hocevar",
-          "Qual": 3,
-          "Value": "79.5%"
-        },
-        {
-          "Driver": "Jesse Love",
-          "Qual": 1,
-          "Value": "79.5%"
-        },
-        {
           "Driver": "Sam Mayer",
+          "Qual": 4,
+          "Value": "81.9%"
+        },
+        {
+          "Driver": "Taylor Gray",
           "Qual": 5,
-          "Value": "75.6%"
+          "Value": "75.2%"
         },
         {
           "Driver": "Justin Allgaier",
-          "Qual": 15,
-          "Value": "73.6%"
+          "Qual": 14,
+          "Value": "72.9%"
         },
         {
-          "Driver": "Ryan Sieg",
-          "Qual": 7,
-          "Value": "72.6%"
-        },
-        {
-          "Driver": "Ross Chastain",
-          "Qual": 11,
-          "Value": "68.0%"
-        },
-        {
-          "Driver": "Austin Dillon",
-          "Qual": 6,
-          "Value": "59.8%"
+          "Driver": "Nicholas Sanchez",
+          "Qual": 2,
+          "Value": "67.2%"
         },
         {
           "Driver": "William Sawalich",
-          "Qual": 2,
-          "Value": "55.3%"
+          "Qual": 3,
+          "Value": "66.1%"
         },
         {
-          "Driver": "Sammy Smith",
+          "Driver": "Sheldon Creed",
+          "Qual": 15,
+          "Value": "61.9%"
+        },
+        {
+          "Driver": "Jesse Love",
+          "Qual": 18,
+          "Value": "56.3%"
+        },
+        {
+          "Driver": "Austin Hill",
           "Qual": 9,
-          "Value": "54.8%"
+          "Value": "52.3%"
         }
       ]
     },
@@ -831,64 +831,64 @@
       ],
       "rows": [
         {
-          "Driver": "Taylor Gray",
-          "Qual": 38,
-          "DK Sal": "9.0k",
-          "Value": 48.79
-        },
-        {
           "Driver": "Connor Zilisch",
-          "Qual": 4,
-          "DK Sal": "11.8k",
-          "Value": 41.23
-        },
-        {
-          "Driver": "Jesse Love",
           "Qual": 1,
-          "DK Sal": "10.5k",
-          "Value": 37.65
+          "DK Sal": "11.0k",
+          "Value": 55.3
         },
         {
-          "Driver": "Ryan Sieg",
+          "Driver": "Aric Almirola",
           "Qual": 7,
-          "DK Sal": "8.0k",
-          "Value": 36.22
+          "DK Sal": "10.5k",
+          "Value": 37.73
         },
         {
-          "Driver": "Jeb Burton",
-          "Qual": 33,
-          "DK Sal": "6.7k",
-          "Value": 31.43
+          "Driver": "Taylor Gray",
+          "Qual": 5,
+          "DK Sal": "8.4k",
+          "Value": 37.34
         },
         {
           "Driver": "Justin Allgaier",
-          "Qual": 15,
-          "DK Sal": "12.0k",
-          "Value": 31.32
-        },
-        {
-          "Driver": "Nicholas Sanchez",
-          "Qual": 26,
-          "DK Sal": "7.8k",
-          "Value": 24.72
-        },
-        {
-          "Driver": "Sheldon Creed",
           "Qual": 14,
-          "DK Sal": "8.8k",
-          "Value": 23.32
+          "DK Sal": "11.5k",
+          "Value": 32.75
         },
         {
-          "Driver": "Ryan Ellis",
-          "Qual": 34,
-          "DK Sal": "5.1k",
-          "Value": 22.43
+          "Driver": "Sammy Smith",
+          "Qual": 22,
+          "DK Sal": "8.8k",
+          "Value": 31.85
         },
         {
           "Driver": "Parker Retzlaff",
-          "Qual": 28,
-          "DK Sal": "6.4k",
-          "Value": 22.29
+          "Qual": 26,
+          "DK Sal": "6.6k",
+          "Value": 27.74
+        },
+        {
+          "Driver": "Jesse Love",
+          "Qual": 18,
+          "DK Sal": "9.2k",
+          "Value": 25
+        },
+        {
+          "Driver": "Ryan Sieg",
+          "Qual": 13,
+          "DK Sal": "7.7k",
+          "Value": 23.08
+        },
+        {
+          "Driver": "Brandon Jones",
+          "Qual": 12,
+          "DK Sal": "8.3k",
+          "Value": 22.48
+        },
+        {
+          "Driver": "Sheldon Creed",
+          "Qual": 15,
+          "DK Sal": "9.0k",
+          "Value": 22.37
         }
       ]
     },
@@ -903,64 +903,64 @@
       ],
       "rows": [
         {
-          "Driver": "Justin Allgaier",
-          "Qual": 15,
-          "FD Sal": "10.0k",
-          "Value": 40.9
-        },
-        {
-          "Driver": "Taylor Gray",
-          "Qual": 38,
-          "FD Sal": "10.0k",
-          "Value": 40.73
-        },
-        {
           "Driver": "Connor Zilisch",
-          "Qual": 4,
+          "Qual": 1,
           "FD Sal": "10.0k",
-          "Value": 39.25
+          "Value": 46.38
         },
         {
-          "Driver": "Ross Chastain",
-          "Qual": 11,
+          "Driver": "Aric Almirola",
+          "Qual": 7,
           "FD Sal": "10.0k",
-          "Value": 29.83
+          "Value": 43.74
+        },
+        {
+          "Driver": "Justin Allgaier",
+          "Qual": 14,
+          "FD Sal": "10.0k",
+          "Value": 41.08
         },
         {
           "Driver": "Jesse Love",
-          "Qual": 1,
+          "Qual": 18,
           "FD Sal": "10.0k",
-          "Value": 29.7
+          "Value": 34.04
         },
         {
-          "Driver": "Carson Hocevar",
-          "Qual": 3,
+          "Driver": "Sheldon Creed",
+          "Qual": 15,
           "FD Sal": "10.0k",
-          "Value": 29.63
+          "Value": 32.95
         },
         {
           "Driver": "Sam Mayer",
-          "Qual": 5,
+          "Qual": 4,
           "FD Sal": "10.0k",
-          "Value": 27.73
+          "Value": 32.2
         },
         {
-          "Driver": "Ryan Sieg",
-          "Qual": 7,
+          "Driver": "Taylor Gray",
+          "Qual": 5,
           "FD Sal": "10.0k",
-          "Value": 27.05
+          "Value": 30.21
         },
         {
           "Driver": "Sammy Smith",
-          "Qual": 9,
+          "Qual": 22,
           "FD Sal": "10.0k",
-          "Value": 21.13
+          "Value": 23.05
         },
         {
-          "Driver": "Austin Dillon",
-          "Qual": 6,
+          "Driver": "William Sawalich",
+          "Qual": 3,
           "FD Sal": "10.0k",
-          "Value": 20.14
+          "Value": 21.68
+        },
+        {
+          "Driver": "Nicholas Sanchez",
+          "Qual": 2,
+          "FD Sal": "10.0k",
+          "Value": 21.16
         }
       ]
     },
@@ -974,54 +974,54 @@
       ],
       "rows": [
         {
-          "Driver": "Jesse Love",
-          "Qual": 1,
-          "Value": 0.0027
-        },
-        {
-          "Driver": "Kyle Sieg",
-          "Qual": 24,
-          "Value": -0.0005
-        },
-        {
-          "Driver": "Mason Massey",
-          "Qual": 31,
-          "Value": -0.0005
-        },
-        {
           "Driver": "Ryan Ellis",
-          "Qual": 34,
-          "Value": -0.0005
-        },
-        {
-          "Driver": "Josh Bilicki",
-          "Qual": 29,
-          "Value": -0.0005
-        },
-        {
-          "Driver": "Thomas Annunziata",
-          "Qual": 23,
-          "Value": -0.0005
-        },
-        {
-          "Driver": "Garrett Smithley",
-          "Qual": 30,
-          "Value": -0.0005
-        },
-        {
-          "Driver": "Joey Gase",
           "Qual": 32,
           "Value": -0.0005
         },
         {
-          "Driver": "Patrick Emerling",
+          "Driver": "Lavar Scott",
+          "Qual": 36,
+          "Value": -0.0005
+        },
+        {
+          "Driver": "Thomas Annunziata",
+          "Qual": 29,
+          "Value": -0.0005
+        },
+        {
+          "Driver": "Garrett Smithley",
+          "Qual": 33,
+          "Value": -0.0005
+        },
+        {
+          "Driver": "Nick Leitz",
+          "Qual": 34,
+          "Value": -0.0005
+        },
+        {
+          "Driver": "Matt Mills",
+          "Qual": 37,
+          "Value": -0.0005
+        },
+        {
+          "Driver": "Joey Gase",
+          "Qual": 38,
+          "Value": -0.0005
+        },
+        {
+          "Driver": "Glen Reen",
           "Qual": 35,
           "Value": -0.0005
         },
         {
-          "Driver": "Dawson Cram",
-          "Qual": 36,
-          "Value": -0.0005
+          "Driver": "Brennan Poole",
+          "Qual": 27,
+          "Value": -0.001
+        },
+        {
+          "Driver": "Blaine Perkins",
+          "Qual": 25,
+          "Value": -0.001
         }
       ]
     },
@@ -1036,64 +1036,64 @@
       ],
       "rows": [
         {
-          "Driver": "Taylor Gray",
-          "Qual": 38,
-          "DK Sal": "9.0k",
-          "Value": 55.51
-        },
-        {
           "Driver": "Connor Zilisch",
-          "Qual": 4,
-          "DK Sal": "11.8k",
-          "Value": 40.48
-        },
-        {
-          "Driver": "Ryan Sieg",
-          "Qual": 7,
-          "DK Sal": "8.0k",
-          "Value": 39.8
-        },
-        {
-          "Driver": "Jesse Love",
           "Qual": 1,
+          "DK Sal": "11.0k",
+          "Value": 60.16
+        },
+        {
+          "Driver": "Taylor Gray",
+          "Qual": 5,
+          "DK Sal": "8.4k",
+          "Value": 43.62
+        },
+        {
+          "Driver": "Aric Almirola",
+          "Qual": 7,
           "DK Sal": "10.5k",
-          "Value": 36.63
-        },
-        {
-          "Driver": "Justin Bonsignore",
-          "Qual": 16,
-          "DK Sal": "7.4k",
-          "Value": 27.63
-        },
-        {
-          "Driver": "Harrison Burton",
-          "Qual": 17,
-          "DK Sal": "7.1k",
-          "Value": 26.86
-        },
-        {
-          "Driver": "Justin Allgaier",
-          "Qual": 15,
-          "DK Sal": "12.0k",
-          "Value": 26.18
-        },
-        {
-          "Driver": "Nicholas Sanchez",
-          "Qual": 26,
-          "DK Sal": "7.8k",
-          "Value": 26.12
-        },
-        {
-          "Driver": "Ryan Ellis",
-          "Qual": 34,
-          "DK Sal": "5.1k",
-          "Value": 26.12
+          "Value": 41.61
         },
         {
           "Driver": "William Sawalich",
-          "Qual": 2,
-          "DK Sal": "7.5k",
-          "Value": 24.29
+          "Qual": 3,
+          "DK Sal": "7.4k",
+          "Value": 33.82
+        },
+        {
+          "Driver": "Jesse Love",
+          "Qual": 18,
+          "DK Sal": "9.2k",
+          "Value": 33.26
+        },
+        {
+          "Driver": "Sheldon Creed",
+          "Qual": 15,
+          "DK Sal": "9.0k",
+          "Value": 31.57
+        },
+        {
+          "Driver": "Ryan Sieg",
+          "Qual": 13,
+          "DK Sal": "7.7k",
+          "Value": 28.92
+        },
+        {
+          "Driver": "Parker Retzlaff",
+          "Qual": 26,
+          "DK Sal": "6.6k",
+          "Value": 28.25
+        },
+        {
+          "Driver": "Sammy Smith",
+          "Qual": 22,
+          "DK Sal": "8.8k",
+          "Value": 25.99
+        },
+        {
+          "Driver": "Jeremy Clements",
+          "Qual": 31,
+          "DK Sal": "6.2k",
+          "Value": 24.19
         }
       ]
     },
@@ -1108,64 +1108,64 @@
       ],
       "rows": [
         {
-          "Driver": "Justin Allgaier",
-          "Qual": 15,
-          "FD Sal": "10.0k",
-          "Value": 49.85
-        },
-        {
           "Driver": "Connor Zilisch",
-          "Qual": 4,
+          "Qual": 1,
           "FD Sal": "10.0k",
-          "Value": 48.77
+          "Value": 62.13
         },
         {
-          "Driver": "Taylor Gray",
-          "Qual": 38,
+          "Driver": "Aric Almirola",
+          "Qual": 7,
           "FD Sal": "10.0k",
-          "Value": 47.35
+          "Value": 56.34
+        },
+        {
+          "Driver": "Justin Allgaier",
+          "Qual": 14,
+          "FD Sal": "10.0k",
+          "Value": 51.61
         },
         {
           "Driver": "Jesse Love",
-          "Qual": 1,
+          "Qual": 18,
           "FD Sal": "10.0k",
-          "Value": 37.43
+          "Value": 42.19
         },
         {
-          "Driver": "Carson Hocevar",
-          "Qual": 3,
+          "Driver": "Sheldon Creed",
+          "Qual": 15,
           "FD Sal": "10.0k",
-          "Value": 36.66
-        },
-        {
-          "Driver": "Ross Chastain",
-          "Qual": 11,
-          "FD Sal": "10.0k",
-          "Value": 35.28
+          "Value": 41.02
         },
         {
           "Driver": "Sam Mayer",
-          "Qual": 5,
+          "Qual": 4,
           "FD Sal": "10.0k",
-          "Value": 32.35
+          "Value": 39.6
         },
         {
-          "Driver": "Ryan Sieg",
-          "Qual": 7,
+          "Driver": "Taylor Gray",
+          "Qual": 5,
           "FD Sal": "10.0k",
-          "Value": 30.66
+          "Value": 37.2
         },
         {
           "Driver": "Sammy Smith",
-          "Qual": 9,
+          "Qual": 22,
           "FD Sal": "10.0k",
-          "Value": 22.22
+          "Value": 23.39
         },
         {
-          "Driver": "Austin Dillon",
-          "Qual": 6,
+          "Driver": "William Sawalich",
+          "Qual": 3,
           "FD Sal": "10.0k",
-          "Value": 20.71
+          "Value": 21.8
+        },
+        {
+          "Driver": "Nicholas Sanchez",
+          "Qual": 2,
+          "FD Sal": "10.0k",
+          "Value": 21.13
         }
       ]
     },
@@ -1180,53 +1180,53 @@
       "rows": [
         {
           "Driver": "Connor Zilisch",
-          "Qual": 4,
-          "Value": 0.4533
-        },
-        {
-          "Driver": "Jesse Love",
           "Qual": 1,
-          "Value": 0.3463
+          "Value": 0.5374
         },
         {
-          "Driver": "Carson Hocevar",
-          "Qual": 3,
-          "Value": 0.317
+          "Driver": "Aric Almirola",
+          "Qual": 7,
+          "Value": 0.4351
         },
         {
           "Driver": "Sam Mayer",
+          "Qual": 4,
+          "Value": 0.357
+        },
+        {
+          "Driver": "Taylor Gray",
           "Qual": 5,
-          "Value": 0.3015
+          "Value": 0.2723
         },
         {
           "Driver": "Justin Allgaier",
-          "Qual": 15,
-          "Value": 0.2749
+          "Qual": 14,
+          "Value": 0.248
         },
         {
-          "Driver": "Ryan Sieg",
-          "Qual": 7,
-          "Value": 0.245
-        },
-        {
-          "Driver": "Ross Chastain",
-          "Qual": 11,
-          "Value": 0.225
-        },
-        {
-          "Driver": "Austin Dillon",
-          "Qual": 6,
-          "Value": 0.1572
-        },
-        {
-          "Driver": "Sammy Smith",
-          "Qual": 9,
-          "Value": 0.1375
+          "Driver": "Nicholas Sanchez",
+          "Qual": 2,
+          "Value": 0.1962
         },
         {
           "Driver": "William Sawalich",
-          "Qual": 2,
-          "Value": 0.129
+          "Qual": 3,
+          "Value": 0.1831
+        },
+        {
+          "Driver": "Sheldon Creed",
+          "Qual": 15,
+          "Value": 0.1621
+        },
+        {
+          "Driver": "Jesse Love",
+          "Qual": 18,
+          "Value": 0.1257
+        },
+        {
+          "Driver": "Austin Hill",
+          "Qual": 9,
+          "Value": 0.1098
         }
       ]
     },
@@ -1242,63 +1242,63 @@
       "rows": [
         {
           "Driver": "William Sawalich",
-          "Qual": 2,
-          "DK Sal": "7.5k",
-          "Value": 8.22
-        },
-        {
-          "Driver": "Harrison Burton",
-          "Qual": 17,
-          "DK Sal": "7.1k",
-          "Value": 7.66
-        },
-        {
-          "Driver": "Justin Bonsignore",
-          "Qual": 16,
+          "Qual": 3,
           "DK Sal": "7.4k",
-          "Value": 7.01
+          "Value": 12.15
+        },
+        {
+          "Driver": "Sheldon Creed",
+          "Qual": 15,
+          "DK Sal": "9.0k",
+          "Value": 9.2
+        },
+        {
+          "Driver": "Jesse Love",
+          "Qual": 18,
+          "DK Sal": "9.2k",
+          "Value": 8.26
+        },
+        {
+          "Driver": "Lavar Scott",
+          "Qual": 36,
+          "DK Sal": "5.3k",
+          "Value": 7.94
         },
         {
           "Driver": "Taylor Gray",
-          "Qual": 38,
-          "DK Sal": "9.0k",
-          "Value": 6.72
-        },
-        {
-          "Driver": "Joey Gase",
-          "Qual": 32,
-          "DK Sal": "4.8k",
-          "Value": 6.19
-        },
-        {
-          "Driver": "Corey Day",
-          "Qual": 18,
-          "DK Sal": "7.2k",
-          "Value": 4.77
-        },
-        {
-          "Driver": "Tyler Tomassi",
-          "Qual": 37,
-          "DK Sal": "4.5k",
-          "Value": 3.71
-        },
-        {
-          "Driver": "Ryan Ellis",
-          "Qual": 34,
-          "DK Sal": "5.1k",
-          "Value": 3.69
-        },
-        {
-          "Driver": "Patrick Emerling",
-          "Qual": 35,
-          "DK Sal": "5.2k",
-          "Value": 3.68
+          "Qual": 5,
+          "DK Sal": "8.4k",
+          "Value": 6.28
         },
         {
           "Driver": "Ryan Sieg",
+          "Qual": 13,
+          "DK Sal": "7.7k",
+          "Value": 5.84
+        },
+        {
+          "Driver": "Connor Zilisch",
+          "Qual": 1,
+          "DK Sal": "11.0k",
+          "Value": 4.86
+        },
+        {
+          "Driver": "Nick Leitz",
+          "Qual": 34,
+          "DK Sal": "5.0k",
+          "Value": 3.93
+        },
+        {
+          "Driver": "Sam Mayer",
+          "Qual": 4,
+          "DK Sal": "9.5k",
+          "Value": 3.91
+        },
+        {
+          "Driver": "Aric Almirola",
           "Qual": 7,
-          "DK Sal": "8.0k",
-          "Value": 3.58
+          "DK Sal": "10.5k",
+          "Value": 3.88
         }
       ]
     },
@@ -1314,63 +1314,63 @@
       "rows": [
         {
           "Driver": "Connor Zilisch",
-          "Qual": 4,
+          "Qual": 1,
           "FD Sal": "10.0k",
-          "Value": 9.52
+          "Value": 15.75
+        },
+        {
+          "Driver": "Aric Almirola",
+          "Qual": 7,
+          "FD Sal": "10.0k",
+          "Value": 12.6
         },
         {
           "Driver": "Justin Allgaier",
-          "Qual": 15,
+          "Qual": 14,
           "FD Sal": "10.0k",
-          "Value": 8.95
+          "Value": 10.53
         },
         {
           "Driver": "Jesse Love",
-          "Qual": 1,
+          "Qual": 18,
           "FD Sal": "10.0k",
-          "Value": 7.73
+          "Value": 8.15
         },
         {
-          "Driver": "Carson Hocevar",
-          "Qual": 3,
+          "Driver": "Sheldon Creed",
+          "Qual": 15,
           "FD Sal": "10.0k",
-          "Value": 7.03
-        },
-        {
-          "Driver": "Taylor Gray",
-          "Qual": 38,
-          "FD Sal": "10.0k",
-          "Value": 6.62
-        },
-        {
-          "Driver": "Ross Chastain",
-          "Qual": 11,
-          "FD Sal": "10.0k",
-          "Value": 5.45
+          "Value": 8.07
         },
         {
           "Driver": "Sam Mayer",
-          "Qual": 5,
+          "Qual": 4,
           "FD Sal": "10.0k",
-          "Value": 4.62
+          "Value": 7.4
         },
         {
-          "Driver": "Ryan Sieg",
-          "Qual": 7,
+          "Driver": "Taylor Gray",
+          "Qual": 5,
           "FD Sal": "10.0k",
-          "Value": 3.61
+          "Value": 6.99
         },
         {
           "Driver": "Sammy Smith",
-          "Qual": 9,
+          "Qual": 22,
           "FD Sal": "10.0k",
-          "Value": 1.09
+          "Value": 0.34
         },
         {
-          "Driver": "Austin Dillon",
-          "Qual": 6,
+          "Driver": "William Sawalich",
+          "Qual": 3,
           "FD Sal": "10.0k",
-          "Value": 0.57
+          "Value": 0.12
+        },
+        {
+          "Driver": "Nicholas Sanchez",
+          "Qual": 2,
+          "FD Sal": "10.0k",
+          "Value": -0.03
         }
       ]
     },
@@ -1385,53 +1385,53 @@
       "rows": [
         {
           "Driver": "Connor Zilisch",
-          "Qual": 4,
-          "Value": 0.6132
-        },
-        {
-          "Driver": "Jesse Love",
           "Qual": 1,
-          "Value": 0.5148
+          "Value": 0.7046
         },
         {
-          "Driver": "Carson Hocevar",
-          "Qual": 3,
-          "Value": 0.507
+          "Driver": "Aric Almirola",
+          "Qual": 7,
+          "Value": 0.6116
         },
         {
           "Driver": "Sam Mayer",
+          "Qual": 4,
+          "Value": 0.538
+        },
+        {
+          "Driver": "Taylor Gray",
           "Qual": 5,
-          "Value": 0.4623
+          "Value": 0.4381
         },
         {
           "Driver": "Justin Allgaier",
-          "Qual": 15,
-          "Value": 0.4242
+          "Qual": 14,
+          "Value": 0.4128
         },
         {
-          "Driver": "Ryan Sieg",
-          "Qual": 7,
-          "Value": 0.4123
-        },
-        {
-          "Driver": "Ross Chastain",
-          "Qual": 11,
-          "Value": 0.3693
-        },
-        {
-          "Driver": "Austin Dillon",
-          "Qual": 6,
-          "Value": 0.278
+          "Driver": "Nicholas Sanchez",
+          "Qual": 2,
+          "Value": 0.3451
         },
         {
           "Driver": "William Sawalich",
-          "Qual": 2,
-          "Value": 0.2546
+          "Qual": 3,
+          "Value": 0.3256
         },
         {
-          "Driver": "Sammy Smith",
+          "Driver": "Sheldon Creed",
+          "Qual": 15,
+          "Value": 0.2936
+        },
+        {
+          "Driver": "Jesse Love",
+          "Qual": 18,
+          "Value": 0.2502
+        },
+        {
+          "Driver": "Austin Hill",
           "Qual": 9,
-          "Value": 0.2465
+          "Value": 0.2165
         }
       ]
     },
@@ -1446,64 +1446,64 @@
       ],
       "rows": [
         {
-          "Driver": "Taylor Gray",
-          "Qual": 38,
-          "DK Sal": "9.0k",
+          "Driver": "Connor Zilisch",
+          "Qual": 1,
+          "DK Sal": "11.0k",
           "Value": 100
         },
         {
-          "Driver": "Connor Zilisch",
-          "Qual": 4,
-          "DK Sal": "11.8k",
-          "Value": 97.7
+          "Driver": "Aric Almirola",
+          "Qual": 7,
+          "DK Sal": "10.5k",
+          "Value": 74.82
         },
         {
           "Driver": "Justin Allgaier",
-          "Qual": 15,
-          "DK Sal": "12.0k",
-          "Value": 87.67
+          "Qual": 14,
+          "DK Sal": "11.5k",
+          "Value": 62.41
+        },
+        {
+          "Driver": "Taylor Gray",
+          "Qual": 5,
+          "DK Sal": "8.4k",
+          "Value": 56.55
         },
         {
           "Driver": "Jesse Love",
-          "Qual": 1,
-          "DK Sal": "10.5k",
-          "Value": 82.94
-        },
-        {
-          "Driver": "Carson Hocevar",
-          "Qual": 3,
-          "DK Sal": "11.0k",
-          "Value": 70.96
-        },
-        {
-          "Driver": "Ryan Sieg",
-          "Qual": 7,
-          "DK Sal": "8.0k",
-          "Value": 64.61
-        },
-        {
-          "Driver": "Ross Chastain",
-          "Qual": 11,
-          "DK Sal": "11.5k",
-          "Value": 62.29
-        },
-        {
-          "Driver": "Sam Mayer",
-          "Qual": 5,
-          "DK Sal": "10.0k",
-          "Value": 62.05
-        },
-        {
-          "Driver": "Nicholas Sanchez",
-          "Qual": 26,
-          "DK Sal": "7.8k",
-          "Value": 53.75
+          "Qual": 18,
+          "DK Sal": "9.2k",
+          "Value": 56.36
         },
         {
           "Driver": "Sheldon Creed",
-          "Qual": 14,
+          "Qual": 15,
+          "DK Sal": "9.0k",
+          "Value": 52.38
+        },
+        {
+          "Driver": "Sammy Smith",
+          "Qual": 22,
           "DK Sal": "8.8k",
-          "Value": 52.27
+          "Value": 48.39
+        },
+        {
+          "Driver": "Sam Mayer",
+          "Qual": 4,
+          "DK Sal": "9.5k",
+          "Value": 47.69
+        },
+        {
+          "Driver": "Ryan Sieg",
+          "Qual": 13,
+          "DK Sal": "7.7k",
+          "Value": 40.6
+        },
+        {
+          "Driver": "William Sawalich",
+          "Qual": 3,
+          "DK Sal": "7.4k",
+          "Value": 39.85
         }
       ]
     },
@@ -1518,64 +1518,64 @@
       ],
       "rows": [
         {
-          "Driver": "Taylor Gray",
-          "Qual": 38,
+          "Driver": "Connor Zilisch",
+          "Qual": 1,
           "FD Sal": "10.0k",
           "Value": 100
         },
         {
-          "Driver": "Justin Allgaier",
-          "Qual": 15,
+          "Driver": "Aric Almirola",
+          "Qual": 7,
           "FD Sal": "10.0k",
-          "Value": 98.57
+          "Value": 93.87
         },
         {
-          "Driver": "Connor Zilisch",
-          "Qual": 4,
+          "Driver": "Justin Allgaier",
+          "Qual": 14,
           "FD Sal": "10.0k",
-          "Value": 96.91
+          "Value": 89.71
         },
         {
           "Driver": "Jesse Love",
-          "Qual": 1,
+          "Qual": 18,
           "FD Sal": "10.0k",
-          "Value": 82.78
-        },
-        {
-          "Driver": "Carson Hocevar",
-          "Qual": 3,
-          "FD Sal": "10.0k",
-          "Value": 81.45
-        },
-        {
-          "Driver": "Ross Chastain",
-          "Qual": 11,
-          "FD Sal": "10.0k",
-          "Value": 81.03
-        },
-        {
-          "Driver": "Sam Mayer",
-          "Qual": 5,
-          "FD Sal": "10.0k",
-          "Value": 77.03
-        },
-        {
-          "Driver": "Ryan Sieg",
-          "Qual": 7,
-          "FD Sal": "10.0k",
-          "Value": 75.17
-        },
-        {
-          "Driver": "Sammy Smith",
-          "Qual": 9,
-          "FD Sal": "10.0k",
-          "Value": 65.23
+          "Value": 80.36
         },
         {
           "Driver": "Sheldon Creed",
-          "Qual": 14,
+          "Qual": 15,
           "FD Sal": "10.0k",
-          "Value": 63.65
+          "Value": 78.33
+        },
+        {
+          "Driver": "Sam Mayer",
+          "Qual": 4,
+          "FD Sal": "10.0k",
+          "Value": 75.83
+        },
+        {
+          "Driver": "Taylor Gray",
+          "Qual": 5,
+          "FD Sal": "10.0k",
+          "Value": 74
+        },
+        {
+          "Driver": "Sammy Smith",
+          "Qual": 22,
+          "FD Sal": "10.0k",
+          "Value": 63.84
+        },
+        {
+          "Driver": "William Sawalich",
+          "Qual": 3,
+          "FD Sal": "10.0k",
+          "Value": 58.39
+        },
+        {
+          "Driver": "Ryan Sieg",
+          "Qual": 13,
+          "FD Sal": "10.0k",
+          "Value": 57.99
         }
       ]
     },
@@ -1590,53 +1590,53 @@
       "rows": [
         {
           "Driver": "Connor Zilisch",
-          "Qual": 4,
+          "Qual": 1,
+          "Value": 0.9103
+        },
+        {
+          "Driver": "Aric Almirola",
+          "Qual": 7,
           "Value": 0.8619
         },
         {
-          "Driver": "Carson Hocevar",
-          "Qual": 3,
-          "Value": 0.7953
-        },
-        {
-          "Driver": "Jesse Love",
-          "Qual": 1,
-          "Value": 0.795
-        },
-        {
           "Driver": "Sam Mayer",
+          "Qual": 4,
+          "Value": 0.819
+        },
+        {
+          "Driver": "Taylor Gray",
           "Qual": 5,
-          "Value": 0.7561
+          "Value": 0.7516
         },
         {
           "Driver": "Justin Allgaier",
-          "Qual": 15,
-          "Value": 0.7359
+          "Qual": 14,
+          "Value": 0.7288
         },
         {
-          "Driver": "Ryan Sieg",
-          "Qual": 7,
-          "Value": 0.7264
-        },
-        {
-          "Driver": "Ross Chastain",
-          "Qual": 11,
-          "Value": 0.6805
-        },
-        {
-          "Driver": "Austin Dillon",
-          "Qual": 6,
-          "Value": 0.5977
+          "Driver": "Nicholas Sanchez",
+          "Qual": 2,
+          "Value": 0.6717
         },
         {
           "Driver": "William Sawalich",
-          "Qual": 2,
-          "Value": 0.5529
+          "Qual": 3,
+          "Value": 0.6615
         },
         {
-          "Driver": "Sammy Smith",
+          "Driver": "Sheldon Creed",
+          "Qual": 15,
+          "Value": 0.6186
+        },
+        {
+          "Driver": "Jesse Love",
+          "Qual": 18,
+          "Value": 0.5632
+        },
+        {
+          "Driver": "Austin Hill",
           "Qual": 9,
-          "Value": 0.5478
+          "Value": 0.5235
         }
       ]
     }
