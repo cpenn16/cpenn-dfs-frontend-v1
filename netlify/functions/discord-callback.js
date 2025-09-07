@@ -1,5 +1,5 @@
 // /.netlify/functions/discord-callback
-const fetch = (...a) => import("node-fetch").then(({default:f}) => f(...a));
+// Use global fetch (Node 18+) — no node-fetch import needed
 const { createClient } = require("@supabase/supabase-js");
 
 const CLIENT_ID      = process.env.DISCORD_CLIENT_ID;
@@ -15,7 +15,6 @@ const ROLE_MAP = {
   free:  process.env.ROLE_ID_DISCORD_ONLY,
   basic: process.env.ROLE_ID_ALL_ACCESS_LITE,
   pro:   process.env.ROLE_ID_ALL_ACCESS_PRO,
-
   NFL_LITE:  process.env.ROLE_ID_NFL_LITE,
   NFL_PRO:   process.env.ROLE_ID_NFL_PRO,
   MLB_LITE:  process.env.ROLE_ID_MLB_LITE,
@@ -46,13 +45,11 @@ exports.handler = async (event) => {
     const stateB64 = qs.get("state");
     if (!code || !stateB64) return { statusCode: 400, body: "Missing code/state" };
 
-    // Optional CSRF check if you set the cookie in auth-discord
     const cookieState = getCookie(event.headers?.cookie, "discord_oauth_state");
     if (cookieState && cookieState !== stateB64) {
       return { statusCode: 400, body: "State mismatch" };
     }
 
-    // Recover Supabase uid that we packed in state in auth-discord
     let uid;
     try {
       const parsed = JSON.parse(Buffer.from(stateB64, "base64url").toString("utf8"));
@@ -85,7 +82,7 @@ exports.handler = async (event) => {
       headers: { Authorization: `Bearer ${tok.access_token}` }
     });
     if (!meRes.ok) return { statusCode: 500, body: "Failed to fetch Discord user" };
-    const me = await meRes.json(); // { id, username, ... }
+    const me = await meRes.json();
 
     // Update profiles
     const sb = createClient(SB_URL, SB_SERVICE_KEY);
@@ -99,13 +96,12 @@ exports.handler = async (event) => {
       .eq("id", uid);
     if (upErr) return { statusCode: 500, body: `Profile update error: ${upErr.message}` };
 
-    // Optional: auto-join guild + assign role by profiles.plan
+    // Optional: auto-join + assign role
     if (BOT_TOKEN && GUILD_ID) {
       const { data: prof } = await sb.from("profiles").select("plan").eq("id", uid).single();
-      const planKey = prof?.plan || "free";
-      const roleId = ROLE_MAP[planKey];
+      const roleId = ROLE_MAP[(prof?.plan || "free")];
 
-      // ensure member exists (OAuth join)
+      // Ensure member exists
       await fetch(`https://discord.com/api/guilds/${GUILD_ID}/members/${me.id}`, {
         method: "PUT",
         headers: { Authorization: `Bot ${BOT_TOKEN}`, "Content-Type": "application/json" },
@@ -120,7 +116,6 @@ exports.handler = async (event) => {
       }
     }
 
-    // Back to your account page
     return {
       statusCode: 302,
       headers: { Location: "https://www.cpenn-dfs.com/account?discord=linked" }
