@@ -1,28 +1,35 @@
 // /.netlify/functions/discord-callback
-// Node 18+ global fetch
+// Uses Node 18+ global fetch (no node-fetch needed)
 const { createClient } = require("@supabase/supabase-js");
 
 const CLIENT_ID      = process.env.DISCORD_CLIENT_ID;
 const CLIENT_SECRET  = process.env.DISCORD_CLIENT_SECRET;
 const REDIRECT_URI   = process.env.DISCORD_REDIRECT_URI;
+
 const SB_URL         = process.env.SUPABASE_URL;
-const SB_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SB_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY; // MUST be service-role
 
 // Optional bot/roles
 const BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 const GUILD_ID  = process.env.GUILD_ID;
 const ROLE_MAP = {
-  free:  process.env.ROLE_ID_DISCORD_ONLY,
-  basic: process.env.ROLE_ID_ALL_ACCESS_LITE,
-  pro:   process.env.ROLE_ID_ALL_ACCESS_PRO,
-  NFL_LITE:  process.env.ROLE_ID_NFL_LITE,
-  NFL_PRO:   process.env.ROLE_ID_NFL_PRO,
-  MLB_LITE:  process.env.ROLE_ID_MLB_LITE,
-  MLB_PRO:   process.env.ROLE_ID_MLB_PRO,
-  NBA_LITE:  process.env.ROLE_ID_NBA_LITE,
-  NBA_PRO:   process.env.ROLE_ID_NBA_PRO,
-  NASCAR_LITE: process.env.ROLE_ID_NASCAR_LITE,
-  NASCAR_PRO:  process.env.ROLE_ID_NASCAR_PRO,
+  free:           process.env.ROLE_ID_DISCORD_ONLY,
+  basic:          process.env.ROLE_ID_ALL_ACCESS_LITE,
+  pro:            process.env.ROLE_ID_ALL_ACCESS_PRO,
+
+  NFL_LITE:       process.env.ROLE_ID_NFL_LITE,
+  NFL_PRO:        process.env.ROLE_ID_NFL_PRO,
+  MLB_LITE:       process.env.ROLE_ID_MLB_LITE,
+  MLB_PRO:        process.env.ROLE_ID_MLB_PRO,
+  NBA_LITE:       process.env.ROLE_ID_NBA_LITE,
+  NBA_PRO:        process.env.ROLE_ID_NBA_PRO,
+  NASCAR_LITE:    process.env.ROLE_ID_NASCAR_LITE,
+  NASCAR_PRO:     process.env.ROLE_ID_NASCAR_PRO,
+
+  // If your plans are stored like "all_access_pro" in profiles.plan,
+  // you can map those exact strings too:
+  all_access_pro: process.env.ROLE_ID_ALL_ACCESS_PRO,
+  all_access_lite: process.env.ROLE_ID_ALL_ACCESS_LITE,
 };
 
 // tiny cookie reader (optional CSRF check)
@@ -34,7 +41,7 @@ function getCookie(header, name) {
 
 exports.handler = async (event) => {
   const debug = new URLSearchParams(event.rawQuery || "").get("debug") === "1";
-  const dbg = {}; // will return if debug=1
+  const dbg = {};
 
   try {
     // --- sanity checks ---
@@ -88,7 +95,7 @@ exports.handler = async (event) => {
     dbg.tokenStatus = tokenRes.status;
     dbg.tokenRaw = maybeTrim(tokenText);
     if (!tokenRes.ok) {
-      return resp(500, `Token error`, debug, dbg);
+      return resp(500, "Token error", debug, dbg);
     }
     const tok = safeJson(tokenText);
     dbg.token = { scope: tok?.scope, expires_in: tok?.expires_in, token_type: tok?.token_type };
@@ -104,34 +111,41 @@ exports.handler = async (event) => {
     const me = safeJson(meText);
     dbg.me = { id: me?.id, username: me?.username, global_name: me?.global_name };
 
-    // Update profiles
-    const sb = createClient(SB_URL, SB_SERVICE_KEY);
+    // --- UPSERT into profiles (creates row if it doesn't exist) ---
+    const sb  = createClient(SB_URL, SB_SERVICE_KEY); // service-role bypasses RLS
+    const now = new Date().toISOString();
+
     const { data: updated, error: upErr } = await sb
       .from("profiles")
-      .update({
-        discord_id: me.id,
-        discord_username: me.username,
-        discord_connected_at: new Date().toISOString()
-      })
-      .eq("id", uid)
+      .upsert(
+        {
+          id: uid, // auth user id
+          discord_id: me.id,
+          discord_username: me.username,
+          discord_connected_at: now,
+          updated_at: now
+        },
+        { onConflict: "id" }
+      )
       .select("id, email, plan, discord_id, discord_username, discord_connected_at")
       .single();
 
-    dbg.updateError = upErr?.message || null;
+    dbg.upsertError = upErr?.message || null;
     dbg.updated = updated || null;
+
     if (upErr) {
-      return resp(500, `Profile update error`, debug, dbg);
+      return resp(500, `Profile upsert error: ${upErr.message}`, debug, dbg);
     }
     if (!updated) {
-      return resp(404, "Profile not found for UID", debug, { ...dbg, uid });
+      return resp(404, `Profile upsert returned no row for uid ${uid}`, debug, dbg);
     }
 
     // Optional: auto-join guild + assign role by plan
     if (BOT_TOKEN && GUILD_ID) {
-      const plan = updated?.plan || "free";
-      const roleId = ROLE_MAP[plan];
-      dbg.rolePlan = plan;
-      dbg.rolePicked = roleId || null;
+      const planKey = (updated?.plan || "free");
+      const roleId  = ROLE_MAP[planKey] || ROLE_MAP[planKey.toLowerCase()] || null;
+      dbg.rolePlan = planKey;
+      dbg.rolePicked = roleId;
 
       // ensure member exists (OAuth join)
       const joinRes = await fetch(`https://discord.com/api/guilds/${GUILD_ID}/members/${me.id}`, {
