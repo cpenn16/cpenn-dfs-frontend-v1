@@ -164,7 +164,7 @@ function downloadPlainCSV(rows, fname = "lineups.csv") {
   URL.revokeObjectURL(url);
 }
 
-/** Export (DK: "Name (id)"; FD: "prefix-id:Display Name") using site_ids.json */
+/** Export (IDs) with headers D only (no #/Salary/Total). DK: "Name (id)"; FD: "prefix-id:Display Name" */
 function downloadSiteLineupsCSV({
   lineups,
   site,
@@ -183,14 +183,10 @@ function downloadSiteLineupsCSV({
   const idIndex = buildSiteIdIndex(list);
   const fdPrefix = siteKey === "fd" ? detectFdPrefix(list) : null;
 
-  const header = [
-    "#",
-    "Salary",
-    "Total",
-    ...Array.from({ length: rosterSize }, (_, i) => `D${i + 1}`),
-  ].join(",");
+  // Header must be just "D" repeated rosterSize times
+  const header = Array.from({ length: rosterSize }, () => "D").join(",");
 
-  const lines = (lineups || []).map((L, idx) => {
+  const lines = (lineups || []).map((L) => {
     const names = Array.isArray(L.drivers) ? L.drivers : [];
     const cells = names.slice(0, rosterSize).map((name) => {
       const rec = idIndex.get(normName(name));
@@ -198,7 +194,6 @@ function downloadSiteLineupsCSV({
 
       if (siteKey === "fd") {
         // FanDuel wants: "<prefix>-<id>:<Display Name>"
-        // If we didn't detect a prefix, we still emit "<id>:<Display Name>" (FD accepts that on many slates).
         const outId = fdPrefix ? `${fdPrefix}-${rec.id}` : rec.id;
         const display = rec.nameFromSite || name;
         return escapeCSV(`${outId}:${display}`);
@@ -210,12 +205,7 @@ function downloadSiteLineupsCSV({
 
     while (cells.length < rosterSize) cells.push("");
 
-    return [
-      idx + 1,
-      L.salary ?? "",
-      Number.isFinite(L.total) ? L.total.toFixed(1) : "",
-      ...cells,
-    ].join(",");
+    return cells.join(",");
   });
 
   const csv = [header, ...lines].join("\n");
