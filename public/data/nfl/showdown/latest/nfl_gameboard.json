@@ -1,25 +1,25 @@
 [
   {
-    "away": "KC",
-    "home": "LAC",
+    "away": "BAL",
+    "home": "BUF",
     "lines": [
-      "O/U: 45.5 | KC ML: -170 | LAC ML: 142",
-      "Spread: KC -3 | LAC 3",
-      "Totals: KC 24.5 | LAC 21.5",
-      "Weather: Dome°F | Dome mph | Dome",
-      "KC (24.5) | LAC (21.5)",
-      "QB:  Patrick Mahomes 20.0 10k | 18.7 13.2k | QB:  Justin Herbert 17.3 9.8k | 16.6 12k",
-      "RB1: Isiah Pacheco 12.7 7.6k | 11.5 9k | RB1: Omarion Hampton 12.8 8k | 11.9 6.4k",
-      "RB2: Kareem Hunt 7.9 3.6k | 7.2 6.8k | RB2: Najee Harris 8.3 7k | 7.8 8k",
-      "RB3: Brashard Smith 2.9 200 | 2.6 1.6k | RB3: Hassan Haskins 3.5 2k | 3.3 2.2k",
-      "WR1: Xavier Worthy 15.0 9k | 12.7 11.6k | WR1: Ladd McConkey 17.2 10.6k | 14.4 12.2k",
-      "WR2: Hollywood Brown 9.9 5.8k | 8.2 5.2k | WR2: Keenan Allen 9.9 6.4k | 8.1 8.4k",
-      "WR3: JuJu Smith-Schuster 5.2 3.2k | 4.4 3k | WR3: Quentin Johnston 7.7 5.4k | 6.4 5.8k",
-      "WR4: Tyquan Thornton 4.2 1.2k | 3.5 1k | WR4: Tre' Harris 1.2 3.4k | 1.1 4.2k",
-      "WR5: Jason Brownlee 0.4 200 | 0.4 1k | WR5: KeAndre Lambert-Smith 1.6 1k | 1.4 1.4k",
-      "TE1: Travis Kelce 14.5 8.6k | 11.5 10.6k | TE1: Will Dissly 5.5 2.4k | 4.4 4.6k",
-      "TE2: Noah Gray 4.9 1.6k | 4.0 3.4k | TE2: Tyler Conklin 4.0 2.8k | 3.3 2.4k",
-      "TE3: Robert Tonyan 0.3 200 | 0.3 1k | TE3: Scott Matlock 0.0 0 | 0.0 0"
+      "O/U: 50.5 | BAL ML: -108 | BUF ML: -112",
+      "Spread: BAL 1.5 | BUF -1.5",
+      "Totals: BAL 25.5 | BUF 26.5",
+      "Weather: 60.08°F | 5.75 mph mph | Scattered Clouds",
+      "BAL (25.5) | BUF (26.5)",
+      "QB:  Lamar Jackson 24.1 10.8k | 23.1 13.2k | QB:  Josh Allen 23.1 11k | 22.1 13.6k",
+      "RB1: Derrick Henry 19.1 10.2k | 18.2 12.8k | RB1: James Cook 15.1 9.2k | 14.2 10.4k",
+      "RB2: Justice Hill 6.8 3k | 5.6 4k | RB2: Ray Davis 6.8 3.2k | 6.2 3.4k",
+      "RB3: Keaton Mitchell 2.7 2k | 2.5 1.6k | RB3: Ty Johnson 4.2 2.4k | 3.8 3.8k",
+      "WR1: Zay Flowers 14.8 8.2k | 12.4 10k | WR1: Khalil Shakir 13.1 7.6k | 10.7 9.4k",
+      "WR2: Rashod Bateman 9.7 5.8k | 8.3 8k | WR2: Keon Coleman 9.9 6.6k | 8.6 4.8k",
+      "WR3: DeAndre Hopkins 5.8 4.2k | 4.8 5k | WR3: Joshua Palmer 8.0 5.4k | 6.7 7.6k",
+      "WR4: Tylan Wallace 2.3 1.2k | 2.0 2k | WR4: Elijah Moore 4.0 3.4k | 3.3 4.4k",
+      "WR5: Devontez Walker 1.6 600 | 1.4 1.8k | WR5: Curtis Samuel 2.6 2.8k | 2.3 2.8k",
+      "TE1: Mark Andrews 11.7 7k | 9.6 8.6k | TE1: Dalton Kincaid 8.9 5.6k | 7.1 5.4k",
+      "TE2: Charlie Kolar 3.8 1.6k | 3.2 1.2k | TE2: Dawson Knox 3.3 3.6k | 2.8 3k",
+      "TE3: Zaire Mitchell-Paden 0.4 200 | 0.4 1k | TE3: Jackson Hawes 0.4 200 | 0.3 1k"
     ]
   }
 ]
