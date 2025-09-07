@@ -164,7 +164,7 @@ function downloadPlainCSV(rows, fname = "lineups.csv") {
   URL.revokeObjectURL(url);
 }
 
-/** Export (IDs) with headers D only (no #/Salary/Total). DK: "Name (id)"; FD: "prefix-id:Display Name" */
+/** Export (IDs) with headers D (DK) or Driver (FD) — no extra columns. DK: "Name (id)"; FD: "prefix-id:Display Name" */
 function downloadSiteLineupsCSV({
   lineups,
   site,
@@ -183,8 +183,8 @@ function downloadSiteLineupsCSV({
   const idIndex = buildSiteIdIndex(list);
   const fdPrefix = siteKey === "fd" ? detectFdPrefix(list) : null;
 
-  // Header must be just "D" repeated rosterSize times
-  const header = Array.from({ length: rosterSize }, () => "D").join(",");
+  // Header: DK wants "D", FD wants "Driver"
+  const header = Array.from({ length: rosterSize }, () => (siteKey === "fd" ? "Driver" : "D")).join(",");
 
   const lines = (lineups || []).map((L) => {
     const names = Array.isArray(L.drivers) ? L.drivers : [];
