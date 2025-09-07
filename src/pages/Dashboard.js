@@ -1,5 +1,5 @@
 // src/pages/Dashboard.js
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 
 export default function Dashboard() {
@@ -17,7 +17,9 @@ export default function Dashboard() {
       if (user) {
         const { data, error } = await supabase
           .from("profiles")
-          .select("username, plan, stripe_customer_id, created_at, discord_id, discord_username, discord_connected_at")
+          .select(
+            "username, plan, stripe_customer_id, created_at, discord_id, discord_username, discord_connected_at"
+          )
           .eq("id", user.id)
           .single();
         if (!error) setProfile(data);
@@ -31,15 +33,18 @@ export default function Dashboard() {
     window.location.href = "/login";
   }
 
-  // Build OAuth URL on the client. Your backend should have /auth/discord → redirects to Discord OAuth2.
-  const connectDiscordHref = useMemo(() => {
-    if (!user) return "#";
-    const url = new URL("/auth/discord", window.location.origin);
-    url.searchParams.set("state", user.id); // we’ll use this on callback to know which site user to store against
-    return url.toString();
-  }, [user]);
+  // ✅ Correct connect handler — calls your Netlify function with the Supabase session token
+  async function connectDiscord() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      alert("Please log in first.");
+      return;
+    }
+    const sb = encodeURIComponent(session.access_token);
+    window.location.href = `/.netlify/functions/auth-discord?sb=${sb}`;
+  }
 
-  // Optional: allow a manual disconnect (wipe discord fields)
+  // Optional: allow a manual disconnect (wipe discord fields on your profile row)
   async function disconnectDiscord() {
     if (!user) return;
     setSaving(true);
@@ -52,8 +57,14 @@ export default function Dashboard() {
         updated_at: new Date().toISOString(),
       })
       .eq("id", user.id);
+
     if (!error) {
-      setProfile(p => ({ ...p, discord_id: null, discord_username: null, discord_connected_at: null }));
+      setProfile((p) => ({
+        ...p,
+        discord_id: null,
+        discord_username: null,
+        discord_connected_at: null,
+      }));
     }
     setSaving(false);
   }
@@ -70,6 +81,7 @@ export default function Dashboard() {
           <div>
             <h1 className="text-xl font-bold">Dashboard</h1>
             <p className="text-sm text-gray-500">
+              {/* fixed template string */}
               Welcome{profile?.username ? `, ${profile.username}` : ""}.
             </p>
           </div>
@@ -131,6 +143,7 @@ export default function Dashboard() {
                     {discordConnected ? (
                       <span className="inline-flex items-center gap-2">
                         <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
+                        {/* fixed template string */}
                         Connected{profile?.discord_username ? ` as ${profile.discord_username}` : ""}
                       </span>
                     ) : (
@@ -152,12 +165,12 @@ export default function Dashboard() {
 
               <div className="flex items-center gap-2">
                 {!discordConnected ? (
-                  <a
-                    href={connectDiscordHref}
+                  <button
+                    onClick={connectDiscord}
                     className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-700"
                   >
                     Connect Discord
-                  </a>
+                  </button>
                 ) : (
                   <button
                     disabled={saving}
@@ -183,7 +196,7 @@ export default function Dashboard() {
               Debug data
             </summary>
             <pre className="m-0 overflow-auto rounded-b-lg bg-gray-900 p-4 text-xs text-green-200">
-{JSON.stringify({ user, profile }, null, 2)}
+              {JSON.stringify({ user, profile }, null, 2)}
             </pre>
           </details>
         </div>
