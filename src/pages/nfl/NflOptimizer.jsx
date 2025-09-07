@@ -304,9 +304,12 @@ function downloadPlainCSV(lineups, rows, site, fname = "nfl_lineups.csv") {
   URL.revokeObjectURL(url);
 }
 
-/** Export CSV with **site IDs** */
+/** Export CSV with **site IDs** 
+ *  FIX: header must be the position slots only (QB,RB,RB,WR,WR,WR,TE,FLEX,DST)
+ *  and **no** leading columns (#, Salary, Time, Total).
+ */
 function downloadSiteLineupsCSV({
-  lineups, site, slotsCount, siteIds, rows, fname = "nfl_lineups_site_ids.csv",
+  lineups, site, slots, siteIds, rows, fname = "nfl_lineups_site_ids.csv",
 }) {
   const siteKey = site === "fd" ? "fd" : "dk";
   const list = Array.isArray(siteIds?.[siteKey]) ? siteIds[siteKey] : (siteIds?.sites?.[siteKey] ?? []);
@@ -365,14 +368,16 @@ function downloadSiteLineupsCSV({
   }
 
   const rowsByName = new Map(rows.map(r => [r.name, r]));
-  const header = ["#", "Salary", "Time", "Total", ...Array.from({ length: slotsCount }, (_, i) => `D${i + 1}`)];
 
-  const lines = lineups.map((L, idx) => {
-    const ordered = orderPlayersForSite(L.players, rowsByName);
-    const qb = ordered.find(r => r.pos === "QB");
-    const time = qb?.time || "";
+  // New header: exact slot names (positions), in order
+  const header = (slots && slots.length
+    ? slots.map(s => s.name.replace(/\d+$/, "").toUpperCase().replace("RB1","RB").replace("RB2","RB").replace("WR1","WR").replace("WR2","WR").replace("WR3","WR"))
+    : ["QB","RB","RB","WR","WR","WR","TE","FLEX","DST"]
+  ).join(",");
 
-    const cells = ordered.slice(0, slotsCount).map((meta) => {
+  const lines = lineups.map((L) => {
+    const ordered = orderPlayersForSite(L.players, rowsByName); // QB,RB,RB,WR,WR,WR,TE,FLEX,DST order
+    const cells = ordered.map((meta) => {
       const name = meta.name;
       const pos  = normPos(meta.pos);
       const tm   = normTeam(meta.team);
@@ -422,12 +427,10 @@ function downloadSiteLineupsCSV({
       return escapeCSV(`${name} (${rec.id})`);
     });
 
-    while (cells.length < slotsCount) cells.push("");
-
-    return [idx + 1, L.salary, time, L.total.toFixed(1), ...cells].join(",");
+    return cells.join(",");
   });
 
-  const csv = [header.join(","), ...lines].join("\n");
+  const csv = [header, ...lines].join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -1429,7 +1432,7 @@ export default function NFLOptimizer() {
                     downloadSiteLineupsCSV({
                       lineups,
                       site,
-                      slotsCount: cfg.slots.length,
+                      slots: cfg.slots,
                       siteIds: siteIds || {},
                       rows,
                       fname: `NFL_lineups_${site.toUpperCase()}_ids.csv`,
