@@ -1,15 +1,68 @@
-const fetch = (...args) => import('node-fetch').then(({default: f}) => f(...args)); // safety on older Node
-const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
-const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
-const REDIRECT_URI = process.env.DISCORD_REDIRECT_URI;
+// /.netlify/functions/discord-callback
+const fetch = (...a) => import("node-fetch").then(({default:f}) => f(...a));
+const { createClient } = require("@supabase/supabase-js");
+
+const CLIENT_ID      = process.env.DISCORD_CLIENT_ID;
+const CLIENT_SECRET  = process.env.DISCORD_CLIENT_SECRET;
+const REDIRECT_URI   = process.env.DISCORD_REDIRECT_URI;
+const SB_URL         = process.env.SUPABASE_URL;
+const SB_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+// Optional bot/roles
+const BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
+const GUILD_ID  = process.env.GUILD_ID;
+const ROLE_MAP = {
+  free:  process.env.ROLE_ID_DISCORD_ONLY,
+  basic: process.env.ROLE_ID_ALL_ACCESS_LITE,
+  pro:   process.env.ROLE_ID_ALL_ACCESS_PRO,
+
+  NFL_LITE:  process.env.ROLE_ID_NFL_LITE,
+  NFL_PRO:   process.env.ROLE_ID_NFL_PRO,
+  MLB_LITE:  process.env.ROLE_ID_MLB_LITE,
+  MLB_PRO:   process.env.ROLE_ID_MLB_PRO,
+  NBA_LITE:  process.env.ROLE_ID_NBA_LITE,
+  NBA_PRO:   process.env.ROLE_ID_NBA_PRO,
+  NASCAR_LITE: process.env.ROLE_ID_NASCAR_LITE,
+  NASCAR_PRO:  process.env.ROLE_ID_NASCAR_PRO,
+};
+
+function getCookie(header, name) {
+  const raw = header || "";
+  const parts = raw.split(/; */).map(s => s.split("="));
+  return parts.find(([k]) => k === name)?.[1];
+}
 
 exports.handler = async (event) => {
   try {
-    const { code } = Object.fromEntries(new URLSearchParams(event.rawQuery || ""));
-    if (!code) return { statusCode: 400, body: "Missing code" };
+    if (!CLIENT_ID || !CLIENT_SECRET || !REDIRECT_URI) {
+      return { statusCode: 500, body: "Missing Discord env vars" };
+    }
+    if (!SB_URL || !SB_SERVICE_KEY) {
+      return { statusCode: 500, body: "Missing Supabase env vars" };
+    }
 
-    // 1) Exchange code for token
-    const body = new URLSearchParams({
+    const qs = new URLSearchParams(event.rawQuery || "");
+    const code = qs.get("code");
+    const stateB64 = qs.get("state");
+    if (!code || !stateB64) return { statusCode: 400, body: "Missing code/state" };
+
+    // Optional CSRF check if you set the cookie in auth-discord
+    const cookieState = getCookie(event.headers?.cookie, "discord_oauth_state");
+    if (cookieState && cookieState !== stateB64) {
+      return { statusCode: 400, body: "State mismatch" };
+    }
+
+    // Recover Supabase uid that we packed in state in auth-discord
+    let uid;
+    try {
+      const parsed = JSON.parse(Buffer.from(stateB64, "base64url").toString("utf8"));
+      uid = parsed.uid;
+    } catch {
+      return { statusCode: 400, body: "Bad state" };
+    }
+
+    // Exchange code → token
+    const form = new URLSearchParams({
       client_id: CLIENT_ID,
       client_secret: CLIENT_SECRET,
       grant_type: "authorization_code",
@@ -20,27 +73,59 @@ exports.handler = async (event) => {
     const tokenRes = await fetch("https://discord.com/api/oauth2/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body
+      body: form
     });
     if (!tokenRes.ok) {
-      const err = await tokenRes.text();
-      return { statusCode: 500, body: `Token error: ${err}` };
+      return { statusCode: 500, body: `Token error: ${await tokenRes.text()}` };
     }
-    const token = await tokenRes.json();
+    const tok = await tokenRes.json();
 
-    // 2) Get user
+    // Get Discord user
     const meRes = await fetch("https://discord.com/api/users/@me", {
-      headers: { Authorization: `Bearer ${token.access_token}` }
+      headers: { Authorization: `Bearer ${tok.access_token}` }
     });
-    const me = await meRes.json();
+    if (!meRes.ok) return { statusCode: 500, body: "Failed to fetch Discord user" };
+    const me = await meRes.json(); // { id, username, ... }
 
-    // For now, just show success (you can redirect to /account later)
+    // Update profiles
+    const sb = createClient(SB_URL, SB_SERVICE_KEY);
+    const { error: upErr } = await sb
+      .from("profiles")
+      .update({
+        discord_id: me.id,
+        discord_username: me.username,
+        discord_connected_at: new Date().toISOString()
+      })
+      .eq("id", uid);
+    if (upErr) return { statusCode: 500, body: `Profile update error: ${upErr.message}` };
+
+    // Optional: auto-join guild + assign role by profiles.plan
+    if (BOT_TOKEN && GUILD_ID) {
+      const { data: prof } = await sb.from("profiles").select("plan").eq("id", uid).single();
+      const planKey = prof?.plan || "free";
+      const roleId = ROLE_MAP[planKey];
+
+      // ensure member exists (OAuth join)
+      await fetch(`https://discord.com/api/guilds/${GUILD_ID}/members/${me.id}`, {
+        method: "PUT",
+        headers: { Authorization: `Bot ${BOT_TOKEN}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ access_token: tok.access_token })
+      });
+
+      if (roleId) {
+        await fetch(`https://discord.com/api/guilds/${GUILD_ID}/members/${me.id}/roles/${roleId}`, {
+          method: "PUT",
+          headers: { Authorization: `Bot ${BOT_TOKEN}` }
+        });
+      }
+    }
+
+    // Back to your account page
     return {
-      statusCode: 200,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ok: true, user: me })
+      statusCode: 302,
+      headers: { Location: "https://www.cpenn-dfs.com/account?discord=linked" }
     };
   } catch (e) {
-    return { statusCode: 500, body: `Callback error: ${e.message}` };
+    return { statusCode: 500, body: `callback error: ${e.message}` };
   }
 };
