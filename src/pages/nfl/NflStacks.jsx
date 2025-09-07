@@ -21,14 +21,52 @@ const SITES = {
 };
 
 /* ------------------------------ helpers ------------------------------- */
-const num = (v) => {
-  const n = Number(String(v ?? "").replace(/[,%\s]/g, ""));
-  return Number.isFinite(n) ? n : null;
-};
 const teamLogo = (team) => `/logos/nfl/${String(team || "").toUpperCase()}.png`;
 
-/* value getter that supports fallback keys (string or string[]) */
-function getVal(row, key) {
+// robust numeric parser
+const asNum = (v) => {
+  if (v === null || v === undefined || v === "") return null;
+  let s = String(v).trim();
+
+  // remove non-breaking/thin spaces
+  s = s.replace(/\u00A0|\u2009|\u202F/g, "");
+
+  // If it looks like a decimal comma (e.g. "1,2" or "-3,75") AND there's no dot,
+  // convert comma to a decimal point.
+  if (/^-?\d+,\d+$/.test(s) && !s.includes(".")) {
+    s = s.replace(",", ".");
+  } else {
+    // Otherwise treat commas as thousands separators only (1,234 or 12,345,678)
+    s = s.replace(/(\d),(?=\d{3}\b)/g, "$1");
+  }
+
+  // Strip everything except the first number (keeps leading minus and decimal point)
+  const m = s.match(/-?\d+(?:\.\d+)?/);
+  return m ? parseFloat(m[0]) : null;
+};
+
+// Detect whether a whole column looks like 0..1 fractions. If yes → scale by 100.
+const detectPctScale = (vals) => {
+  const nums = (vals || [])
+    .map((v) => asNum(v))
+    .filter((v) => v != null && Number.isFinite(v));
+  if (!nums.length) return 1;
+  return Math.max(...nums) <= 1 ? 100 : 1;
+};
+
+const clampPct = (n) => {
+  if (n == null || !Number.isFinite(n)) return null;
+  if (n < 0) return 0;
+  if (n > 100) return 100;
+  return n;
+};
+
+const num = (v) => {
+  const n = asNum(v);
+  return Number.isFinite(n) ? n : null;
+};
+
+const getVal = (row, key) => {
   if (Array.isArray(key)) {
     for (const k of key) {
       const v = row?.[k];
@@ -37,7 +75,7 @@ function getVal(row, key) {
     return null;
   }
   return row?.[key];
-}
+};
 
 /* formatting */
 const fmt = {
@@ -62,15 +100,13 @@ const fmt = {
   },
   pct1(v) {
     if (v === "" || v === null || v === undefined) return "";
-    const raw = String(v).trim();
-    if (raw.endsWith("%")) {
-      const n = num(raw.slice(0, -1));
-      return n === null ? "" : `${n.toFixed(1)}%`;
-    }
-    let n = num(raw);
+    const hadPercent = /%$/.test(String(v).trim());
+    const n = asNum(hadPercent ? String(v).trim().slice(0, -1) : v);
     if (n === null) return "";
-    if (Math.abs(n) <= 1) n *= 100; // treat 0..1 as fraction
-    return `${n.toFixed(1)}%`;
+    // If user typed "0.9" but meant % and no '%' present, we do NOT auto-scale here.
+    // Raw table expects percent already; scaling is handled centrally in Insights only.
+    const out = hadPercent ? n : n;
+    return `${out.toFixed(1)}%`;
   },
 };
 
@@ -172,41 +208,6 @@ const COLS_FD = [
 ];
 
 /* ------------------------------ Insights ------------------------------ */
-// Robust numeric parser that handles decimal commas and thin spaces
-const asNum = (v) => {
-  if (v === null || v === undefined || v === "") return null;
-  let s = String(v).trim();
-
-  // remove non-breaking/thin spaces
-  s = s.replace(/\u00A0|\u2009|\u202F/g, "");
-
-  // If it looks like a decimal comma (e.g. "1,2" or "-3,75") AND there's no dot,
-  // convert comma to a decimal point.
-  if (/^-?\d+,\d+$/.test(s) && !s.includes(".")) {
-    s = s.replace(",", ".");
-  } else {
-    // Otherwise treat commas as thousands separators only (1,234 or 12,345,678)
-    s = s.replace(/(\d),(?=\d{3}\b)/g, "$1");
-  }
-
-  // Strip everything except the first number (keeps leading minus and decimal point)
-  const m = s.match(/-?\d+(?:\.\d+)?/);
-  return m ? parseFloat(m[0]) : null;
-};
-
-// Percent parser: scale only if it's a true fraction (0 < |n| < 1)
-const asPct = (v) => {
-  if (v === null || v === undefined || v === "") return null;
-  let s = String(v).trim();
-  const hadPercent = /%$/.test(s);
-  if (hadPercent) s = s.slice(0, -1);
-
-  const n = asNum(s);
-  if (n === null) return null;
-
-  return hadPercent ? n : (Math.abs(n) > 0 && Math.abs(n) < 1 ? n * 100 : n);
-};
-
 const METRICS = {
   imp_tot: { label: "Implied Team Total", key: "imp_tot" },
   dk_total: { label: "DK Total", key: "dk_total", site: "dk" },
@@ -265,10 +266,12 @@ function domainFor(points, axis = "x", isPct = false) {
   return [Math.floor(min), Math.ceil(max)];
 }
 
-function StacksInsights({ rows }) {
+function StacksInsights({ rows, site = "both" }) {
   const [presetId, setPresetId] = useState("totals");
-  const [site, setSite] = useState("both"); // 'dk' | 'fd' | 'both'
   const preset = PRESETS.find((p) => p.id === presetId) || PRESETS[0];
+
+  const dkPctScale = useMemo(() => detectPctScale(rows.map((r) => r.dk_pct)), [rows]);
+  const fdPctScale = useMemo(() => detectPctScale(rows.map((r) => r.fd_pct)), [rows]);
 
   const data = useMemo(
     () =>
@@ -280,26 +283,27 @@ function StacksInsights({ rows }) {
         fd_total: asNum(r.fd_total),
         dk_rtg: asNum(r.dk_rtg),
         fd_rtg: asNum(r.fd_rtg),
-        dk_pct: asPct(r.dk_pct),
-        fd_pct: asPct(r.fd_pct),
+        // scale pOWN% only if the whole column is fractional (0..1)
+        dk_pct: clampPct(asNum(r.dk_pct) * dkPctScale),
+        fd_pct: clampPct(asNum(r.fd_pct) * fdPctScale),
         dk_sal: asNum(r.dk_sal),
         fd_sal: asNum(r.fd_sal),
       })),
-    [rows]
+    [rows, dkPctScale, fdPctScale]
   );
 
   const series = useMemo(() => {
     const build = (sid) => {
       const xKey = preset[`x_${sid}`] || preset.x;
-      const yKey = preset[`y_${sid}`] || preset.y; // <-- fallback to generic y
+      const yKey = preset[`y_${sid}`] || preset.y;
       if (!xKey || !yKey) return null;
       const pts = data
         .map((d) => ({
-          x: METRICS[xKey]?.pct ? asPct(d[xKey]) : asNum(d[xKey]),
-          y: METRICS[yKey]?.pct ? asPct(d[yKey]) : asNum(d[yKey]),
+          x: d[xKey],
+          y: d[yKey],
           team: d.team,
         }))
-        .filter((p) => p.x != null && p.y != null);
+        .filter((p) => p.x != null && p.y != null && Number.isFinite(p.x) && Number.isFinite(p.y));
       return { id: sid, label: sid.toUpperCase(), points: pts, xKey, yKey };
     };
     const out = [];
@@ -367,7 +371,11 @@ function StacksInsights({ rows }) {
                 className={`px-3 py-1.5 text-sm rounded-lg inline-flex items-center gap-2 ${
                   site === k ? "bg-white shadow font-semibold" : "text-gray-700"
                 }`}
-                onClick={() => setSite(k)}
+                onClick={() => {
+                  // no-op here; the parent controls site and passes it down.
+                  const ev = new CustomEvent("nfl-stacks-site-change", { detail: k });
+                  window.dispatchEvent(ev);
+                }}
               >
                 {k !== "both" ? <img src={SITES[k].logo} className="w-4 h-4" alt="" /> : null}
                 {k.toUpperCase()}
@@ -442,6 +450,15 @@ export default function NflStacks() {
   const [site, setSite] = useState("both");
   const [q, setQ] = useState("");
 
+  // reset default sort when site changes (prevents weirdness when FD selected)
+  const defaultSortFor = (s) => {
+    if (s === "dk") return { key: ["dk_total", "dkTotal", "DK Total"], dir: "desc" };
+    if (s === "fd") return { key: ["fd_total", "fdTotal", "FD Total"], dir: "desc" };
+    return { key: ["dk_total", "dkTotal", "DK Total"], dir: "desc" };
+  };
+  const [sort, setSort] = useState(defaultSortFor(site));
+  useEffect(() => setSort(defaultSortFor(site)), [site]);
+
   const columns = useMemo(() => {
     if (site === "dk") return [...COLS_BASE, ...COLS_DK];
     if (site === "fd") return [...COLS_BASE, ...COLS_FD];
@@ -454,19 +471,12 @@ export default function NflStacks() {
     return rows.filter((r) => `${r.team ?? ""} ${r.opp ?? ""}`.toLowerCase().includes(needle));
   }, [rows, q]);
 
-  /* sorting (default DK Total desc) */
-  const [sort, setSort] = useState({ key: ["dk_total", "dkTotal", "DK Total"], dir: "desc" });
-  // Percent parser: scale only if it's a true fraction (0 < |n| < 1)
-  const asPct = (v) => {
+  // Percent-to-number helper for sorting
+  const pctToNumber = (v) => {
     if (v === null || v === undefined || v === "") return null;
-    let s = String(v).trim();
-    const hadPercent = /%$/.test(s);
-    if (hadPercent) s = s.slice(0, -1);
-
-    const n = asNum(s);
-    if (n === null) return null;
-
-    return hadPercent ? n : (Math.abs(n) > 0 && Math.abs(n) < 1 ? n * 100 : n);
+    const hadPercent = /%$/.test(String(v).trim());
+    const n = asNum(hadPercent ? String(v).trim().slice(0, -1) : v);
+    return n;
   };
 
   const sorted = useMemo(() => {
@@ -482,14 +492,13 @@ export default function NflStacks() {
     arr.sort((a, b) => {
       const avRaw = getVal(a, key);
       const bvRaw = getVal(b, key);
-      let av = null,
-        bv = null;
+      let av = null, bv = null;
       if (t === "pct1") {
-        av = toPctNumber(avRaw);
-        bv = toPctNumber(bvRaw);
+        av = pctToNumber(avRaw);
+        bv = pctToNumber(bvRaw);
       } else {
-        av = num(avRaw);
-        bv = num(bvRaw);
+        av = asNum(avRaw);
+        bv = asNum(bvRaw);
       }
       if (av === null && bv === null) return 0;
       if (av === null) return 1;
@@ -516,6 +525,13 @@ export default function NflStacks() {
   const cell = "px-2 py-1 text-center";
   const header = "px-2 py-1 font-semibold text-center";
   const textSz = "text-[12px]";
+
+  // Keep insights DK/FD toggle in sync with the page-level toggle.
+  useEffect(() => {
+    const handler = (e) => setSite(e.detail);
+    window.addEventListener("nfl-stacks-site-change", handler);
+    return () => window.removeEventListener("nfl-stacks-site-change", handler);
+  }, []);
 
   return (
     <div className="px-4 md:px-6 py-5">
@@ -559,14 +575,14 @@ export default function NflStacks() {
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
               {columns.map((c) => (
-            <th
-              key={Array.isArray(c.key) ? c.key.join("|") : c.key}
-              className={`${header} whitespace-nowrap cursor-pointer select-none ${c.w || ""} ${
-                (Array.isArray(c.key) ? c.key[0] : c.key) === "team" ? "sticky left-0 z-20 bg-gray-50" : ""
-              }`}
-              onClick={() => onSort(c)}
-              title="Click to sort"
-            >
+                <th
+                  key={Array.isArray(c.key) ? c.key.join("|") : c.key}
+                  className={`${header} whitespace-nowrap cursor-pointer select-none ${c.w || ""} ${
+                    (Array.isArray(c.key) ? c.key[0] : c.key) === "team" ? "sticky left-0 z-20 bg-gray-50" : ""
+                  }`}
+                  onClick={() => onSort(c)}
+                  title="Click to sort"
+                >
                   <div className="inline-flex items-center gap-1">
                     <span>{c.label}</span>
                     {Array.isArray(sort.key) ? (
@@ -654,7 +670,7 @@ export default function NflStacks() {
       </div>
 
       {/* Insights panel below the table */}
-      {!loading && !err ? <StacksInsights rows={filtered} /> : null}
+      {!loading && !err ? <StacksInsights rows={filtered} site={site} /> : null}
     </div>
   );
 }
