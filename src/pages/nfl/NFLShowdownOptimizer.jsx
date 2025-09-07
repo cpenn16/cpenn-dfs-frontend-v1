@@ -1,10 +1,10 @@
 // src/pages/nfl/NFLShowdownOptimizer.jsx
-// FULL DROP-IN — v3.6 (Patched for FD MVP keys)
-// - Robust CPT/MVP detection: uses evt.pairs [{slot,name}] if provided;
-//   otherwise falls back to "first player is CAP" (site-aware tag: CPT on DK, MVP on FD).
-// - Keeps per-slot (CPT/MVP/FLEX) Min%/Max% via min_pct_tag/max_pct_tag.
-// - Keeps IF-side team condition and stable sorting from v3.5.
-// - PATCH: tag keys and exposure use cfg.capTag (MVP on FD, CPT on DK).
+// FULL DROP-IN — v3.7 (Upload headers fixed for DK/FD)
+// - FD MVP/CPT handling stays from v3.6
+// - CSV (IDs) export now outputs *site upload format* headers:
+//   • DK: "CPT,FLEX,FLEX,FLEX,FLEX,FLEX"
+//   • FD: "MVP - 1.5X Points,AnyFLEX,AnyFLEX,AnyFLEX,AnyFLEX,AnyFLEX"
+// - No extra "#/Salary/Total" columns in the IDs export.
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API_BASE from "../../utils/api";
@@ -60,7 +60,6 @@ const readableText = (hex) => { const {r,g,b} = hexToRGB(hex); const L = 0.2126*
 const TeamPill = ({ abbr, title }) => { const bg = TEAM_COLORS[abbr] || "#E5E7EB"; const fg = readableText(bg); return <span className="px-2 py-0.5 rounded" style={{backgroundColor:bg,color:fg}} title={title || abbr}>{abbr||"—"}</span>; };
 
 /* --------- tag normalization for DK CPT vs FD MVP (state keys) ----- */
-// PATCH: site-aware captain tag; keys are "Name::MVP" on FD, "Name::CPT" on DK.
 const makeTagKey = (capTag) => (name, tag) => `${name}::${(tag === "FLEX" ? "FLEX" : capTag)}`;
 
 /* ------------------------------ data IO ---------------------------- */
@@ -1137,7 +1136,10 @@ function downloadSiteLineupsCSV({
     }
   }
 
-  const header = ["#", "Salary", "Total", "D1", "D2", "D3", "D4", "D5", "D6"];
+  // --- Correct site upload headers ---
+  const header = siteKey === "dk"
+    ? ["CPT", "FLEX", "FLEX", "FLEX", "FLEX", "FLEX"]
+    : ["MVP - 1.5X Points", "AnyFLEX", "AnyFLEX", "AnyFLEX", "AnyFLEX", "AnyFLEX"];
 
   const findDK = (name, team, slot) => {
     let rec = dkCPT.get(keyDK(name, team, slot)) || dkFLEX.get(keyDK(name, team, slot));
@@ -1171,7 +1173,7 @@ function downloadSiteLineupsCSV({
     );
   };
 
-  const lines = lineups.map((L, idx) => {
+  const lines = lineups.map((L) => {
     const rowsMap = new Map(rows.map((r) => [r.name, r]));
     const ordered = orderPlayersForSiteShowdown(L.players, rowsMap);
     const cells = ordered.map((meta, i) => {
@@ -1191,7 +1193,7 @@ function downloadSiteLineupsCSV({
       }
     });
     while (cells.length < 6) cells.push("");
-    return [idx + 1, L.salary, L.total.toFixed(1), ...cells].join(",");
+    return cells.join(",");
   });
 
   const csv = [header.join(","), ...lines].join("\n");
