@@ -57,7 +57,7 @@
     "ru_td":"0.1",
     "dk_proj":"19.27",
     "dk_val":"2.92",
-    "dk_pown":"6.3%",
+    "dk_pown":"6.4%",
     "fd_proj":"19.27",
     "fd_val":"2.44",
     "fd_pown":"7.9%"
@@ -333,7 +333,7 @@
     "dk_pown":"1.4%",
     "fd_proj":"15.88",
     "fd_val":"2.21",
-    "fd_pown":"1.6%"
+    "fd_pown":"1.7%"
   },
   {
     "player":"Geno Smith",
@@ -381,22 +381,22 @@
     "player":"Russell Wilson",
     "dk_sal":"5000",
     "fd_sal":"6700",
-    "pa_yards":"219.6",
-    "pa_att":"31.4",
+    "pa_yards":"218.9",
+    "pa_att":"31.3",
     "pa_comp":"19.6",
-    "pa_comp_pct":"62.5%",
+    "pa_comp_pct":"62.4%",
     "pa_td":"1.3",
     "int":"0.6",
-    "ru_att":"3.3",
-    "ypc":"4.4",
-    "ru_yards":"14.4",
-    "ru_td":"0.2",
-    "dk_proj":"15.63",
-    "dk_val":"3.13",
-    "dk_pown":"4.1%",
-    "fd_proj":"15.63",
-    "fd_val":"2.33",
-    "fd_pown":"2.4%"
+    "ru_att":"3.2",
+    "ypc":"4.3",
+    "ru_yards":"14.0",
+    "ru_td":"0.1",
+    "dk_proj":"15.53",
+    "dk_val":"3.11",
+    "dk_pown":"3.9%",
+    "fd_proj":"15.53",
+    "fd_val":"2.32",
+    "fd_pown":"2.3%"
   },
   {
     "player":"Matthew Stafford",
