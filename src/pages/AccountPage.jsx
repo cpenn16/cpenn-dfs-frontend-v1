@@ -1,6 +1,6 @@
 // src/pages/AccountPage.jsx
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";          // ✅ add Link
+import { Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
 function Badge({ status }) {
@@ -22,7 +22,6 @@ function Badge({ status }) {
 }
 
 export default function AccountPage() {
-  // ✅ All hooks at the top, before any conditional returns
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [user, setUser] = useState(null);
@@ -53,6 +52,16 @@ export default function AccountPage() {
     })();
   }, []);
 
+  async function connectDiscord() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      alert("Please log in first");
+      return;
+    }
+    const sb = encodeURIComponent(session.access_token);
+    window.location.href = `/.netlify/functions/auth-discord?sb=${sb}`;
+  }
+
   async function disconnectDiscord() {
     if (!user) return;
     setSaving(true);
@@ -72,7 +81,6 @@ export default function AccountPage() {
   }
 
   if (loading) return <div className="p-6">Loading…</div>;
-
   if (!user) {
     return (
       <div className="p-6">
@@ -151,12 +159,12 @@ export default function AccountPage() {
           </div>
           <div className="flex items-center gap-2">
             {!discordConnected ? (
-              <a
-                href={`/.netlify/functions/auth-discord?state=${user.id}`}
+              <button
+                onClick={connectDiscord}
                 className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-white font-semibold hover:bg-indigo-700"
               >
                 Connect Discord
-              </a>
+              </button>
             ) : (
               <button
                 disabled={saving}
@@ -188,7 +196,7 @@ export default function AccountPage() {
         )}
 
         {showUpgrade && (
-          <Link                                    // ✅ use SPA navigation
+          <Link
             to="/pricing"
             className="inline-flex items-center rounded-md border px-4 py-2 font-semibold hover:bg-slate-50"
           >
