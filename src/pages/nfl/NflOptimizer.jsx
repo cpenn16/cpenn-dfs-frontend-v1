@@ -205,7 +205,7 @@ const SITES = {
       { name: "WR3",  eligible: ["WR"] },
       { name: "TE",   eligible: ["TE"] },
       { name: "FLEX", eligible: ["RB","WR","TE"] },
-      { name: "DST",  eligible: ["DST"] },
+      { name: "DST",  eligible: ["DST"] }, // header becomes DEF for FD on export
     ],
     salary: "FD Sal",
     proj:   "FD Proj",
@@ -304,17 +304,26 @@ function downloadPlainCSV(lineups, rows, site, fname = "nfl_lineups.csv") {
   URL.revokeObjectURL(url);
 }
 
-/** Export CSV with **site IDs** 
- *  FIX: header must be the position slots only (QB,RB,RB,WR,WR,WR,TE,FLEX,DST)
- *  and **no** leading columns (#, Salary, Time, Total).
- */
+/** Export CSV with **site IDs** — positions-only header (FD uses DEF), no extra columns. */
 function downloadSiteLineupsCSV({
   lineups, site, slots, siteIds, rows, fname = "nfl_lineups_site_ids.csv",
 }) {
   const siteKey = site === "fd" ? "fd" : "dk";
-  const list = Array.isArray(siteIds?.[siteKey]) ? siteIds[siteKey] : (siteIds?.sites?.[siteKey] ?? []);
+  const slotList = Array.isArray(slots) ? slots : (SITES[site]?.slots || []);
 
-  // FanDuel slate/group prefix
+  // Header: positions only (RB1->RB, WR3->WR). FD converts DST -> DEF
+  const slotHeaders = slotList.map((s) => {
+    const base = String(s.name).replace(/\d+$/, ""); // RB1->RB
+    return siteKey === "fd" && base === "DST" ? "DEF" : base;
+  });
+  const header = slotHeaders.join(",");
+
+  // Pull site ids list
+  const list = Array.isArray(siteIds?.[siteKey])
+    ? siteIds[siteKey]
+    : (siteIds?.sites?.[siteKey] ?? []);
+
+  // FD slate/group prefix
   let fdPrefix = null;
   if (siteKey === "fd") {
     const prefCounts = new Map();
@@ -369,15 +378,9 @@ function downloadSiteLineupsCSV({
 
   const rowsByName = new Map(rows.map(r => [r.name, r]));
 
-  // New header: exact slot names (positions), in order
-  const header = (slots && slots.length
-    ? slots.map(s => s.name.replace(/\d+$/, "").toUpperCase().replace("RB1","RB").replace("RB2","RB").replace("WR1","WR").replace("WR2","WR").replace("WR3","WR"))
-    : ["QB","RB","RB","WR","WR","WR","TE","FLEX","DST"]
-  ).join(",");
-
   const lines = lineups.map((L) => {
-    const ordered = orderPlayersForSite(L.players, rowsByName); // QB,RB,RB,WR,WR,WR,TE,FLEX,DST order
-    const cells = ordered.map((meta) => {
+    const ordered = orderPlayersForSite(L.players, rowsByName);
+    const cells = ordered.slice(0, slotList.length).map((meta) => {
       const name = meta.name;
       const pos  = normPos(meta.pos);
       const tm   = normTeam(meta.team);
@@ -412,21 +415,16 @@ function downloadSiteLineupsCSV({
 
       if (!rec) return escapeCSV(name); // still export name
 
-      // FD wants prefix-id:DisplayName; DST should use full team name
       if (siteKey === "fd") {
-        const metaTeam = NFL_TEAMS[tm];
-        let displayName = name;
-        if (pos === "DST") {
-          displayName = rec.nameFromSite || (metaTeam ? `${metaTeam.city} ${metaTeam.nickname}` : name);
-        }
         const outId = fdPrefix ? `${fdPrefix}-${rec.id}` : rec.id;
+        const displayName = rec.nameFromSite || name;
         return escapeCSV(`${outId}:${displayName}`);
       }
-
       // DK
       return escapeCSV(`${name} (${rec.id})`);
     });
 
+    while (cells.length < slotList.length) cells.push("");
     return cells.join(",");
   });
 
@@ -1432,7 +1430,7 @@ export default function NFLOptimizer() {
                     downloadSiteLineupsCSV({
                       lineups,
                       site,
-                      slots: cfg.slots,
+                      slots: cfg.slots,           // pass full slot list
                       siteIds: siteIds || {},
                       rows,
                       fname: `NFL_lineups_${site.toUpperCase()}_ids.csv`,
