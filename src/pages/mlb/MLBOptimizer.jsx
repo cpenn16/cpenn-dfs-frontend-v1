@@ -1,3 +1,4 @@
+// src/pages/mlb/MLBOptimizer.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API_BASE from "../../utils/api";
 
@@ -23,6 +24,16 @@ const pct = (v) => {
   return Number.isFinite(n) ? n / 100 : 0;
 };
 const normTeam = (s) => (s || "").toUpperCase().trim();
+const normName = (s) =>
+  String(s || "")
+    .toLowerCase()
+    .replace(/\u2019/g, "'")
+    .replace(/\./g, "")
+    .replace(/,\s*(jr|sr)\b/g, "")
+    .replace(/\b(jr|sr)\b/g, "")
+    .replace(/[^a-z' -]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 
 /* ------------------------------ data ------------------------------- */
 const SOURCE = "/data/mlb/latest/projections.json";
@@ -182,7 +193,7 @@ async function solveStreamMLB(payload, onItem, onDone) {
 
 /* ---------------- CSV + ID helpers (DK/FD) ------------------------- */
 function downloadCSV(rows, header, fname) {
-  const blob = new Blob([header + "\\n" + rows.join("\\n")], { type:"text/csv;charset=utf-8;" });
+  const blob = new Blob([header + "\n" + rows.join("\n")], { type:"text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url; a.download = fname; a.click();
@@ -192,12 +203,12 @@ function dkNameWithId(name, idMap) {
   const id = idMap.dk.get(name);
   return id ? `${name} (${id})` : name;
 }
-function fdNameWithId(name, idMap) {
-  const id = idMap.fd.get(name);
-  return id ? `${id}:${name}` : name;
+function fdNameWithIdRaw(name, id, prefix, display) {
+  const outId = prefix ? `${prefix}-${id}` : id;
+  return `${outId}:${display || name}`;
 }
 function siteNameWithId(site, name, idMap) {
-  return site === "dk" ? dkNameWithId(name, idMap) : fdNameWithId(name, idMap);
+  return site === "dk" ? dkNameWithId(name, idMap) : (idMap.fd.get(name) ? `${idMap.fd.get(name)}:${name}` : name);
 }
 function exportLineupsCSV(lineups, rows, site, idMap, fname="mlb_lineups.csv") {
   const hdr = ["#","Salary","Total","Players"].join(",");
@@ -205,47 +216,66 @@ function exportLineupsCSV(lineups, rows, site, idMap, fname="mlb_lineups.csv") {
   const lines = lineups.map((L,i)=>[i+1,L.salary,L.total.toFixed(1),`"${toNames(L.players)}"`].join(","));
   downloadCSV(lines, hdr, fname);
 }
-function exportPlayerExposureCSV(lineups, rows, site, idMap, fname="mlb_player_exposure.csv") {
-  const meta = new Map(rows.map(r=>[r.name, r]));
-  const count = new Map();
-  for (const L of lineups) for (const p of L.players) count.set(p, (count.get(p)||0)+1);
-  const total = Math.max(1, lineups.length);
-  const hdr = ["Player","Pos","Count","Exposure %"].join(",");
-  const lines = [...count.entries()].sort((a,b)=>b[1]-a[1]).map(([name,cnt])=>{
-    const r = meta.get(name);
-    const pos = r?.eligible?.join("/") || "?";
-    const withId = siteNameWithId(site, name, idMap);
-    return [escapeCSV(withId), pos, cnt, ((cnt/total)*100).toFixed(1)].join(",");
-  });
-  downloadCSV(lines, hdr, fname);
-}
-function exportTeamExposureCSV(lineups, rows, fname="mlb_team_exposure.csv") {
-  const rowsByName = new Map(rows.map(r=>[r.name, r]));
+
+/* ===== New: Build site-ID index + FD prefix detection ===== */
+function buildIdIndex(siteIds) {
+  const out = { dk: new Map(), fd: new Map(), fdDisplay: new Map(), fdPrefix: null };
+  const dkList = Array.isArray(siteIds?.dk) ? siteIds.dk : (siteIds?.sites?.dk ?? []);
+  const fdList = Array.isArray(siteIds?.fd) ? siteIds.fd : (siteIds?.sites?.fd ?? []);
+  for (const r of dkList) {
+    const id = String(r.id ?? r.ID ?? r.dk_id ?? r["DK ID"] ?? "").trim();
+    const name = String(r.name ?? r.player ?? r.Player ?? "").trim();
+    if (id && name) out.dk.set(name, id);
+  }
+  // FD prefix/group detection
   const counts = new Map();
-  for (const L of lineups) {
-    const teams = new Set(L.players.map(n=>rowsByName.get(n)).filter(Boolean).map(r=>r.team));
-    for (const t of teams) counts.set(t,(counts.get(t)||0)+1);
+  for (const r of fdList) {
+    const px = r.slateId ?? r.slate_id ?? r.groupId ?? r.group_id ?? r.lid ?? r.prefix ?? null;
+    if (px != null && px !== "") counts.set(String(px), (counts.get(String(px)) || 0) + 1);
   }
-  const total = Math.max(1, lineups.length);
-  const hdr = ["Team","Count","Exposure %"].join(",");
-  const lines = [...counts.entries()].sort((a,b)=>b[1]-a[1]).map(([t,c])=>[t,c,((c/total)*100).toFixed(1)].join(","));
-  downloadCSV(lines, hdr, fname);
+  if (counts.size === 1) out.fdPrefix = [...counts.keys()][0];
+  else if (counts.size > 1) out.fdPrefix = [...counts.entries()].sort((a,b)=>b[1]-a[1])[0][0];
+
+  for (const r of fdList) {
+    const id = String(r.id ?? r.ID ?? r.fd_id ?? r["FD ID"] ?? "").trim();
+    const name = String(r.name ?? r.player ?? r.Player ?? "").trim();
+    const display = String(r.displayName ?? r.Name ?? name).trim();
+    if (id && name) {
+      out.fd.set(name, id);
+      out.fdDisplay.set(name, display);
+    }
+  }
+  return out;
 }
-function exportStackShapesCSV(lineups, rows, fname="mlb_stack_shapes.csv") {
-  const meta = new Map(rows.map(r=>[r.name,r]));
-  const counts = {};
-  for (const L of lineups) {
-    const chosen = L.players.map(n=>meta.get(n)).filter(Boolean);
-    const hitters = chosen.filter(r=>!r.isPitcher);
-    const byTeam = new Map();
-    for (const h of hitters) byTeam.set(h.team,(byTeam.get(h.team)||0)+1);
-    const shape = [...byTeam.values()].sort((a,b)=>b-a).join("-") || "—";
-    counts[shape] = (counts[shape]||0)+1;
-  }
-  const total = Math.max(1, lineups.length);
-  const hdr = ["Shape","Count","%"].join(",");
-  const lines = Object.entries(counts).map(([shape,c]) => [shape,c,((c/total)*100).toFixed(1)].join(","));
-  downloadCSV(lines, hdr, fname);
+
+/* ===== New: Export CSV (IDs) in *import template* shape ===== */
+function slotHeaderNames(site) {
+  return site === "dk"
+    ? ["P","P","C","1B","2B","3B","SS","OF","OF","OF"]
+    : ["P","C/1B","2B","3B","SS","OF","OF","OF","UTIL"];
+}
+
+function exportSiteTemplateCSV({ lineups, site, rows, siteIds, fname = "mlb_site_ids.csv" }) {
+  const ids = buildIdIndex(siteIds);
+  const rowsByName = new Map(rows.map(r => [r.name, r]));
+  const headers = slotHeaderNames(site);
+  const lines = lineups.map((L) => {
+    const ordered = orderPlayersForSite(site, L.players, rowsByName);
+    const names = ordered.map(o => o?.name).filter(Boolean);
+    const cells = names.map((name) => {
+      if (site === "dk") {
+        const id = ids.dk.get(name);
+        return escapeCSV(id ? `${name} (${id})` : name);
+      } else {
+        const id = ids.fd.get(name);
+        const display = ids.fdDisplay.get(name) || name;
+        return escapeCSV(id ? fdNameWithIdRaw(name, id, ids.fdPrefix, display) : name);
+      }
+    });
+    while (cells.length < headers.length) cells.push("");
+    return cells.slice(0, headers.length).join(",");
+  });
+  downloadCSV(lines, headers.join(","), fname);
 }
 
 /* ---------------------------- page -------------------------------- */
@@ -319,65 +349,56 @@ export default function MLBOptimizer() {
     setLocks(new Set()); setExcls(new Set());
   }, [site]);
 
-  // Build ID maps for CSV
+  // Build ID maps for quick CSV (non-template)
   const idMap = useMemo(() => {
     const m = { dk: new Map(), fd: new Map() };
     const rows = siteIds || {};
-    for (const row of (rows.dk || [])) m.dk.set(row.name, String(row.id));
-    for (const row of (rows.fd || [])) m.fd.set(row.name, String(row.id));
+    for (const row of (rows?.dk || rows?.sites?.dk || [])) m.dk.set(row.name, String(row.id));
+    for (const row of (rows?.fd || rows?.sites?.fd || [])) m.fd.set(row.name, String(row.id));
     return m;
   }, [siteIds]);
 
   // --- robust position parsing & pitcher detection ---
-const POS_KEYS = [
-  "pos","Pos","POS","Position",
-  "DK Pos","FD Pos","POS_DK","POS_FD",
-  "dk_pos","fd_pos",
-];
+  const POS_KEYS = [
+    "pos","Pos","POS","Position",
+    "DK Pos","FD Pos","POS_DK","POS_FD",
+    "dk_pos","fd_pos",
+  ];
 
-function rawPositionsFromRow(r, siteKey) {
-  const vals = [];
-  for (const k of POS_KEYS) {
-    if (r[k] != null && String(r[k]).trim() !== "") vals.push(String(r[k]));
+  function rawPositionsFromRow(r, siteKey) {
+    const vals = [];
+    for (const k of POS_KEYS) {
+      if (r[k] != null && String(r[k]).trim() !== "") vals.push(String(r[k]));
+    }
+    if (siteKey === "dk" && r.dk_pos) vals.push(String(r.dk_pos));
+    if (siteKey === "fd" && r.fd_pos) vals.push(String(r.fd_pos));
+    if (!vals.length && typeof r.name === "string") {
+      const m = r.name.match(/\b(C|1B|2B|3B|SS|OF|SP|RP|P)\b/i);
+      if (m) vals.push(m[0]);
+    }
+    return vals.join("/");
   }
-  // site-specific singletons sometimes live on *_pos keys
-  if (siteKey === "dk" && r.dk_pos) vals.push(String(r.dk_pos));
-  if (siteKey === "fd" && r.fd_pos) vals.push(String(r.fd_pos));
-  // fallback: sometimes they stuff position in the name like "John Smith P"
-  if (!vals.length && typeof r.name === "string") {
-    const m = r.name.match(/\b(C|1B|2B|3B|SS|OF|SP|RP|P)\b/i);
-    if (m) vals.push(m[0]);
+
+  function normalizeEligible(raw) {
+    const txt = String(raw || "").toUpperCase();
+    if (!txt) return [];
+    const parts = txt
+      .split(/[\/,;|]+/)
+      .map(s => s.trim())
+      .filter(Boolean)
+      .map(p => (p === "SP" || p === "RP") ? "P" : p);
+    return Array.from(new Set(parts));
   }
-  return vals.join("/");
-}
 
-function normalizeEligible(raw) {
-  const txt = String(raw || "").toUpperCase();
-  if (!txt) return [];
-  const parts = txt
-    .split(/[\/,;|]+/)
-    .map(s => s.trim())
-    .filter(Boolean)
-    .map(p => (p === "SP" || p === "RP") ? "P" : p);
-  return Array.from(new Set(parts));
-}
-
-function pitcherish(r) {
-  // boolean-ish flags commonly seen
-  const flags = ["isPitcher","Pitcher","is_p","is_pitcher","PITCHER","p"].some(k => r[k] === true || r[k] === 1 || String(r[k]).toLowerCase() === "true");
-  if (flags) return true;
-
-  // hints from stat columns often present only for pitchers
-  const statKeys = ["IP","ip","GS","ERA","era","FIP","xFIP","SIERA","K/9","BB/9","KBB","WHIP","pitch_count","PitchCount","pitcher_team","starting_pitcher","is_sp","probable_pitcher"];
-  if (statKeys.some(k => r[k] != null)) return true;
-
-  // texty hints
-  const posTxt = (r.PositionText || r.Role || "").toString().toUpperCase();
-  if (/\b(SP|RP|PITCH|STARTER|RELIEF)\b/.test(posTxt)) return true;
-
-  return false;
-}
-
+  function pitcherish(r) {
+    const flags = ["isPitcher","Pitcher","is_p","is_pitcher","PITCHER","p"].some(k => r[k] === true || r[k] === 1 || String(r[k]).toLowerCase() === "true");
+    if (flags) return true;
+    const statKeys = ["IP","ip","GS","ERA","era","FIP","xFIP","SIERA","K/9","BB/9","KBB","WHIP","pitch_count","PitchCount","pitcher_team","starting_pitcher","is_sp","probable_pitcher"];
+    if (statKeys.some(k => r[k] != null)) return true;
+    const posTxt = (r.PositionText || r.Role || "").toString().toUpperCase();
+    if (/\b(SP|RP|PITCH|STARTER|RELIEF)\b/.test(posTxt)) return true;
+    return false;
+  }
 
   /* ------------------------------ rows ------------------------------ */
   const rows = useMemo(() => {
@@ -394,37 +415,26 @@ function pitcherish(r) {
       : [];
 
     const siteKey = cfg.key; // "dk" | "fd"
-    const projKeyLC = `${siteKey}_proj`;
-    const salKeyLC  = `${siteKey}_sal`;
-    const pownKeyLC = `${siteKey}_pown`;
-    const optKeyLC  = `${siteKey}_opt`;
 
     const mapped = arr.map((r) => {
       const name = r.player ?? r.Player ?? r.Name ?? r.playerName ?? r.name ?? "";
 
-      // 1) gather raw pos from multiple possible columns
       const rawPosJoined = rawPositionsFromRow(r, siteKey);
-
-      // 2) normalize to DK/FD view (SP/RP -> P)
       let eligible = normalizeEligible(rawPosJoined);
-
-      // 3) if still empty, try to infer pitchers and at least give them P
       if (eligible.length === 0 && pitcherish(r)) {
         eligible = ["P"];
       }
-
-      // 4) if site gave weird lowercase or spacey strings, normalize again
       eligible = normalizeEligible(eligible.join("/"));
 
       const team = normTeam(r.team ?? r.Team ?? r.Tm ?? r.TEAM ?? r.team_abbr ?? r.TeamAbbrev ?? "");
       const opp  = normTeam(r.opp  ?? r.Opp  ?? r.OPP ?? r.opponent ?? r.Opponent ?? "");
 
-      const salary = num(r[`${siteKey}_sal`] ?? r[cfg.salKey] ?? r.Salary ?? r.salary);
-      const proj   = num(r[`${siteKey}_proj`] ?? r[cfg.projKey] ?? r.Projection ?? r.Points);
-      const floor  = num(r[`${siteKey}_floor`] ?? r[cfg.floorKey] ?? r.Floor);
-      const ceil   = num(r[`${siteKey}_ceil`]  ?? r[cfg.ceilKey]  ?? r.Ceiling);
-      const pown   = pct(r[`${siteKey}_pown`] ?? r[cfg.pown?.[0]] ?? r[cfg.pown?.[1]]);
-      const opt    = pct(r[`${siteKey}_opt`]  ?? r[cfg.opt?.[0]]  ?? r[cfg.opt?.[1]]);
+      const salary = num(r[`${siteKey}_sal`] ?? r[SITES[siteKey].salKey] ?? r.Salary ?? r.salary);
+      const proj   = num(r[`${siteKey}_proj`] ?? r[SITES[siteKey].projKey] ?? r.Projection ?? r.Points);
+      const floor  = num(r[`${siteKey}_floor`] ?? r[SITES[siteKey].floorKey] ?? r.Floor);
+      const ceil   = num(r[`${siteKey}_ceil`]  ?? r[SITES[siteKey].ceilKey]  ?? r.Ceiling);
+      const pown   = pct(r[`${siteKey}_pown`] ?? r[SITES[siteKey].pown?.[0]] ?? r[SITES[siteKey].pown?.[1]]);
+      const opt    = pct(r[`${siteKey}_opt`]  ?? r[SITES[siteKey].opt?.[0]]  ?? r[SITES[siteKey].opt?.[1]]);
 
       const isPitcher = eligible.includes("P");
       const val    = Number.isFinite(proj) && salary > 0 ? (proj / salary) * 1000 : 0;
@@ -674,7 +684,7 @@ function pitcherish(r) {
           </select>
         </div>
         <div className="md:col-span-1">
-          <label className="block text-[11px] text-gray-600 mb-1">Lineups</label>
+          <label className="block text:[11px] text-gray-600 mb-1">Lineups</label>
           <input className="w-full border rounded-md px-2 py-1.5 text-sm" value={numLineups} onChange={(e) => setNumLineups(e.target.value)} />
         </div>
         <div className="md:col-span-2">
@@ -968,7 +978,21 @@ function pitcherish(r) {
               <div className="flex items-center gap-2">
                 <button className="px-3 py-1.5 border rounded text-sm"
                   onClick={() => exportLineupsCSV(lineups, rows, site, idMap)}>
-                  Export CSV
+                  Export CSV (pretty)
+                </button>
+                <button
+                  className="px-3 py-1.5 border rounded text-sm"
+                  onClick={() =>
+                    exportSiteTemplateCSV({
+                      lineups,
+                      site,
+                      rows,
+                      siteIds: siteIds || {},
+                      fname: `mlb_${site.toUpperCase()}_ids.csv`,
+                    })
+                  }
+                >
+                  Export CSV (IDs – Import)
                 </button>
               </div>
             </div>
@@ -1055,6 +1079,24 @@ function pitcherish(r) {
             </div>
             <StackShapesTable lineups={lineups} rows={rows} />
           </section>
+
+          {/* ===== New: Lineup Cards ===== */}
+          <section className="lg:col-span-12">
+            <h3 className="text-base font-semibold mb-2">Cards</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+              {lineups.map((L, idx) => (
+                <LineupCard
+                  key={idx}
+                  idx={idx}
+                  names={L.players}
+                  rows={rows}
+                  site={site}
+                  total={L.total}
+                  salary={L.salary}
+                />
+              ))}
+            </div>
+          </section>
         </div>
       )}
     </div>
@@ -1093,6 +1135,50 @@ function orderPlayersForSite(site, names, rowsMap) {
     out.push(take((r) => ["C","1B","2B","3B","SS","OF"].some(p => r.eligible.includes(p)))); // UTIL
   }
   return out.filter(Boolean).concat(pool);
+}
+
+/* --------------------------- Cards --------------------------- */
+function LineupCard({ idx, names, rows, site, total, salary }) {
+  const rowsMap = useMemo(() => new Map(rows.map((r) => [r.name, r])), [rows]);
+  const ordered = orderPlayersForSite(site, names, rowsMap);
+  const slotLabels = site === "dk"
+    ? ["P","P","C","1B","2B","3B","SS","OF","OF","OF"]
+    : ["P","C/1B","2B","3B","SS","OF","OF","OF","UTIL"];
+
+  return (
+    <div className="rounded-lg border p-3 bg-white">
+      <div className="flex items-center justify-between mb-2">
+        <div className="font-semibold">Lineup #{idx + 1}</div>
+        <img src={SITES[site].logo} alt="" className="w-4 h-4 opacity-70" title={SITES[site].label} />
+      </div>
+      <table className="w-full text-[12px]">
+        <thead>
+          <tr className="text-gray-600">
+            <th className="px-2 py-1 font-semibold text-center">Slot</th>
+            <th className="px-2 py-1 font-semibold text-left">Player</th>
+            <th className="px-2 py-1 font-semibold text-center">Proj</th>
+            <th className="px-2 py-1 font-semibold text-center">Salary</th>
+          </tr>
+        </thead>
+        <tbody>
+          {ordered.map((r, i) => (
+            <tr key={r.name} className="odd:bg-white even:bg-gray-50">
+              <td className="px-2 py-1 text-center">{slotLabels[i] || "—"}</td>
+              <td className="px-2 py-1">{r.name}</td>
+              <td className="px-2 py-1 text-center">{fmt1(r.proj)}</td>
+              <td className="px-2 py-1 text-center">{fmt0(r.salary)}</td>
+            </tr>
+          ))}
+          <tr className="border-t bg-gray-50">
+            <td className="px-2 py-1 font-semibold text-center">Totals</td>
+            <td />
+            <td className="px-2 py-1 font-semibold text-center">{fmt1(total)}</td>
+            <td className="px-2 py-1 font-semibold text-center">{fmt0(salary)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
 /* --------------------------- Exposure tables --------------------------- */
@@ -1214,4 +1300,3 @@ function StackShapesTable({ lineups, rows }) {
     </table>
   );
 }
-
