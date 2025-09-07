@@ -15,7 +15,17 @@
     "dk_flex_opt": "54.8%",
     "dk_cpt_opt": "29.2%",
     "fd_flex_opt": "52.8%",
-    "fd_mvp_opt": "33.6%"
+    "fd_mvp_opt": "33.6%",
+    "dk_flex_id": "39940531",
+    "dk_cpt_id": "39940580",
+    "fd_id": "120169-63115",
+    "DK Flex Sal": "10,800",
+    "DK CPT Sal": "16,200",
+    "FD Flex Sal": "13,200",
+    "FD MVP Sal": "19,800",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940580",
+    "DK MVP Sal": "16,200"
   },
   {
     "pos": "QB",
@@ -33,7 +43,17 @@
     "dk_flex_opt": "52.2%",
     "dk_cpt_opt": "26.6%",
     "fd_flex_opt": "53.4%",
-    "fd_mvp_opt": "23.6%"
+    "fd_mvp_opt": "23.6%",
+    "dk_flex_id": "39940530",
+    "dk_cpt_id": "39940579",
+    "fd_id": "120169-62239",
+    "DK Flex Sal": "11,000",
+    "DK CPT Sal": "16,500",
+    "FD Flex Sal": "13,600",
+    "FD MVP Sal": "20,400",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940579",
+    "DK MVP Sal": "16,500"
   },
   {
     "pos": "RB",
@@ -51,7 +71,17 @@
     "dk_flex_opt": "46.8%",
     "dk_cpt_opt": "10.4%",
     "fd_flex_opt": "49%",
-    "fd_mvp_opt": "12.2%"
+    "fd_mvp_opt": "12.2%",
+    "dk_flex_id": "39940532",
+    "dk_cpt_id": "39940581",
+    "fd_id": "120169-39280",
+    "DK Flex Sal": "10,200",
+    "DK CPT Sal": "15,300",
+    "FD Flex Sal": "12,800",
+    "FD MVP Sal": "19,200",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940581",
+    "DK MVP Sal": "15,300"
   },
   {
     "pos": "RB",
@@ -69,7 +99,17 @@
     "dk_flex_opt": "33%",
     "dk_cpt_opt": "5%",
     "fd_flex_opt": "37.2%",
-    "fd_mvp_opt": "8.4%"
+    "fd_mvp_opt": "8.4%",
+    "dk_flex_id": "39940533",
+    "dk_cpt_id": "39940582",
+    "fd_id": "120169-91626",
+    "DK Flex Sal": "9,200",
+    "DK CPT Sal": "13,800",
+    "FD Flex Sal": "10,400",
+    "FD MVP Sal": "15,600",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940582",
+    "DK MVP Sal": "13,800"
   },
   {
     "pos": "WR",
@@ -87,7 +127,17 @@
     "dk_flex_opt": "38.8%",
     "dk_cpt_opt": "6.6%",
     "fd_flex_opt": "33.6%",
-    "fd_mvp_opt": "5.6%"
+    "fd_mvp_opt": "5.6%",
+    "dk_flex_id": "39940534",
+    "dk_cpt_id": "39940583",
+    "fd_id": "120169-112295",
+    "DK Flex Sal": "8,200",
+    "DK CPT Sal": "12,300",
+    "FD Flex Sal": "10,000",
+    "FD MVP Sal": "15,000",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940583",
+    "DK MVP Sal": "12,300"
   },
   {
     "pos": "WR",
@@ -105,7 +155,17 @@
     "dk_flex_opt": "29.4%",
     "dk_cpt_opt": "6%",
     "fd_flex_opt": "22.2%",
-    "fd_mvp_opt": "1.4%"
+    "fd_mvp_opt": "1.4%",
+    "dk_flex_id": "39940535",
+    "dk_cpt_id": "39940584",
+    "fd_id": "120169-86518",
+    "DK Flex Sal": "7,600",
+    "DK CPT Sal": "11,400",
+    "FD Flex Sal": "9,400",
+    "FD MVP Sal": "14,100",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940584",
+    "DK MVP Sal": "11,400"
   },
   {
     "pos": "TE",
@@ -123,7 +183,17 @@
     "dk_flex_opt": "26.2%",
     "dk_cpt_opt": "3.4%",
     "fd_flex_opt": "15.4%",
-    "fd_mvp_opt": "1%"
+    "fd_mvp_opt": "1%",
+    "dk_flex_id": "39940536",
+    "dk_cpt_id": "39940585",
+    "fd_id": "120169-52436",
+    "DK Flex Sal": "7,000",
+    "DK CPT Sal": "10,500",
+    "FD Flex Sal": "8,600",
+    "FD MVP Sal": "12,900",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940585",
+    "DK MVP Sal": "10,500"
   },
   {
     "pos": "WR",
@@ -141,7 +211,17 @@
     "dk_flex_opt": "15%",
     "dk_cpt_opt": "0.8%",
     "fd_flex_opt": "43.6%",
-    "fd_mvp_opt": "5.4%"
+    "fd_mvp_opt": "5.4%",
+    "dk_flex_id": "39940537",
+    "dk_cpt_id": "39940586",
+    "fd_id": "120169-157467",
+    "DK Flex Sal": "6,600",
+    "DK CPT Sal": "9,900",
+    "FD Flex Sal": "4,800",
+    "FD MVP Sal": "7,200",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940586",
+    "DK MVP Sal": "9,900"
   },
   {
     "pos": "WR",
@@ -159,7 +239,17 @@
     "dk_flex_opt": "22%",
     "dk_cpt_opt": "2.4%",
     "fd_flex_opt": "10%",
-    "fd_mvp_opt": "1%"
+    "fd_mvp_opt": "1%",
+    "dk_flex_id": "39940542",
+    "dk_cpt_id": "39940591",
+    "fd_id": "120169-85845",
+    "DK Flex Sal": "5,800",
+    "DK CPT Sal": "8,700",
+    "FD Flex Sal": "8,000",
+    "FD MVP Sal": "12,000",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940591",
+    "DK MVP Sal": "8,700"
   },
   {
     "pos": "TE",
@@ -177,7 +267,17 @@
     "dk_flex_opt": "14.8%",
     "dk_cpt_opt": "1.4%",
     "fd_flex_opt": "23.4%",
-    "fd_mvp_opt": "1.6%"
+    "fd_mvp_opt": "1.6%",
+    "dk_flex_id": "39940543",
+    "dk_cpt_id": "39940592",
+    "fd_id": "120169-145558",
+    "DK Flex Sal": "5,600",
+    "DK CPT Sal": "8,400",
+    "FD Flex Sal": "5,400",
+    "FD MVP Sal": "8,100",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940592",
+    "DK MVP Sal": "8,400"
   },
   {
     "pos": "K",
@@ -195,7 +295,17 @@
     "dk_flex_opt": "23.8%",
     "dk_cpt_opt": "1.8%",
     "fd_flex_opt": "24.2%",
-    "fd_mvp_opt": "1.8%"
+    "fd_mvp_opt": "1.8%",
+    "dk_flex_id": "39940548",
+    "dk_cpt_id": "39940597",
+    "fd_id": "120169-140491",
+    "DK Flex Sal": "4,600",
+    "DK CPT Sal": "6,900",
+    "FD Flex Sal": "6,800",
+    "FD MVP Sal": "10,200",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940597",
+    "DK MVP Sal": "6,900"
   },
   {
     "pos": "K",
@@ -213,7 +323,17 @@
     "dk_flex_opt": "21%",
     "dk_cpt_opt": "2%",
     "fd_flex_opt": "22%",
-    "fd_mvp_opt": "1%"
+    "fd_mvp_opt": "1%",
+    "dk_flex_id": "39940546",
+    "dk_cpt_id": "39940595",
+    "fd_id": "120169-65128",
+    "DK Flex Sal": "4,800",
+    "DK CPT Sal": "7,200",
+    "FD Flex Sal": "7,200",
+    "FD MVP Sal": "10,800",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940595",
+    "DK MVP Sal": "7,200"
   },
   {
     "pos": "WR",
@@ -231,7 +351,17 @@
     "dk_flex_opt": "10%",
     "dk_cpt_opt": "0.8%",
     "fd_flex_opt": "3.2%",
-    "fd_mvp_opt": "0%"
+    "fd_mvp_opt": "0%",
+    "dk_flex_id": "39940544",
+    "dk_cpt_id": "39940593",
+    "fd_id": "120169-87418",
+    "DK Flex Sal": "5,400",
+    "DK CPT Sal": "8,100",
+    "FD Flex Sal": "7,600",
+    "FD MVP Sal": "11,400",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940593",
+    "DK MVP Sal": "8,100"
   },
   {
     "pos": "RB",
@@ -249,7 +379,17 @@
     "dk_flex_opt": "32%",
     "dk_cpt_opt": "0.4%",
     "fd_flex_opt": "37.4%",
-    "fd_mvp_opt": "2.4%"
+    "fd_mvp_opt": "2.4%",
+    "dk_flex_id": "39940555",
+    "dk_cpt_id": "39940604",
+    "fd_id": "120169-103694",
+    "DK Flex Sal": "3,200",
+    "DK CPT Sal": "4,800",
+    "FD Flex Sal": "3,400",
+    "FD MVP Sal": "5,100",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940604",
+    "DK MVP Sal": "4,800"
   },
   {
     "pos": "RB",
@@ -267,7 +407,17 @@
     "dk_flex_opt": "32.6%",
     "dk_cpt_opt": "2.6%",
     "fd_flex_opt": "18%",
-    "fd_mvp_opt": "0.4%"
+    "fd_mvp_opt": "0.4%",
+    "dk_flex_id": "39940556",
+    "dk_cpt_id": "39940605",
+    "fd_id": "120169-71521",
+    "DK Flex Sal": "3,000",
+    "DK CPT Sal": "4,500",
+    "FD Flex Sal": "4,000",
+    "FD MVP Sal": "6,000",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940605",
+    "DK MVP Sal": "4,500"
   },
   {
     "pos": "WR",
@@ -285,7 +435,17 @@
     "dk_flex_opt": "6%",
     "dk_cpt_opt": "0%",
     "fd_flex_opt": "4.4%",
-    "fd_mvp_opt": "0%"
+    "fd_mvp_opt": "0%",
+    "dk_flex_id": "39940550",
+    "dk_cpt_id": "39940599",
+    "fd_id": "120169-16606",
+    "DK Flex Sal": "4,200",
+    "DK CPT Sal": "6,300",
+    "FD Flex Sal": "5,000",
+    "FD MVP Sal": "7,500",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940599",
+    "DK MVP Sal": "6,300"
   },
   {
     "pos": "RB",
@@ -303,7 +463,17 @@
     "dk_flex_opt": "8.8%",
     "dk_cpt_opt": "0%",
     "fd_flex_opt": "4.4%",
-    "fd_mvp_opt": "0%"
+    "fd_mvp_opt": "0%",
+    "dk_flex_id": "39940558",
+    "dk_cpt_id": "39940607",
+    "fd_id": "120169-63050",
+    "DK Flex Sal": "2,400",
+    "DK CPT Sal": "3,600",
+    "FD Flex Sal": "3,800",
+    "FD MVP Sal": "5,700",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940607",
+    "DK MVP Sal": "3,600"
   },
   {
     "pos": "WR",
@@ -321,7 +491,17 @@
     "dk_flex_opt": "0.6%",
     "dk_cpt_opt": "0%",
     "fd_flex_opt": "0.6%",
-    "fd_mvp_opt": "0%"
+    "fd_mvp_opt": "0%",
+    "dk_flex_id": "39940554",
+    "dk_cpt_id": "39940603",
+    "fd_id": "120169-88575",
+    "DK Flex Sal": "3,400",
+    "DK CPT Sal": "5,100",
+    "FD Flex Sal": "4,400",
+    "FD MVP Sal": "6,600",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940603",
+    "DK MVP Sal": "5,100"
   },
   {
     "pos": "TE",
@@ -339,7 +519,17 @@
     "dk_flex_opt": "14.2%",
     "dk_cpt_opt": "0.4%",
     "fd_flex_opt": "23.4%",
-    "fd_mvp_opt": "0.6%"
+    "fd_mvp_opt": "0.6%",
+    "dk_flex_id": "39940560",
+    "dk_cpt_id": "39940609",
+    "fd_id": "120169-85635",
+    "DK Flex Sal": "1,600",
+    "DK CPT Sal": "2,400",
+    "FD Flex Sal": "1,200",
+    "FD MVP Sal": "1,800",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940609",
+    "DK MVP Sal": "2,400"
   },
   {
     "pos": "TE",
@@ -357,7 +547,17 @@
     "dk_flex_opt": "0%",
     "dk_cpt_opt": "0%",
     "fd_flex_opt": "2.6%",
-    "fd_mvp_opt": "0%"
+    "fd_mvp_opt": "0%",
+    "dk_flex_id": "39940553",
+    "dk_cpt_id": "39940602",
+    "fd_id": "120169-64585",
+    "DK Flex Sal": "3,600",
+    "DK CPT Sal": "5,400",
+    "FD Flex Sal": "3,000",
+    "FD MVP Sal": "4,500",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940602",
+    "DK MVP Sal": "5,400"
   },
   {
     "pos": "DST",
@@ -375,7 +575,14 @@
     "dk_flex_opt": "",
     "dk_cpt_opt": "",
     "fd_flex_opt": "",
-    "fd_mvp_opt": ""
+    "fd_mvp_opt": "",
+    "dk_flex_id": "39940545",
+    "dk_cpt_id": "39940594",
+    "DK Flex Sal": "5,000",
+    "DK CPT Sal": "7,500",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940594",
+    "DK MVP Sal": "7,500"
   },
   {
     "pos": "RB",
@@ -393,7 +600,17 @@
     "dk_flex_opt": "2%",
     "dk_cpt_opt": "0%",
     "fd_flex_opt": "8.8%",
-    "fd_mvp_opt": "0%"
+    "fd_mvp_opt": "0%",
+    "dk_flex_id": "39940559",
+    "dk_cpt_id": "39940608",
+    "fd_id": "120169-134023",
+    "DK Flex Sal": "2,000",
+    "DK CPT Sal": "3,000",
+    "FD Flex Sal": "1,600",
+    "FD MVP Sal": "2,400",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940608",
+    "DK MVP Sal": "3,000"
   },
   {
     "pos": "WR",
@@ -411,7 +628,17 @@
     "dk_flex_opt": "0.8%",
     "dk_cpt_opt": "0%",
     "fd_flex_opt": "1.4%",
-    "fd_mvp_opt": "0%"
+    "fd_mvp_opt": "0%",
+    "dk_flex_id": "39940557",
+    "dk_cpt_id": "39940606",
+    "fd_id": "120169-52613",
+    "DK Flex Sal": "2,800",
+    "DK CPT Sal": "4,200",
+    "FD Flex Sal": "2,800",
+    "FD MVP Sal": "4,200",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940606",
+    "DK MVP Sal": "4,200"
   },
   {
     "pos": "WR",
@@ -429,7 +656,17 @@
     "dk_flex_opt": "5.8%",
     "dk_cpt_opt": "0%",
     "fd_flex_opt": "4.2%",
-    "fd_mvp_opt": "0%"
+    "fd_mvp_opt": "0%",
+    "dk_flex_id": "39940561",
+    "dk_cpt_id": "39940610",
+    "fd_id": "120169-87515",
+    "DK Flex Sal": "1,200",
+    "DK CPT Sal": "1,800",
+    "FD Flex Sal": "2,000",
+    "FD MVP Sal": "3,000",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940610",
+    "DK MVP Sal": "1,800"
   },
   {
     "pos": "DST",
@@ -447,7 +684,14 @@
     "dk_flex_opt": "",
     "dk_cpt_opt": "",
     "fd_flex_opt": "",
-    "fd_mvp_opt": ""
+    "fd_mvp_opt": "",
+    "dk_flex_id": "39940549",
+    "dk_cpt_id": "39940598",
+    "DK Flex Sal": "4,400",
+    "DK CPT Sal": "6,600",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940598",
+    "DK MVP Sal": "6,600"
   },
   {
     "pos": "WR",
@@ -465,7 +709,17 @@
     "dk_flex_opt": "5.6%",
     "dk_cpt_opt": "0%",
     "fd_flex_opt": "2.2%",
-    "fd_mvp_opt": "0%"
+    "fd_mvp_opt": "0%",
+    "dk_flex_id": "39940564",
+    "dk_cpt_id": "39940613",
+    "fd_id": "120169-156527",
+    "DK Flex Sal": "600",
+    "DK CPT Sal": "900",
+    "FD Flex Sal": "1,800",
+    "FD MVP Sal": "2,700",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940613",
+    "DK MVP Sal": "900"
   },
   {
     "pos": "TE",
@@ -483,7 +737,17 @@
     "dk_flex_opt": "2.6%",
     "dk_cpt_opt": "0.2%",
     "fd_flex_opt": "1.4%",
-    "fd_mvp_opt": "0%"
+    "fd_mvp_opt": "0%",
+    "dk_flex_id": "39940578",
+    "dk_cpt_id": "39940627",
+    "fd_id": "120169-200291",
+    "DK Flex Sal": "200",
+    "DK CPT Sal": "300",
+    "FD Flex Sal": "1,000",
+    "FD MVP Sal": "1,500",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940627",
+    "DK MVP Sal": "300"
   },
   {
     "pos": "TE",
@@ -501,6 +765,16 @@
     "dk_flex_opt": "1.2%",
     "dk_cpt_opt": "0%",
     "fd_flex_opt": "1.2%",
-    "fd_mvp_opt": "0%"
+    "fd_mvp_opt": "0%",
+    "dk_flex_id": "39940577",
+    "dk_cpt_id": "39940626",
+    "fd_id": "120169-153957",
+    "DK Flex Sal": "200",
+    "DK CPT Sal": "300",
+    "FD Flex Sal": "1,000",
+    "FD MVP Sal": "1,500",
+    "time": "8:20 PM",
+    "dk_mvp_id": "39940626",
+    "DK MVP Sal": "300"
   }
 ]
