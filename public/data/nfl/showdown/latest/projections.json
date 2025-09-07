@@ -309,7 +309,7 @@
   },
   {
     "pos": "K",
-    "player": "Tyler Bass",
+    "player": "Matt Prater",
     "team": "BUF",
     "opp": "BAL",
     "dk_proj": "8.4",
@@ -324,15 +324,12 @@
     "dk_cpt_opt": "1%",
     "fd_flex_opt": "22.8%",
     "fd_mvp_opt": "1.2%",
-    "dk_flex_id": "39940546",
-    "dk_cpt_id": "39940595",
-    "fd_id": "120169-65128",
+    "dk_flex_id": "39940547",
+    "dk_cpt_id": "39940596",
     "DK Flex Sal": "4,800",
     "DK CPT Sal": "7,200",
-    "FD Flex Sal": "7,200",
-    "FD MVP Sal": "10,800",
     "time": "8:20 PM",
-    "dk_mvp_id": "39940595",
+    "dk_mvp_id": "39940596",
     "DK MVP Sal": "7,200"
   },
   {
