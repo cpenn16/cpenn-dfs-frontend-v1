@@ -2273,9 +2273,3 @@ function LineupCards({ lineups, rows }) {
     </div>
   );
 }
-
-
-
-
-
-
