@@ -1,12 +1,9 @@
 // src/pages/nfl/NFLShowdownOptimizer.jsx
-// FULL DROP-IN — v3.9.5
-// Fixes
-// - Exposure tab: scope toggle (ALL / MVP|CPT / FLEX) with lineup-based denominators
-// - ALL scope shows combined CPT/MVP+FLEX exposure per player (no slot split)
-// - Build chips: persistent build history per site (select, delete, clear)
-// - Main table: scrollable with sticky header
-// - Streaming parser uses actual "\n" and "\n\n" sequences (kept)
-// - CSV/solver logic unchanged
+// FULL DROP-IN — v4.0.0 (adds Player Groups for Showdown)
+// Includes:
+// - Player Groups UI (at least / at most / exactly N of selected players)
+// - End-to-end wiring to /solve_showdown_stream (payload.groups)
+// - Everything else from your posted v3.9.5 (unchanged unless noted)
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API_BASE from "../../utils/api";
@@ -242,6 +239,9 @@ export default function NFLShowdownOptimizer() {
   // IF→THEN rules
   const [rules, setRules] = useStickyState(`sd.${site}.rules`, []);
 
+  // 🔹 Player Groups (NEW)
+  const [groups, setGroups] = useStickyState(`sd.${site}.groups`, []);
+
   // CPT/MVP vs FLEX table filter
   const [tagFilter, setTagFilter] = useStickyState(`sd.${site}.tagFilter`, "ALL");
 
@@ -251,7 +251,7 @@ export default function NFLShowdownOptimizer() {
   // right-panel tab
   const [tab, setTab] = useStickyState(`sd.${site}.rightTab`, "Exposure"); // Exposure | Teams | Stacks
 
-  // builds & results (live view shows currently selected build's lineups)
+  // builds & results
   const [lineups, setLineups] = useState([]);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [progressUI, setProgressUI] = useState(0);
@@ -286,7 +286,7 @@ export default function NFLShowdownOptimizer() {
     setLineups([]); setProgressActual(0); setProgressUI(0); setIsOptimizing(false);
   }, [site]);
 
-  // If user selects a chip (activeBuild), load its lineups into the live view (unless we’re mid-build)
+  // If user selects a chip (activeBuild), load its lineups into the live view
   useEffect(() => {
     if (!isOptimizing && activeBuild >= 0 && builds[activeBuild]) {
       setLineups(builds[activeBuild].lineups || []);
@@ -343,6 +343,12 @@ export default function NFLShowdownOptimizer() {
   /* slate teams (only 2 in showdown) */
   const slateTeams = useMemo(() => {
     const s = new Set(); for (const r of rows) { if (r.team) s.add(r.team); if (r.opp) s.add(r.opp); } return [...s].slice(0, 2);
+  }, [rows]);
+
+  /* Unique player names for pickers */
+  const allPlayers = useMemo(() => {
+    const s = new Set(rows.map(r => r.name));
+    return [...s].sort((a,b)=>a.localeCompare(b));
   }, [rows]);
 
   /* -------------------- table + search + sorting ------------------- */
@@ -427,7 +433,7 @@ export default function NFLShowdownOptimizer() {
 
   const resetConstraints = () => {
     setLocks(new Set()); setExcls(new Set()); setBoost({});
-    setMinPctTag({}); setMaxPctTag({}); setRules([]); setTeamMaxPct({});
+    setMinPctTag({}); setMaxPctTag({}); setRules([]); setTeamMaxPct({}); setGroups([]);
   };
 
   /* --------------------------- optimize (SSE) ------------------------ */
@@ -484,9 +490,11 @@ export default function NFLShowdownOptimizer() {
       min_pct_tag,
       max_pct_tag,
       time_limit_ms: 1500,
-      max_overlap: clamp(Number(maxOverlap) || 0, 0, 5),
+      max_overlap: clamp(Number(maxOverlap) || 0, 0, 5), // ignored by backend (safe)
       lineup_pown_max: String(lineupPownCap).trim() === "" ? null : clamp(Number(lineupPownCap) || 0, 0, 100),
-      rules: apiRules
+      rules: apiRules,
+      // 🔹 NEW: player groups
+      groups,
     };
 
     const out = [];
@@ -520,7 +528,6 @@ export default function NFLShowdownOptimizer() {
           };
           setBuilds((B) => {
             const next = [...B, rec];
-            // select this new build
             setActiveBuild(next.length - 1);
             return next;
           });
@@ -559,13 +566,10 @@ export default function NFLShowdownOptimizer() {
   /* --------------------- right-panel aggregates --------------------- */
   const slotLabel = (t) => (t === "ALL" ? "ALL" : (t === "FLEX" ? "FLEX" : cfg.capTag));
 
-  // Exposures: lineup-based denominator; ALL scope = combined across slots
   const exposures = useMemo(() => {
     const denom = Math.max(1, lineups.length);
 
-    // Per-slot counts: "Player::CPT|MVP" or "Player::FLEX"
     const perSlot = new Map();
-    // Combined (ALL) counts: "Player" → appearances in any slot (dedupe within lineup)
     const perAll = new Map();
 
     for (const L of lineups) {
@@ -573,7 +577,7 @@ export default function NFLShowdownOptimizer() {
         ? L.pairs
         : (L.players || []).map((n, i) => ({ slot: i === 0 ? cfg.capTag : "FLEX", name: n }));
 
-      const seenThisLineup = new Set(); // avoid double-counting same player in one lineup
+      const seenThisLineup = new Set();
 
       for (const p of ps) {
         const t = p.slot === "FLEX" ? "FLEX" : cfg.capTag;
@@ -588,13 +592,11 @@ export default function NFLShowdownOptimizer() {
     }
 
     if (expScope === "ALL") {
-      // single row per player, CPT/MVP + FLEX combined
       return [...perAll.entries()]
         .map(([name, c]) => ({ name, slot: "ALL", count: c, pct: +(100 * c / denom).toFixed(1) }))
         .sort((a, b) => b.pct - a.pct || a.name.localeCompare(b.name));
     }
 
-    // Slot-specific (CPT/MVP or FLEX), still lineup-based denominator
     const needSlot = expScope === "FLEX" ? "FLEX" : cfg.capTag;
     return [...perSlot.entries()]
       .filter(([key]) => key.endsWith(`::${needSlot}`))
@@ -636,7 +638,6 @@ export default function NFLShowdownOptimizer() {
   }, [lineups, rows]);
 
   /* ---------------------------- render ------------------------------ */
-  // chip helpers
   const selectBuild = (idx) => { setActiveBuild(idx); if (builds[idx]) setLineups(builds[idx].lineups || []); };
   const removeBuild = (idx) => {
     setBuilds((B) => {
@@ -845,6 +846,118 @@ export default function NFLShowdownOptimizer() {
                 </div>
               );
             })}
+          </div>
+        )}
+      </div>
+
+      {/* 🔹 Player Groups (at least / at most / exactly N of selected) */}
+      <h3 className="text-xs font-semibold tracking-wide text-gray-500 uppercase mb-2">Player Groups</h3>
+      <div className={`${cls.card} p-2 mb-3`}>
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-[11px] text-gray-600">
+            Create groups like “at least 2 of these players”, “at most 1”, or “exactly 2”.
+          </div>
+          <button
+            className={cls.btn.ghost}
+            onClick={() => setGroups((G) => [...G, { mode: "at_least", count: 1, players: [] }])}
+          >
+            + Add Group
+          </button>
+        </div>
+
+        {groups.length === 0 ? (
+          <div className="text-xs text-gray-500 px-1 py-2">No groups yet.</div>
+        ) : (
+          <div className="space-y-2">
+            {groups.map((g, i) => (
+              <div key={i} className="relative rounded-lg border border-gray-200 bg-white p-2 pl-3">
+                <span className="absolute inset-y-0 left-0 w-1 rounded-l-lg bg-purple-500" />
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm">Require</span>
+                  <select
+                    className={cls.input}
+                    value={g.mode}
+                    onChange={(e) =>
+                      setGroups((G) => {
+                        const c = [...G];
+                        c[i] = { ...c[i], mode: e.target.value };
+                        return c;
+                      })
+                    }
+                  >
+                    <option value="at_least">at least</option>
+                    <option value="at_most">at most</option>
+                    <option value="exactly">exactly</option>
+                  </select>
+
+                  <input
+                    className={cls.input}
+                    style={{ width: 64 }}
+                    value={g.count}
+                    onChange={(e) =>
+                      setGroups((G) => {
+                        const c = [...G];
+                        const v = Math.max(0, Math.floor(Number(e.target.value) || 0));
+                        c[i] = { ...c[i], count: v };
+                        return c;
+                      })
+                    }
+                  />
+                  <span className="text-sm">from</span>
+
+                  {/* Selected chips */}
+                  <div className="flex flex-wrap gap-1">
+                    {(g.players || []).map((nm) => (
+                      <span
+                        key={nm}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs border border-gray-200 bg-gray-50"
+                      >
+                        {nm}
+                        <button
+                          className="text-gray-500 hover:text-red-600"
+                          title="Remove"
+                          onClick={() =>
+                            setGroups((G) => {
+                              const c = [...G];
+                              c[i] = { ...c[i], players: (c[i].players || []).filter((x) => x !== nm) };
+                              return c;
+                            })
+                          }
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Picker */}
+                  <div className="w-full mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <GroupPicker
+                      allPlayers={allPlayers}
+                      selected={(g.players || [])}
+                      onToggle={(nm) =>
+                        setGroups((G) => {
+                          const c = [...G];
+                          const cur = new Set(c[i].players || []);
+                          if (cur.has(nm)) cur.delete(nm);
+                          else cur.add(nm);
+                          c[i] = { ...c[i], players: [...cur] };
+                          return c;
+                        })
+                      }
+                    />
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        className={cls.btn.ghost}
+                        onClick={() => setGroups((G) => G.filter((_, idx) => idx !== i))}
+                      >
+                        Delete Group
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -1264,6 +1377,34 @@ export default function NFLShowdownOptimizer() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ---------------------- Player group picker (UI) -------------------- */
+function GroupPicker({ allPlayers, selected, onToggle }) {
+  const [filter, setFilter] = useState("");
+  const list = useMemo(
+    () => allPlayers.filter(n => n.toLowerCase().includes(filter.toLowerCase())),
+    [allPlayers, filter]
+  );
+  return (
+    <div className="w-full">
+      <input
+        className={`${cls.input} w-full mb-2`}
+        placeholder="Search player…"
+        value={filter}
+        onChange={(e)=>setFilter(e.target.value)}
+      />
+      <div className="max-h-40 overflow-auto border border-gray-200 rounded-md p-1 bg-white">
+        {list.map((n) => (
+          <label key={n} className="flex items-center gap-2 px-2 py-1 text-sm cursor-pointer hover:bg-gray-50">
+            <input type="checkbox" checked={selected.includes(n)} onChange={() => onToggle(n)} />
+            <span>{n}</span>
+          </label>
+        ))}
+        {!list.length && <div className="text-xs text-gray-500 px-2 py-1">No matches</div>}
+      </div>
     </div>
   );
 }
