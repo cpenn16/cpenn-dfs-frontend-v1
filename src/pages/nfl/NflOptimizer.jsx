@@ -1,4 +1,11 @@
+
 // src/pages/nfl/NFLOptimizer.jsx
+// DROP-IN v4
+// - Persists locks/excludes/min%/max%/boosts across refresh (per site)
+// - Chip-style "Builds" UI (click to load, "×" to delete, Rename nearby)
+// - Quick actions: Clear boosts | Clear min/max | Reset ALL constraints
+// - Safer downloads (anchor appended to DOM then removed)
+
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 /* ----------------------------- helpers ----------------------------- */
@@ -14,7 +21,10 @@ const num = (v) => {
 };
 const fmt0 = (n) => (Number.isFinite(n) ? n.toLocaleString() : "—");
 const fmt1 = (n) => (Number.isFinite(n) ? (+n).toFixed(1) : "—");
-const escapeCSV = (s) => { const v = String(s ?? ""); return /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v; };
+const escapeCSV = (s) => {
+  const v = String(s ?? "");
+  return /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+};
 
 // normalizers (make IDs robust)
 const normName = (s) =>
@@ -36,22 +46,38 @@ const normPos = (s) => {
 
 /* ----------------------------- team meta --------------------------- */
 const NFL_TEAMS = {
-  ARI:{city:"Arizona",nickname:"Cardinals"}, ATL:{city:"Atlanta",nickname:"Falcons"},
-  BAL:{city:"Baltimore",nickname:"Ravens"}, BUF:{city:"Buffalo",nickname:"Bills"},
-  CAR:{city:"Carolina",nickname:"Panthers"}, CHI:{city:"Chicago",nickname:"Bears"},
-  CIN:{city:"Cincinnati",nickname:"Bengals"}, CLE:{city:"Cleveland",nickname:"Browns"},
-  DAL:{city:"Dallas",nickname:"Cowboys"}, DEN:{city:"Denver",nickname:"Broncos"},
-  DET:{city:"Detroit",nickname:"Lions"}, GB:{city:"Green Bay",nickname:"Packers"},
-  HOU:{city:"Houston",nickname:"Texans"}, IND:{city:"Indianapolis",nickname:"Colts"},
-  JAX:{city:"Jacksonville",nickname:"Jaguars"}, KC:{city:"Kansas City",nickname:"Chiefs"},
-  LAC:{city:"Los Angeles",nickname:"Chargers"}, LAR:{city:"Los Angeles",nickname:"Rams"},
-  LV:{city:"Las Vegas",nickname:"Raiders"}, MIA:{city:"Miami",nickname:"Dolphins"},
-  MIN:{city:"Minnesota",nickname:"Vikings"}, NE:{city:"New England",nickname:"Patriots"},
-  NO:{city:"New Orleans",nickname:"Saints"}, NYG:{city:"New York",nickname:"Giants"},
-  NYJ:{city:"New York",nickname:"Jets"}, PHI:{city:"Philadelphia",nickname:"Eagles"},
-  PIT:{city:"Pittsburgh",nickname:"Steelers"}, SEA:{city:"Seattle",nickname:"Seahawks"},
-  SF:{city:"San Francisco",nickname:"49ers"}, TB:{city:"Tampa Bay",nickname:"Buccaneers"},
-  TEN:{city:"Tennessee",nickname:"Titans"}, WAS:{city:"Washington",nickname:"Commanders"},
+  ARI: { city: "Arizona", nickname: "Cardinals" },
+  ATL: { city: "Atlanta", nickname: "Falcons" },
+  BAL: { city: "Baltimore", nickname: "Ravens" },
+  BUF: { city: "Buffalo", nickname: "Bills" },
+  CAR: { city: "Carolina", nickname: "Panthers" },
+  CHI: { city: "Chicago", nickname: "Bears" },
+  CIN: { city: "Cincinnati", nickname: "Bengals" },
+  CLE: { city: "Cleveland", nickname: "Browns" },
+  DAL: { city: "Dallas", nickname: "Cowboys" },
+  DEN: { city: "Denver", nickname: "Broncos" },
+  DET: { city: "Detroit", nickname: "Lions" },
+  GB:  { city: "Green Bay", nickname: "Packers" },
+  HOU: { city: "Houston", nickname: "Texans" },
+  IND: { city: "Indianapolis", nickname: "Colts" },
+  JAX: { city: "Jacksonville", nickname: "Jaguars" },
+  KC:  { city: "Kansas City", nickname: "Chiefs" },
+  LAC: { city: "Los Angeles", nickname: "Chargers" },
+  LAR: { city: "Los Angeles", nickname: "Rams" },
+  LV:  { city: "Las Vegas", nickname: "Raiders" },
+  MIA: { city: "Miami", nickname: "Dolphins" },
+  MIN: { city: "Minnesota", nickname: "Vikings" },
+  NE:  { city: "New England", nickname: "Patriots" },
+  NO:  { city: "New Orleans", nickname: "Saints" },
+  NYG: { city: "New York", nickname: "Giants" },
+  NYJ: { city: "New York", nickname: "Jets" },
+  PHI: { city: "Philadelphia", nickname: "Eagles" },
+  PIT: { city: "Pittsburgh", nickname: "Steelers" },
+  SEA: { city: "Seattle", nickname: "Seahawks" },
+  SF:  { city: "San Francisco", nickname: "49ers" },
+  TB:  { city: "Tampa Bay", nickname: "Buccaneers" },
+  TEN: { city: "Tennessee", nickname: "Titans" },
+  WAS: { city: "Washington", nickname: "Commanders" },
 };
 function inferTeamFromNameForDST(name) {
   const nm = normName(name);
@@ -59,25 +85,41 @@ function inferTeamFromNameForDST(name) {
     const nick = normName(t.nickname);
     const city = normName(t.city);
     const full = normName(`${t.city} ${t.nickname}`);
-    if (nm === nick || nm === city || nm === full || nm.includes(nick) || nm.includes(city) || nm.includes(full)) return abbr;
+    if (nm === nick || nm === city || nm === full || nm.includes(nick) || nm.includes(city) || nm.includes(full)) {
+      return abbr;
+    }
   }
   return "";
 }
 
 /* ------------------------------ colors ----------------------------- */
 const TEAM_COLORS = {
-  ARI:"#97233F", ATL:"#A71930", BAL:"#241773", BUF:"#00338D", CAR:"#0085CA",
-  CHI:"#0B162A", CIN:"#FB4F14", CLE:"#311D00", DAL:"#041E42", DEN:"#FB4F14",
-  DET:"#0076B6", GB:"#203731", HOU:"#03202F", IND:"#002C5F", JAX:"#006778",
-  KC:"#E31837", LAC:"#0080C6", LAR:"#003594", LV:"#000", MIA:"#008E97",
-  MIN:"#4F2683", NE:"#002244", NO:"#D3BC8D", NYG:"#0B2265", NYJ:"#125740",
-  PHI:"#004C54", PIT:"#FFB612", SEA:"#002244", SF:"#AA0000", TB:"#D50A0A",
-  TEN:"#0C2340", WAS:"#5A1414",
+  ARI: "#97233F", ATL: "#A71930", BAL: "#241773", BUF: "#00338D", CAR: "#0085CA",
+  CHI: "#0B162A", CIN: "#FB4F14", CLE: "#311D00", DAL: "#041E42", DEN: "#FB4F14",
+  DET: "#0076B6", GB: "#203731", HOU: "#03202F", IND: "#002C5F", JAX: "#006778",
+  KC: "#E31837", LAC: "#0080C6", LAR: "#003594", LV: "#000000", MIA: "#008E97",
+  MIN: "#4F2683", NE: "#002244", NO: "#D3BC8D", NYG: "#0B2265", NYJ: "#125740",
+  PHI: "#004C54", PIT: "#FFB612", SEA: "#002244", SF: "#AA0000", TB: "#D50A0A",
+  TEN: "#0C2340", WAS: "#5A1414",
 };
-const hexToRGB = (hex) => { const h=(hex||"#888").replace("#",""); const v=parseInt(h,16); return {r:(v>>16)&255,g:(v>>8)&255,b:v&255}; };
-const readableText = (hex) => { const {r,g,b}=hexToRGB(hex); const L=0.2126*r+0.7152*g+0.0722*b; return L<140?"#fff":"#111"; };
-const TeamPill = ({ abbr, title }) => { const bg=TEAM_COLORS[abbr]||"#E5E7EB"; const fg=readableText(bg);
-  return <span className="px-2 py-0.5 rounded" style={{backgroundColor:bg,color:fg}} title={title||abbr}>{abbr||"—"}</span>;
+const hexToRGB = (hex) => {
+  const h = (hex || "#888").replace("#", "");
+  const v = parseInt(h, 16);
+  return { r: (v >> 16) & 255, g: (v >> 8) & 255, b: v & 255 };
+};
+const readableText = (hex) => {
+  const { r, g, b } = hexToRGB(hex);
+  const L = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return L < 140 ? "#FFFFFF" : "#111111";
+};
+const TeamPill = ({ abbr, title }) => {
+  const bg = TEAM_COLORS[abbr] || "#E5E7EB";
+  const fg = readableText(bg);
+  return (
+    <span className="px-2 py-0.5 rounded" style={{ backgroundColor: bg, color: fg }} title={title || abbr}>
+      {abbr || "—"}
+    </span>
+  );
 };
 
 /* --------------------------- misc helpers -------------------------- */
@@ -91,52 +133,56 @@ const parseKick = (t) => {
   return hh * 60 + mm;
 };
 
-/* --------------------------- sticky state -------------------------- */
 const useStickyState = (key, init) => {
   const [v, setV] = useState(init);
-  useEffect(() => { try { setV(JSON.parse(localStorage.getItem(key)) ?? init); } catch { setV(init); } }, [key]);
-  useEffect(() => { try { localStorage.setItem(key, JSON.stringify(v)); } catch {} }, [key, v]);
+  useEffect(() => {
+    try { setV(JSON.parse(localStorage.getItem(key)) ?? init); } catch { setV(init); }
+  }, [key]);
+  useEffect(() => {
+    try { localStorage.setItem(key, JSON.stringify(v)); } catch {}
+  }, [key, v]);
   return [v, setV];
 };
 
-/* ------------------------------ data IO ---------------------------- */
-function useJson(url, { autoMs = 0, enabled = true } = {}) {
+// persistent Set (stored as array)
+const useStickySet = (key, initArr = []) => {
+  const [arr, setArr] = useStickyState(key, initArr);
+  const set = useMemo(() => new Set(arr), [arr]);
+  const setSet = (updater) => {
+    setArr((prev) => {
+      const next = typeof updater === "function" ? updater(new Set(prev)) : updater;
+      return Array.from(next);
+    });
+  };
+  return [set, setSet];
+};
+
+function useJson(url) {
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [fetchedAt, setFetchedAt] = useState(null);
-  const [lastModified, setLastModified] = useState(null);
-
-  const fetchOnce = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-      const ct = (res.headers.get("content-type") || "").toLowerCase();
-      const body = ct.includes("application/json") ? await res.json() : JSON.parse(await res.text());
-      setData(body);
-      setErr(null);
-      setFetchedAt(new Date());
-      const lm = res.headers.get("last-modified");
-      if (lm) setLastModified(new Date(lm));
-    } catch (e) {
-      setData(null);
-      setErr(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    if (!enabled) return;
     let alive = true;
-    fetchOnce();
-    let id = null;
-    if (enabled && autoMs > 0) id = setInterval(() => alive && fetchOnce(), autoMs);
-    return () => { alive = false; if (id) clearInterval(id); };
-  }, [url, autoMs, enabled]);
-
-  return { data, err, loading, fetchedAt, lastModified, refetch: fetchOnce };
+    (async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+        const ct = (res.headers.get("content-type") || "").toLowerCase();
+        let j;
+        try {
+          j = ct.includes("application/json") ? await res.json() : JSON.parse(await res.text());
+        } catch (e) {
+          const preview = await res.text();
+          throw new Error(`Could not parse JSON. CT=${ct}. Preview: ${preview.slice(0, 200)}`);
+        }
+        if (alive) { setData(j); setErr(null); }
+      } catch (e) { if (alive) { setData(null); setErr(e); } }
+      finally { if (alive) setLoading(false); }
+    })();
+    return () => { alive = false; };
+  }, [url]);
+  return { data, err, loading };
 }
 
 /* ----------------------------- sites ------------------------------- */
@@ -195,24 +241,29 @@ const SITE_IDS_SOURCE = "/data/nfl/classic/latest/site_ids.json";
 /* --------------------------- server (SSE) -------------------------- */
 async function solveStreamNFL(payload, onItem, onDone) {
   const res = await fetch(`${API_BASE}/solve_nfl_stream`, {
-    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
   });
   if (!res.ok || !res.body) throw new Error("Stream failed to start");
+
   const reader = res.body.getReader();
   const decoder = new TextDecoder("utf-8");
   let buf = "";
+
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
     buf += decoder.decode(value, { stream: true });
-    const parts = buf.split("\n\n"); // SSE events separated by blank line
+    const parts = buf.split("\\n\\n");
     buf = parts.pop() ?? "";
     for (const chunk of parts) {
-      const line = chunk.split("\n").find((l) => l.startsWith("data: "));
+      const line = chunk.split("\\n").find((l) => l.startsWith("data: "));
       if (!line) continue;
       try {
         const evt = JSON.parse(line.slice(6));
-        if (evt.done) onDone?.(evt); else onItem?.(evt);
+        if (evt.done) onDone?.(evt);
+        else onItem?.(evt);
       } catch {}
     }
   }
@@ -250,6 +301,17 @@ function orderPlayersForSite(names, rowsMap) {
 }
 
 /* ---------------------------- CSV export --------------------------- */
+function _download_blob(bytes, fname) {
+  const blob = new Blob([bytes], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = fname;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 function toPlainCSV(lineups, rows, site) {
   const rowsByName = new Map(rows.map((r) => [r.name, r]));
   const header = ["#", "Salary", "Time", "Total", "Players"].join(",");
@@ -260,32 +322,30 @@ function toPlainCSV(lineups, rows, site) {
     const players = `"${ordered.map((r) => r.name).join(" • ")}"`;
     return [i + 1, L.salary, time, L.total.toFixed(1), players].join(",");
   });
-  return [header, ...lines].join("\n");
+  return [header, ...lines].join("\\n");
 }
 function downloadPlainCSV(lineups, rows, site, fname = "nfl_lineups.csv") {
-  const blob = new Blob([toPlainCSV(lineups, rows, site)], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = fname; a.click();
-  URL.revokeObjectURL(url);
+  _download_blob(toPlainCSV(lineups, rows, site), fname);
 }
 
-/** Export CSV with site IDs — positions-only header (FD uses DEF), no extra columns. */
+/** Export CSV with **site IDs** — positions-only header (FD uses DEF), no extra columns. */
 function downloadSiteLineupsCSV({
   lineups, site, slots, siteIds, rows, fname = "nfl_lineups_site_ids.csv",
 }) {
   const siteKey = site === "fd" ? "fd" : "dk";
   const slotList = Array.isArray(slots) ? slots : (SITES[site]?.slots || []);
 
-  // Header: positions only (RB1->RB). FD converts DST -> DEF
+  // Header: positions only (RB1->RB, WR3->WR). FD converts DST -> DEF
   const slotHeaders = slotList.map((s) => {
-    const base = String(s.name).replace(/\d+$/, "");
+    const base = String(s.name).replace(/\\d+$/, ""); // RB1->RB
     return siteKey === "fd" && base === "DST" ? "DEF" : base;
   });
   const header = slotHeaders.join(",");
 
   // Pull site ids list
-  const list = Array.isArray(siteIds?.[siteKey]) ? siteIds[siteKey] : (siteIds?.sites?.[siteKey] ?? []);
+  const list = Array.isArray(siteIds?.[siteKey])
+    ? siteIds[siteKey]
+    : (siteIds?.sites?.[siteKey] ?? []);
 
   // FD slate/group prefix
   let fdPrefix = null;
@@ -392,25 +452,21 @@ function downloadSiteLineupsCSV({
     return cells.join(",");
   });
 
-  const csv = [header, ...lines].join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = fname; a.click();
-  URL.revokeObjectURL(url);
+  const csv = [header, ...lines].join("\\n");
+  _download_blob(csv, fname);
 }
 
 /* ============================== page =============================== */
 export default function NFLOptimizer() {
-  const [auto, setAuto] = useStickyState("nflOpt.autoRefresh", true);
-  const { data, err, loading, fetchedAt, lastModified, refetch } = useJson(SOURCE, { autoMs: auto ? 60000 : 0, enabled: true });
-  const siteIdsResp = useJson(SITE_IDS_SOURCE, { autoMs: auto ? 60000 : 0, enabled: true });
+  const { data, err, loading } = useJson(SOURCE);
+  const { data: siteIds } = useJson(SITE_IDS_SOURCE);
 
   const [site, setSite] = useStickyState("nflOpt.site", "dk");
   const cfg = SITES[site];
 
   const [optBy, setOptBy] = useStickyState("nflOpt.optBy", "proj");
   const [numLineups, setNumLineups] = useStickyState("nflOpt.N", 20);
+
   const [maxSalary, setMaxSalary] = useStickyState(`nflOpt.${site}.cap`, cfg.cap);
   useEffect(() => { setMaxSalary(SITES[site].cap); }, [site]);
 
@@ -419,20 +475,21 @@ export default function NFLOptimizer() {
 
   // per-player auto-exclude cap
   const [maxPownCap, setMaxPownCap] = useStickyState("nflOpt.maxPownCap", "");
+
   // lineup-level pOWN% cap (sum)
   const [maxLineupPown, setMaxLineupPown] = useStickyState("nflOpt.maxLineupPown", "");
 
-  // constraints
-  const [qbStackMin, setQbStackMin] = useStickyState("nflOpt.qbStackMin", 2);
-  const [bringbackMin, setBringbackMin] = useStickyState("nflOpt.bringbackMin", 1);
-  const [allowTeInFlex, setAllowTeInFlex] = useStickyState("nflOpt.allowTeInFlex", true);
-  const [stackAllowRB, setStackAllowRB] = useStickyState("nflOpt.stackAllowRB", false);
-  const [avoidRbVsOppDst, setAvoidRbVsOppDst] = useStickyState("nflOpt.avoidRbVsOppDst", true);
-  const [avoidOffenseVsOppDst, setAvoidOffenseVsOppDst] = useStickyState("nflOpt.avoidOffVsOppDst", false);
-  const [maxFromTeam, setMaxFromTeam] = useStickyState("nflOpt.maxFromTeam", "");
+  // constraints (PERSISTENT now)
+  const [locks, setLocks] = useStickySet(`nflOpt.${site}.locks`, []);
+  const [excls, setExcls] = useStickySet(`nflOpt.${site}.excls`, []);
+  const [minPct, setMinPct] = useStickyState(`nflOpt.${site}.minPct`, {});
+  const [maxPct, setMaxPct] = useStickyState(`nflOpt.${site}.maxPct`, {});
+  const [boost, setBoost]   = useStickyState(`nflOpt.${site}.boost`, {});
 
-  // Only allow stacks to originate from selected teams
-  const [restrictStacksToTeams, setRestrictStacksToTeams] = useStickyState("nflOpt.restrictStacksToTeams", false);
+  // groups / team rules (already sticky)
+  const [groups, setGroups] = useStickyState(`nflOpt.${site}.groups`, []);
+  const [teamStacks, setTeamStacks] = useStickyState(`nflOpt.${site}.teamStacks`, []);
+
   // team exposure caps per site (UI added below)
   const [teamMaxPct, setTeamMaxPct] = useStickyState(`nflOpt.${site}.teamMaxPct`, {});
 
@@ -440,16 +497,6 @@ export default function NFLOptimizer() {
   const [selectedGames, setSelectedGames] = useState(() => new Set());
   const [selectedTeams, setSelectedTeams] = useState(() => new Set());
   const [q, setQ] = useState("");
-
-  const [locks, setLocks] = useState(() => new Set());
-  const [excls, setExcls] = useState(() => new Set());
-  const [minPct, setMinPct] = useState(() => ({}));
-  const [maxPct, setMaxPct] = useState(() => ({}));
-  const [boost, setBoost] = useState(() => ({}));
-
-  // groups / team rules
-  const [groups, setGroups] = useStickyState(`nflOpt.${site}.groups`, []);
-  const [teamStacks, setTeamStacks] = useStickyState(`nflOpt.${site}.teamStacks`, []);
 
   // builds per site
   const buildsKey = (k) => `nflOpt.${site}.${k}`;
@@ -463,12 +510,6 @@ export default function NFLOptimizer() {
   const [progressUI, setProgressUI] = useState(0);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const tickRef = useRef(null);
-
-  // live clock for "x seconds ago"
-  const [nowTick, setNowTick] = useState(Date.now());
-  useEffect(() => { const id = setInterval(() => setNowTick(Date.now()), 1000); return () => clearInterval(id); }, []);
-  const fmtTime = (d) => d ? d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "—";
-  const rel = (d) => d ? Math.max(0, Math.round((nowTick - d.getTime()) / 1000)) : null; // seconds
 
   useEffect(() => {
     if (!isOptimizing) return;
@@ -484,9 +525,9 @@ export default function NFLOptimizer() {
     return () => clearInterval(tickRef.current);
   }, [isOptimizing, progressActual, numLineups]);
 
+  // Clear build results on site switch but keep sticky constraints
   useEffect(() => {
     setLineups([]); setStopInfo(null); setProgressActual(0); setProgressUI(0); setIsOptimizing(false);
-    setLocks(new Set()); setExcls(new Set());
   }, [site]);
 
   /* ------------------------------ rows ------------------------------ */
@@ -629,7 +670,8 @@ export default function NFLOptimizer() {
     const mult = dir === "asc" ? 1 : -1;
     const sorted = [...displayRows].sort((a, b) => {
       if (["pos","team","opp","time"].includes(col)) {
-        const va = (a[col] || "").toString(); const vb = (b[col] || "").toString();
+        const va = (a[col] || "").toString();
+        const vb = (b[col] || "").toString();
         if (va < vb) return -1 * mult;
         if (va > vb) return 1 * mult;
         return a.name.localeCompare(b.name) * mult;
@@ -646,13 +688,16 @@ export default function NFLOptimizer() {
     });
     setOrder(sorted.map((r) => r.name));
   };
-  const sortArrow = (key) => sortRef.current.col === key ? (sortRef.current.dir === "asc" ? " ▲" : " ▼") : "";
+  const sortArrow = (key) =>
+    sortRef.current.col === key ? (sortRef.current.dir === "asc" ? " ▲" : " ▼") : "";
 
   /* ----------------------------- actions ---------------------------- */
   const bumpBoost = (name, step) => setBoost((m) => ({ ...m, [name]: clamp((m[name] || 0) + step, -6, 6) }));
   const toggleLock = (name) => setLocks((s) => { const n = new Set(s); n.has(name) ? n.delete(name) : n.add(name); return n; });
   const toggleExcl = (name) => setExcls((s) => { const n = new Set(s); n.has(name) ? n.delete(name) : n.add(name); return n; });
 
+  const actionClearBoosts = () => setBoost({});
+  const actionClearMinMax = () => { setMinPct({}); setMaxPct({}); };
   const resetConstraints = () => {
     setLocks(new Set()); setExcls(new Set()); setMinPct({}); setMaxPct({}); setBoost({});
     setGroups([]); setTeamStacks([]); setTeamMaxPct({});
@@ -663,10 +708,8 @@ export default function NFLOptimizer() {
     if (!rows.length) return;
     setLineups([]); setStopInfo(null); setProgressActual(0); setProgressUI(0); setIsOptimizing(true);
 
-    // Respect TE-in-FLEX toggle
-    const slotsForSolve = cfg.slots.map((s) =>
-      s.name === "FLEX" ? { ...s, eligible: allowTeInFlex ? ["RB","WR","TE"] : ["RB","WR"] } : s
-    );
+    // Respect TE-in-FLEX toggle (removed in this drop-in: always allow TE in FLEX per original)
+    const slotsForSolve = cfg.slots;
 
     const N = Math.max(1, Number(numLineups) || 1);
     const capVal = Math.min(cfg.cap, Number(maxSalary) || cfg.cap);
@@ -676,21 +719,17 @@ export default function NFLOptimizer() {
     const autoExcludesByPown =
       String(maxPownCap).trim() === ""
         ? []
-        : rows.filter((r) => ((r.pown || 0) * 100) > cap).map((r) => r.name);
-
-    // If toggle is ON and you selected teams, exclude QBs from other teams.
-    const qbExclByTeam =
-      restrictStacksToTeams && selectedTeams && selectedTeams.size > 0
-        ? rows.filter((r) => r.pos === "QB" && !selectedTeams.has(r.team)).map((r) => r.name)
-        : [];
-
-    // merge with existing excludes; keep unique
-    const mergedExcludes = Array.from(new Set([...Array.from(excls), ...autoExcludesByPown, ...qbExclByTeam]));
+        : rows
+            .filter((r) => ((r.pown || 0) * 100) > cap)
+            .map((r) => r.name);
 
     // lineup-level pOWN% handling
     const rowsByName = new Map(rows.map((r) => [r.name, r]));
-    const lineupPownPct = (names) => names.reduce((s, n) => s + (((rowsByName.get(n)?.pown) || 0) * 100), 0);
-    const lineupCap = String(maxLineupPown).trim() === "" ? null : clamp(Number(maxLineupPown) || 0, 0, 1000);
+    const lineupPownPct = (names) =>
+      names.reduce((s, n) => s + (((rowsByName.get(n)?.pown) || 0) * 100), 0);
+    const lineupCap = String(maxLineupPown).trim() === ""
+      ? null
+      : clamp(Number(maxLineupPown) || 0, 0, 1000);
 
     const payload = {
       site,
@@ -705,7 +744,7 @@ export default function NFLOptimizer() {
       cap: capVal,
       objective: optBy,
       locks: Array.from(locks),
-      excludes: mergedExcludes,
+      excludes: Array.from(new Set([...Array.from(excls), ...autoExcludesByPown])),
       boosts: boost,
       randomness: clamp(Number(randomness) || 0, 0, 100),
       global_max_pct: clamp(Number(globalMax) || 100, 0, 100),
@@ -713,32 +752,15 @@ export default function NFLOptimizer() {
       max_pct: Object.fromEntries(Object.entries(maxPct).map(([k, v]) => [k, clamp(Number(v) || 100, 0, 100)])),
       min_diff: 1,
       time_limit_ms: 1500,
-
-      qb_stack_min: Math.max(0, Number(qbStackMin) || 0),
-      stack_allow_rb: !!stackAllowRB,
-      bringback_min: Math.max(0, Number(bringbackMin) || 0),
-      max_from_team: String(maxFromTeam).trim() === "" ? null : Math.max(1, Number(maxFromTeam) || 1),
-      avoid_rb_vs_opp_dst: !!avoidRbVsOppDst,
-      avoid_offense_vs_opp_dst: !!avoidOffenseVsOppDst,
-
       groups: (groups || []).map((g) => ({
         mode: g.mode || "at_most",
         count: Math.max(0, Number(g.count) || 0),
         players: Array.isArray(g.players) ? g.players : [],
       })),
-
       team_stack_rules: (teamStacks || []).map((t) => ({
         team: t.team,
-        qb_stack_min: String(t.qb_stack_min).trim() === "" ? undefined : Math.max(0, Number(t.qb_stack_min) || 0),
-        bringback_min: String(t.bringback_min).trim() === "" ? undefined : Math.max(0, Number(t.bringback_min) || 0),
-        allow_rb_in_stack: !!t.allow_rb_in_stack,
-        bringback_teams: Array.isArray(t.bringback_teams) ? t.bringback_teams : undefined,
-        max_from_team: String(t.max_from_team).trim() === "" ? undefined : Math.max(1, Number(t.max_from_team) || 1),
       })),
-
       team_max_pct: teamMaxPct,
-
-      // for future server support (client already filters)
       max_lineup_pown_pct: lineupCap == null ? null : lineupCap,
     };
 
@@ -747,7 +769,7 @@ export default function NFLOptimizer() {
       await solveStreamNFL(
         payload,
         (evt) => {
-          if (lineupCap != null && lineupPownPct(evt.drivers) > lineupCap) return; // reject by lineup pOWN cap
+          if (lineupCap != null && lineupPownPct(evt.drivers) > lineupCap) return;
           const L = { players: evt.drivers, salary: evt.salary, total: evt.total };
           out.push(L);
           setLineups((prev) => [...prev, L]);
@@ -757,7 +779,9 @@ export default function NFLOptimizer() {
           if (done?.reason) setStopInfo(done);
           if (out.length < payload.n && lineupCap != null) {
             setStopInfo({
-              produced: out.length, requested: payload.n, reason: "lineup_pown_cap",
+              produced: out.length,
+              requested: payload.n,
+              reason: "lineup_pown_cap",
               detail: `Some lineups exceeded max lineup pOWN% (${lineupCap}%) and were filtered out.`,
             });
           }
@@ -769,9 +793,10 @@ export default function NFLOptimizer() {
         }
       );
     } catch (e) {
-      // Fallback to non-streaming endpoint
       const res = await fetch(`${API_BASE}/solve_nfl`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         alert(`Solve failed: ${await res.text()}`);
@@ -788,7 +813,9 @@ export default function NFLOptimizer() {
       setProgressUI(out2.length);
       setIsOptimizing(false);
       clearInterval(tickRef.current);
-      if (out2.length < payload.n) setStopInfo({ produced: out2.length, requested: payload.n, reason: "lineup_pown_cap" });
+      if (out2.length < payload.n) {
+        setStopInfo({ produced: out2.length, requested: payload.n, reason: "lineup_pown_cap" });
+      }
       saveBuild(nextBuildNameForSite(site), out2);
     }
   }
@@ -799,23 +826,38 @@ export default function NFLOptimizer() {
       const raw = localStorage.getItem(`nflOpt.${site}.builds`);
       const arr = raw ? JSON.parse(raw) : [];
       const nums = arr
-        .map((b) => (b?.name ? String(b.name).match(/^Build\s+(\d+)$/i) : null))
+        .map((b) => (b?.name ? String(b.name).match(/^Build\\s+(\\d+)$/i) : null))
         .filter(Boolean)
         .map((m) => Number(m[1]))
         .filter((n) => Number.isFinite(n));
       const next = nums.length ? Math.max(...nums) + 1 : 1;
       return `Build ${next}`;
-    } catch { return "Build 1"; }
+    } catch {
+      return "Build 1";
+    }
   }
   function saveBuild(name, data) {
     const id = Date.now();
     const rec = {
-      id, name, site, ts: new Date().toISOString(),
+      id,
+      name,
+      site,
+      ts: new Date().toISOString(),
       settings: {
-        site, optBy, numLineups: Math.max(1, Number(numLineups) || 1),
-        cap: Math.min(cfg.cap, Number(maxSalary) || cfg.cap), globalMax, randomness,
-        qbStackMin, bringbackMin, stackAllowRB, avoidRbVsOppDst, avoidOffenseVsOppDst, maxFromTeam,
-        locks: [...locks], excls: [...excls], minPct, maxPct, boost, groups, teamStacks, teamMaxPct,
+        site,
+        optBy,
+        numLineups: Math.max(1, Number(numLineups) || 1),
+        cap: Math.min(cfg.cap, Number(maxSalary) || cfg.cap),
+        globalMax,
+        randomness,
+        locks: [...locks],
+        excls: [...excls],
+        minPct,
+        maxPct,
+        boost,
+        groups,
+        teamStacks,
+        teamMaxPct,
       },
       lineups: data,
     };
@@ -836,7 +878,12 @@ export default function NFLOptimizer() {
   }
   function deleteBuild(id) {
     setBuilds((B) => B.filter((b) => b.id !== id));
-    if (activeBuildId === id) { setActiveBuildId(null); setLineups([]); setProgressActual(0); setProgressUI(0); }
+    if (activeBuildId === id) {
+      setActiveBuildId(null);
+      setLineups([]);
+      setProgressActual(0);
+      setProgressUI(0);
+    }
   }
 
   /* ------------------------------- UI -------------------------------- */
@@ -870,14 +917,12 @@ export default function NFLOptimizer() {
 
   const allPlayerNames = useMemo(() => rows.map((r) => r.name), [rows]);
 
-  const siteIds = siteIdsResp.data || {};
-
   return (
     <div className="px-4 md:px-6 py-5">
       <h1 className="text-2xl md:text-3xl font-extrabold mb-1">NFL — Optimizer</h1>
 
-      {/* site toggle & reset + data freshness */}
-      <div className="mb-3 flex flex-wrap gap-2 items-center">
+      {/* site toggle & reset */}
+      <div className="mb-3 flex gap-2 items-center">
         {["dk","fd"].map((s) => (
           <button
             key={s}
@@ -890,22 +935,16 @@ export default function NFLOptimizer() {
             <span>{SITES[s].label}</span>
           </button>
         ))}
-        <button className="ml-2 px-2.5 py-1.5 text-sm rounded-lg bg-white border hover:bg-gray-50" onClick={resetConstraints}>
-          Reset constraints
-        </button>
-
-        <div className="ml-auto flex items-center gap-2 text-xs text-gray-700">
-          <div className="inline-flex items-center gap-2 px-2.5 h-8 rounded-full border border-gray-200 bg-white">
-            <span className="w-2 h-2 rounded-full" style={{ background: loading ? "#f59e0b" : "#10b981" }} />
-            <span className="font-mono">
-              Data updated: {(lastModified || fetchedAt) ? `${fmtTime(lastModified || fetchedAt)} (${rel(lastModified || fetchedAt)}s ago)` : "—"}
-            </span>
-          </div>
-          <button className="h-8 px-3 rounded-md border border-gray-200 bg-white hover:bg-gray-50" onClick={refetch}>Refresh</button>
-          <label className="inline-flex items-center gap-1 cursor-pointer px-2 h-8 rounded-md border border-gray-200">
-            <input type="checkbox" checked={!!auto} onChange={(e) => setAuto(e.target.checked)} />
-            Auto 60s
-          </label>
+        <div className="ml-auto flex gap-2">
+          <button className="px-2.5 py-1.5 text-sm rounded-lg bg-white border hover:bg-gray-50" onClick={actionClearBoosts}>
+            Clear boosts
+          </button>
+          <button className="px-2.5 py-1.5 text-sm rounded-lg bg-white border hover:bg-gray-50" onClick={actionClearMinMax}>
+            Clear min/max
+          </button>
+          <button className="px-2.5 py-1.5 text-sm rounded-lg bg-white border hover:bg-gray-50" onClick={resetConstraints}>
+            Reset ALL
+          </button>
         </div>
       </div>
 
@@ -940,95 +979,28 @@ export default function NFLOptimizer() {
 
         {/* per-player auto-exclude */}
         <div className="md:col-span-2">
-          <label className="block text-[11px] text-gray-600 mb-1">Max player pOWN% (auto-exclude &gt;)</label>
-          <input className="w-full border rounded-md px-2 py-1.5 text-sm" placeholder="—" value={maxPownCap} onChange={(e) => setMaxPownCap(e.target.value)} />
+          <label className="block text-[11px] text-gray-600 mb-1">
+            Max player pOWN% (auto-exclude &gt;)
+          </label>
+          <input
+            className="w-full border rounded-md px-2 py-1.5 text-sm"
+            placeholder="—"
+            value={maxPownCap}
+            onChange={(e) => setMaxPownCap(e.target.value)}
+            title="Players with projected ownership above this % will be excluded automatically"
+          />
         </div>
 
         {/* lineup-level cap */}
         <div className="md:col-span-2">
           <label className="block text-[11px] text-gray-600 mb-1">Max lineup pOWN% (sum)</label>
-          <input className="w-full border rounded-md px-2 py-1.5 text-sm" placeholder="—" value={maxLineupPown} onChange={(e) => setMaxLineupPown(e.target.value)} />
-        </div>
-
-        {/* Stacks / Bring-back */}
-        <div className="md:col-span-12 rounded-md border p-2">
-          <div className="text-[11px] text-gray-600 mb-1">Stacks / Bring-back</div>
-
-          <div className="flex flex-wrap items-center gap-2 mb-2">
-            <label className="text-sm">QB Stack Min</label>
-            <input type="number" className="w-16 border rounded-md px-2 py-1 text-sm" value={qbStackMin} onChange={(e) => setQbStackMin(e.target.value)} />
-            <label className="text-sm ml-2">Bring-back Min</label>
-            <input type="number" className="w-16 border rounded-md px-2 py-1 text-sm" value={bringbackMin} onChange={(e) => setBringbackMin(e.target.value)} />
-            <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={allowTeInFlex} onChange={(e) => setAllowTeInFlex(e.target.checked)} />Allow TE in FLEX</label>
-            <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={stackAllowRB} onChange={(e) => setStackAllowRB(e.target.checked)} />Allow RB in stacks</label>
-            <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={avoidRbVsOppDst} onChange={(e) => setAvoidRbVsOppDst(e.target.checked)} />Avoid RB vs opp DST</label>
-            <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={avoidOffenseVsOppDst} onChange={(e) => setAvoidOffenseVsOppDst(e.target.checked)} />Don’t allow offense vs opp DST</label>
-            <label className="inline-flex items-center gap-2 text-sm">Max from team
-              <input className="w-16 border rounded-md px-2 py-1 text-sm" placeholder="—" value={maxFromTeam} onChange={(e) => setMaxFromTeam(e.target.value)} />
-            </label>
-            <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={restrictStacksToTeams} onChange={(e) => setRestrictStacksToTeams(e.target.checked)} />Only stack from selected teams</label>
-          </div>
-
-          {/* Team chips + selected summary with caps */}
-          <div className="flex flex-col lg:flex-row gap-3">
-            {/* Chips */}
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <button className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50" onClick={() => setSelectedTeams(new Set(allTeams))}>Select all</button>
-                <button className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50" onClick={() => setSelectedTeams(new Set())}>Clear</button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {allTeams.map((t) => {
-                  const active = selectedTeams.has(t);
-                  const bg = TEAM_COLORS[t] || "#E5E7EB";
-                  const fg = readableText(bg);
-                  return (
-                    <button
-                      key={t}
-                      onClick={() => setSelectedTeams((S) => { const n = new Set(S); active ? n.delete(t) : n.add(t); return n; })}
-                      className="px-2 py-1 rounded-md border text-sm"
-                      style={{ backgroundColor: bg, color: fg, borderColor: active ? "#111" : "rgba(0,0,0,0.15)", boxShadow: active ? "inset 0 0 0 1px #111" : "none" }}
-                      title={t}
-                    >
-                      {t}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Selected list + per-team cap editor */}
-            <TeamCapEditor selectedTeams={selectedTeams} teamMaxPct={teamMaxPct} setTeamMaxPct={setTeamMaxPct} />
-          </div>
-
-          {/* Team-specific rules */}
-          <div className="border-t pt-2 mt-2">
-            <div className="flex justify-between items-center mb-2">
-              <div className="text-[11px] text-gray-600">Team-specific stack rules (override globals)</div>
-              <button className="px-2 py-1 text-sm rounded-md border hover:bg-gray-50" onClick={() => setTeamStacks((T) => [...T, { team: "" }])}>+ Add team rule</button>
-            </div>
-
-            {teamStacks.length === 0 ? (
-              <div className="text-xs text-gray-500">No team rules yet. Add one to override globals for a specific team.</div>
-            ) : (
-              <div className="space-y-2">
-                {teamStacks.map((r, i) => (
-                  <div key={i} className="flex flex-wrap items-center gap-2 border rounded-md p-2">
-                    <TeamSelect teams={allTeams} value={r.team || ""} onChange={(v) => setTeamStacks((T) => T.map((x, j) => (i === j ? { ...x, team: v } : x)))} />
-                    <label className="text-sm">QB stack</label>
-                    <input className="w-14 border rounded-md px-2 py-1 text-sm" placeholder="—" value={r.qb_stack_min ?? ""} onChange={(e) => setTeamStacks((T) => T.map((x, j) => (i === j ? { ...x, qb_stack_min: e.target.value } : x)))} />
-                    <label className="text-sm">Bring-back</label>
-                    <input className="w-14 border rounded-md px-2 py-1 text-sm" placeholder="—" value={r.bringback_min ?? ""} onChange={(e) => setTeamStacks((T) => T.map((x, j) => (i === j ? { ...x, bringback_min: e.target.value } : x)))} />
-                    <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={!!r.allow_rb_in_stack} onChange={(e) => setTeamStacks((T) => T.map((x, j) => (i === j ? { ...x, allow_rb_in_stack: e.target.checked } : x)))} />Allow RB</label>
-                    <label className="text-sm">Max from team</label>
-                    <input className="w-16 border rounded-md px-2 py-1 text-sm" placeholder="—" value={r.max_from_team ?? ""} onChange={(e) => setTeamStacks((T) => T.map((x, j) => (i === j ? { ...x, max_from_team: e.target.value } : x)))} />
-                    <div className="ml-auto" />
-                    <button className="px-2 py-1 text-sm rounded-md border hover:bg-gray-50" onClick={() => setTeamStacks((T) => T.filter((_, j) => j !== i))}>Remove</button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <input
+            className="w-full border rounded-md px-2 py-1.5 text-sm"
+            placeholder="—"
+            value={maxLineupPown}
+            onChange={(e) => setMaxLineupPown(e.target.value)}
+            title="Reject lineups whose total pOWN% exceeds this value"
+          />
         </div>
 
         {/* progress + button */}
@@ -1037,15 +1009,61 @@ export default function NFLOptimizer() {
             {`Optimize ${numLineups}`}
           </button>
           <div className="flex-1 max-w-xs h-2 bg-gray-200 rounded overflow-hidden">
-            <div className="h-2 bg-blue-500 rounded transition-all duration-300" style={{
-              width: `${(Math.min(progressUI, Math.max(1, Number(numLineups) || 1)) / Math.max(1, Number(numLineups) || 1)) * 100}%`,
-            }} />
+            <div
+              className="h-2 bg-blue-500 rounded transition-all duration-300"
+              style={{
+                width: `${
+                  (Math.min(progressUI, Math.max(1, Number(numLineups) || 1)) /
+                    Math.max(1, Number(numLineups) || 1)) *
+                  100
+                }%`,
+              }}
+            />
           </div>
           <div className="text-sm text-gray-600 min-w-[60px] text-right">
             {progressUI}/{numLineups}
           </div>
         </div>
       </div>
+
+      {/* Builds as chips */}
+      {builds.length > 0 && (
+        <div className="mb-3">
+          <div className="text-sm text-gray-600 mb-1">Builds</div>
+          <div className="flex flex-wrap gap-2">
+            {builds.map((b) => {
+              const active = b.id === activeBuildId;
+              return (
+                <span key={b.id}
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm cursor-pointer ${active ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300"}`}
+                  onClick={() => loadBuild(b.id)}
+                >
+                  {b.name}
+                  <button
+                    className="ml-1 text-gray-500 hover:text-red-600"
+                    onClick={(e) => { e.stopPropagation(); deleteBuild(b.id); }}
+                    title="Delete"
+                  >
+                    ×
+                  </button>
+                </span>
+              );
+            })}
+            {activeBuildId && (
+              <button
+                className="px-2 py-1 text-sm border rounded bg-white hover:bg-gray-50"
+                onClick={() => {
+                  const cur = builds.find((b) => b.id === activeBuildId)?.name || "";
+                  const newName = window.prompt("Rename build", cur);
+                  if (newName) renameBuild(activeBuildId, newName);
+                }}
+              >
+                Rename
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Position tabs */}
       <div className="mb-2 flex gap-3 text-sky-600 font-semibold text-sm">
@@ -1063,15 +1081,30 @@ export default function NFLOptimizer() {
       {/* Game chips */}
       {uniqueGames.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-2">
-          <button className={`px-2 py-1 rounded-md border text-sm ${selectedGames.size === 0 ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300"}`} onClick={() => setSelectedGames(new Set())}>All games</button>
-          <button className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50" onClick={() => setSelectedGames(new Set(uniqueGames.map((g) => g.gameKey)))}>Select all</button>
-          <button className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50" onClick={() => setSelectedGames(new Set())}>Clear all</button>
+          <button
+            className={`px-2 py-1 rounded-md border text-sm ${selectedGames.size === 0 ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300"}`}
+            onClick={() => setSelectedGames(new Set())}
+          >
+            All games
+          </button>
+          <button className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50" onClick={() => setSelectedGames(new Set(uniqueGames.map((g) => g.gameKey)))}>
+            Select all
+          </button>
+          <button className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50" onClick={() => setSelectedGames(new Set())}>
+            Clear all
+          </button>
           {uniqueGames.map((g) => {
             const active = selectedGames.has(g.gameKey);
             return (
               <button
                 key={g.gameKey}
-                onClick={() => setSelectedGames((S) => { const n = new Set(S); active ? n.delete(g.gameKey) : n.add(g.gameKey); return n; })}
+                onClick={() =>
+                  setSelectedGames((S) => {
+                    const n = new Set(S);
+                    active ? n.delete(g.gameKey) : n.add(g.gameKey);
+                    return n;
+                  })
+                }
                 className={`px-2 py-1 rounded-md border text-sm ${active ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300"}`}
               >
                 {g.label}
@@ -1087,7 +1120,11 @@ export default function NFLOptimizer() {
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
               {TABLE_COLS.map(({ key, label, sortable }) => (
-                <th key={key} className={`${header} whitespace-nowrap cursor-${sortable ? "pointer" : "default"} select-none`} onClick={() => sortable && setSort(key)}>
+                <th
+                  key={key}
+                  className={`${header} whitespace-nowrap cursor-${sortable ? "pointer" : "default"} select-none`}
+                  onClick={() => sortable && setSort(key)}
+                >
                   {label}{sortable ? <span className="opacity-60">{sortArrow(key)}</span> : null}
                 </th>
               ))}
@@ -1095,10 +1132,14 @@ export default function NFLOptimizer() {
           </thead>
           <tbody>
             {loading && (
-              <tr><td className={`${cell} text-gray-500`} colSpan={TABLE_COLS.length}>Loading…</td></tr>
+              <tr>
+                <td className={`${cell} text-gray-500`} colSpan={TABLE_COLS.length}>Loading…</td>
+              </tr>
             )}
             {err && (
-              <tr><td className={`${cell} text-red-600`} colSpan={TABLE_COLS.length}>Failed to load: {String(err)}</td></tr>
+              <tr>
+                <td className={`${cell} text-red-600`} colSpan={TABLE_COLS.length}>Failed to load: {String(err)}</td>
+              </tr>
             )}
             {!loading && !err && displayRows.map((r) => (
               <tr key={r.name} className="odd:bg-white even:bg-gray-50 hover:bg-blue-50/60 transition-colors">
@@ -1144,26 +1185,6 @@ export default function NFLOptimizer() {
         </table>
       </div>
 
-      {/* Build manager */}
-      {builds.length > 0 && (
-        <div className="mb-3 flex items-center gap-2">
-          <span className="text-sm text-gray-600">Builds:</span>
-          <select className="border rounded-md px-2 py-1 text-sm" value={activeBuildId ?? ""} onChange={(e) => loadBuild(Number(e.target.value))}>
-            <option value="">—</option>
-            {builds.map((b) => (<option key={b.id} value={b.id}>{b.name}</option>))}
-          </select>
-          {activeBuildId && (
-            <>
-              <button className="px-2 py-1 text-sm border rounded" onClick={() => {
-                const newName = prompt("Rename build", builds.find((b) => b.id === activeBuildId)?.name || "");
-                if (newName) renameBuild(activeBuildId, newName);
-              }}>Rename</button>
-              <button className="px-2 py-1 text-sm border rounded" onClick={() => deleteBuild(activeBuildId)}>Delete</button>
-            </>
-          )}
-        </div>
-      )}
-
       {/* results & exposures */}
       {!!lineups.length && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -1181,7 +1202,7 @@ export default function NFLOptimizer() {
                     downloadSiteLineupsCSV({
                       lineups,
                       site,
-                      slots: cfg.slots,
+                      slots: cfg.slots,           // pass full slot list
                       siteIds: siteIds || {},
                       rows,
                       fname: `NFL_lineups_${site.toUpperCase()}_ids.csv`,
@@ -1199,7 +1220,9 @@ export default function NFLOptimizer() {
                     <th className={header}>#</th>
                     <th className={header}>Salary</th>
                     <th className={header}>Total pOWN%</th>
-                    <th className={header}>Total {optBy === "pown" || optBy === "opt" ? "Projection" : metricLabel}</th>
+                    <th className={header}>
+                      Total {optBy === "pown" || optBy === "opt" ? "Projection" : metricLabel}
+                    </th>
                     <th className={header}>Players</th>
                   </tr>
                 </thead>
@@ -1214,7 +1237,9 @@ export default function NFLOptimizer() {
                         <td className={`${cell} tabular-nums`}>{fmt0(L.salary)}</td>
                         <td className={`${cell} tabular-nums`}>{fmt1(totalPown)}</td>
                         <td className={`${cell} tabular-nums`}>{fmt1(L.total)}</td>
-                        <td className={`${cell} leading-snug`}><span className="break-words">{ordered.map((r) => r.name).join(" • ")}</span></td>
+                        <td className={`${cell} leading-snug`}>
+                          <span className="break-words">{ordered.map((r) => r.name).join(" • ")}</span>
+                        </td>
                       </tr>
                     );
                   })}
@@ -1243,7 +1268,7 @@ export default function NFLOptimizer() {
           {/* Stack Shapes */}
           <section className="lg:col-span-4 rounded-lg border bg-white p-3">
             <h3 className="text-base font-semibold mb-2">Stack Shapes</h3>
-            <StackShapesTable lineups={lineups} rows={rows} allowRB={stackAllowRB} />
+            <StackShapesTable lineups={lineups} rows={rows} allowRB={true} />
           </section>
 
           {/* Cards */}
@@ -1266,12 +1291,8 @@ function downloadExposuresCSV(lineups, fname = "nfl_exposures.csv") {
     .map(([name, cnt]) => [name, cnt, (cnt / total) * 100])
     .sort((a, b) => b[2] - a[2] || a[0].localeCompare(b[0]));
   const header = "Player,Count,Exposure %";
-  const body = rows.map((r) => `${escapeCSV(r[0])},${r[1]},${r[2].toFixed(1)}`).join("\n");
-  const blob = new Blob([header + "\n" + body], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = fname; a.click();
-  URL.revokeObjectURL(url);
+  const body = rows.map((r) => `${escapeCSV(r[0])},${r[1]},${(+r[2]).toFixed(1)}`).join("\\n");
+  _download_blob(header + "\\n" + body, fname);
 }
 
 /* ---------------------- small UI components ------------------------ */
@@ -1312,6 +1333,7 @@ function PlayerMultiPicker({ allPlayers, value, onChange, placeholder = "Add pla
     </div>
   );
 }
+
 function TeamSelect({ teams, value, onChange }) {
   return (
     <select value={value} onChange={(e) => onChange(e.target.value)} className="border rounded-md px-2 py-1 text-sm">
@@ -1320,12 +1342,15 @@ function TeamSelect({ teams, value, onChange }) {
     </select>
   );
 }
+
 /** Side panel that lists selected teams and lets you set per-team max % */
 function TeamCapEditor({ selectedTeams, teamMaxPct, setTeamMaxPct }) {
   const sel = useMemo(() => [...selectedTeams].sort(), [selectedTeams]);
   return (
     <div className="min-w-[240px] max-w-[300px] shrink-0 border rounded-md p-2">
-      <div className="text-[11px] text-gray-600 mb-1">Selected teams ({sel.length})</div>
+      <div className="text-[11px] text-gray-600 mb-1">
+        Selected teams ({sel.length})
+      </div>
       {sel.length === 0 ? (
         <div className="text-xs text-gray-500">None selected</div>
       ) : (
@@ -1375,14 +1400,25 @@ function ExposureTable({ lineups, rows, maxHeightClass = "" }) {
     <div>
       <div className="mb-2 flex gap-2 text-sm">
         {["ALL","QB","RB","WR","TE","DST"].map(t => (
-          <button key={t} className={`px-2 py-1 rounded border ${tab===t ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300"}`} onClick={() => setTab(t)}>{t}</button>
+          <button
+            key={t}
+            className={`px-2 py-1 rounded border ${tab===t ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300"}`}
+            onClick={() => setTab(t)}
+          >
+            {t}
+          </button>
         ))}
       </div>
 
       <div className={`overflow-auto ${maxHeightClass}`}>
         <table className="min-w-full text-[12px] border-separate" style={{ borderSpacing: 0 }}>
           <thead className="bg-gray-50">
-            <tr><th className={header}>Player</th><th className={header}>Pos</th><th className={header}>Count</th><th className={header}>Exposure %</th></tr>
+            <tr>
+              <th className={header}>Player</th>
+              <th className={header}>Pos</th>
+              <th className={header}>Count</th>
+              <th className={header}>Exposure %</th>
+            </tr>
           </thead>
           <tbody>
             {filtered.map((r) => (
@@ -1399,6 +1435,7 @@ function ExposureTable({ lineups, rows, maxHeightClass = "" }) {
     </div>
   );
 }
+
 function TeamExposureTable({ lineups, rows }) {
   const rowsByName = useMemo(() => new Map(rows.map(r => [r.name, r])), [rows]);
   const data = useMemo(() => {
@@ -1414,15 +1451,22 @@ function TeamExposureTable({ lineups, rows }) {
       .map(([team, cnt]) => ({ team, count: cnt, pct: (cnt / total) * 100 }))
       .sort((a, b) => b.pct - a.pct || a.team.localeCompare(b.team));
   }, [lineups, rowsByName]);
+
   if (!data.length) return null;
-  const cell = "px-2 py-1 text-center"; const header = "px-2 py-1 font-semibold text-center";
+
+  const cell = "px-2 py-1 text-center";
+  const header = "px-2 py-1 font-semibold text-center";
+
   return (
     <table className="min-w-full text-[12px]">
       <thead><tr><th className={header}>Team</th><th className={header}>Count</th><th className={header}>Exposure %</th></tr></thead>
-      <tbody>{data.map(r => (<tr key={r.team}><td className={cell}>{r.team}</td><td className={`${cell} tabular-nums`}>{fmt0(r.count)}</td><td className={`${cell} tabular-nums`}>{fmt1(r.pct)}</td></tr>))}</tbody>
+      <tbody>{data.map(r => (
+        <tr key={r.team}><td className={cell}>{r.team}</td><td className={`${cell} tabular-nums`}>{fmt0(r.count)}</td><td className={`${cell} tabular-nums`}>{fmt1(r.pct)}</td></tr>
+      ))}</tbody>
     </table>
   );
 }
+
 function StackShapesTable({ lineups, rows, allowRB }) {
   const rowsByName = useMemo(() => new Map(rows.map(r => [r.name, r])), [rows]);
   const data = useMemo(() => {
@@ -1443,12 +1487,18 @@ function StackShapesTable({ lineups, rows, allowRB }) {
     const total = Math.max(1, lineups.length);
     return Object.entries(counts).map(([shape, cnt]) => ({ shape, count: cnt, pct: (cnt / total) * 100 }));
   }, [lineups, rowsByName, allowRB]);
+
   if (!data.length) return null;
-  const cell = "px-2 py-1 text-center"; const header = "px-2 py-1 font-semibold text-center";
+
+  const cell = "px-2 py-1 text-center";
+  const header = "px-2 py-1 font-semibold text-center";
+
   return (
     <table className="min-w-full text-[12px]">
       <thead><tr><th className={header}>Shape</th><th className={header}>Count</th><th className={header}>%</th></tr></thead>
-      <tbody>{data.map(r => (<tr key={r.shape}><td className={cell}>{r.shape}</td><td className={`${cell} tabular-nums`}>{fmt0(r.count)}</td><td className={`${cell} tabular-nums`}>{fmt1(r.pct)}</td></tr>))}</tbody>
+      <tbody>{data.map(r => (
+        <tr key={r.shape}><td className={cell}>{r.shape}</td><td className={`${cell} tabular-nums`}>{fmt0(r.count)}</td><td className={`${cell} tabular-nums`}>{fmt1(r.pct)}</td></tr>
+      ))}</tbody>
     </table>
   );
 }
@@ -1461,7 +1511,10 @@ function LineupCards({ lineups, rows }) {
       {lineups.map((L, idx) => {
         const ordered = orderPlayersForSite(L.players, rowsByName);
         const totals = ordered.reduce((a, r) => {
-          a.proj += r.proj || 0; a.salary += r.salary || 0; a.pown += (r.pown || 0) * 100; return a;
+          a.proj += r.proj || 0;
+          a.salary += r.salary || 0;
+          a.pown += (r.pown || 0) * 100;
+          return a;
         }, { proj: 0, salary: 0, pown: 0 });
         return (
           <div key={idx} className="rounded-lg border bg-white p-3">
@@ -1483,7 +1536,9 @@ function LineupCards({ lineups, rows }) {
                 {ordered.map((r, i) => (
                   <tr key={i} className={i % 2 ? "bg-gray-50" : ""}>
                     <td className="px-2 py-1">{r.pos}</td>
-                    <td className="px-2 py-1">{r.name} <span className="text-xs text-gray-500">({r.team})</span></td>
+                    <td className="px-2 py-1">
+                      {r.name} <span className="text-xs text-gray-500">({r.team})</span>
+                    </td>
                     <td className="px-2 py-1 text-right">{fmt1(r.proj)}</td>
                     <td className="px-2 py-1 text-right">{fmt1((r.pown || 0) * 100)}</td>
                     <td className="px-2 py-1 text-right">{fmt0(r.salary)}</td>
