@@ -1,10 +1,11 @@
 // src/pages/nfl/NFLShowdownOptimizer.jsx
-// FULL DROP-IN — v3.9.4
+// FULL DROP-IN — v3.9.5
 // Fixes
-// - Streaming parser uses actual "\n" and "\n\n" sequences (not literal newlines)
-// - No JSX typos (e.g., </th> is correct)
-// - Exposure tab: scope toggle (ALL / MVP|CPT / FLEX) with per-slot rows & proper denominators
+// - Exposure tab: scope toggle (ALL / MVP|CPT / FLEX) with lineup-based denominators
+// - ALL scope shows combined CPT/MVP+FLEX exposure per player (no slot split)
+// - Build chips: persistent build history per site (select, delete, clear)
 // - Main table: scrollable with sticky header
+// - Streaming parser uses actual "\n" and "\n\n" sequences (kept)
 // - CSV/solver logic unchanged
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -22,6 +23,19 @@ const num = (v) => {
 const fmt0 = (n) => (Number.isFinite(n) ? n.toLocaleString() : "—");
 const fmt1 = (n) => (Number.isFinite(n) ? (+n).toFixed(1) : "—");
 const escapeCSV = (s) => { const v = String(s ?? ""); return /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v; };
+
+/* relative time (mm ago) */
+const timeAgo = (iso) => {
+  try {
+    const d = typeof iso === "string" ? new Date(iso) : new Date(iso ?? 0);
+    const s = Math.max(0, Math.floor((Date.now() - d.getTime()) / 1000));
+    if (s < 60) return `${s}s ago`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    return `${h}h ago`;
+  } catch { return ""; }
+};
 
 // design tokens
 const cls = {
@@ -195,7 +209,6 @@ function inferTeamFromNameForDST(name) {
 /* ============================== page =============================== */
 export default function NFLShowdownOptimizer() {
   const [auto, setAuto] = useStickyState("sd.autoRefresh", true);
-  // 60s auto refresh by default
   const { data, err, loading, fetchedAt, lastModified, refetch } = useJson(SOURCE, { autoMs: auto ? 60000 : 0, enabled: true });
   const meta = useJson(SITE_IDS_SOURCE, { autoMs: auto ? 60000 : 0, enabled: true });
 
@@ -232,24 +245,28 @@ export default function NFLShowdownOptimizer() {
   // CPT/MVP vs FLEX table filter
   const [tagFilter, setTagFilter] = useStickyState(`sd.${site}.tagFilter`, "ALL");
 
-  // exposure tab scope (ALL shows rows split by slot with correct denominator)
+  // exposure tab scope
   const [expScope, setExpScope] = useStickyState(`sd.${site}.expScope`, "ALL"); // "ALL" | cfg.capTag | "FLEX"
 
-  // exposure tab state
+  // right-panel tab
   const [tab, setTab] = useStickyState(`sd.${site}.rightTab`, "Exposure"); // Exposure | Teams | Stacks
 
-  // builds & results
+  // builds & results (live view shows currently selected build's lineups)
   const [lineups, setLineups] = useState([]);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [progressUI, setProgressUI] = useState(0);
   const [progressActual, setProgressActual] = useState(0);
   const tickRef = useRef(null);
 
-  // live clock for "x seconds ago"
+  // Build history (chips) — persistent per site
+  const [builds, setBuilds] = useStickyState(`sd.${site}.builds`, []); // [{id, at, n, params, lineups}]
+  const [activeBuild, setActiveBuild] = useStickyState(`sd.${site}.activeBuild`, -1);
+
+  // live clock
   const [nowTick, setNowTick] = useState(Date.now());
   useEffect(() => { const id = setInterval(() => setNowTick(Date.now()), 1000); return () => clearInterval(id); }, []);
   const fmtTime = (d) => d ? d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "—";
-  const rel = (d) => d ? Math.max(0, Math.round((nowTick - d.getTime()) / 1000)) : null; // seconds
+  const rel = (d) => d ? Math.max(0, Math.round((nowTick - d.getTime()) / 1000)) : null;
 
   useEffect(() => {
     if (!isOptimizing) return; clearInterval(tickRef.current);
@@ -264,10 +281,17 @@ export default function NFLShowdownOptimizer() {
     return () => clearInterval(tickRef.current);
   }, [isOptimizing, progressActual, numLineups]);
 
-  // On site switch, just clear results (do NOT wipe sticky constraints)
+  // On site switch, clear live results but keep build history (history is per-site via key)
   useEffect(() => {
     setLineups([]); setProgressActual(0); setProgressUI(0); setIsOptimizing(false);
   }, [site]);
+
+  // If user selects a chip (activeBuild), load its lineups into the live view (unless we’re mid-build)
+  useEffect(() => {
+    if (!isOptimizing && activeBuild >= 0 && builds[activeBuild]) {
+      setLineups(builds[activeBuild].lineups || []);
+    }
+  }, [activeBuild, builds, isOptimizing]);
 
   /* ------------------------------ rows ------------------------------ */
   const rows = useMemo(() => {
@@ -423,7 +447,7 @@ export default function NFLShowdownOptimizer() {
     const apiRules = (rules || []).map((r) => ({
       if_slot: r.if_slot || (cfg.capTag),
       if_pos: r.if_pos || ["QB"],
-      if_team_exact: r.if_team ? r.if_team : null, // IF-side team condition
+      if_team_exact: r.if_team ? r.if_team : null,
       then_at_least: Math.max(0, Number(r.then_at_least) || 0),
       from_pos: r.from_pos || ["WR","TE"],
       team_scope: r.team_scope || "any",
@@ -455,7 +479,6 @@ export default function NFLShowdownOptimizer() {
       randomness: clamp(Number(randomness) || 0, 0, 100),
       global_max_pct: clamp(Number(globalMax) || 100, 0, 100),
       team_max_pct: teamMax,
-      // leave legacy blank; solver should use *_tag
       min_pct: {},
       max_pct: {},
       min_pct_tag,
@@ -481,7 +504,27 @@ export default function NFLShowdownOptimizer() {
           };
           out.push(L); setLineups((prev) => [...prev, L]); setProgressActual(out.length);
         },
-        () => { setProgressActual(out.length || payload.n); setProgressUI(out.length || payload.n); setIsOptimizing(false); clearInterval(tickRef.current); }
+        () => {
+          setProgressActual(out.length || payload.n);
+          setProgressUI(out.length || payload.n);
+          setIsOptimizing(false);
+          clearInterval(tickRef.current);
+
+          // Save build in history and select it
+          const rec = {
+            id: Date.now(),
+            at: new Date().toISOString(),
+            n: out.length,
+            params: { numLineups, optBy, randomness, maxSalary, maxOverlap, lineupPownCap },
+            lineups: out
+          };
+          setBuilds((B) => {
+            const next = [...B, rec];
+            // select this new build
+            setActiveBuild(next.length - 1);
+            return next;
+          });
+        }
       );
     } catch (e) {
       alert(`Solve failed: ${String(e?.message || e)}`);
@@ -513,64 +556,64 @@ export default function NFLShowdownOptimizer() {
   const totalLabel = optBy === "proj" ? "Proj" : optBy === "floor" ? "Floor" : optBy === "ceil" ? "Ceil" : optBy === "pown" ? "pOWN%" : "Opt%";
   const cell = cls.cell; const header = cls.tableHead; const textSz = "text-[12px]";
 
-/* --------------------- right-panel aggregates --------------------- */
-const slotLabel = (t) => (t === "ALL" ? "ALL" : (t === "FLEX" ? "FLEX" : cfg.capTag));
+  /* --------------------- right-panel aggregates --------------------- */
+  const slotLabel = (t) => (t === "ALL" ? "ALL" : (t === "FLEX" ? "FLEX" : cfg.capTag));
 
-const exposures = useMemo(() => {
-  const denom = Math.max(1, lineups.length);
+  // Exposures: lineup-based denominator; ALL scope = combined across slots
+  const exposures = useMemo(() => {
+    const denom = Math.max(1, lineups.length);
 
-  // Per-slot counts: "Player::CPT|MVP" or "Player::FLEX"
-  const perSlot = new Map();
-  // Combined (ALL) counts: "Player" → appearances in any slot
-  const perAll = new Map();
+    // Per-slot counts: "Player::CPT|MVP" or "Player::FLEX"
+    const perSlot = new Map();
+    // Combined (ALL) counts: "Player" → appearances in any slot (dedupe within lineup)
+    const perAll = new Map();
 
-  for (const L of lineups) {
-    const ps = Array.isArray(L.pairs)
-      ? L.pairs
-      : (L.players || []).map((n, i) => ({ slot: i === 0 ? cfg.capTag : "FLEX", name: n }));
+    for (const L of lineups) {
+      const ps = Array.isArray(L.pairs)
+        ? L.pairs
+        : (L.players || []).map((n, i) => ({ slot: i === 0 ? cfg.capTag : "FLEX", name: n }));
 
-    // safety: avoid double-counting same player within a single lineup
-    const seenThisLineup = new Set();
+      const seenThisLineup = new Set(); // avoid double-counting same player in one lineup
 
-    for (const p of ps) {
-      const t = p.slot === "FLEX" ? "FLEX" : cfg.capTag;
-      const k = `${p.name}::${t}`;
-      perSlot.set(k, (perSlot.get(k) || 0) + 1);
+      for (const p of ps) {
+        const t = p.slot === "FLEX" ? "FLEX" : cfg.capTag;
+        const k = `${p.name}::${t}`;
+        perSlot.set(k, (perSlot.get(k) || 0) + 1);
 
-      if (!seenThisLineup.has(p.name)) {
-        perAll.set(p.name, (perAll.get(p.name) || 0) + 1);
-        seenThisLineup.add(p.name);
+        if (!seenThisLineup.has(p.name)) {
+          perAll.set(p.name, (perAll.get(p.name) || 0) + 1);
+          seenThisLineup.add(p.name);
+        }
       }
     }
-  }
 
-  if (expScope === "ALL") {
-    // single row per player, CPT/MVP + FLEX combined
-    return [...perAll.entries()]
-      .map(([name, c]) => ({ name, slot: "ALL", count: c, pct: +(100 * c / denom).toFixed(1) }))
+    if (expScope === "ALL") {
+      // single row per player, CPT/MVP + FLEX combined
+      return [...perAll.entries()]
+        .map(([name, c]) => ({ name, slot: "ALL", count: c, pct: +(100 * c / denom).toFixed(1) }))
+        .sort((a, b) => b.pct - a.pct || a.name.localeCompare(b.name));
+    }
+
+    // Slot-specific (CPT/MVP or FLEX), still lineup-based denominator
+    const needSlot = expScope === "FLEX" ? "FLEX" : cfg.capTag;
+    return [...perSlot.entries()]
+      .filter(([key]) => key.endsWith(`::${needSlot}`))
+      .map(([key, c]) => {
+        const [name, t] = key.split("::");
+        return { name, slot: t, count: c, pct: +(100 * c / denom).toFixed(1) };
+      })
       .sort((a, b) => b.pct - a.pct || a.name.localeCompare(b.name));
-  }
-
-  // Slot-specific (CPT/MVP or FLEX), still lineup-based denominator
-  const needSlot = expScope === "FLEX" ? "FLEX" : cfg.capTag;
-  return [...perSlot.entries()]
-    .filter(([key]) => key.endsWith(`::${needSlot}`))
-    .map(([key, c]) => {
-      const [name, t] = key.split("::");
-      return { name, slot: t, count: c, pct: +(100 * c / denom).toFixed(1) };
-    })
-    .sort((a, b) => b.pct - a.pct || a.name.localeCompare(b.name));
-}, [lineups, cfg.capTag, expScope]);
+  }, [lineups, cfg.capTag, expScope]);
 
   const teamExposure = useMemo(() => {
     const cnt = new Map(); let slotsCount = 0;
-    for (const L of lineups) { 
+    for (const L of lineups) {
       const ps = Array.isArray(L.pairs) ? L.pairs : (L.players || []).map((n,i)=>({ slot: i===0 ? cfg.capTag : "FLEX", name:n }));
-      for (const p of ps) { 
-        const meta = rows.find(r => r.name === p.name); 
-        const tm = meta?.team || ""; 
-        if (!tm) continue; 
-        cnt.set(tm, (cnt.get(tm) || 0) + 1); 
+      for (const p of ps) {
+        const meta = rows.find(r => r.name === p.name);
+        const tm = meta?.team || "";
+        if (!tm) continue;
+        cnt.set(tm, (cnt.get(tm) || 0) + 1);
         slotsCount += 1;
       }
     }
@@ -578,21 +621,34 @@ const exposures = useMemo(() => {
   }, [lineups, rows]);
 
   const stackShapes = useMemo(() => {
-    const shapes = new Map(); 
-    for (const L of lineups) { 
-      const names = (Array.isArray(L.players) ? L.players : []).slice(); 
-      const teams = names.map((n)=>rows.find(r=>r.name===n)?.team).filter(Boolean); 
-      if (!teams.length) continue; 
-      const a = teams.filter(t=>t===teams[0]).length; 
-      const b = teams.length - a; 
-      const key = `${Math.max(a,b)}-${Math.min(a,b)}`; 
-      shapes.set(key, (shapes.get(key)||0)+1); 
+    const shapes = new Map();
+    for (const L of lineups) {
+      const names = (Array.isArray(L.players) ? L.players : []).slice();
+      const teams = names.map((n)=>rows.find(r=>r.name===n)?.team).filter(Boolean);
+      if (!teams.length) continue;
+      const a = teams.filter(t=>t===teams[0]).length;
+      const b = teams.length - a;
+      const key = `${Math.max(a,b)}-${Math.min(a,b)}`;
+      shapes.set(key, (shapes.get(key)||0)+1);
     }
-    const total = lineups.length || 1; 
+    const total = lineups.length || 1;
     return [...shapes.entries()].map(([shape, c]) => ({ shape, count: c, pct: +(100*c/total).toFixed(1) })).sort((a,b)=>b.count-a.count);
   }, [lineups, rows]);
 
   /* ---------------------------- render ------------------------------ */
+  // chip helpers
+  const selectBuild = (idx) => { setActiveBuild(idx); if (builds[idx]) setLineups(builds[idx].lineups || []); };
+  const removeBuild = (idx) => {
+    setBuilds((B) => {
+      const next = B.slice(0, idx).concat(B.slice(idx + 1));
+      const newActive = next.length ? Math.min(idx, next.length - 1) : -1;
+      setActiveBuild(newActive);
+      setLineups(newActive >= 0 ? (next[newActive].lineups || []) : []);
+      return next;
+    });
+  };
+  const clearBuilds = () => { setBuilds([]); setActiveBuild(-1); setLineups([]); };
+
   return (
     <div className="px-4 md:px-6 py-5">
       <h1 className="text-2xl md:text-3xl font-extrabold mb-2">NFL — Showdown Optimizer</h1>
@@ -613,7 +669,7 @@ const exposures = useMemo(() => {
           ))}
         </div>
 
-        {/* Data updated + auto refresh controls (use Last-Modified when present) */}
+        {/* Data updated + auto refresh controls */}
         <div className="ml-auto flex items-center gap-2 text-xs text-gray-700">
           <div className="inline-flex items-center gap-2 px-2.5 h-8 rounded-full border border-gray-200 bg-white">
             <span className="w-2 h-2 rounded-full" style={{ background: loading ? "#f59e0b" : "#10b981" }} />
@@ -812,6 +868,26 @@ const exposures = useMemo(() => {
           ))}
         </div>
       </div>
+
+      {/* Build chips */}
+      {builds.length > 0 && (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          {builds.map((b, idx) => {
+            const active = idx === activeBuild;
+            return (
+              <div key={b.id} className={`inline-flex items-center gap-2 border ${active ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-800 border-gray-200 hover:bg-gray-50"} ${cls.btn.chip}`}>
+                <button onClick={() => selectBuild(idx)} className="inline-flex items-center gap-2">
+                  <span className="font-semibold">Build {idx + 1}</span>
+                  <span className="opacity-80">• {b.n} LUs</span>
+                  <span className="opacity-60">{timeAgo(b.at)}</span>
+                </button>
+                <button onClick={() => removeBuild(idx)} className="ml-1 text-xs opacity-90 hover:opacity-100" title="Delete build">✕</button>
+              </div>
+            );
+          })}
+          <button className={cls.btn.ghost} onClick={clearBuilds}>Clear</button>
+        </div>
+      )}
 
       {/* progress bar */}
       <div className="mb-2 flex items-center gap-3">
@@ -1238,7 +1314,7 @@ function downloadSiteLineupsCSV({
     const team = normTeam(r.team ?? r.Team ?? r.team_abbr ?? r.TeamAbbrev);
     const nameFromSite = String(r.name ?? r.player ?? r.Player ?? r.raw_name ?? "");
     const baseId = String(r.id ?? r.ID ?? r.Id ?? r["DK ID"] ?? r["FD ID"] ?? r.dk_id ?? r.fd_id ?? "");
-    const posOrSlot = String(r.pos ?? r.slottype ?? "").toUpperCase(); // DK: "FLEX"/"CPT" ; FD: positions like QB/WR/D/etc.
+    const posOrSlot = String(r.pos ?? r.slottype ?? "").toUpperCase(); // DK: "FLEX"/"CPT" ; FD: QB/WR/D etc.
     if (siteKey === "dk") {
       if (posOrSlot === "CPT") dkCPT.set(keyDK(nameFromSite, team, "CPT"), { id: baseId, nameFromSite, team });
       else dkFLEX.set(keyDK(nameFromSite, team, "FLEX"), { id: baseId, nameFromSite, team });
@@ -1270,7 +1346,6 @@ function downloadSiteLineupsCSV({
       if (rec) return rec;
     }
     for (const [, v] of (slot === "CPT" ? dkCPT : dkFLEX).entries()) {
-      // final fallback: match by normalized name ignoring team
       if (normName(v.nameFromSite) === normName(name)) return v;
     }
     return null;
