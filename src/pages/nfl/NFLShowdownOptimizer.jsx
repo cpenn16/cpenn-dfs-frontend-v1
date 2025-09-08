@@ -513,32 +513,39 @@ export default function NFLShowdownOptimizer() {
   const totalLabel = optBy === "proj" ? "Proj" : optBy === "floor" ? "Floor" : optBy === "ceil" ? "Ceil" : optBy === "pown" ? "pOWN%" : "Opt%";
   const cell = cls.cell; const header = cls.tableHead; const textSz = "text-[12px]";
 
-  /* --------------------- right-panel aggregates --------------------- */
-  const slotLabel = (t) => (t === "FLEX" ? "FLEX" : cfg.capTag);
-  // Exposures with scope: ALL (split by slot), CAP (only MVP/CPT), FLEX (only flex)
-  const exposures = useMemo(() => {
-    const map = new Map();
-    for (const L of lineups) {
-      const ps = Array.isArray(L.pairs)
-        ? L.pairs
-        : (L.players || []).map((n, i) => ({ slot: i === 0 ? cfg.capTag : "FLEX", name: n }));
-      for (const p of ps) {
-        const t = p.slot === "FLEX" ? "FLEX" : cfg.capTag;
-        if (expScope !== "ALL" && t !== expScope) continue;
-        const key = `${p.name}::${t}`;
-        map.set(key, (map.get(key) || 0) + 1);
-      }
+/* --------------------- right-panel aggregates --------------------- */
+const slotLabel = (t) => (t === "FLEX" ? "FLEX" : cfg.capTag);
+
+// Exposures: percentage of LINEUPS, not slots
+const exposures = useMemo(() => {
+  const map = new Map();
+
+  for (const L of lineups) {
+    const ps = Array.isArray(L.pairs)
+      ? L.pairs
+      : (L.players || []).map((n, i) => ({ slot: i === 0 ? cfg.capTag : "FLEX", name: n }));
+    for (const p of ps) {
+      const t = p.slot === "FLEX" ? "FLEX" : cfg.capTag;
+      if (expScope !== "ALL" && t !== expScope) continue;
+      const key = `${p.name}::${t}`;
+      map.set(key, (map.get(key) || 0) + 1);
     }
-    const totalCap = Math.max(1, lineups.length);      // 1 captain/mvp per lineup
-    const totalFlex = Math.max(1, lineups.length * 5); // 5 flex per lineup
-    const rows = [...map.entries()].map(([key, c]) => {
-      const [name, t] = key.split("::");
-      const denom = (t === "FLEX") ? totalFlex : totalCap;
-      return { name, slot: t, count: c, pct: +(100 * c / denom).toFixed(1) };
-    });
-    // sort: by slot group (CAP first), then pct desc, then name
-    return rows.sort((a,b)=> (a.slot===b.slot?0:(a.slot===cfg.capTag?-1:1)) || (b.pct-a.pct) || a.name.localeCompare(b.name));
-  }, [lineups, cfg.capTag, expScope]);
+  }
+
+  const denomLineups = Math.max(1, lineups.length); // <-- lineup-based denominator
+  const rows = [...map.entries()].map(([key, c]) => {
+    const [name, t] = key.split("::");
+    return { name, slot: t, count: c, pct: +(100 * c / denomLineups).toFixed(1) };
+  });
+
+  // CAP/MVP first, then pct desc, then name
+  return rows.sort(
+    (a, b) =>
+      (a.slot === b.slot ? 0 : a.slot === cfg.capTag ? -1 : 1) ||
+      b.pct - a.pct ||
+      a.name.localeCompare(b.name)
+  );
+}, [lineups, cfg.capTag, expScope]);
 
   const teamExposure = useMemo(() => {
     const cnt = new Map(); let slotsCount = 0;
