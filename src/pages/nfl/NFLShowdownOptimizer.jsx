@@ -1,10 +1,11 @@
 // src/pages/nfl/NFLShowdownOptimizer.jsx
-// FULL DROP-IN — v3.9.1
-// - Exposures: adds scope toggle (ALL / CPT|MVP / FLEX) and per-slot separator
-//   • In ALL view, table shows one row per (player, slot) with correct slot-aware % denom
-// - Main table: constrained height with scroll + sticky header
-// - Auto refresh & Last-Modified logic unchanged
-// - No breaking changes to your CSV export / solver payload
+// FULL DROP-IN — v3.9
+// - Visual polish: tokens, segmented controls, lighter borders, cards, progress gradient
+// - Sticky sets (locks/excludes/boosts) + existing sticky state
+// - Auto refresh: 60s default (toggle) for projections + site_ids
+// - "Data updated" shows server Last-Modified (sheet update) when available; falls back to fetch time
+// - Right panel uses simple tabs (Exposure / Teams / Stacks)
+// - Keeps your v3.7 CSV export headers (DK/FD)
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API_BASE from "../../utils/api";
@@ -147,9 +148,9 @@ async function solveStreamShowdown(payload, onItem, onDone) {
     const { done, value } = await reader.read();
     if (done) break;
     buf += decoder.decode(value, { stream: true });
-    const parts = buf.split("\\n\\n"); buf = parts.pop() ?? "";
+    const parts = buf.split("\n\n"); buf = parts.pop() ?? "";
     for (const chunk of parts) {
-      const line = chunk.split("\\n").find((l) => l.startsWith("data: "));
+      const line = chunk.split("\n").find((l) => l.startsWith("data: "));
       if (!line) continue;
       try {
         const evt = JSON.parse(line.slice(6));
@@ -179,7 +180,7 @@ function pick(obj, variants, fallback = 0) {
 }
 
 /* --------------------- name/pos/team normalization ----------------- */
-function normName(s){return String(s||"").toLowerCase().replace(/\\u2019/g,"'").replace(/\\./g,"").replace(/,\\s*(jr|sr)\\b/g,"").replace(/\\b(jr|sr)\\b/g,"").replace(/[^a-z' -]/g,"").replace(/\\s+/g," ").trim();}
+function normName(s){return String(s||"").toLowerCase().replace(/\u2019/g,"'").replace(/\./g,"").replace(/,\s*(jr|sr)\b/g,"").replace(/\b(jr|sr)\b/g,"").replace(/[^a-z' -]/g,"").replace(/\s+/g," ").trim();}
 function normTeam(s){return (s||"").toUpperCase().trim();}
 function normPosRaw(s){return (s||"").toUpperCase().trim();}
 function normPos(s){ const p = normPosRaw(s); return (p === "D" || p === "DEF") ? "DST" : p; }
@@ -230,9 +231,6 @@ export default function NFLShowdownOptimizer() {
 
   // CPT/MVP vs FLEX table filter
   const [tagFilter, setTagFilter] = useStickyState(`sd.${site}.tagFilter`, "ALL");
-
-  // exposure tab scope (ALL shows rows split by slot with correct denominator)
-  const [expScope, setExpScope] = useStickyState(`sd.${site}.expScope`, "ALL"); // "ALL" | cfg.capTag | "FLEX"
 
   // exposure tab state
   const [tab, setTab] = useStickyState(`sd.${site}.rightTab`, "Exposure"); // Exposure | Teams | Stacks
@@ -513,60 +511,22 @@ export default function NFLShowdownOptimizer() {
   const cell = cls.cell; const header = cls.tableHead; const textSz = "text-[12px]";
 
   /* --------------------- right-panel aggregates --------------------- */
-  const slotLabel = (t) => (t === "FLEX" ? "FLEX" : cfg.capTag);
-  // Exposures with scope: ALL (split by slot), CAP (only MVP/CPT), FLEX (only flex)
+  function filterByExposureView(names, view){ if(view==="ALL") return names; return names.filter((_,i)=> view==="CAP" ? i===0 : i>0 ); }
   const exposures = useMemo(() => {
-    const map = new Map();
-    for (const L of lineups) {
-      const ps = Array.isArray(L.pairs)
-        ? L.pairs
-        : (L.players || []).map((n, i) => ({ slot: i === 0 ? cfg.capTag : "FLEX", name: n }));
-      for (const p of ps) {
-        const t = p.slot === "FLEX" ? "FLEX" : cfg.capTag;
-        if (expScope !== "ALL" && t !== expScope) continue;
-        const key = `${p.name}::${t}`;
-        map.set(key, (map.get(key) || 0) + 1);
-      }
-    }
-    const totalCap = Math.max(1, lineups.length);      // 1 captain/mvp per lineup
-    const totalFlex = Math.max(1, lineups.length * 5); // 5 flex per lineup
-    const rows = [...map.entries()].map(([key, c]) => {
-      const [name, t] = key.split("::");
-      const denom = (t === "FLEX") ? totalFlex : totalCap;
-      return { name, slot: t, count: c, pct: +(100 * c / denom).toFixed(1) };
-    });
-    // sort: by slot group (CAP first), then pct desc, then name
-    return rows.sort((a,b)=> (a.slot===b.slot?0:(a.slot===cfg.capTag?-1:1)) || (b.pct-a.pct) || a.name.localeCompare(b.name));
-  }, [lineups, cfg.capTag, expScope]);
+    const map = new Map(); const count = lineups.length || 1;
+    for (const L of lineups) for (const n of filterByExposureView(L.players, "ALL")) map.set(n, (map.get(n) || 0) + 1);
+    return [...map.entries()].map(([name, c]) => ({ name, count: c, pct: +(100*c/count).toFixed(1) })).sort((a,b)=>b.pct-a.pct || a.name.localeCompare(b.name));
+  }, [lineups]);
 
   const teamExposure = useMemo(() => {
     const cnt = new Map(); let slotsCount = 0;
-    for (const L of lineups) { 
-      const ps = Array.isArray(L.pairs) ? L.pairs : (L.players || []).map((n,i)=>({ slot: i===0 ? cfg.capTag : "FLEX", name:n }));
-      for (const p of ps) { 
-        const meta = rows.find(r => r.name === p.name); 
-        const tm = meta?.team || ""; 
-        if (!tm) continue; 
-        cnt.set(tm, (cnt.get(tm) || 0) + 1); 
-        slotsCount += 1;
-      }
-    }
+    for (const L of lineups) { const names = filterByExposureView(L.players, "ALL"); slotsCount += names.length; for (const n of names) { const meta = rows.find(r => r.name === n); const tm = meta?.team || ""; if (!tm) continue; cnt.set(tm, (cnt.get(tm) || 0) + 1); }}
     return [...cnt.entries()].map(([tm, c]) => ({ team: tm, count: c, pct: slotsCount ? +(100*c/slotsCount).toFixed(1) : 0 })) .sort((a,b)=>b.pct-a.pct || a.team.localeCompare(b.team));
   }, [lineups, rows]);
 
   const stackShapes = useMemo(() => {
-    const shapes = new Map(); 
-    for (const L of lineups) { 
-      const names = (Array.isArray(L.players) ? L.players : []).slice(); 
-      const teams = names.map((n)=>rows.find(r=>r.name===n)?.team).filter(Boolean); 
-      if (!teams.length) continue; 
-      const a = teams.filter(t=>t===teams[0]).length; 
-      const b = teams.length - a; 
-      const key = `${Math.max(a,b)}-${Math.min(a,b)}`; 
-      shapes.set(key, (shapes.get(key)||0)+1); 
-    }
-    const total = lineups.length || 1; 
-    return [...shapes.entries()].map(([shape, c]) => ({ shape, count: c, pct: +(100*c/total).toFixed(1) })).sort((a,b)=>b.count-a.count);
+    const shapes = new Map(); for (const L of lineups) { const teams = filterByExposureView(L.players, "ALL").map((n)=>rows.find(r=>r.name===n)?.team).filter(Boolean); if (!teams.length) continue; const a = teams.filter(t=>t===teams[0]).length; const b = teams.length - a; const key = `${Math.max(a,b)}-${Math.min(a,b)}`; shapes.set(key, (shapes.get(key)||0)+1); }
+    const total = lineups.length || 1; return [...shapes.entries()].map(([shape, c]) => ({ shape, count: c, pct: +(100*c/total).toFixed(1) })).sort((a,b)=>b.count-a.count);
   }, [lineups, rows]);
 
   /* ---------------------------- render ------------------------------ */
@@ -812,151 +772,149 @@ export default function NFLShowdownOptimizer() {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Player table */}
-        <div className="xl:col-span-2 rounded-2xl border border-gray-200 bg-white shadow-sm">
-          <div className="max-h-[68vh] overflow-auto">
-            <table className={`w-full border-separate ${textSz}`} style={{ borderSpacing: 0 }}>
-              <thead className="bg-gray-50 sticky top-0 z-10 shadow-[0_1px_0_#e5e7eb]">
+        <div className="xl:col-span-2 rounded-2xl border border-gray-200 bg-white shadow-sm overflow-auto">
+          <table className={`w-full border-separate ${textSz}`} style={{ borderSpacing: 0 }}>
+            <thead className="bg-gray-50 sticky top-0 z-10 shadow-[0_1px_0_#e5e7eb]">
+              <tr>
+                {TABLE_COLS.map(({ key, label, sortable }) => (
+                  <th
+                    key={key}
+                    className={`${header} whitespace-nowrap ${sortable ? "cursor-pointer" : ""}`}
+                    onClick={() => sortable && setSort(key)}
+                  >
+                    {label}
+                    {sortable ? <span className="opacity-60">{sortArrow(key)}</span> : null}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {loading && (
                 <tr>
-                  {TABLE_COLS.map(({ key, label, sortable }) => (
-                    <th
-                      key={key}
-                      className={`${header} whitespace-nowrap ${sortable ? "cursor-pointer" : ""}`}
-                      onClick={() => sortable && setSort(key)}
-                    >
-                      {label}
-                      {sortable ? <span className="opacity-60">{sortArrow(key)}</span> : null}
-                    </th>
-                  ))}
+                  <td className={`${header} text-gray-500`} colSpan={TABLE_COLS.length}>
+                    Loading…
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {loading && (
-                  <tr>
-                    <td className={`${header} text-gray-500`} colSpan={TABLE_COLS.length}>
-                      Loading…
-                    </td>
-                  </tr>
-                )}
-                {err && (
-                  <tr>
-                    <td className={`${header} text-red-600`} colSpan={TABLE_COLS.length}>
-                      Failed to load: {String(err)}
-                    </td>
-                  </tr>
-                )}
-                {!loading &&
-                  !err &&
-                  sortedRows.map((r) => {
-                    const teamTitle = `${NFL_TEAMS[r.team]?.city ?? r.team} ${NFL_TEAMS[r.team]?.nickname ?? ""}`.trim();
-                    const oppTitle = `${NFL_TEAMS[r.opp]?.city ?? r.opp} ${NFL_TEAMS[r.opp]?.nickname ?? ""}`.trim();
-                    const key = r.key; // Player::CPT/MVP or Player::FLEX
-                    return (
-                      <tr
-                        key={key}
-                        className="odd:bg-white even:bg-gray-50 hover:bg-blue-50/60 transition-colors"
-                      >
-                        <td className={cell}>
-                          <input
-                            type="checkbox"
-                            checked={locks.has(tagKey(r.name, r.tag))}
-                            onChange={() => toggleLock(r.name, r.tag)}
-                          />
-                        </td>
-                        <td className={cell}>
-                          <input
-                            type="checkbox"
-                            checked={excls.has(tagKey(r.name, r.tag))}
-                            onChange={() => toggleExcl(r.name, r.tag)}
-                          />
-                        </td>
-                        <td className={cell}>
-                          <div className="inline-flex items-center gap-1">
-                            <button className={cls.btn.iconSm} title="+3%" onClick={() => bumpBoost(r.name, +1)}>+</button>
-                            <span className="w-5 text-center">{boost[r.name] || 0}</span>
-                            <button className={cls.btn.iconSm} title="-3%" onClick={() => bumpBoost(r.name, -1)}>–</button>
-                          </div>
-                        </td>
-                        <td className={cell}>{r.tag === "FLEX" ? "FLEX" : cfg.capTag}</td>
-                        <td className={`${cell} whitespace-nowrap text-left`}>{r.name}</td>
-                        <td className={cell}>
-                          <TeamPill abbr={r.team} title={teamTitle} />
-                        </td>
-                        <td className={cell}>
-                          <TeamPill abbr={r.opp} title={oppTitle} />
-                        </td>
-                        <td className={cell}>{r.pos}</td>
-                        <td className={`${cell} tabular-nums`}>{fmt0(r.salaryDisplay)}</td>
-                        <td className={`${cell} tabular-nums`}>
-                          {fmt1(r.projDisplay * (1 + 0.03 * (boost[r.name] || 0)))}
-                        </td>
-                        <td className={`${cell} tabular-nums`}>{fmt1(r.floorDisplay)}</td>
-                        <td className={`${cell} tabular-nums`}>{fmt1(r.ceilDisplay)}</td>
-                        <td className={`${cell} tabular-nums`}>{fmt1(r.pownDisplay * 100)}</td>
-                        <td className={`${cell} tabular-nums`}>{fmt1(r.optDisplay * 100)}</td>
+              )}
+              {err && (
+                <tr>
+                  <td className={`${header} text-red-600`} colSpan={TABLE_COLS.length}>
+                    Failed to load: {String(err)}
+                  </td>
+                </tr>
+              )}
+              {!loading &&
+                !err &&
+                sortedRows.map((r) => {
+                  const teamTitle = `${NFL_TEAMS[r.team]?.city ?? r.team} ${NFL_TEAMS[r.team]?.nickname ?? ""}`.trim();
+                  const oppTitle = `${NFL_TEAMS[r.opp]?.city ?? r.opp} ${NFL_TEAMS[r.opp]?.nickname ?? ""}`.trim();
+                  const key = r.key; // Player::CPT/MVP or Player::FLEX
+                  return (
+                    <tr
+                      key={key}
+                      className="odd:bg-white even:bg-gray-50 hover:bg-blue-50/60 transition-colors"
+                    >
+                      <td className={cell}>
+                        <input
+                          type="checkbox"
+                          checked={locks.has(tagKey(r.name, r.tag))}
+                          onChange={() => toggleLock(r.name, r.tag)}
+                        />
+                      </td>
+                      <td className={cell}>
+                        <input
+                          type="checkbox"
+                          checked={excls.has(tagKey(r.name, r.tag))}
+                          onChange={() => toggleExcl(r.name, r.tag)}
+                        />
+                      </td>
+                      <td className={cell}>
+                        <div className="inline-flex items-center gap-1">
+                          <button className={cls.btn.iconSm} title="+3%" onClick={() => bumpBoost(r.name, +1)}>+</button>
+                          <span className="w-5 text-center">{boost[r.name] || 0}</span>
+                          <button className={cls.btn.iconSm} title="-3%" onClick={() => bumpBoost(r.name, -1)}>–</button>
+                        </div>
+                      </td>
+                      <td className={cell}>{r.tag === "FLEX" ? "FLEX" : cfg.capTag}</td>
+                      <td className={`${cell} whitespace-nowrap text-left`}>{r.name}</td>
+                      <td className={cell}>
+                        <TeamPill abbr={r.team} title={teamTitle} />
+                      </td>
+                      <td className={cell}>
+                        <TeamPill abbr={r.opp} title={oppTitle} />
+                      </td>
+                      <td className={cell}>{r.pos}</td>
+                      <td className={`${cell} tabular-nums`}>{fmt0(r.salaryDisplay)}</td>
+                      <td className={`${cell} tabular-nums`}>
+                        {fmt1(r.projDisplay * (1 + 0.03 * (boost[r.name] || 0)))}
+                      </td>
+                      <td className={`${cell} tabular-nums`}>{fmt1(r.floorDisplay)}</td>
+                      <td className={`${cell} tabular-nums`}>{fmt1(r.ceilDisplay)}</td>
+                      <td className={`${cell} tabular-nums`}>{fmt1(r.pownDisplay * 100)}</td>
+                      <td className={`${cell} tabular-nums`}>{fmt1(r.optDisplay * 100)}</td>
 
-                        {/* Per-slot Min/Max wired to key = Player::CPT|MVP|FLEX */}
-                        <td className={cell}>
-                          <div className="inline-flex items-center gap-1">
-                            <button className={cls.btn.iconSm}
-                              onClick={() =>
-                                setMinPctTag((m) => ({ ...m, [key]: clamp((num(m[key]) || 0) - 5, 0, 100) }))
-                              }
-                              title="-5%"
-                            >
-                              –
-                            </button>
-                            <input
-                              className={`${cls.input} text-center`} style={{width:54}}
-                              value={String(minPctTag[key] ?? "")}
-                              onChange={(e) => setMinPctTag((m) => ({ ...m, [key]: e.target.value }))}
-                              placeholder="—"
-                            />
-                            <button className={cls.btn.iconSm}
-                              onClick={() =>
-                                setMinPctTag((m) => ({ ...m, [key]: clamp((num(m[key]) || 0) + 5, 0, 100) }))
-                              }
-                              title="+5%"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </td>
-                        <td className={cell}>
-                          <div className="inline-flex items-center gap-1">
-                            <button className={cls.btn.iconSm}
-                              onClick={() =>
-                                setMaxPctTag((m) => ({ ...m, [key]: clamp((num(m[key]) || 100) - 5, 0, 100) }))
-                              }
-                              title="-5%"
-                            >
-                              –
-                            </button>
-                            <input
-                              className={`${cls.input} text-center`} style={{width:54}}
-                              value={String(maxPctTag[key] ?? "")}
-                              onChange={(e) => setMaxPctTag((m) => ({ ...m, [key]: e.target.value }))}
-                              placeholder="—"
-                            />
-                            <button className={cls.btn.iconSm}
-                              onClick={() =>
-                                setMaxPctTag((m) => ({ ...m, [key]: clamp((num(m[key]) || 100) + 5, 0, 100) }))
-                              }
-                              title="+5%"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </td>
+                      {/* Per-slot Min/Max wired to key = Player::CPT|MVP|FLEX */}
+                      <td className={cell}>
+                        <div className="inline-flex items-center gap-1">
+                          <button className={cls.btn.iconSm}
+                            onClick={() =>
+                              setMinPctTag((m) => ({ ...m, [key]: clamp((num(m[key]) || 0) - 5, 0, 100) }))
+                            }
+                            title="-5%"
+                          >
+                            –
+                          </button>
+                          <input
+                            className={`${cls.input} text-center`} style={{width:54}}
+                            value={String(minPctTag[key] ?? "")}
+                            onChange={(e) => setMinPctTag((m) => ({ ...m, [key]: e.target.value }))}
+                            placeholder="—"
+                          />
+                          <button className={cls.btn.iconSm}
+                            onClick={() =>
+                              setMinPctTag((m) => ({ ...m, [key]: clamp((num(m[key]) || 0) + 5, 0, 100) }))
+                            }
+                            title="+5%"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </td>
+                      <td className={cell}>
+                        <div className="inline-flex items-center gap-1">
+                          <button className={cls.btn.iconSm}
+                            onClick={() =>
+                              setMaxPctTag((m) => ({ ...m, [key]: clamp((num(m[key]) || 100) - 5, 0, 100) }))
+                            }
+                            title="-5%"
+                          >
+                            –
+                          </button>
+                          <input
+                            className={`${cls.input} text-center`} style={{width:54}}
+                            value={String(maxPctTag[key] ?? "")}
+                            onChange={(e) => setMaxPctTag((m) => ({ ...m, [key]: e.target.value }))}
+                            placeholder="—"
+                          />
+                          <button className={cls.btn.iconSm}
+                            onClick={() =>
+                              setMaxPctTag((m) => ({ ...m, [key]: clamp((num(m[key]) || 100) + 5, 0, 100) }))
+                            }
+                            title="+5%"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </td>
 
-                        <td className={`${cell} tabular-nums`}>
-                          {usagePct[r.key] != null ? fmt1(usagePct[r.key]) : "—"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
-          </div>
+                      <td className={`${cell} tabular-nums`}>
+                        {usagePct[r.key] != null ? fmt1(usagePct[r.key]) : "—"}
+                      </td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
         </div>
 
         {/* Right panel: Tabs */}
@@ -973,40 +931,31 @@ export default function NFLShowdownOptimizer() {
             </div>
             <div className="p-3 max-h-[700px] overflow-auto">
               {tab==="Exposure" && (
-                <>
-                  <div className="mb-2 inline-flex rounded-full bg-white shadow-sm ring-1 ring-gray-200 overflow-hidden">
-                    {["ALL", cfg.capTag, "FLEX"].map((t) => (
-                      <button key={t} onClick={() => setExpScope(t)} className={`px-3 py-1.5 text-xs font-medium transition ${expScope===t ? "bg-blue-600 text-white" : "text-gray-700 hover:bg-gray-50"}`}>{t}</button>
-                    ))}
-                  </div>
-                  <table className={`w-full ${textSz}`}>
-                    <thead>
-                      <tr>
-                        <th className={header}>Slot</th>
-                        <th className={header + " text-left"}>Player</th>
-                        <th className={header}>Count</th>
-                        <th className={header}>Exposure %</th>
+                <table className={`w-full ${textSz}`}>
+                  <thead>
+                    <tr>
+                      <th className={header + " text-left"}>Player</th>
+                      <th className={header}>Count</th>
+                      <th className={header}>Exposure %</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {exposures.map((r, i) => (
+                      <tr key={i} className="odd:bg-white even:bg-gray-50">
+                        <td className="px-2 py-1 text-left">{r.name}</td>
+                        <td className="px-2 py-1 text-center">{r.count}</td>
+                        <td className="px-2 py-1 text-center">{fmt1(r.pct)}</td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {exposures.map((r, i) => (
-                        <tr key={`${r.name}-${r.slot}-${i}`} className="odd:bg-white even:bg-gray-50">
-                          <td className="px-2 py-1 text-center">{slotLabel(r.slot)}</td>
-                          <td className="px-2 py-1 text-left">{r.name}</td>
-                          <td className="px-2 py-1 text-center">{r.count}</td>
-                          <td className="px-2 py-1 text-center">{fmt1(r.pct)}</td>
-                        </tr>
-                      ))}
-                      {!exposures.length && (
-                        <tr>
-                          <td className="px-2 py-1 text-center text-gray-500" colSpan={4}>
-                            No lineups yet.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </>
+                    ))}
+                    {!exposures.length && (
+                      <tr>
+                        <td className="px-2 py-1 text-center text-gray-500" colSpan={3}>
+                          No lineups yet.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               )}
               {tab==="Teams" && (
                 <table className={`w-full ${textSz}`}>
@@ -1291,7 +1240,7 @@ function downloadSiteLineupsCSV({
     return cells.join(",");
   });
 
-  const csv = [header.join(","), ...lines].join("\\n");
+  const csv = [header.join(","), ...lines].join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
