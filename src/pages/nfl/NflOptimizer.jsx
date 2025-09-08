@@ -1745,29 +1745,48 @@ async function optimize() {
       {builds.length > 0 && (
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <span className="text-sm text-gray-600">Builds:</span>
-          <div className="flex flex-wrap gap-2">
+
+          {/* Chips */}
+          <div className="flex flex-wrap items-center gap-2">
             {builds
               .slice()
               .sort((a, b) => b.id - a.id)
               .map((b) => (
-                <button
-                  key={b.id}
-                  onClick={() => loadBuild(b.id)}
-                  className={`${cls.btn.chip} ${
-                    activeBuildId === b.id
-                      ? "border-blue-600 bg-blue-600 text-white"
-                      : "border-gray-300 bg-white hover:bg-gray-50"
-                  }`}
-                  title={new Date(b.ts).toLocaleString()}
-                >
-                  {b.name}
-                  <span className="ml-2 opacity-80">
-                    {b.lineups?.length ?? 0} • {timeAgo(b.ts)}
-                  </span>
-                </button>
+                <div key={b.id} className="relative inline-flex">
+                  {/* pill */}
+                  <button
+                    onClick={() => loadBuild(b.id)}
+                    className={`${cls.btn.chip} pr-7 ${
+                      activeBuildId === b.id
+                        ? "border-blue-600 bg-blue-600 text-white"
+                        : "border-gray-300 bg-white hover:bg-gray-50"
+                    }`}
+                    title={new Date(b.ts).toLocaleString()}
+                  >
+                    {b.name}
+                    <span className="ml-2 opacity-80">
+                      {b.lineups?.length ?? 0} • {timeAgo(b.ts)}
+                    </span>
+                  </button>
+
+                  {/* tiny X inside the pill (doesn't trigger load) */}
+                  <button
+                    aria-label="Remove build"
+                    title="Remove build"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteBuild(b.id);
+                    }}
+                    className="absolute -top-1 -right-1 w-5 h-5 leading-none rounded-full border border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+                  >
+                    ×
+                  </button>
+                </div>
               ))}
           </div>
-          <div className="ml-auto flex items-center gap-2">
+
+          {/* Actions right next to chips, with a subtle divider */}
+          <div className="flex items-center gap-2 pl-2 ml-2 border-l border-gray-200">
             {activeBuildId && (
               <>
                 <button
