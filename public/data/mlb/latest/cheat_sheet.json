@@ -69,26 +69,15 @@
   ],
   "C": [
     {
-      "Player": "Mickey Gasper",
-      "Salary": "2200",
-      "Team": "MIN",
-      "Opp": "LAA",
-      "Vegas": "4.5",
-      "Time": "9:38 PM",
-      "Proj": "6.2",
-      "Value": "2.81",
-      "pOWN": "11.8%"
-    },
-    {
-      "Player": "William Contreras",
-      "Salary": "4500",
-      "Team": "MIL",
-      "Opp": "TEX",
-      "Vegas": "4.0",
-      "Time": "8:05 PM",
-      "Proj": "9.1",
-      "Value": "2.03",
-      "pOWN": "11.7%"
+      "Player": "Carlos Narvaez",
+      "Salary": "3400",
+      "Team": "BOS",
+      "Opp": "ATH",
+      "Vegas": "4.7",
+      "Time": "10:05 PM",
+      "Proj": "8.1",
+      "Value": "2.37",
+      "pOWN": "11.3%"
     },
     {
       "Player": "Will Smith",
@@ -97,8 +86,19 @@
       "Opp": "COL",
       "Vegas": "4.7",
       "Time": "10:10 PM",
-      "Proj": "9.4",
-      "Value": "1.92",
+      "Proj": "9.3",
+      "Value": "1.91",
+      "pOWN": "12.0%"
+    },
+    {
+      "Player": "William Contreras",
+      "Salary": "4500",
+      "Team": "MIL",
+      "Opp": "TEX",
+      "Vegas": "4.0",
+      "Time": "8:05 PM",
+      "Proj": "8.8",
+      "Value": "1.96",
       "pOWN": "11.2%"
     }
   ],
@@ -111,8 +111,8 @@
       "Vegas": "4.7",
       "Time": "10:10 PM",
       "Proj": "14.7",
-      "Value": "2.27",
-      "pOWN": "20.0%"
+      "Value": "2.25",
+      "pOWN": "19.6%"
     },
     {
       "Player": "Freddie Freeman",
@@ -121,9 +121,9 @@
       "Opp": "COL",
       "Vegas": "4.7",
       "Time": "10:10 PM",
-      "Proj": "12.7",
-      "Value": "2.65",
-      "pOWN": "19.2%"
+      "Proj": "12.4",
+      "Value": "2.59",
+      "pOWN": "17.7%"
     },
     {
       "Player": "Kody Clemens",
@@ -132,9 +132,9 @@
       "Opp": "LAA",
       "Vegas": "4.5",
       "Time": "9:38 PM",
-      "Proj": "9.1",
-      "Value": "2.93",
-      "pOWN": "11.2%"
+      "Proj": "8.9",
+      "Value": "2.87",
+      "pOWN": "10.5%"
     }
   ],
   "2B": [
@@ -145,9 +145,9 @@
       "Opp": "LAA",
       "Vegas": "4.5",
       "Time": "9:38 PM",
-      "Proj": "11.8",
-      "Value": "2.51",
-      "pOWN": "27.2%"
+      "Proj": "11.4",
+      "Value": "2.44",
+      "pOWN": "25.1%"
     },
     {
       "Player": "Nico Hoerner",
@@ -156,9 +156,9 @@
       "Opp": "ATL",
       "Vegas": "4.3",
       "Time": "7:15 PM",
-      "Proj": "8.4",
-      "Value": "2.39",
-      "pOWN": "11.7%"
+      "Proj": "8.2",
+      "Value": "2.36",
+      "pOWN": "11.4%"
     },
     {
       "Player": "Ozzie Albies",
@@ -167,9 +167,9 @@
       "Opp": "CHC",
       "Vegas": "4.2",
       "Time": "7:15 PM",
-      "Proj": "8.3",
-      "Value": "2.12",
-      "pOWN": "9.5%"
+      "Proj": "8.4",
+      "Value": "2.16",
+      "pOWN": "11.2%"
     }
   ],
   "3B": [
@@ -180,9 +180,9 @@
       "Opp": "LAA",
       "Vegas": "4.5",
       "Time": "9:38 PM",
-      "Proj": "8.7",
-      "Value": "2.56",
-      "pOWN": "12.8%"
+      "Proj": "8.5",
+      "Value": "2.51",
+      "pOWN": "11.0%"
     },
     {
       "Player": "Max Muncy",
@@ -191,9 +191,9 @@
       "Opp": "COL",
       "Vegas": "4.7",
       "Time": "10:10 PM",
-      "Proj": "9.3",
-      "Value": "2.32",
-      "pOWN": "13.0%"
+      "Proj": "9.4",
+      "Value": "2.34",
+      "pOWN": "12.4%"
     },
     {
       "Player": "Alex Bregman",
@@ -202,9 +202,9 @@
       "Opp": "ATH",
       "Vegas": "4.7",
       "Time": "10:05 PM",
-      "Proj": "10.5",
-      "Value": "2.02",
-      "pOWN": "13.6%"
+      "Proj": "10.6",
+      "Value": "2.03",
+      "pOWN": "12.7%"
     }
   ],
   "SS": [
@@ -216,19 +216,19 @@
       "Vegas": "4.7",
       "Time": "10:10 PM",
       "Proj": "12.2",
-      "Value": "2.85",
-      "pOWN": "33.9%"
+      "Value": "2.83",
+      "pOWN": "33.4%"
     },
     {
-      "Player": "Brooks Lee",
-      "Salary": "3000",
-      "Team": "MIN",
-      "Opp": "LAA",
-      "Vegas": "4.5",
-      "Time": "9:38 PM",
-      "Proj": "7.7",
-      "Value": "2.56",
-      "pOWN": "9.6%"
+      "Player": "Ha-Seong Kim",
+      "Salary": "3100",
+      "Team": "ATL",
+      "Opp": "CHC",
+      "Vegas": "4.2",
+      "Time": "7:15 PM",
+      "Proj": "8.0",
+      "Value": "2.58",
+      "pOWN": "13.0%"
     },
     {
       "Player": "Zach Neto",
@@ -237,9 +237,9 @@
       "Opp": "MIN",
       "Vegas": "4.5",
       "Time": "9:38 PM",
-      "Proj": "8.8",
-      "Value": "1.99",
-      "pOWN": "9.3%"
+      "Proj": "8.6",
+      "Value": "1.96",
+      "pOWN": "8.8%"
     }
   ],
   "OF": [
@@ -250,9 +250,9 @@
       "Opp": "LAA",
       "Vegas": "4.5",
       "Time": "9:38 PM",
-      "Proj": "10.8",
-      "Value": "3.08",
-      "pOWN": "23.7%"
+      "Proj": "10.5",
+      "Value": "2.99",
+      "pOWN": "22.8%"
     },
     {
       "Player": "Byron Buxton",
@@ -261,9 +261,9 @@
       "Opp": "LAA",
       "Vegas": "4.5",
       "Time": "9:38 PM",
-      "Proj": "14.1",
-      "Value": "2.36",
-      "pOWN": "21.1%"
+      "Proj": "13.2",
+      "Value": "2.20",
+      "pOWN": "17.0%"
     },
     {
       "Player": "Pete Crow-Armstrong",
@@ -272,9 +272,9 @@
       "Opp": "ATL",
       "Vegas": "4.3",
       "Time": "7:15 PM",
-      "Proj": "10.5",
-      "Value": "2.34",
-      "pOWN": "12.7%"
+      "Proj": "10.7",
+      "Value": "2.37",
+      "pOWN": "14.3%"
     },
     {
       "Player": "Wyatt Langford",
@@ -283,20 +283,9 @@
       "Opp": "MIL",
       "Vegas": "4.0",
       "Time": "8:05 PM",
-      "Proj": "10.4",
-      "Value": "2.36",
-      "pOWN": "12.5%"
-    },
-    {
-      "Player": "Michael Conforto",
-      "Salary": "3000",
-      "Team": "LAD",
-      "Opp": "COL",
-      "Vegas": "4.7",
-      "Time": "10:10 PM",
-      "Proj": "8.2",
-      "Value": "2.74",
-      "pOWN": "9.7%"
+      "Proj": "10.3",
+      "Value": "2.34",
+      "pOWN": "12.9%"
     },
     {
       "Player": "Jarren Duran",
@@ -305,20 +294,9 @@
       "Opp": "ATH",
       "Vegas": "4.7",
       "Time": "10:05 PM",
-      "Proj": "10.8",
-      "Value": "2.12",
-      "pOWN": "12.4%"
-    },
-    {
-      "Player": "Matt Wallner",
-      "Salary": "3600",
-      "Team": "MIN",
-      "Opp": "LAA",
-      "Vegas": "4.5",
-      "Time": "9:38 PM",
-      "Proj": "8.9",
-      "Value": "2.48",
-      "pOWN": "10.9%"
+      "Proj": "11.1",
+      "Value": "2.17",
+      "pOWN": "14.5%"
     },
     {
       "Player": "Andy Pages",
@@ -329,7 +307,29 @@
       "Time": "10:10 PM",
       "Proj": "9.6",
       "Value": "2.28",
-      "pOWN": "7.9%"
+      "pOWN": "8.4%"
+    },
+    {
+      "Player": "Masataka Yoshida",
+      "Salary": "3300",
+      "Team": "BOS",
+      "Opp": "ATH",
+      "Vegas": "4.7",
+      "Time": "10:05 PM",
+      "Proj": "8.3",
+      "Value": "2.51",
+      "pOWN": "11.5%"
+    },
+    {
+      "Player": "Ian Happ",
+      "Salary": "3600",
+      "Team": "CHC",
+      "Opp": "ATL",
+      "Vegas": "4.3",
+      "Time": "7:15 PM",
+      "Proj": "8.7",
+      "Value": "2.41",
+      "pOWN": "10.3%"
     },
     {
       "Player": "Austin Martin",
@@ -338,9 +338,9 @@
       "Opp": "LAA",
       "Vegas": "4.5",
       "Time": "9:38 PM",
-      "Proj": "7.7",
-      "Value": "2.64",
-      "pOWN": "10.2%"
+      "Proj": "7.5",
+      "Value": "2.57",
+      "pOWN": "10.0%"
     }
   ],
   "Cash Core": [
@@ -362,9 +362,9 @@
       "Opp": "LAA",
       "Vegas": "4.5",
       "Time": "9:38 PM",
-      "Proj": "10.8",
-      "Value": "3.08",
-      "pOWN": "23.7%"
+      "Proj": "10.5",
+      "Value": "2.99",
+      "pOWN": "22.8%"
     },
     {
       "Player": "Byron Buxton",
@@ -373,9 +373,9 @@
       "Opp": "LAA",
       "Vegas": "4.5",
       "Time": "9:38 PM",
-      "Proj": "14.1",
-      "Value": "2.36",
-      "pOWN": "21.1%"
+      "Proj": "13.2",
+      "Value": "2.20",
+      "pOWN": "17.0%"
     }
   ],
   "Top Stacks": [
@@ -386,9 +386,9 @@
       "Opp Pitcher": "Chase Dollander",
       "Vegas": "4.7",
       "Time": "10:10 PM",
-      "Proj": "92.34",
-      "Value": "2.36",
-      "pOWN": "14.2%"
+      "Proj": "89.48",
+      "Value": "2.28",
+      "pOWN": "13.3%"
     },
     {
       "Team": "MIN",
@@ -397,9 +397,9 @@
       "Opp Pitcher": "Caden Dana",
       "Vegas": "4.5",
       "Time": "9:38 PM",
-      "Proj": "84.93",
-      "Value": "2.62",
-      "pOWN": "15.4%"
+      "Proj": "79.67",
+      "Value": "2.46",
+      "pOWN": "13.1%"
     },
     {
       "Team": "BOS",
@@ -408,9 +408,9 @@
       "Opp Pitcher": "Luis Morales",
       "Vegas": "4.7",
       "Time": "10:05 PM",
-      "Proj": "72.42",
-      "Value": "1.94",
-      "pOWN": "7.0%"
+      "Proj": "74.41",
+      "Value": "1.99",
+      "pOWN": "7.8%"
     },
     {
       "Team": "LAA",
@@ -419,31 +419,31 @@
       "Opp Pitcher": "Simeon Woods Richardson",
       "Vegas": "4.5",
       "Time": "9:38 PM",
-      "Proj": "69.77",
-      "Value": "2.22",
-      "pOWN": "6.5%"
+      "Proj": "70.25",
+      "Value": "2.24",
+      "pOWN": "6.8%"
     },
     {
       "Team": "CHC",
-      "Salary": "3811.1",
+      "Salary": "3688.9",
       "Opp": "ATL",
       "Opp Pitcher": "Bryce Elder",
       "Vegas": "4.3",
       "Time": "7:15 PM",
-      "Proj": "69.19",
-      "Value": "2.02",
-      "pOWN": "6.6%"
+      "Proj": "69.07",
+      "Value": "2.08",
+      "pOWN": "7.2%"
     },
     {
       "Team": "SEA",
-      "Salary": "4311.1",
+      "Salary": "4422.2",
       "Opp": "STL",
       "Opp Pitcher": "Miles Mikolas",
       "Vegas": "4.0",
       "Time": "9:40 PM",
-      "Proj": "67.15",
-      "Value": "1.73",
-      "pOWN": "4.0%"
+      "Proj": "69.55",
+      "Value": "1.75",
+      "pOWN": "4.4%"
     },
     {
       "Team": "TEX",
@@ -452,9 +452,9 @@
       "Opp Pitcher": "Jose Quintana",
       "Vegas": "4.0",
       "Time": "8:05 PM",
-      "Proj": "59.02",
+      "Proj": "59.04",
       "Value": "2.04",
-      "pOWN": "5.2%"
+      "pOWN": "5.5%"
     }
   ]
 }
