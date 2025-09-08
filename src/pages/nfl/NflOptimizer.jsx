@@ -14,7 +14,8 @@ const num = (v) => {
 };
 const fmt0 = (n) => (Number.isFinite(n) ? n.toLocaleString() : "—");
 const fmt1 = (n) => (Number.isFinite(n) ? n.toFixed(1) : "—");
-const escapeCSV = (s) => /[",\r\n]/.test(String(s ?? "")) ? `"${String(s ?? "").replace(/"/g, '""')}"` : String(s ?? "");
+const escapeCSV = (s) =>
+  /[",\r\n]/.test(String(s ?? "")) ? `"${String(s ?? "").replace(/"/g, '""')}"` : String(s ?? "");
 
 // small design tokens for consistent look
 const cls = {
@@ -547,6 +548,49 @@ function downloadSiteLineupsCSV({
   URL.revokeObjectURL(url);
 }
 
+/* ============================== subcomponents =============================== */
+function TeamSelect({ teams, value, onChange }) {
+  const opts = ["", ...teams];
+  return (
+    <select className={cls.input} value={value} onChange={(e) => onChange?.(e.target.value)}>
+      {opts.map((t) => (
+        <option key={t || "_"} value={t}>
+          {t || "— Team —"}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function TeamCapEditor({ selectedTeams, teamMaxPct, setTeamMaxPct }) {
+  const chosen = [...selectedTeams].sort();
+  if (chosen.length === 0) {
+    return <div className="text-xs text-gray-500">No teams selected.</div>;
+  }
+  return (
+    <div className="w-full lg:w-[420px]">
+      <div className="text-[11px] text-gray-600 mb-1">Per-team exposure caps</div>
+      <div className="grid grid-cols-2 gap-2">
+        {chosen.map((t) => (
+          <div key={t} className="flex items-center gap-2 border rounded-md p-2">
+            <TeamPill abbr={t} />
+            <input
+              className={cls.input + " w-20 ml-auto"}
+              placeholder="—"
+              value={String(teamMaxPct?.[t] ?? "")}
+              onChange={(e) =>
+                setTeamMaxPct((m) => ({ ...(m || {}), [t]: e.target.value.replace(/[^\d.]/g, "") }))
+              }
+              title="Max % of total lineups containing players from this team"
+            />
+            <span className="text-xs text-gray-500">%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ============================== page =============================== */
 export default function NFLOptimizer() {
   const { data, err, loading } = useJson(SOURCE);
@@ -702,11 +746,9 @@ export default function NFLOptimizer() {
       const salary = num(r[salKeyLC] ?? r[`${cfg.label} Sal`] ?? r.Salary ?? r.salary);
       const proj = num(r[projKeyLC] ?? r[`${cfg.label} Proj`] ?? r.Projection ?? r.Points);
       const val = Number.isFinite(proj) && salary > 0 ? (proj / salary) * 1000 : 0;
-      const floor = num(r[`${cfg.key}_floor`] ?? r[`${cfg.label} Floor`] ?? r.Floor);
-      const ceil = num(r[`${cfg.key}_ceil`] ?? r[`${cfg.label} Ceiling`] ?? r.Ceiling);
-      const pown = pct(
-        r[pownKeyLC] ?? r["DK pOWN%"] ?? r["FD pOWN%"] ?? r["DK pOWN"] ?? r["FD pOWN"]
-      );
+      const floor = num(r[`${cfg.key}_floor`] ?? r[`${cfg.label} Floor`] ?? r.Floor,);
+      const ceil = num(r[`${cfg.key}_ceil`] ?? r[`${cfg.label} Ceiling`] ?? r.Ceiling,);
+      const pown = pct(r[pownKeyLC] ?? r["DK pOWN%"] ?? r["FD pOWN%"] ?? r["DK pOWN"] ?? r["FD pOWN"]);
       const opt = pct(r[optKeyLC] ?? r["DK Opt%"] ?? r["FD Opt%"] ?? r["DK Opt"] ?? r["FD Opt"]);
 
       return {
@@ -1151,7 +1193,7 @@ export default function NFLOptimizer() {
     { key: "name", label: "Player" },
     { key: "team", label: "Tm", sortable: true },
     { key: "opp", label: "Opp", sortable: true },
-    { key: "salary", label: "Salary", sortable: true },
+    { key: "salary", label: "Salary • pOWN%", sortable: true },
     { key: "time", label: "Time", sortable: true },
     { key: "proj", label: "Proj", sortable: true },
     { key: "val", label: "Val", sortable: true },
@@ -1175,6 +1217,21 @@ export default function NFLOptimizer() {
     setProgressActual(0);
     setProgressUI(0);
   };
+
+  /* --------------------------- Exposure helpers ---------------------- */
+  const [expoPos, setExpoPos] = useState("ALL");
+  const exposureRows = useMemo(() => {
+    if (!lineups.length) return [];
+    const byName = new Map(rows.map((r) => [r.name, r]));
+    const out = [];
+    for (const [n, pct] of Object.entries(usagePct)) {
+      const r = byName.get(n);
+      if (!r) continue;
+      if (expoPos !== "ALL" && r.pos !== expoPos) continue;
+      out.push({ ...r, usage: pct });
+    }
+    return out.sort((a, b) => b.usage - a.usage || a.name.localeCompare(b.name));
+  }, [usagePct, rows, expoPos, lineups.length]);
 
   return (
     <div className="px-4 md:px-6 py-5">
@@ -1571,9 +1628,7 @@ export default function NFLOptimizer() {
               {TABLE_COLS.map(({ key, label, sortable }) => (
                 <th
                   key={key}
-                  className={`${header} whitespace-nowrap cursor-${
-                    sortable ? "pointer" : "default"
-                  } select-none`}
+                  className={`${header} whitespace-nowrap cursor-${sortable ? "pointer" : "default"} select-none`}
                   onClick={() => sortable && setSort(key)}
                 >
                   {label}
@@ -1637,7 +1692,13 @@ export default function NFLOptimizer() {
                   <td className={cell}>
                     <TeamPill abbr={r.opp} />
                   </td>
-                  <td className={`${cell} tabular-nums`}>{fmt0(r.salary)}</td>
+                  <td className={`${cell} tabular-nums`}>
+                    <div className="inline-flex items-center gap-2 justify-center">
+                      <span>{fmt0(r.salary)}</span>
+                      <span className="text-[11px] text-gray-500">•</span>
+                      <span className="text-[11px] text-gray-700">{fmt1(r.pown * 100)}%</span>
+                    </div>
+                  </td>
                   <td className={cell}>{r.time || "—"}</td>
                   <td className={`${cell} tabular-nums`}>
                     {fmt1(r.proj * (1 + 0.03 * (boost[r.name] || 0)))}
@@ -1713,7 +1774,7 @@ export default function NFLOptimizer() {
       </div>
 
       {/* Build chips manager */}
-      <div className="mb-3">
+      <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
           <span className="text-sm text-gray-600">Builds:</span>
           <button className={cls.btn.ghost} onClick={() => saveBuild(nextBuildNameForSite(site), lineups)}>
@@ -1757,15 +1818,13 @@ export default function NFLOptimizer() {
                       title="Rename"
                       onClick={() => {
                         const newName = prompt("Rename build", b.name || "");
-                        if (newName != null && newName.trim() !== "") {
-                          renameBuild(b.id, newName.trim());
-                        }
+                        if (newName != null && newName.trim() !== "") renameBuild(b.id, newName.trim());
                       }}
                     >
                       ✎
                     </button>
                     <button
-                      className={`${cls.btn.iconSm}`}
+                      className={cls.btn.iconSm}
                       title="Delete"
                       onClick={() => deleteBuild(b.id)}
                     >
@@ -1778,266 +1837,126 @@ export default function NFLOptimizer() {
         )}
       </div>
 
-      {/* Groups editor */}
+      {/* Exposure panel */}
       <div className={`${cls.card} p-3 mb-6`}>
         <div className="flex items-center justify-between mb-2">
-          <div className="font-semibold">Player Groups</div>
-          <div className="flex items-center gap-2">
-            <button
-              className={cls.btn.ghost}
-              onClick={() => setGroups((G) => [...G, { mode: "at_most", count: 1, players: [] }])}
-            >
-              + Add group
-            </button>
-            {!!groups.length && (
-              <button className={cls.btn.ghost} onClick={() => setGroups([])}>
-                Clear groups
-              </button>
-            )}
-          </div>
-        </div>
-        <GroupsEditor groups={groups} setGroups={setGroups} allPlayers={allPlayerNames} />
-      </div>
-
-      {/* Lineups viewer + exports */}
-      <div className={`${cls.card} p-3`}>
-        <div className="flex items-center justify-between mb-2">
-          <div className="font-semibold">
-            Lineups {lineups.length ? `(${lineups.length})` : ""}
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              className={cls.btn.ghost}
-              disabled={!lineups.length}
-              onClick={() => downloadPlainCSV(lineups, rows, site)}
-              title="Export a simple CSV with names in site order"
-            >
-              Export CSV (plain)
-            </button>
-            <button
-              className={cls.btn.ghost}
-              disabled={!lineups.length || !siteIds}
-              onClick={() =>
-                downloadSiteLineupsCSV({
-                  lineups,
-                  site,
-                  slots: cfg.slots,
-                  siteIds,
-                  rows,
-                  fname: `nfl_${site}_site_ids.csv`,
-                })
-              }
-              title="Export a CSV with site IDs for upload"
-            >
-              Export CSV (site IDs)
-            </button>
-          </div>
-        </div>
-
-        {stopInfo && (
-          <div className="mb-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2">
-            {stopInfo.detail ||
-              `Produced ${stopInfo.produced ?? 0}/${stopInfo.requested ?? numLineups} lineups${
-                stopInfo.reason ? ` · reason: ${stopInfo.reason}` : ""
-              }`}
-          </div>
-        )}
-
-        {lineups.length === 0 ? (
-          <div className="text-sm text-gray-500">No lineups yet. Click Optimize to build.</div>
-        ) : (
-          <LineupsTable lineups={lineups} rows={rows} site={site} />
-        )}
-      </div>
-    </div>
-  );
-}
-
-/* ============================ subcomponents ============================ */
-
-function TeamSelect({ teams, value, onChange }) {
-  return (
-    <select className={cls.input + " w-28"} value={value} onChange={(e) => onChange(e.target.value)}>
-      <option value="">Team…</option>
-      {teams.map((t) => (
-        <option key={t} value={t}>
-          {t}
-        </option>
-      ))}
-    </select>
-  );
-}
-
-function TeamCapEditor({ selectedTeams, teamMaxPct, setTeamMaxPct }) {
-  const list = useMemo(() => [...selectedTeams].sort(), [selectedTeams]);
-  return (
-    <div className="w-full lg:w-[420px]">
-      <div className="flex items-center justify-between mb-1">
-        <div className="text-[11px] text-gray-600">Per-team max exposure caps (%)</div>
-        <button className={cls.btn.ghost} onClick={() => setTeamMaxPct({})}>
-          Clear caps
-        </button>
-      </div>
-      {list.length === 0 ? (
-        <div className="text-xs text-gray-500">Select teams above to edit caps.</div>
-      ) : (
-        <div className="grid grid-cols-2 gap-2">
-          {list.map((t) => (
-            <div key={t} className="flex items-center gap-2">
-              <TeamPill abbr={t} title={t} />
-              <input
-                className={cls.input + " w-20"}
-                placeholder="—"
-                value={String(teamMaxPct?.[t] ?? "")}
-                onChange={(e) => setTeamMaxPct({ ...(teamMaxPct || {}), [t]: e.target.value })}
-                title="Max % of lineups that may include players from this team"
-              />
+          <div className="font-semibold">Exposure</div>
+          <div className="flex gap-2 text-sm">
+            {["ALL", "QB", "RB", "WR", "TE", "DST"].map((p) => (
               <button
-                className={cls.btn.ghost}
-                onClick={() => {
-                  const { [t]: _omit, ...rest } = teamMaxPct || {};
-                  setTeamMaxPct(rest);
-                }}
-                title="Clear"
+                key={p}
+                onClick={() => setExpoPos(p)}
+                className={`px-2 py-1 rounded-md border ${
+                  expoPos === p ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300"
+                }`}
               >
-                ×
+                {p}
               </button>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      )}
-    </div>
-  );
-}
-
-function GroupsEditor({ groups, setGroups, allPlayers }) {
-  return (
-    <div className="space-y-2">
-      {groups.length === 0 ? (
-        <div className="text-xs text-gray-500">No groups yet.</div>
-      ) : (
-        groups.map((g, i) => <GroupRow key={i} idx={i} g={g} setGroups={setGroups} allPlayers={allPlayers} />)
-      )}
-    </div>
-  );
-}
-
-function GroupRow({ idx, g, setGroups, allPlayers }) {
-  const update = (patch) =>
-    setGroups((G) => G.map((x, j) => (j === idx ? { ...x, ...patch } : x)));
-  const removePlayer = (p) => update({ players: (g.players || []).filter((x) => x !== p) });
-  const addPlayer = (p) => {
-    const nm = String(p || "").trim();
-    if (!nm) return;
-    const set = new Set(g.players || []);
-    set.add(nm);
-    update({ players: [...set] });
-  };
-  const onAddKey = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addPlayer(e.currentTarget.value);
-      e.currentTarget.value = "";
-    }
-  };
-  return (
-    <div className="border rounded-md p-2">
-      <div className="flex flex-wrap items-center gap-2">
-        <select
-          className={cls.input}
-          value={g.mode || "at_most"}
-          onChange={(e) => update({ mode: e.target.value })}
-        >
-          <option value="at_most">At most</option>
-          <option value="at_least">At least</option>
-          <option value="exactly">Exactly</option>
-        </select>
-
-        <label className="text-sm">Count</label>
-        <input
-          className={cls.input + " w-16"}
-          type="number"
-          value={g.count ?? 1}
-          onChange={(e) => update({ count: e.target.value })}
-        />
-
-        <div className="ml-auto" />
-        <button className={cls.btn.ghost} onClick={() => setGroups((G) => G.filter((_, j) => j !== idx))}>
-          Remove group
-        </button>
+        {lineups.length === 0 ? (
+          <div className="text-xs text-gray-500">No lineups yet.</div>
+        ) : (
+          <div className="overflow-auto max-h-[360px]">
+            <table className={`w-full text-[12px]`} style={{ borderSpacing: 0 }}>
+              <thead className="bg-gray-50 sticky top-0 z-10">
+                <tr>
+                  <th className={`${header}`}>Player</th>
+                  <th className={`${header}`}>Pos</th>
+                  <th className={`${header}`}>Team</th>
+                  <th className={`${header}`}>Salary</th>
+                  <th className={`${header}`}>Proj</th>
+                  <th className={`${header}`}>pOWN%</th>
+                  <th className={`${header}`}>Usage%</th>
+                </tr>
+              </thead>
+              <tbody>
+                {exposureRows.map((r) => (
+                  <tr key={`expo-${r.name}`} className="odd:bg-white even:bg-gray-50">
+                    <td className="px-2 py-1">{r.name}</td>
+                    <td className="px-2 py-1 text-center">{r.pos}</td>
+                    <td className="px-2 py-1 text-center">{r.team}</td>
+                    <td className="px-2 py-1 text-right tabular-nums">{fmt0(r.salary)}</td>
+                    <td className="px-2 py-1 text-right tabular-nums">{fmt1(r.proj)}</td>
+                    <td className="px-2 py-1 text-right tabular-nums">{fmt1(r.pown * 100)}</td>
+                    <td className="px-2 py-1 text-right tabular-nums">{fmt1(r.usage)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      <div className="mt-2">
-        <div className="text-[11px] text-gray-600 mb-1">Players</div>
-        <div className="flex flex-wrap gap-2 mb-2">
-          {(g.players || []).map((p) => (
-            <span
-              key={p}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-full border text-xs bg-white"
-            >
-              {p}
-              <button className="border rounded w-4 h-4 leading-none" onClick={() => removePlayer(p)}>
-                ×
-              </button>
-            </span>
-          ))}
+      {/* Lineup cards + exports */}
+      <div className="flex items-center gap-2 mb-2">
+        <div className="text-sm text-gray-600">
+          {lineups.length ? `${lineups.length} lineups` : "No lineups yet"}
         </div>
-        <input
-          list="players-list"
-          className={cls.input + " w-full"}
-          placeholder="Type a player name and press Enter to add"
-          onKeyDown={onAddKey}
-        />
-        <datalist id="players-list">
-          {allPlayers.map((p) => (
-            <option key={p} value={p} />
-          ))}
-        </datalist>
+        <div className="ml-auto flex gap-2">
+          <button
+            className={cls.btn.ghost}
+            onClick={() => downloadPlainCSV(lineups, rows, site)}
+            disabled={!lineups.length}
+            title="Download simple CSV (names only)"
+          >
+            Download CSV
+          </button>
+          <button
+            className={cls.btn.ghost}
+            onClick={() =>
+              downloadSiteLineupsCSV({
+                lineups,
+                site,
+                slots: cfg.slots,
+                siteIds: siteIds || {},
+                rows,
+              })
+            }
+            disabled={!lineups.length}
+            title="Download CSV with site IDs"
+          >
+            Download Site IDs CSV
+          </button>
+        </div>
       </div>
-    </div>
-  );
-}
 
-function LineupsTable({ lineups, rows, site }) {
-  const rowsByName = useMemo(() => new Map(rows.map((r) => [r.name, r])), [rows]);
-  return (
-    <div className="overflow-auto">
-      <table className="w-full text-[12px]" style={{ borderSpacing: 0 }}>
-        <thead className="bg-gray-50 sticky top-0 z-10">
-          <tr>
-            <th className={cls.tableHead}>#</th>
-            <th className={cls.tableHead}>Salary</th>
-            <th className={cls.tableHead}>Total ({site.toUpperCase()})</th>
-            <th className={cls.tableHead}>Players</th>
-          </tr>
-        </thead>
-        <tbody>
-          {lineups.map((L, i) => {
-            const ordered = orderPlayersForSite(L.players, rowsByName);
-            return (
-              <tr key={i} className="odd:bg-white even:bg-gray-50">
-                <td className={cls.cell}>{i + 1}</td>
-                <td className={`${cls.cell} tabular-nums`}>{fmt0(L.salary)}</td>
-                <td className={`${cls.cell} tabular-nums`}>{fmt1(L.total)}</td>
-                <td className={`${cls.cell} whitespace-nowrap text-left`}>
-                  <div className="flex flex-wrap gap-1">
-                    {ordered.map((r, idx) => (
-                      <span
-                        key={r.name + idx}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded border bg-white"
-                      >
-                        <span className="text-[10px] opacity-70">{r.pos}</span>
-                        <span>{r.name}</span>
-                        <TeamPill abbr={r.team} />
-                      </span>
-                    ))}
+      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-3 mb-10">
+        {lineups.map((L, idx) => {
+          const rowsByName = new Map(rows.map((r) => [r.name, r]));
+          const ordered = orderPlayersForSite(L.players, rowsByName);
+          const slotNames = SITES[site].slots.map((s) => s.name.replace(/\d+$/, ""));
+          return (
+            <div key={`L${idx}`} className={`${cls.card} p-3`}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="font-semibold">Lineup #{idx + 1}</div>
+                <div className="text-xs text-gray-600">
+                  Salary <span className="tabular-nums font-medium">{fmt0(L.salary)}</span> · Total{" "}
+                  <span className="tabular-nums font-medium">{fmt1(L.total)}</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {ordered.map((r, i) => (
+                  <div key={`${idx}-${i}`} className="border rounded-lg p-2">
+                    <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                      <span className="font-medium">{slotNames[i] || r.pos}</span>
+                      <span>{r.time || ""}</span>
+                    </div>
+                    <div className="text-sm font-semibold">{r.name}</div>
+                    <div className="text-xs text-gray-600 flex items-center gap-2 mt-0.5">
+                      <TeamPill abbr={r.team} />
+                      <span className="tabular-nums">{fmt0(r.salary)}</span>
+                      <span>•</span>
+                      <span className="tabular-nums">{fmt1((rowsByName.get(r.name)?.pown || 0) * 100)}%</span>
+                    </div>
                   </div>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
