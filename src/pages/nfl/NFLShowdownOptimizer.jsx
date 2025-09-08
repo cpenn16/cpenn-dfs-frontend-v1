@@ -1,8 +1,11 @@
 // src/pages/nfl/NFLShowdownOptimizer.jsx
-// FULL DROP-IN — v3.8 (Sticky sets + Auto refresh + Last Updated UI)
-// - Persists locks/excludes/boosts using localStorage (per-site keys)
-// - Auto-refresh toggle (30s) with live "Last updated" clock
-// - Retains your v3.7 features and upload headers
+// FULL DROP-IN — v3.9
+// - Visual polish: tokens, segmented controls, lighter borders, cards, progress gradient
+// - Sticky sets (locks/excludes/boosts) + existing sticky state
+// - Auto refresh: 60s default (toggle) for projections + site_ids
+// - "Data updated" shows server Last-Modified (sheet update) when available; falls back to fetch time
+// - Right panel uses simple tabs (Exposure / Teams / Stacks)
+// - Keeps your v3.7 CSV export headers (DK/FD)
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API_BASE from "../../utils/api";
@@ -19,6 +22,20 @@ const num = (v) => {
 const fmt0 = (n) => (Number.isFinite(n) ? n.toLocaleString() : "—");
 const fmt1 = (n) => (Number.isFinite(n) ? (+n).toFixed(1) : "—");
 const escapeCSV = (s) => { const v = String(s ?? ""); return /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v; };
+
+// design tokens
+const cls = {
+  input: "h-8 px-2 text-sm rounded-md border border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400",
+  btn: {
+    primary: "h-8 px-4 rounded-md bg-blue-600 text-white hover:bg-blue-700",
+    ghost:   "h-8 px-3 rounded-md border border-gray-200 hover:bg-gray-50",
+    chip:    "px-3 py-1.5 text-xs font-medium rounded-full",
+    iconSm:  "inline-flex items-center justify-center w-6 h-6 rounded-md border border-gray-200 hover:bg-gray-50"
+  },
+  card: "rounded-2xl border border-gray-200 bg-white shadow-sm",
+  tableHead: "px-2 py-2 font-semibold text-xs text-gray-600 text-center select-none",
+  cell: "px-2 py-1.5 text-center"
+};
 
 // persistent state
 const useStickyState = (key, init) => {
@@ -68,7 +85,7 @@ const TEAM_COLORS = { ARI:"#97233F", ATL:"#A71930", BAL:"#241773", BUF:"#00338D"
   TEN:"#0C2340", WAS:"#5A1414" };
 const hexToRGB = (hex) => { const h = (hex || "#888").replace("#", ""); const v = parseInt(h, 16); return { r: (v>>16)&255, g:(v>>8)&255, b:v&255 }; };
 const readableText = (hex) => { const {r,g,b} = hexToRGB(hex); const L = 0.2126*r + 0.7152*g + 0.0722*b; return L < 140 ? "#FFFFFF" : "#111111"; };
-const TeamPill = ({ abbr, title }) => { const bg = TEAM_COLORS[abbr] || "#E5E7EB"; const fg = readableText(bg); return <span className="px-2 py-0.5 rounded" style={{backgroundColor:bg,color:fg}} title={title || abbr}>{abbr||"—"}</span>; };
+const TeamPill = ({ abbr, title }) => { const bg = TEAM_COLORS[abbr] || "#E5E7EB"; const fg = readableText(bg); return <span className="px-2 py-0.5 rounded text-[11px]" style={{backgroundColor:bg,color:fg}} title={title || abbr}>{abbr||"—"}</span>; };
 
 /* --------- tag normalization for DK CPT vs FD MVP (state keys) ----- */
 const makeTagKey = (capTag) => (name, tag) => `${name}::${(tag === "FLEX" ? "FLEX" : capTag)}`;
@@ -178,8 +195,9 @@ function inferTeamFromNameForDST(name) {
 /* ============================== page =============================== */
 export default function NFLShowdownOptimizer() {
   const [auto, setAuto] = useStickyState("sd.autoRefresh", true);
-  const { data, err, loading, fetchedAt, lastModified, refetch } = useJson(SOURCE, { autoMs: auto ? 30000 : 0, enabled: true });
-  const { data: siteIds } = useJson(SITE_IDS_SOURCE, { autoMs: auto ? 30000 : 0, enabled: true });
+  // 60s auto refresh by default
+  const { data, err, loading, fetchedAt, lastModified, refetch } = useJson(SOURCE, { autoMs: auto ? 60000 : 0, enabled: true });
+  const meta = useJson(SITE_IDS_SOURCE, { autoMs: auto ? 60000 : 0, enabled: true });
 
   const [site, setSite] = useStickyState("sd.site", "dk");
   const cfg = SITES[site];
@@ -215,7 +233,7 @@ export default function NFLShowdownOptimizer() {
   const [tagFilter, setTagFilter] = useStickyState(`sd.${site}.tagFilter`, "ALL");
 
   // exposure tab state
-  const [exposureView, setExposureView] = useStickyState(`sd.${site}.exposureView`, "ALL"); // ALL|CAP|FLEX
+  const [tab, setTab] = useStickyState(`sd.${site}.rightTab`, "Exposure"); // Exposure | Teams | Stacks
 
   // builds & results
   const [lineups, setLineups] = useState([]);
@@ -250,10 +268,11 @@ export default function NFLShowdownOptimizer() {
 
   /* ------------------------------ rows ------------------------------ */
   const rows = useMemo(() => {
-    if (!data) return [];
+    if (!data?.data && !data?.rows && !data?.players && !Array.isArray(data)) return [];
     const arr = Array.isArray(data?.rows) ? data.rows : Array.isArray(data?.players) ? data.players : Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
 
     const siteKey = cfg.key; // dk|fd
+    const siteIds = meta?.data;
     const fdList = Array.isArray(siteIds?.fd) ? siteIds.fd : (siteIds?.sites?.fd ?? []);
 
     const mapped = arr.map((r) => {
@@ -292,7 +311,7 @@ export default function NFLShowdownOptimizer() {
     });
 
     return mapped.filter((r) => r.name && r.pos);
-  }, [data, site, cfg, siteIds]);
+  }, [data, site, cfg, meta?.data]);
 
   /* slate teams (only 2 in showdown) */
   const slateTeams = useMemo(() => {
@@ -489,26 +508,26 @@ export default function NFLShowdownOptimizer() {
   ];
 
   const totalLabel = optBy === "proj" ? "Proj" : optBy === "floor" ? "Floor" : optBy === "ceil" ? "Ceil" : optBy === "pown" ? "pOWN%" : "Opt%";
-  const cell = "px-2 py-1 text-center"; const header = "px-2 py-1 font-semibold text-center"; const textSz = "text-[12px]";
+  const cell = cls.cell; const header = cls.tableHead; const textSz = "text-[12px]";
 
   /* --------------------- right-panel aggregates --------------------- */
   function filterByExposureView(names, view){ if(view==="ALL") return names; return names.filter((_,i)=> view==="CAP" ? i===0 : i>0 ); }
   const exposures = useMemo(() => {
     const map = new Map(); const count = lineups.length || 1;
-    for (const L of lineups) for (const n of filterByExposureView(L.players, exposureView)) map.set(n, (map.get(n) || 0) + 1);
+    for (const L of lineups) for (const n of filterByExposureView(L.players, "ALL")) map.set(n, (map.get(n) || 0) + 1);
     return [...map.entries()].map(([name, c]) => ({ name, count: c, pct: +(100*c/count).toFixed(1) })).sort((a,b)=>b.pct-a.pct || a.name.localeCompare(b.name));
-  }, [lineups, exposureView]);
+  }, [lineups]);
 
   const teamExposure = useMemo(() => {
     const cnt = new Map(); let slotsCount = 0;
-    for (const L of lineups) { const names = filterByExposureView(L.players, exposureView); slotsCount += names.length; for (const n of names) { const meta = rows.find(r => r.name === n); const tm = meta?.team || ""; if (!tm) continue; cnt.set(tm, (cnt.get(tm) || 0) + 1); }}
+    for (const L of lineups) { const names = filterByExposureView(L.players, "ALL"); slotsCount += names.length; for (const n of names) { const meta = rows.find(r => r.name === n); const tm = meta?.team || ""; if (!tm) continue; cnt.set(tm, (cnt.get(tm) || 0) + 1); }}
     return [...cnt.entries()].map(([tm, c]) => ({ team: tm, count: c, pct: slotsCount ? +(100*c/slotsCount).toFixed(1) : 0 })) .sort((a,b)=>b.pct-a.pct || a.team.localeCompare(b.team));
-  }, [lineups, rows, exposureView]);
+  }, [lineups, rows]);
 
   const stackShapes = useMemo(() => {
-    const shapes = new Map(); for (const L of lineups) { const teams = filterByExposureView(L.players, exposureView).map((n)=>rows.find(r=>r.name===n)?.team).filter(Boolean); if (!teams.length) continue; const a = teams.filter(t=>t===teams[0]).length; const b = teams.length - a; const key = `${Math.max(a,b)}-${Math.min(a,b)}`; shapes.set(key, (shapes.get(key)||0)+1); }
+    const shapes = new Map(); for (const L of lineups) { const teams = filterByExposureView(L.players, "ALL").map((n)=>rows.find(r=>r.name===n)?.team).filter(Boolean); if (!teams.length) continue; const a = teams.filter(t=>t===teams[0]).length; const b = teams.length - a; const key = `${Math.max(a,b)}-${Math.min(a,b)}`; shapes.set(key, (shapes.get(key)||0)+1); }
     const total = lineups.length || 1; return [...shapes.entries()].map(([shape, c]) => ({ shape, count: c, pct: +(100*c/total).toFixed(1) })).sort((a,b)=>b.count-a.count);
-  }, [lineups, rows, exposureView]);
+  }, [lineups, rows]);
 
   /* ---------------------------- render ------------------------------ */
   return (
@@ -517,69 +536,81 @@ export default function NFLShowdownOptimizer() {
 
       {/* site toggle + view */}
       <div className="mb-3 flex flex-wrap gap-2 items-center">
-        {Object.keys(SITES).map((s) => (
-          <button key={s} onClick={() => setSite(s)} className={`px-3 py-1.5 rounded-full border text-sm inline-flex items-center gap-2 ${site === s ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300 text-gray-700"}`}>
-            <img src={SITES[s].logo} alt="" className="w-4 h-4" /><span>{SITES[s].label}</span>
-          </button>
-        ))}
-        <div className="ml-2 inline-flex rounded-full border overflow-hidden">
-          {["ALL", cfg.capTag, "FLEX"].map((t) => (
-            <button key={t} onClick={() => setTagFilter(t)} className={`px-2 py-1 text-sm ${tagFilter===t ? "bg-blue-600 text-white" : "bg-white"}`}>{t}</button>
+        <div className="inline-flex rounded-full bg-white shadow-sm ring-1 ring-gray-200 overflow-hidden">
+          {Object.keys(SITES).map((s) => (
+            <button key={s} onClick={() => setSite(s)} className={`px-3 py-1.5 text-sm inline-flex items-center gap-2 transition ${site === s ? "bg-blue-600 text-white" : "text-gray-700 hover:bg-gray-50"}`}>
+              <img src={SITES[s].logo} alt="" className="w-4 h-4" /><span>{SITES[s].label}</span>
+            </button>
           ))}
         </div>
 
-        {/* Last updated + auto refresh controls */}
+        <div className="inline-flex rounded-full bg-white shadow-sm ring-1 ring-gray-200 overflow-hidden">
+          {["ALL", cfg.capTag, "FLEX"].map((t) => (
+            <button key={t} onClick={() => setTagFilter(t)} className={`px-3 py-1.5 text-xs font-medium transition ${tagFilter===t ? "bg-blue-600 text-white" : "text-gray-700 hover:bg-gray-50"}`}>{t}</button>
+          ))}
+        </div>
+
+        {/* Data updated + auto refresh controls (use Last-Modified when present) */}
         <div className="ml-auto flex items-center gap-2 text-xs text-gray-700">
-          <div className="inline-flex items-center gap-2 px-2 py-1 rounded border">
+          <div className="inline-flex items-center gap-2 px-2.5 h-8 rounded-full border border-gray-200 bg-white">
             <span className="w-2 h-2 rounded-full" style={{ background: loading ? "#f59e0b" : "#10b981" }} />
-            <span>Last updated: {fetchedAt ? `${fmtTime(fetchedAt)} (${rel(fetchedAt)}s ago)` : "—"}</span>
+            <span className="font-mono">
+              Data updated: { (lastModified || fetchedAt) ? `${fmtTime(lastModified || fetchedAt)} (${rel(lastModified || fetchedAt)}s ago)` : "—"}
+            </span>
           </div>
-          {lastModified && (
-            <div className="hidden md:inline-block px-2 py-1 rounded border text-gray-600">
-              Source Last-Modified: {fmtTime(lastModified)}
-            </div>
-          )}
-          <button className="px-2 py-1 rounded border hover:bg-gray-50" onClick={refetch}>Refresh</button>
-          <label className="inline-flex items-center gap-1 cursor-pointer px-2 py-1 rounded border">
+          <button className={cls.btn.ghost} onClick={refetch}>Refresh</button>
+          <label className={`inline-flex items-center gap-1 cursor-pointer px-2 h-8 rounded-md border border-gray-200`}>
             <input type="checkbox" checked={!!auto} onChange={(e) => setAuto(e.target.checked)} />
-            Auto 30s
+            Auto 60s
           </label>
         </div>
       </div>
 
-      {/* global knobs */}
-      <div className="mb-2 flex flex-wrap gap-3 items-end">
-        <label className="text-sm">Lineups</label>
-        <input className="w-16 border rounded-md px-2 py-1 text-sm" value={numLineups} onChange={(e) => setNumLineups(e.target.value)} />
-        <label className="text-sm">Max salary</label>
-        <input className="w-24 border rounded-md px-2 py-1 text-sm" value={maxSalary} onChange={(e) => setMaxSalary(e.target.value)} />
-        <label className="text-sm">Max Overlap</label>
-        <input className="w-14 border rounded-md px-2 py-1 text-sm" value={maxOverlap} onChange={(e) => setMaxOverlap(e.target.value)} title="How many FLEX names may overlap vs prior lineups" />
-        <label className="text-sm">Optimize by</label>
-        <select className="border rounded-md px-2 py-1 text-sm" value={optBy} onChange={(e)=>setOptBy(e.target.value)}>
-          <option value="proj">Projection</option><option value="floor">Floor</option><option value="ceil">Ceiling</option><option value="pown">pOWN%</option><option value="opt">Opt%</option>
-        </select>
-        <button className="px-2.5 py-1.5 text-sm rounded-lg bg-white border hover:bg-gray-50" onClick={resetConstraints}>Reset</button>
-        <button className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700" onClick={optimize}>{`Optimize ${numLineups}`}</button>
+      {/* Toolbar */}
+      <div className={`${cls.card} p-3 grid md:grid-cols-6 gap-2 mb-3`}>
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-gray-600">Lineups</label>
+          <input className={cls.input} value={numLineups} onChange={(e) => setNumLineups(e.target.value)} />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-gray-600">Max salary</label>
+          <input className={cls.input} value={maxSalary} onChange={(e) => setMaxSalary(e.target.value)} />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-gray-600">Max Overlap</label>
+          <input className={cls.input} value={maxOverlap} onChange={(e) => setMaxOverlap(e.target.value)} title="How many FLEX names may overlap vs prior lineups" />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-gray-600">Optimize by</label>
+          <select className={cls.input} value={optBy} onChange={(e)=>setOptBy(e.target.value)}>
+            <option value="proj">Projection</option><option value="floor">Floor</option><option value="ceil">Ceiling</option><option value="pown">pOWN%</option><option value="opt">Opt%</option>
+          </select>
+        </div>
+        <div className="flex items-center gap-2">
+          <button className={cls.btn.ghost} onClick={resetConstraints}>Reset</button>
+        </div>
+        <div className="flex items-center justify-end gap-2">
+          <button className={cls.btn.primary} onClick={optimize}>{`Build ${numLineups} lineups`}</button>
+        </div>
       </div>
 
       {/* global knobs 2 */}
       <div className="mb-2 flex flex-wrap gap-3 items-end">
         <label className="text-sm">Randomness %</label>
-        <input className="w-16 border rounded-md px-2 py-1 text-sm" value={randomness} onChange={(e) => setRandomness(e.target.value)} />
-        <label className="text-sm">Global Max %</label>
-        <input className="w-16 border rounded-md px-2 py-1 text-sm" value={globalMax} onChange={(e) => setGlobalMax(e.target.value)} />
+        <input className={cls.input} style={{width:64}} value={randomness} onChange={(e) => setRandomness(e.target.value)} />
+        <label className="text-sm">Max exposure %</label>
+        <input className={cls.input} style={{width:64}} value={globalMax} onChange={(e) => setGlobalMax(e.target.value)} />
         <label className="text-sm">Max lineup pOWN% (sum)</label>
-        <input className="w-20 border rounded-md px-2 py-1 text-sm" placeholder="—" value={lineupPownCap} onChange={(e) => setLineupPownCap(e.target.value)} />
-        <input className="border rounded-md px-3 py-1.5 w-80 text-sm ml-auto" placeholder="Search player / team / pos…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input className={cls.input} style={{width:84}} placeholder="—" value={lineupPownCap} onChange={(e) => setLineupPownCap(e.target.value)} />
+        <input className={`${cls.input} ml-auto`} style={{width:320}} placeholder="Search player / team / pos…" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
 
       {/* IF → THEN rules */}
-      <div className="mb-3 rounded-md border p-2">
+      <h3 className="text-xs font-semibold tracking-wide text-gray-500 uppercase mb-2">Conditional Rules</h3>
+      <div className={`${cls.card} p-2 mb-3`}>
         <div className="flex items-center justify-between mb-2">
-          <div className="text-[11px] text-gray-600">Conditional Rules (IF → THEN)</div>
-          <button
-            className="px-2 py-1 text-sm rounded-md border hover:bg-gray-50"
+          <div className="text-[11px] text-gray-600">IF → THEN constraints applied during build</div>
+          <button className={cls.btn.ghost}
             onClick={() => setRules((R) => [...R, {
               if_slot: cfg.capTag, if_pos:["QB"], if_team:"",
               then_at_least:1, from_pos:["WR","TE"], team_scope:"same_team", team_exact:""
@@ -587,7 +618,7 @@ export default function NFLShowdownOptimizer() {
           >+ Add Rule</button>
         </div>
         {rules.length === 0 ? (
-          <div className="text-xs text-gray-500">No rules yet.</div>
+          <div className="text-xs text-gray-500 px-1 py-2">No rules yet.</div>
         ) : (
           <div className="space-y-2">
             {rules.map((r, i) => {
@@ -595,104 +626,103 @@ export default function NFLShowdownOptimizer() {
                 ? `exact:${r.team_exact}` : (r.team_scope || "any");
               const ifTeamValue = r.if_team || "";
               return (
-                <div key={i} className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm">IF</span>
-                  <div className="inline-flex rounded-md overflow-hidden border">
-                    {[cfg.capTag, "FLEX"].map((slot) => (
-                      <button key={slot}
-                        className={`px-2 py-1 text-sm ${ (r.if_slot||cfg.capTag)===slot ? "bg-blue-600 text-white" : "bg-white" }`}
-                        onClick={()=>setRules((R)=>{const c=[...R]; c[i]={...c[i], if_slot:slot}; return c;})}
-                      >{slot}</button>
+                <div key={i} className="relative rounded-lg border border-gray-200 bg-white p-2 pl-3">
+                  <span className="absolute inset-y-0 left-0 w-1 rounded-l-lg bg-blue-500" />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm">IF</span>
+                    <div className="inline-flex rounded-md overflow-hidden border border-gray-200">
+                      {[cfg.capTag, "FLEX"].map((slot) => (
+                        <button key={slot}
+                          className={`px-2 py-1 text-sm ${ (r.if_slot||cfg.capTag)===slot ? "bg-blue-600 text-white" : "bg-white" }`}
+                          onClick={()=>setRules((R)=>{const c=[...R]; c[i]={...c[i], if_slot:slot}; return c;})}
+                        >{slot}</button>
+                      ))}
+                    </div>
+                    <span className="text-sm">is</span>
+                    {["QB","RB","WR","TE","DST","K"].map((p) => (
+                      <button key={p}
+                        className={`px-2 py-1 rounded border text-sm ${r.if_pos?.includes(p) ? "bg-blue-600 text-white border-blue-600" : "bg-white border-gray-200"}`}
+                        onClick={() => setRules((R) => { const copy=[...R]; const cur=new Set(copy[i].if_pos||[]); cur.has(p)?cur.delete(p):cur.add(p); copy[i]={...copy[i], if_pos:[...cur]}; return copy; })}
+                      >{p}</button>
                     ))}
-                  </div>
-                  <span className="text-sm">is</span>
-                  {["QB","RB","WR","TE","DST","K"].map((p) => (
-                    <button key={p}
-                      className={`px-2 py-1 rounded border text-sm ${r.if_pos?.includes(p) ? "bg-blue-600 text-white" : "bg-white"}`}
-                      onClick={() => setRules((R) => { const copy=[...R]; const cur=new Set(copy[i].if_pos||[]); cur.has(p)?cur.delete(p):cur.add(p); copy[i]={...copy[i], if_pos:[...cur]}; return copy; })}
-                    >{p}</button>
-                  ))}
-                  <span className="text-sm">on team</span>
-                  <select
-                    className="border rounded-md px-2 py-1 text-sm"
-                    value={ifTeamValue}
-                    onChange={(e)=>setRules((R)=>{ const c=[...R]; c[i]={...c[i], if_team:e.target.value}; return c; })}
-                  >
-                    <option value="">any team</option>
-                    {slateTeams.map((abbr)=> {
-                      const label = `${abbr} — ${(NFL_TEAMS[abbr]?.city ?? abbr)} ${NFL_TEAMS[abbr]?.nickname ??""}`.trim();
-                      return <option key={abbr} value={abbr}>{label}</option>;
-                    })}
-                  </select>
-                  <span className="text-sm">THEN require at least</span>
-                  <input
-                    className="w-14 border rounded-md px-2 py-1 text-sm"
-                    value={r.then_at_least ?? 1}
-                    onChange={(e) =>
-                      setRules((R) => {
-                        const c = [...R];
-                        c[i] = { ...c[i], then_at_least: e.target.value };
-                        return c;
-                      })
-                    }
-                  />
-                  <span className="text-sm">from</span>
-                  {["QB", "RB", "WR", "TE", "DST", "K"].map((p) => (
-                    <button
-                      key={p}
-                      className={`px-2 py-1 rounded border text-sm ${
-                        r.from_pos?.includes(p) ? "bg-green-600 text-white" : "bg-white"
-                      }`}
-                      onClick={() =>
+                    <span className="text-sm">on team</span>
+                    <select
+                      className={cls.input}
+                      value={ifTeamValue}
+                      onChange={(e)=>setRules((R)=>{ const c=[...R]; c[i]={...c[i], if_team:e.target.value}; return c; })}
+                    >
+                      <option value="">any team</option>
+                      {slateTeams.map((abbr)=> {
+                        const label = `${abbr} — ${(NFL_TEAMS[abbr]?.city ?? abbr)} ${NFL_TEAMS[abbr]?.nickname ??""}`.trim();
+                        return <option key={abbr} value={abbr}>{label}</option>;
+                      })}
+                    </select>
+                    <span className="text-sm">THEN require at least</span>
+                    <input
+                      className={cls.input} style={{width:56}}
+                      value={r.then_at_least ?? 1}
+                      onChange={(e) =>
                         setRules((R) => {
                           const c = [...R];
-                          const cur = new Set(c[i].from_pos || []);
-                          cur.has(p) ? cur.delete(p) : cur.add(p);
-                          c[i] = { ...c[i], from_pos: [...cur] };
+                          c[i] = { ...c[i], then_at_least: e.target.value };
                           return c;
                         })
                       }
-                    >
-                      {p}
-                    </button>
-                  ))}
-                  <select
-                    className="border rounded-md px-2 py-1 text-sm"
-                    value={destSelectValue}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setRules((R) => {
-                        const c = [...R];
-                        if (val.startsWith("exact:")) {
-                          const abbr = val.split(":")[1] || "";
-                          c[i] = { ...c[i], team_scope: "exact_team", team_exact: abbr };
-                        } else {
-                          c[i] = { ...c[i], team_scope: val, team_exact: "" };
+                    />
+                    <span className="text-sm">from</span>
+                    {["QB", "RB", "WR", "TE", "DST", "K"].map((p) => (
+                      <button
+                        key={p}
+                        className={`px-2 py-1 rounded border text-sm ${r.from_pos?.includes(p) ? "bg-green-600 text-white border-green-600" : "bg-white border-gray-200"}`}
+                        onClick={() =>
+                          setRules((R) => {
+                            const c = [...R];
+                            const cur = new Set(c[i].from_pos || []);
+                            cur.has(p) ? cur.delete(p) : cur.add(p);
+                            c[i] = { ...c[i], from_pos: [...cur] };
+                            return c;
+                          })
                         }
-                        return c;
-                      });
-                    }}
-                  >
-                    <option value="same_team">same team</option>
-                    <option value="opp_team">opp team</option>
-                    <option value="any">any</option>
-                    {slateTeams.map((abbr) => {
-                      const label = `${abbr} — ${(NFL_TEAMS[abbr]?.city ?? abbr)} ${
-                        NFL_TEAMS[abbr]?.nickname ?? ""
-                      }`.trim();
-                      return (
-                        <option key={abbr} value={`exact:${abbr}`}>
-                          {label}
-                        </option>
-                      );
-                    })}
-                  </select>
-                  <button
-                    className="ml-auto px-2 py-1 text-sm rounded-md border hover:bg-gray-50"
-                    onClick={() => setRules((R) => R.filter((_, j) => j !== i))}
-                  >
-                    Delete
-                  </button>
+                      >
+                        {p}
+                      </button>
+                    ))}
+                    <select
+                      className={cls.input}
+                      value={destSelectValue}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setRules((R) => {
+                          const c = [...R];
+                          if (val.startsWith("exact:")) {
+                            const abbr = val.split(":")[1] || "";
+                            c[i] = { ...c[i], team_scope: "exact_team", team_exact: abbr };
+                          } else {
+                            c[i] = { ...c[i], team_scope: val, team_exact: "" };
+                          }
+                          return c;
+                        });
+                      }}
+                    >
+                      <option value="same_team">same team</option>
+                      <option value="opp_team">opp team</option>
+                      <option value="any">any</option>
+                      {slateTeams.map((abbr) => {
+                        const label = `${abbr} — ${(NFL_TEAMS[abbr]?.city ?? abbr)} ${NFL_TEAMS[abbr]?.nickname ?? ""}`.trim();
+                        return (
+                          <option key={abbr} value={`exact:${abbr}`}>
+                            {label}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    <button
+                      className={`${cls.btn.ghost} ml-auto`}
+                      onClick={() => setRules((R) => R.filter((_, j) => j !== i))}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -701,16 +731,16 @@ export default function NFLShowdownOptimizer() {
       </div>
 
       {/* Team Max% Overrides — only slate teams */}
-      <div className="mb-3 rounded-md border p-2">
-        <div className="text-[11px] text-gray-600 mb-2">
-          Team Max% Overrides (blank = use Global Max)
-        </div>
+      <h3 className="text-xs font-semibold tracking-wide text-gray-500 uppercase mb-2">Team Max% Overrides</h3>
+      <div className={`${cls.card} p-2 mb-3`}>
+        <div className="text-[11px] text-gray-600 mb-2">Blank = use Max exposure %</div>
         <div className="flex flex-wrap gap-3">
           {slateTeams.map((abbr) => (
-            <div key={abbr} className="flex items-center gap-1">
+            <div key={abbr} className="flex items-center gap-2">
               <TeamPill abbr={abbr} />
               <input
-                className="w-16 border rounded-md px-2 py-0.5 text-sm"
+                className={cls.input}
+                style={{width:64}}
                 placeholder="—"
                 value={teamMaxPct[abbr] ?? ""}
                 onChange={(e) => setTeamMaxPct((m) => ({ ...m, [abbr]: e.target.value }))}
@@ -722,15 +752,16 @@ export default function NFLShowdownOptimizer() {
 
       {/* progress bar */}
       <div className="mb-2 flex items-center gap-3">
-        <div className="flex-1 max-w-xs h-2 bg-gray-200 rounded overflow-hidden">
+        <div className="flex-1 max-w-xs h-2 bg-gray-200 rounded-full overflow-hidden">
           <div
-            className="h-2 bg-blue-500 rounded transition-all duration-300"
+            className="h-full rounded-full transition-all duration-300"
             style={{
               width: `${
                 (Math.min(progressUI, Math.max(1, Number(numLineups) || 1)) /
                   Math.max(1, Number(numLineups) || 1)) *
                 100
               }%`,
+              background: "linear-gradient(90deg, #60a5fa, #2563eb)"
             }}
           />
         </div>
@@ -741,14 +772,14 @@ export default function NFLShowdownOptimizer() {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Player table */}
-        <div className="xl:col-span-2 rounded-xl border bg-white shadow-sm overflow-auto max-h=[720px]">
+        <div className="xl:col-span-2 rounded-2xl border border-gray-200 bg-white shadow-sm overflow-auto">
           <table className={`w-full border-separate ${textSz}`} style={{ borderSpacing: 0 }}>
-            <thead className="bg-gray-50 sticky top-0 z-10">
+            <thead className="bg-gray-50 sticky top-0 z-10 shadow-[0_1px_0_#e5e7eb]">
               <tr>
                 {TABLE_COLS.map(({ key, label, sortable }) => (
                   <th
                     key={key}
-                    className={`${header} whitespace-nowrap ${sortable ? "cursor-pointer" : ""} select-none`}
+                    className={`${header} whitespace-nowrap ${sortable ? "cursor-pointer" : ""}`}
                     onClick={() => sortable && setSort(key)}
                   >
                     {label}
@@ -775,12 +806,8 @@ export default function NFLShowdownOptimizer() {
               {!loading &&
                 !err &&
                 sortedRows.map((r) => {
-                  const teamTitle = `${NFL_TEAMS[r.team]?.city ?? r.team} ${
-                    NFL_TEAMS[r.team]?.nickname ?? ""
-                  }`.trim();
-                  const oppTitle = `${NFL_TEAMS[r.opp]?.city ?? r.opp} ${
-                    NFL_TEAMS[r.opp]?.nickname ?? ""
-                  }`.trim();
+                  const teamTitle = `${NFL_TEAMS[r.team]?.city ?? r.team} ${NFL_TEAMS[r.team]?.nickname ?? ""}`.trim();
+                  const oppTitle = `${NFL_TEAMS[r.opp]?.city ?? r.opp} ${NFL_TEAMS[r.opp]?.nickname ?? ""}`.trim();
                   const key = r.key; // Player::CPT/MVP or Player::FLEX
                   return (
                     <tr
@@ -803,25 +830,13 @@ export default function NFLShowdownOptimizer() {
                       </td>
                       <td className={cell}>
                         <div className="inline-flex items-center gap-1">
-                          <button
-                            className="px-1.5 py-0.5 border rounded"
-                            title="+3%"
-                            onClick={() => bumpBoost(r.name, +1)}
-                          >
-                            ▲
-                          </button>
+                          <button className={cls.btn.iconSm} title="+3%" onClick={() => bumpBoost(r.name, +1)}>+</button>
                           <span className="w-5 text-center">{boost[r.name] || 0}</span>
-                          <button
-                            className="px-1.5 py-0.5 border rounded"
-                            title="-3%"
-                            onClick={() => bumpBoost(r.name, -1)}
-                          >
-                            ▼
-                          </button>
+                          <button className={cls.btn.iconSm} title="-3%" onClick={() => bumpBoost(r.name, -1)}>–</button>
                         </div>
                       </td>
                       <td className={cell}>{r.tag === "FLEX" ? "FLEX" : cfg.capTag}</td>
-                      <td className={`${cell} whitespace-nowrap`}>{r.name}</td>
+                      <td className={`${cell} whitespace-nowrap text-left`}>{r.name}</td>
                       <td className={cell}>
                         <TeamPill abbr={r.team} title={teamTitle} />
                       </td>
@@ -841,33 +856,23 @@ export default function NFLShowdownOptimizer() {
                       {/* Per-slot Min/Max wired to key = Player::CPT|MVP|FLEX */}
                       <td className={cell}>
                         <div className="inline-flex items-center gap-1">
-                          <button
-                            className="px-1.5 py-0.5 border rounded"
+                          <button className={cls.btn.iconSm}
                             onClick={() =>
-                              setMinPctTag((m) => ({
-                                ...m,
-                                [key]: clamp((num(m[key]) || 0) - 5, 0, 100),
-                              }))
+                              setMinPctTag((m) => ({ ...m, [key]: clamp((num(m[key]) || 0) - 5, 0, 100) }))
                             }
                             title="-5%"
                           >
                             –
                           </button>
                           <input
-                            className="w-12 border rounded px-1.5 py-0.5 text-center"
+                            className={`${cls.input} text-center`} style={{width:54}}
                             value={String(minPctTag[key] ?? "")}
-                            onChange={(e) =>
-                              setMinPctTag((m) => ({ ...m, [key]: e.target.value }))
-                            }
+                            onChange={(e) => setMinPctTag((m) => ({ ...m, [key]: e.target.value }))}
                             placeholder="—"
                           />
-                          <button
-                            className="px-1.5 py-0.5 border rounded"
+                          <button className={cls.btn.iconSm}
                             onClick={() =>
-                              setMinPctTag((m) => ({
-                                ...m,
-                                [key]: clamp((num(m[key]) || 0) + 5, 0, 100),
-                              }))
+                              setMinPctTag((m) => ({ ...m, [key]: clamp((num(m[key]) || 0) + 5, 0, 100) }))
                             }
                             title="+5%"
                           >
@@ -877,33 +882,23 @@ export default function NFLShowdownOptimizer() {
                       </td>
                       <td className={cell}>
                         <div className="inline-flex items-center gap-1">
-                          <button
-                            className="px-1.5 py-0.5 border rounded"
+                          <button className={cls.btn.iconSm}
                             onClick={() =>
-                              setMaxPctTag((m) => ({
-                                ...m,
-                                [key]: clamp((num(m[key]) || 100) - 5, 0, 100),
-                              }))
+                              setMaxPctTag((m) => ({ ...m, [key]: clamp((num(m[key]) || 100) - 5, 0, 100) }))
                             }
                             title="-5%"
                           >
                             –
                           </button>
                           <input
-                            className="w-12 border rounded px-1.5 py-0.5 text-center"
+                            className={`${cls.input} text-center`} style={{width:54}}
                             value={String(maxPctTag[key] ?? "")}
-                            onChange={(e) =>
-                              setMaxPctTag((m) => ({ ...m, [key]: e.target.value }))
-                            }
+                            onChange={(e) => setMaxPctTag((m) => ({ ...m, [key]: e.target.value }))}
                             placeholder="—"
                           />
-                          <button
-                            className="px-1.5 py-0.5 border rounded"
+                          <button className={cls.btn.iconSm}
                             onClick={() =>
-                              setMaxPctTag((m) => ({
-                                ...m,
-                                [key]: clamp((num(m[key]) || 100) + 5, 0, 100),
-                              }))
+                              setMaxPctTag((m) => ({ ...m, [key]: clamp((num(m[key]) || 100) + 5, 0, 100) }))
                             }
                             title="+5%"
                           >
@@ -922,109 +917,102 @@ export default function NFLShowdownOptimizer() {
           </table>
         </div>
 
-        {/* Right panel: Exposure / Team / Stacks */}
+        {/* Right panel: Tabs */}
         <div className="space-y-4">
-          <div className="rounded-lg border bg-white p-3 max-h-[700px] overflow-auto">
-            <div className="flex items-center justify-between mb-2">
-              <div className="font-semibold">Exposure</div>
-              <div className="inline-flex border rounded-md overflow-hidden text-xs">
-                {[
-                  ["ALL", "All"],
-                  ["CAP", cfg.capTag],
-                  ["FLEX", "FLEX"],
-                ].map(([k, label]) => (
-                  <button
-                    key={k}
-                    onClick={() => setExposureView(k)}
-                    className={`px-2 py-1 ${exposureView === k ? "bg-blue-600 text-white" : "bg-white"}`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
+          <div className={`${cls.card}`}>
+            <div className="border-b border-gray-200 flex gap-2 p-2 text-sm">
+              {["Exposure","Teams","Stacks"].map(t => (
+                <button key={t}
+                  onClick={() => setTab(t)}
+                  className={`px-3 py-1.5 rounded-md ${tab===t ? "bg-blue-600 text-white" : "hover:bg-gray-50"}`}>
+                  {t}
+                </button>
+              ))}
             </div>
-            <table className={`w-full ${textSz}`}>
-              <thead>
-                <tr>
-                  <th className={header}>Player</th>
-                  <th className={header}>Count</th>
-                  <th className={header}>Exposure %</th>
-                </tr>
-              </thead>
-              <tbody>
-                {exposures.map((r, i) => (
-                  <tr key={i} className="odd:bg-white even:bg-gray-50">
-                    <td className="px-2 py-1">{r.name}</td>
-                    <td className="px-2 py-1 text-center">{r.count}</td>
-                    <td className="px-2 py-1 text-center">{fmt1(r.pct)}</td>
-                  </tr>
-                ))}
-                {!exposures.length && (
-                  <tr>
-                    <td className="px-2 py-1 text-center text-gray-500" colSpan={3}>
-                      No lineups yet.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-            <div className="mt-3">
-              <div className="font-semibold mb-1">Team Exposure</div>
-              <table className={`w-full ${textSz}`}>
-                <thead>
-                  <tr>
-                    <th className={header}>Team</th>
-                    <th className={header}>Count</th>
-                    <th className={header}>%</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {teamExposure.map((t, i) => (
-                    <tr key={i} className="odd:bg-white even:bg-gray-50">
-                      <td className="px-2 py-1 text-center">
-                        <TeamPill abbr={t.team} />
-                      </td>
-                      <td className="px-2 py-1 text-center">{t.count}</td>
-                      <td className="px-2 py-1 text-center">{fmt1(t.pct)}</td>
-                    </tr>
-                  ))}
-                  {!teamExposure.length && (
+            <div className="p-3 max-h-[700px] overflow-auto">
+              {tab==="Exposure" && (
+                <table className={`w-full ${textSz}`}>
+                  <thead>
                     <tr>
-                      <td className="px-2 py-1 text-center text-gray-500" colSpan={3}>
-                        —
-                      </td>
+                      <th className={header + " text-left"}>Player</th>
+                      <th className={header}>Count</th>
+                      <th className={header}>Exposure %</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-            <div className="mt-3">
-              <div className="font-semibold mb-1">Stack Shapes</div>
-              <table className={`w-full ${textSz}`}>
-                <thead>
-                  <tr>
-                    <th className={header}>Shape</th>
-                    <th className={header}>Count</th>
-                    <th className={header}>%</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stackShapes.map((s, i) => (
-                    <tr key={i} className="odd:bg-white even:bg-gray-50">
-                      <td className="px-2 py-1 text-center">{s.shape}</td>
-                      <td className="px-2 py-1 text-center">{s.count}</td>
-                      <td className="px-2 py-1 text-center">{fmt1(s.pct)}</td>
-                    </tr>
-                  ))}
-                  {!stackShapes.length && (
+                  </thead>
+                  <tbody>
+                    {exposures.map((r, i) => (
+                      <tr key={i} className="odd:bg-white even:bg-gray-50">
+                        <td className="px-2 py-1 text-left">{r.name}</td>
+                        <td className="px-2 py-1 text-center">{r.count}</td>
+                        <td className="px-2 py-1 text-center">{fmt1(r.pct)}</td>
+                      </tr>
+                    ))}
+                    {!exposures.length && (
+                      <tr>
+                        <td className="px-2 py-1 text-center text-gray-500" colSpan={3}>
+                          No lineups yet.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              )}
+              {tab==="Teams" && (
+                <table className={`w-full ${textSz}`}>
+                  <thead>
                     <tr>
-                      <td className="px-2 py-1 text-center text-gray-500" colSpan={3}>
-                        —
-                      </td>
+                      <th className={header}>Team</th>
+                      <th className={header}>Count</th>
+                      <th className={header}>%</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {teamExposure.map((t, i) => (
+                      <tr key={i} className="odd:bg-white even:bg-gray-50">
+                        <td className="px-2 py-1 text-center">
+                          <TeamPill abbr={t.team} />
+                        </td>
+                        <td className="px-2 py-1 text-center">{t.count}</td>
+                        <td className="px-2 py-1 text-center">{fmt1(t.pct)}</td>
+                      </tr>
+                    ))}
+                    {!teamExposure.length && (
+                      <tr>
+                        <td className="px-2 py-1 text-center text-gray-500" colSpan={3}>
+                          —
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              )}
+              {tab==="Stacks" && (
+                <table className={`w-full ${textSz}`}>
+                  <thead>
+                    <tr>
+                      <th className={header}>Shape</th>
+                      <th className={header}>Count</th>
+                      <th className={header}>%</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stackShapes.map((s, i) => (
+                      <tr key={i} className="odd:bg-white even:bg-gray-50">
+                        <td className="px-2 py-1 text-center">{s.shape}</td>
+                        <td className="px-2 py-1 text-center">{s.count}</td>
+                        <td className="px-2 py-1 text-center">{fmt1(s.pct)}</td>
+                      </tr>
+                    ))}
+                    {!stackShapes.length && (
+                      <tr>
+                        <td className="px-2 py-1 text-center text-gray-500" colSpan={3}>
+                          —
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         </div>
@@ -1033,13 +1021,13 @@ export default function NFLShowdownOptimizer() {
       {/* Results: list + cards */}
       {!!lineups.length && (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4">
-          <div className="rounded-lg border bg-white p-3">
+          <div className={`${cls.card} p-3`}>
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-base font-bold">Lineups ({lineups.length})</h2>
               <div className="flex items-center gap-2">
                 <button
-                  className="px-3 py-1.5 border rounded text-sm"
-                  onClick={() => downloadSiteLineupsCSV({ lineups, site, rows, siteIds, cfg })}
+                  className={cls.btn.ghost}
+                  onClick={() => downloadSiteLineupsCSV({ lineups, site, rows, siteIds: meta?.data, cfg })}
                 >
                   Export CSV (IDs)
                 </button>
@@ -1052,7 +1040,7 @@ export default function NFLShowdownOptimizer() {
                     <th className={header}>#</th>
                     <th className={header}>Salary</th>
                     <th className={header}>Total {totalLabel}</th>
-                    <th className={header}>Players</th>
+                    <th className={header + " text-left"}>Players</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1061,7 +1049,7 @@ export default function NFLShowdownOptimizer() {
                       <td className={cell}>{i + 1}</td>
                       <td className={`${cell} tabular-nums`}>{fmt0(L.salary)}</td>
                       <td className={`${cell} tabular-nums`}>{fmt1(L.total)}</td>
-                      <td className={`${cell} leading-snug`}>
+                      <td className={`${cell} leading-snug text-left`}>
                         <span className="break-words">
                           {L.players[0]} ({cfg.capTag}) • {L.players.slice(1).join(" • ")}
                         </span>
@@ -1074,39 +1062,39 @@ export default function NFLShowdownOptimizer() {
           </div>
 
           {/* Cards like classic */}
-          <div className="rounded-lg border bg-white p-3">
+          <div className={`${cls.card} p-3`}>
             <div className="font-semibold mb-2">Cards</div>
-            <div className="grid md:grid-cols-2 gap-3">
+            <div className="grid md:grid-cols-2 gap-4">
               {lineups.map((L, idx) => (
-                <div key={idx} className="rounded-xl border shadow-sm">
+                <div key={idx} className="rounded-xl border border-gray-200 shadow-sm">
                   <div className="px-3 py-2 text-sm font-semibold">Lineup #{idx + 1}</div>
                   <table className={`w-full ${textSz}`}>
                     <thead>
                       <tr>
                         <th className={header}>Slot</th>
-                        <th className={header}>Player</th>
+                        <th className={header + " text-left"}>Player</th>
                         <th className={header}>Proj</th>
                         <th className={header}>Sal</th>
                       </tr>
                     </thead>
                     <tbody>
                       {L.players.map((n, i) => {
-                        const meta = rows.find((r) => r.name === n);
-                        if (!meta)
+                        const metaRow = rows.find((r) => r.name === n);
+                        if (!metaRow)
                           return (
                             <tr key={`${n}-${i}`} className="odd:bg-white even:bg-gray-50">
                               <td className={cell}>{i === 0 ? cfg.capTag : "FLEX"}</td>
-                              <td className="px-2 py-1">{n}</td>
+                              <td className="px-2 py-1 text-left">{n}</td>
                               <td className={`${cell}`}>—</td>
                               <td className={`${cell}`}>—</td>
                             </tr>
                           );
-                        const proj = i === 0 ? meta.cap_proj : meta.proj;
-                        const sal = i === 0 ? meta.cap_salary : meta.salary;
+                        const proj = i === 0 ? metaRow.cap_proj : metaRow.proj;
+                        const sal = i === 0 ? metaRow.cap_salary : metaRow.salary;
                         return (
                           <tr key={`${n}-${i}`} className="odd:bg-white even:bg-gray-50">
                             <td className={cell}>{i === 0 ? cfg.capTag : "FLEX"}</td>
-                            <td className="px-2 py-1">{n}</td>
+                            <td className="px-2 py-1 text-left">{n}</td>
                             <td className={cell}>{fmt1(proj)}</td>
                             <td className={cell}>{fmt0(sal)}</td>
                           </tr>
