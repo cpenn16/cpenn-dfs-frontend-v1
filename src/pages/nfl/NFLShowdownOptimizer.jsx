@@ -514,37 +514,52 @@ export default function NFLShowdownOptimizer() {
   const cell = cls.cell; const header = cls.tableHead; const textSz = "text-[12px]";
 
 /* --------------------- right-panel aggregates --------------------- */
-const slotLabel = (t) => (t === "FLEX" ? "FLEX" : cfg.capTag);
+const slotLabel = (t) => (t === "ALL" ? "ALL" : (t === "FLEX" ? "FLEX" : cfg.capTag));
 
-// Exposures: percentage of LINEUPS, not slots
 const exposures = useMemo(() => {
-  const map = new Map();
+  const denom = Math.max(1, lineups.length);
+
+  // Per-slot counts: "Player::CPT|MVP" or "Player::FLEX"
+  const perSlot = new Map();
+  // Combined (ALL) counts: "Player" → appearances in any slot
+  const perAll = new Map();
 
   for (const L of lineups) {
     const ps = Array.isArray(L.pairs)
       ? L.pairs
       : (L.players || []).map((n, i) => ({ slot: i === 0 ? cfg.capTag : "FLEX", name: n }));
+
+    // safety: avoid double-counting same player within a single lineup
+    const seenThisLineup = new Set();
+
     for (const p of ps) {
       const t = p.slot === "FLEX" ? "FLEX" : cfg.capTag;
-      if (expScope !== "ALL" && t !== expScope) continue;
-      const key = `${p.name}::${t}`;
-      map.set(key, (map.get(key) || 0) + 1);
+      const k = `${p.name}::${t}`;
+      perSlot.set(k, (perSlot.get(k) || 0) + 1);
+
+      if (!seenThisLineup.has(p.name)) {
+        perAll.set(p.name, (perAll.get(p.name) || 0) + 1);
+        seenThisLineup.add(p.name);
+      }
     }
   }
 
-  const denomLineups = Math.max(1, lineups.length); // <-- lineup-based denominator
-  const rows = [...map.entries()].map(([key, c]) => {
-    const [name, t] = key.split("::");
-    return { name, slot: t, count: c, pct: +(100 * c / denomLineups).toFixed(1) };
-  });
+  if (expScope === "ALL") {
+    // single row per player, CPT/MVP + FLEX combined
+    return [...perAll.entries()]
+      .map(([name, c]) => ({ name, slot: "ALL", count: c, pct: +(100 * c / denom).toFixed(1) }))
+      .sort((a, b) => b.pct - a.pct || a.name.localeCompare(b.name));
+  }
 
-  // CAP/MVP first, then pct desc, then name
-  return rows.sort(
-    (a, b) =>
-      (a.slot === b.slot ? 0 : a.slot === cfg.capTag ? -1 : 1) ||
-      b.pct - a.pct ||
-      a.name.localeCompare(b.name)
-  );
+  // Slot-specific (CPT/MVP or FLEX), still lineup-based denominator
+  const needSlot = expScope === "FLEX" ? "FLEX" : cfg.capTag;
+  return [...perSlot.entries()]
+    .filter(([key]) => key.endsWith(`::${needSlot}`))
+    .map(([key, c]) => {
+      const [name, t] = key.split("::");
+      return { name, slot: t, count: c, pct: +(100 * c / denom).toFixed(1) };
+    })
+    .sort((a, b) => b.pct - a.pct || a.name.localeCompare(b.name));
 }, [lineups, cfg.capTag, expScope]);
 
   const teamExposure = useMemo(() => {
