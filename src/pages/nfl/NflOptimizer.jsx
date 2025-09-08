@@ -886,169 +886,178 @@ export default function NFLOptimizer() {
     setTeamMaxPct({});
   };
 
-  /* --------------------------- optimize (SSE) ------------------------ */
-  async function optimize() {
-    if (!rows.length) return;
-    setLineups([]);
-    setStopInfo(null);
-    setProgressActual(0);
-    setProgressUI(0);
-    setIsOptimizing(true);
+/* --------------------------- optimize (SSE) ------------------------ */
+async function optimize() {
+  if (!rows.length) return;
 
-    const slotsForSolve = cfg.slots.map((s) =>
-      s.name === "FLEX" ? { ...s, eligible: allowTeInFlex ? ["RB", "WR", "TE"] : ["RB", "WR"] } : s
-    );
+  // reset UI state
+  setLineups([]);
+  setStopInfo(null);
+  setProgressActual(0);
+  setProgressUI(0);
+  setIsOptimizing(true);
 
-    const N = Math.max(1, Number(numLineups) || 1);
-    const capVal = Math.min(cfg.cap, Number(maxSalary) || cfg.cap);
+  // Respect TE-in-FLEX toggle
+  const slotsForSolve = cfg.slots.map((s) =>
+    s.name === "FLEX" ? { ...s, eligible: allowTeInFlex ? ["RB", "WR", "TE"] : ["RB", "WR"] } : s
+  );
 
-    // per-player auto-exclude by pOWN%
-    const cap = clamp(Number(maxPownCap), 0, 100);
-    const autoExcludesByPown =
-      String(maxPownCap).trim() === ""
-        ? []
-        : rows
-            .filter((r) => ((r.pown || 0) * 100) > cap)
-            .map((r) => r.name);
+  const N = Math.max(1, Number(numLineups) || 1);
+  const capVal = Math.min(cfg.cap, Number(maxSalary) || cfg.cap);
 
-    // Restrict stacks to selected team QBs
-    const qbExclByTeam =
-      restrictStacksToTeams && selectedTeams && selectedTeams.size > 0
-        ? rows.filter((r) => r.pos === "QB" && !selectedTeams.has(r.team)).map((r) => r.name)
-        : [];
+  // per-player auto-exclude by pOWN%
+  const cap = clamp(Number(maxPownCap), 0, 100);
+  const autoExcludesByPown =
+    String(maxPownCap).trim() === ""
+      ? []
+      : rows.filter((r) => ((r.pown || 0) * 100) > cap).map((r) => r.name);
 
-    const mergedExcludes = Array.from(
-      new Set([...Array.from(excls), ...autoExcludesByPown, ...qbExclByTeam])
-    );
+  // If the toggle is ON and you have selected teams, exclude QBs from all other teams.
+  const qbExclByTeam =
+    restrictStacksToTeams && selectedTeams && selectedTeams.size > 0
+      ? rows.filter((r) => r.pos === "QB" && !selectedTeams.has(r.team)).map((r) => r.name)
+      : [];
 
-    // lineup-level pOWN% cap
-    const rowsByName = new Map(rows.map((r) => [r.name, r]));
-    const lineupPownPct = (names) =>
-      names.reduce((s, n) => s + (((rowsByName.get(n)?.pown) || 0) * 100), 0);
-    const lineupCap =
-      String(maxLineupPown).trim() === "" ? null : clamp(Number(maxLineupPown) || 0, 0, 1000);
+  // merge with existing excludes; keep unique
+  const mergedExcludes = Array.from(new Set([
+    ...Array.from(excls),
+    ...autoExcludesByPown,
+    ...qbExclByTeam,
+  ]));
 
-    const payload = {
-      site,
-      slots: slotsForSolve,
-      players: rows.map((r) => ({
-        name: r.name,
-        pos: r.pos,
-        team: r.team,
-        opp: r.opp,
-        salary: Math.round(r.salary || 0),
-        proj: r.proj || 0,
-        floor: r.floor || 0,
-        ceil: r.ceil || 0,
-        pown: r.pown || 0,
-        opt: r.opt || 0,
-      })),
-      n: N,
-      cap: capVal,
-      objective: optBy,
-      locks: Array.from(locks),
-      excludes: mergedExcludes,
-      boosts: boost,
-      randomness: clamp(Number(randomness) || 0, 0, 100),
-      global_max_pct: clamp(Number(globalMax) || 100, 0, 100),
-      min_pct: Object.fromEntries(
-        Object.entries(minPct).map(([k, v]) => [k, clamp(Number(v) || 0, 0, 100)])
-      ),
-      max_pct: Object.fromEntries(
-        Object.entries(maxPct).map(([k, v]) => [k, clamp(Number(v) || 100, 0, 100)])
-      ),
-      min_diff: 1,
-      time_limit_ms: 1500,
+  // lineup-level pOWN% handling
+  const rowsByName = new Map(rows.map((r) => [r.name, r]));
+  const lineupPownPct = (names) =>
+    names.reduce((s, n) => s + (((rowsByName.get(n)?.pown) || 0) * 100), 0);
+  const lineupCap = String(maxLineupPown).trim() === ""
+    ? null
+    : clamp(Number(maxLineupPown) || 0, 0, 1000);
 
-      qb_stack_min: Math.max(0, Number(qbStackMin) || 0),
-      stack_allow_rb: !!stackAllowRB,
-      bringback_min: Math.max(0, Number(bringbackMin) || 0),
-      max_from_team: String(maxFromTeam).trim() === "" ? null : Math.max(1, Number(maxFromTeam) || 1),
-      avoid_rb_vs_opp_dst: !!avoidRbVsOppDst,
-      avoid_offense_vs_opp_dst: !!avoidOffenseVsOppDst,
+  // Base payload used for all passes
+  const basePayload = {
+    site,
+    slots: slotsForSolve,
+    players: rows.map((r) => ({
+      name: r.name, pos: r.pos, team: r.team, opp: r.opp,
+      salary: Math.round(r.salary || 0),
+      proj: r.proj || 0, floor: r.floor || 0, ceil: r.ceil || 0,
+      pown: r.pown || 0, opt: r.opt || 0,
+    })),
+    cap: capVal,
+    objective: optBy,
+    locks: Array.from(locks),
+    excludes: mergedExcludes,
+    boosts: boost,
+    randomness: clamp(Number(randomness) || 0, 0, 100),
+    global_max_pct: clamp(Number(globalMax) || 100, 0, 100),
+    min_pct: Object.fromEntries(Object.entries(minPct).map(([k, v]) => [k, clamp(Number(v) || 0, 0, 100)])),
+    max_pct: Object.fromEntries(Object.entries(maxPct).map(([k, v]) => [k, clamp(Number(v) || 100, 0, 100)])),
+    min_diff: 1,
+    time_limit_ms: 1500, // fast first pass
+    qb_stack_min: Math.max(0, Number(qbStackMin) || 0),
+    stack_allow_rb: !!stackAllowRB,
+    bringback_min: Math.max(0, Number(bringbackMin) || 0),
+    max_from_team: String(maxFromTeam).trim() === "" ? null : Math.max(1, Number(maxFromTeam) || 1),
+    avoid_rb_vs_opp_dst: !!avoidRbVsOppDst,
+    avoid_offense_vs_opp_dst: !!avoidOffenseVsOppDst,
+    groups: (groups || []).map((g) => ({
+      mode: g.mode || "at_most",
+      count: Math.max(0, Number(g.count) || 0),
+      players: Array.isArray(g.players) ? g.players : [],
+    })),
+    team_stack_rules: (teamStacks || []).map((t) => ({
+      team: t.team,
+      qb_stack_min: String(t.qb_stack_min).trim() === "" ? undefined : Math.max(0, Number(t.qb_stack_min) || 0),
+      bringback_min: String(t.bringback_min).trim() === "" ? undefined : Math.max(0, Number(t.bringback_min) || 0),
+      allow_rb_in_stack: !!t.allow_rb_in_stack,
+      bringback_teams: Array.isArray(t.bringback_teams) ? t.bringback_teams : undefined,
+      max_from_team: String(t.max_from_team).trim() === "" ? undefined : Math.max(1, Number(t.max_from_team) || 1),
+    })),
+    team_max_pct: teamMaxPct,
+    max_lineup_pown_pct: lineupCap == null ? null : lineupCap,
+  };
 
-      groups: (groups || []).map((g) => ({
-        mode: g.mode || "at_most",
-        count: Math.max(0, Number(g.count) || 0),
-        players: Array.isArray(g.players) ? g.players : [],
-      })),
+  const out = [];
 
-      team_stack_rules: (teamStacks || []).map((t) => ({
-        team: t.team,
-        qb_stack_min:
-          String(t.qb_stack_min).trim() === "" ? undefined : Math.max(0, Number(t.qb_stack_min) || 0),
-        bringback_min:
-          String(t.bringback_min).trim() === "" ? undefined : Math.max(0, Number(t.bringback_min) || 0),
-        allow_rb_in_stack: !!t.allow_rb_in_stack,
-        bringback_teams: Array.isArray(t.bringback_teams) ? t.bringback_teams : undefined,
-        max_from_team:
-          String(t.max_from_team).trim() === "" ? undefined : Math.max(1, Number(t.max_from_team) || 1),
-      })),
-
-      team_max_pct: teamMaxPct,
-
-      max_lineup_pown_pct: lineupCap == null ? null : lineupCap,
-    };
-
-    const out = [];
-    try {
-      await solveStreamNFL(
-        payload,
-        (evt) => {
-          if (lineupCap != null && lineupPownPct(evt.drivers) > lineupCap) {
-            return; // reject
-          }
-          const L = { players: evt.drivers, salary: evt.salary, total: evt.total };
-          out.push(L);
-          setLineups((prev) => [...prev, L]);
-          setProgressActual(out.length);
-        },
-        (done) => {
-          if (done?.reason) setStopInfo(done);
-          if (out.length < payload.n && lineupCap != null) {
-            setStopInfo({
-              produced: out.length,
-              requested: payload.n,
-              reason: "lineup_pown_cap",
-              detail: `Some lineups exceeded max lineup pOWN% (${lineupCap}%) and were filtered out.`,
-            });
-          }
-          setProgressActual(out.length || payload.n);
-          setProgressUI(out.length || payload.n);
-          setIsOptimizing(false);
-          clearInterval(tickRef.current);
-          saveBuild(nextBuildNameForSite(site), out);
-        }
-      );
-    } catch (e) {
-      const res = await fetch(`${API_BASE}/solve_nfl`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        alert(`Solve failed: ${await res.text()}`);
-        setIsOptimizing(false);
-        clearInterval(tickRef.current);
-        return;
+  // helper: one streaming run
+  const runOnce = async (pl) => {
+    await solveStreamNFL(
+      pl,
+      (evt) => {
+        if (lineupCap != null && lineupPownPct(evt.drivers) > lineupCap) return; // filter
+        const L = { players: evt.drivers, salary: evt.salary, total: evt.total };
+        out.push(L);
+        setLineups((prev) => [...prev, L]);
+        setProgressActual(out.length);
+      },
+      (done) => {
+        if (done?.reason) setStopInfo(done);
       }
-      const j = await res.json();
-      const raw =
-        (j.lineups || []).map((L) => ({ players: L.drivers, salary: L.salary, total: L.total })) ||
-        [];
-      const out2 = lineupCap == null ? raw : raw.filter((L) => lineupPownPct(L.players) <= lineupCap);
+    );
+  };
 
-      setLineups(out2);
-      setProgressActual(out2.length);
-      setProgressUI(out2.length);
+  try {
+    // ---------- PASS 1: quick ----------
+    await runOnce({ ...basePayload, n: N });
+
+    // ---------- PASS 2 (adaptive): only if needed ----------
+    if (out.length < N) {
+      const need = N - out.length;
+      const SECOND_PASS_TIME_MS = Math.max(5000, basePayload.time_limit_ms || 0);
+      const SECOND_PASS_RANDOMNESS = Math.max(15, basePayload.randomness || 0);
+
+      await runOnce({
+        ...basePayload,
+        n: need,
+        time_limit_ms: SECOND_PASS_TIME_MS,
+        randomness: SECOND_PASS_RANDOMNESS,
+      });
+    }
+
+    // Finalize UI
+    if (out.length < N && lineupCap != null) {
+      setStopInfo({
+        produced: out.length,
+        requested: N,
+        reason: "lineup_pown_cap",
+        detail: `Some lineups exceeded max lineup pOWN% (${lineupCap}%) and were filtered out.`,
+      });
+    }
+    setProgressActual(out.length || N);
+    setProgressUI(out.length || N);
+    setIsOptimizing(false);
+    clearInterval(tickRef.current);
+
+    saveBuild(nextBuildNameForSite(site), out);
+  } catch (e) {
+    // Fallback non-streaming endpoint
+    const res = await fetch(`${API_BASE}/solve_nfl`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...basePayload, n: N }),
+    });
+    if (!res.ok) {
+      alert(`Solve failed: ${await res.text()}`);
       setIsOptimizing(false);
       clearInterval(tickRef.current);
-      if (out2.length < payload.n) {
-        setStopInfo({ produced: out2.length, requested: payload.n, reason: "lineup_pown_cap" });
-      }
-      saveBuild(nextBuildNameForSite(site), out2);
+      return;
     }
+    const j = await res.json();
+    const raw = (j.lineups || []).map((L) => ({ players: L.drivers, salary: L.salary, total: L.total })) || [];
+    const out2 = lineupCap == null ? raw : raw.filter((L) => lineupPownPct(L.players) <= lineupCap);
+
+    setLineups(out2);
+    setProgressActual(out2.length);
+    setProgressUI(out2.length);
+    setIsOptimizing(false);
+    clearInterval(tickRef.current);
+    if (out2.length < N) {
+      setStopInfo({ produced: out2.length, requested: N, reason: "lineup_pown_cap" });
+    }
+    saveBuild(nextBuildNameForSite(site), out2);
   }
+}
+
 
   /* -------------------------- builds (per site) ---------------------- */
   function nextBuildNameForSite(site) {
