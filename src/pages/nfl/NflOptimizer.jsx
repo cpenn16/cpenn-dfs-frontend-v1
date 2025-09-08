@@ -4,7 +4,6 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 /* ----------------------------- helpers ----------------------------- */
 import API_BASE from "../../utils/api";
 
-
 const clamp = (v, lo = 0, hi = 1e9) => Math.max(lo, Math.min(hi, v));
 const num = (v) => {
   if (v == null) return 0;
@@ -15,9 +14,32 @@ const num = (v) => {
 };
 const fmt0 = (n) => (Number.isFinite(n) ? n.toLocaleString() : "—");
 const fmt1 = (n) => (Number.isFinite(n) ? n.toFixed(1) : "—");
-const escapeCSV = (s) => {
-  const v = String(s ?? "");
-  return /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+const escapeCSV = (s) => /[",\r\n]/.test(String(s ?? "")) ? `"${String(s ?? "").replace(/"/g, '""')}"` : String(s ?? "");
+
+// small design tokens for consistent look
+const cls = {
+  input: "h-8 px-2 text-sm rounded-md border border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400",
+  btn: {
+    primary: "h-8 px-4 rounded-md bg-blue-600 text-white hover:bg-blue-700",
+    ghost:   "h-8 px-3 rounded-md border border-gray-200 bg-white hover:bg-gray-50",
+    chip:    "px-3 py-1.5 text-xs font-medium rounded-full border",
+    iconSm:  "inline-flex items-center justify-center w-6 h-6 rounded-md border border-gray-200 hover:bg-gray-50",
+  },
+  card: "rounded-2xl border border-gray-200 bg-white shadow-sm",
+  tableHead: "px-2 py-1 font-semibold text-center select-none",
+  cell: "px-2 py-1 text-center"
+};
+
+const timeAgo = (iso) => {
+  try {
+    const d = typeof iso === "string" ? new Date(iso) : new Date(iso ?? 0);
+    const s = Math.max(0, Math.floor((Date.now() - d.getTime()) / 1000));
+    if (s < 60) return `${s}s ago`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    return `${h}h ago`;
+  } catch { return ""; }
 };
 
 // normalizers (make IDs robust)
@@ -250,7 +272,6 @@ async function solveStreamNFL(payload, onItem, onDone) {
     }
   }
 }
-
 
 /* ---------------------- ordering helpers --------------------------- */
 function orderPlayersForSite(names, rowsMap) {
@@ -503,6 +524,10 @@ export default function NFLOptimizer() {
   const [isOptimizing, setIsOptimizing] = useState(false);
   const tickRef = useRef(null);
 
+  // live clock for "time ago" chips
+  const [nowTick, setNowTick] = useState(Date.now());
+  useEffect(() => { const id = setInterval(() => setNowTick(Date.now()), 1000); return () => clearInterval(id); }, []);
+
   useEffect(() => {
     if (!isOptimizing) return;
     clearInterval(tickRef.current);
@@ -517,10 +542,25 @@ export default function NFLOptimizer() {
     return () => clearInterval(tickRef.current);
   }, [isOptimizing, progressActual, numLineups]);
 
+  // On site switch, clear live results but keep builds (persisted per site already)
   useEffect(() => {
     setLineups([]); setStopInfo(null); setProgressActual(0); setProgressUI(0); setIsOptimizing(false);
     setLocks(new Set()); setExcls(new Set());
   }, [site]);
+
+  // If there is an active build (persisted), auto-load its lineups on mount / change
+  useEffect(() => {
+    if (!isOptimizing && activeBuildId != null) {
+      const b = builds.find((x) => x.id === activeBuildId);
+      if (b) {
+        const N = (b.lineups || []).length;
+        setLineups(b.lineups || []);
+        setProgressActual(N);
+        setProgressUI(N);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeBuildId, builds, isOptimizing]);
 
   /* ------------------------------ rows ------------------------------ */
   const rows = useMemo(() => {
@@ -562,6 +602,7 @@ export default function NFLOptimizer() {
       const ceil   = num(r[`${cfg.key}_ceil`]  ?? r[`${cfg.label} Ceiling`] ?? r.Ceiling);
       const pown   = pct(r[pownKeyLC] ?? r["DK pOWN%"] ?? r["FD pOWN%"] ?? r["DK pOWN"] ?? r["FD pOWN"]);
       const opt    = pct(r[optKeyLC]  ?? r["DK Opt%"]  ?? r["FD Opt%"]  ?? r["DK Opt"]  ?? r["FD Opt"]);
+
 
       return {
         name, pos, team, opp, salary, proj, val, floor, ceil, pown, opt,
@@ -665,7 +706,7 @@ export default function NFLOptimizer() {
         const va = (a[col] || "").toString();
         const vb = (b[col] || "").toString();
         if (va < vb) return -1 * mult;
-        if (va > vb) return 1 * mult;
+        if (va > vb) return  1 * mult;
         return a.name.localeCompare(b.name) * mult;
       }
       const va = col === "pown" || col === "opt" || col === "usage"
@@ -675,7 +716,7 @@ export default function NFLOptimizer() {
         ? ((col === "usage" ? usagePct[b.name] : b[col]) || 0) * 100
         : b[col] ?? 0;
       if (va < vb) return -1 * mult;
-      if (va > vb) return 1 * mult;
+      if (va > vb) return  1 * mult;
       return a.name.localeCompare(b.name) * mult;
     });
     setOrder(sorted.map((r) => r.name));
@@ -739,7 +780,7 @@ export default function NFLOptimizer() {
       names.reduce((s, n) => s + (((rowsByName.get(n)?.pown) || 0) * 100), 0);
     const lineupCap = String(maxLineupPown).trim() === ""
       ? null
-      : clamp(Number(maxLineupPown) || 0, 0, 1000); // or just Number(...) with no clamp
+      : clamp(Number(maxLineupPown) || 0, 0, 1000);
 
     const payload = {
       site,
@@ -926,8 +967,8 @@ export default function NFLOptimizer() {
   const metricLabel =
     optBy === "proj" ? "Proj" : optBy === "floor" ? "Floor" : optBy === "ceil" ? "Ceiling" : optBy === "pown" ? "pOWN%" : "Opt%";
 
-  const cell = "px-2 py-1 text-center";
-  const header = "px-2 py-1 font-semibold text-center";
+  const cell = cls.cell;
+  const header = cls.tableHead + " text-xs";
   const textSz = "text-[12px]";
 
   const TABLE_COLS = [
@@ -953,6 +994,11 @@ export default function NFLOptimizer() {
 
   const allPlayerNames = useMemo(() => rows.map((r) => r.name), [rows]);
 
+  /* ---------- chips helpers (select / remove / clear / rename) --------- */
+  const selectBuild = (id) => loadBuild(id);
+  const removeBuild = (id) => deleteBuild(id);
+  const clearBuilds = () => { setBuilds([]); setActiveBuildId(null); setLineups([]); setProgressActual(0); setProgressUI(0); };
+
   return (
     <div className="px-4 md:px-6 py-5">
       <h1 className="text-2xl md:text-3xl font-extrabold mb-1">NFL — Optimizer</h1>
@@ -964,14 +1010,14 @@ export default function NFLOptimizer() {
             key={s}
             onClick={() => setSite(s)}
             className={`px-3 py-1.5 rounded-full border text-sm inline-flex items-center gap-2 ${
-              site === s ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300 text-gray-700"
+              site === s ? "bg-blue-600 border-blue-600 text-white" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
             }`}
           >
             <img src={SITES[s].logo} alt="" className="w-4 h-4" />
             <span>{SITES[s].label}</span>
           </button>
         ))}
-        <button className="ml-auto px-2.5 py-1.5 text-sm rounded-lg bg-white border hover:bg-gray-50" onClick={resetConstraints}>
+        <button className={`ml-auto ${cls.btn.ghost}`} onClick={resetConstraints}>
           Reset constraints
         </button>
       </div>
@@ -980,7 +1026,7 @@ export default function NFLOptimizer() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end mb-2">
         <div className="md:col-span-2">
           <label className="block text-[11px] text-gray-600 mb-1">Optimize by</label>
-          <select className="w-full border rounded-md px-2 py-1.5 text-sm" value={optBy} onChange={(e) => setOptBy(e.target.value)}>
+          <select className={cls.input + " w-full"} value={optBy} onChange={(e) => setOptBy(e.target.value)}>
             <option value="proj">Projection</option>
             <option value="floor">Floor</option>
             <option value="ceil">Ceiling</option>
@@ -990,19 +1036,19 @@ export default function NFLOptimizer() {
         </div>
         <div className="md:col-span-1">
           <label className="block text-[11px] text-gray-600 mb-1">Lineups</label>
-          <input className="w-full border rounded-md px-2 py-1.5 text-sm" value={numLineups} onChange={(e) => setNumLineups(e.target.value)} />
+          <input className={cls.input + " w-full"} value={numLineups} onChange={(e) => setNumLineups(e.target.value)} />
         </div>
         <div className="md:col-span-2">
           <label className="block text-[11px] text-gray-600 mb-1">Max salary</label>
-          <input className="w-full border rounded-md px-2 py-1.5 text-sm" value={maxSalary} onChange={(e) => setMaxSalary(e.target.value)} />
+          <input className={cls.input + " w-full"} value={maxSalary} onChange={(e) => setMaxSalary(e.target.value)} />
         </div>
         <div className="md:col-span-2">
           <label className="block text-[11px] text-gray-600 mb-1">Global Max %</label>
-          <input className="w-full border rounded-md px-2 py-1.5 text-sm" value={globalMax} onChange={(e) => setGlobalMax(e.target.value)} />
+          <input className={cls.input + " w-full"} value={globalMax} onChange={(e) => setGlobalMax(e.target.value)} />
         </div>
         <div className="md:col-span-2">
           <label className="block text-[11px] text-gray-600 mb-1">Randomness %</label>
-          <input className="w-full border rounded-md px-2 py-1.5 text-sm" value={randomness} onChange={(e) => setRandomness(e.target.value)} />
+          <input className={cls.input + " w-full"} value={randomness} onChange={(e) => setRandomness(e.target.value)} />
         </div>
 
         {/* per-player auto-exclude */}
@@ -1011,7 +1057,7 @@ export default function NFLOptimizer() {
             Max player pOWN% (auto-exclude &gt;)
           </label>
           <input
-            className="w-full border rounded-md px-2 py-1.5 text-sm"
+            className={cls.input + " w-full"}
             placeholder="—"
             value={maxPownCap}
             onChange={(e) => setMaxPownCap(e.target.value)}
@@ -1023,7 +1069,7 @@ export default function NFLOptimizer() {
         <div className="md:col-span-2">
           <label className="block text-[11px] text-gray-600 mb-1">Max lineup pOWN% (sum)</label>
           <input
-            className="w-full border rounded-md px-2 py-1.5 text-sm"
+            className={cls.input + " w-full"}
             placeholder="—"
             value={maxLineupPown}
             onChange={(e) => setMaxLineupPown(e.target.value)}
@@ -1032,14 +1078,14 @@ export default function NFLOptimizer() {
         </div>
 
         {/* Stacks / Bring-back */}
-        <div className="md:col-span-12 rounded-md border p-2">
+        <div className={`md:col-span-12 ${cls.card} p-2`}>
           <div className="text-[11px] text-gray-600 mb-1">Stacks / Bring-back</div>
 
           <div className="flex flex-wrap items-center gap-2 mb-2">
             <label className="text-sm">QB Stack Min</label>
             <input
               type="number"
-              className="w-16 border rounded-md px-2 py-1 text-sm"
+              className={cls.input + " w-16"}
               value={qbStackMin}
               onChange={(e) => setQbStackMin(e.target.value)}
             />
@@ -1047,7 +1093,7 @@ export default function NFLOptimizer() {
             <label className="text-sm ml-2">Bring-back Min</label>
             <input
               type="number"
-              className="w-16 border rounded-md px-2 py-1 text-sm"
+              className={cls.input + " w-16"}
               value={bringbackMin}
               onChange={(e) => setBringbackMin(e.target.value)}
             />
@@ -1075,7 +1121,7 @@ export default function NFLOptimizer() {
             <label className="inline-flex items-center gap-2 text-sm">
               Max from team
               <input
-                className="w-16 border rounded-md px-2 py-1 text-sm"
+                className={cls.input + " w-16"}
                 placeholder="—"
                 value={maxFromTeam}
                 onChange={(e) => setMaxFromTeam(e.target.value)}
@@ -1098,13 +1144,13 @@ export default function NFLOptimizer() {
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <button
-                  className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50"
+                  className={cls.btn.ghost}
                   onClick={() => setSelectedTeams(new Set(allTeams))}
                 >
                   Select all
                 </button>
                 <button
-                  className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50"
+                  className={cls.btn.ghost}
                   onClick={() => setSelectedTeams(new Set())}
                 >
                   Clear
@@ -1154,7 +1200,7 @@ export default function NFLOptimizer() {
             <div className="flex justify-between items-center mb-2">
               <div className="text-[11px] text-gray-600">Team-specific stack rules (override globals)</div>
               <button
-                className="px-2 py-1 text-sm rounded-md border hover:bg-gray-50"
+                className={cls.btn.ghost}
                 onClick={() => setTeamStacks((T) => [...T, { team: "" }])}
               >
                 + Add team rule
@@ -1179,7 +1225,7 @@ export default function NFLOptimizer() {
 
                     <label className="text-sm">QB stack</label>
                     <input
-                      className="w-14 border rounded-md px-2 py-1 text-sm"
+                      className={cls.input + " w-14"}
                       placeholder="—"
                       value={r.qb_stack_min ?? ""}
                       onChange={(e) =>
@@ -1191,7 +1237,7 @@ export default function NFLOptimizer() {
 
                     <label className="text-sm">Bring-back</label>
                     <input
-                      className="w-14 border rounded-md px-2 py-1 text-sm"
+                      className={cls.input + " w-14"}
                       placeholder="—"
                       value={r.bringback_min ?? ""}
                       onChange={(e) =>
@@ -1218,7 +1264,7 @@ export default function NFLOptimizer() {
 
                     <label className="text-sm">Max from team</label>
                     <input
-                      className="w-16 border rounded-md px-2 py-1 text-sm"
+                      className={cls.input + " w-16"}
                       placeholder="—"
                       value={r.max_from_team ?? ""}
                       onChange={(e) =>
@@ -1230,7 +1276,7 @@ export default function NFLOptimizer() {
 
                     <div className="ml-auto" />
                     <button
-                      className="px-2 py-1 text-sm rounded-md border hover:bg-gray-50"
+                      className={cls.btn.ghost}
                       onClick={() => setTeamStacks((T) => T.filter((_, j) => j !== i))}
                     >
                       Remove
@@ -1244,7 +1290,7 @@ export default function NFLOptimizer() {
 
         {/* progress + button */}
         <div className="md:col-span-12 flex items-end gap-3">
-          <button className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700" onClick={optimize}>
+          <button className={cls.btn.primary} onClick={optimize}>
             {`Optimize ${numLineups}`}
           </button>
           <div className="flex-1 max-w-xs h-2 bg-gray-200 rounded overflow-hidden">
@@ -1275,7 +1321,7 @@ export default function NFLOptimizer() {
       </div>
 
       <div className="mb-2">
-        <input className="border rounded-md px-3 py-1.5 w-80 text-sm" placeholder="Search player / team / pos…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input className={cls.input + " w-80"} placeholder="Search player / team / pos…" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
 
       {/* Game chips */}
@@ -1287,10 +1333,10 @@ export default function NFLOptimizer() {
           >
             All games
           </button>
-          <button className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50" onClick={() => setSelectedGames(new Set(uniqueGames.map((g) => g.gameKey)))}>
+          <button className={cls.btn.ghost} onClick={() => setSelectedGames(new Set(uniqueGames.map((g) => g.gameKey)))}>
             Select all
           </button>
-          <button className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50" onClick={() => setSelectedGames(new Set())}>
+          <button className={cls.btn.ghost} onClick={() => setSelectedGames(new Set())}>
             Clear all
           </button>
           {uniqueGames.map((g) => {
@@ -1317,14 +1363,14 @@ export default function NFLOptimizer() {
       )}
 
       {/* Player table */}
-      <div className="rounded-xl border bg-white shadow-sm overflow-auto mb-6 max-h-[700px]">
+      <div className={`${cls.card} overflow-auto mb-6 max-h-[700px]`}>
         <table className={`w-full border-separate ${textSz}`} style={{ borderSpacing: 0 }}>
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
               {TABLE_COLS.map(({ key, label, sortable }) => (
                 <th
                   key={key}
-                  className={`${header} whitespace-nowrap cursor-${sortable ? "pointer" : "default"} select-none`}
+                  className={`${header} whitespace-nowrap cursor-${sortable ? "pointer" : "default"}`}
                   onClick={() => sortable && setSort(key)}
                 >
                   {label}{sortable ? <span className="opacity-60">{sortArrow(key)}</span> : null}
@@ -1389,27 +1435,42 @@ export default function NFLOptimizer() {
 
       {/* Build manager */}
       {builds.length > 0 && (
-        <div className="mb-3 flex items-center gap-2">
+        <div className="mb-3 flex items-center gap-2 flex-wrap">
           <span className="text-sm text-gray-600">Builds:</span>
-          <select className="border rounded-md px-2 py-1 text-sm" value={activeBuildId ?? ""} onChange={(e) => loadBuild(Number(e.target.value))}>
+          <select className={cls.input} value={activeBuildId ?? ""} onChange={(e) => loadBuild(Number(e.target.value))}>
             <option value="">—</option>
             {builds.map((b) => (
               <option key={b.id} value={b.id}>{b.name}</option>
             ))}
           </select>
+
           {activeBuildId && (
             <>
-              <button className="px-2 py-1 text-sm border rounded" onClick={() => {
-                const newName = prompt("Rename build", builds.find((b) => b.id === activeBuildId)?.name || "");
-                if (newName) renameBuild(activeBuildId, newName);
-              }}>
+              <button
+                className={cls.btn.ghost}
+                onClick={() => {
+                  const newName = prompt("Rename build", builds.find((b) => b.id === activeBuildId)?.name || "");
+                  if (newName) renameBuild(activeBuildId, newName);
+                }}
+              >
                 Rename
               </button>
-              <button className="px-2 py-1 text-sm border rounded" onClick={() => deleteBuild(activeBuildId)}>
+              <button className={cls.btn.ghost} onClick={() => deleteBuild(activeBuildId)}>
                 Delete
               </button>
             </>
           )}
+
+          <div className="ml-auto flex items-center gap-2 text-xs text-gray-500">
+            {activeBuildId && (
+              <>
+                <span>Saved {timeAgo(builds.find((b) => b.id === activeBuildId)?.ts)}</span>
+              </>
+            )}
+            {builds.length > 1 && (
+              <button className={cls.btn.ghost} onClick={clearBuilds}>Clear all builds</button>
+            )}
+          </div>
         </div>
       )}
 
@@ -1421,11 +1482,11 @@ export default function NFLOptimizer() {
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-base font-bold">Lineups ({lineups.length})</h2>
               <div className="flex items-center gap-2">
-                <button className="px-3 py-1.5 border rounded text-sm" onClick={() => downloadPlainCSV(lineups, rows, site)}>
+                <button className={cls.btn.ghost} onClick={() => downloadPlainCSV(lineups, rows, site)}>
                   Export CSV
                 </button>
                 <button
-                  className="px-3 py-1.5 border rounded text-sm"
+                  className={cls.btn.ghost}
                   onClick={() =>
                     downloadSiteLineupsCSV({
                       lineups,
@@ -1480,7 +1541,7 @@ export default function NFLOptimizer() {
           <section className="lg:col-span-4 rounded-lg border bg-white p-3">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-base font-semibold">Exposure</h3>
-              <button className="px-3 py-1.5 border rounded text-sm" onClick={() => downloadExposuresCSV(lineups)}>
+              <button className={cls.btn.ghost} onClick={() => downloadExposuresCSV(lineups)}>
                 Export Exposures
               </button>
             </div>
