@@ -1,10 +1,8 @@
 // src/pages/nfl/NFLShowdownOptimizer.jsx
-// FULL DROP-IN — v3.7 (Upload headers fixed for DK/FD)
-// - FD MVP/CPT handling stays from v3.6
-// - CSV (IDs) export now outputs *site upload format* headers:
-//   • DK: "CPT,FLEX,FLEX,FLEX,FLEX,FLEX"
-//   • FD: "MVP - 1.5X Points,AnyFLEX,AnyFLEX,AnyFLEX,AnyFLEX,AnyFLEX"
-// - No extra "#/Salary/Total" columns in the IDs export.
+// FULL DROP-IN — v3.8 (Sticky sets + Auto refresh + Last Updated UI)
+// - Persists locks/excludes/boosts using localStorage (per-site keys)
+// - Auto-refresh toggle (30s) with live "Last updated" clock
+// - Retains your v3.7 features and upload headers
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API_BASE from "../../utils/api";
@@ -28,6 +26,19 @@ const useStickyState = (key, init) => {
   useEffect(() => { try { setV(JSON.parse(localStorage.getItem(key)) ?? init); } catch { setV(init); } }, [key]);
   useEffect(() => { try { localStorage.setItem(key, JSON.stringify(v)); } catch {} }, [key, v]);
   return [v, setV];
+};
+
+// persistent Set (stored as array under the hood)
+const useStickySet = (key, initArr = []) => {
+  const [arr, setArr] = useStickyState(key, initArr);
+  const set = useMemo(() => new Set(arr), [arr]);
+  const setSet = (updater) => {
+    setArr((prev) => {
+      const next = typeof updater === "function" ? updater(new Set(prev)) : updater;
+      return Array.from(next);
+    });
+  };
+  return [set, setSet];
 };
 
 /* ----------------------------- team meta --------------------------- */
@@ -66,26 +77,45 @@ const makeTagKey = (capTag) => (name, tag) => `${name}::${(tag === "FLEX" ? "FLE
 const SOURCE = "/data/nfl/showdown/latest/projections.json";
 const SITE_IDS_SOURCE = "/data/nfl/showdown/latest/site_ids.json";
 
-function useJson(url) {
+function useJson(url, { autoMs = 0, enabled = true } = {}) {
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [fetchedAt, setFetchedAt] = useState(null);
+  const [lastModified, setLastModified] = useState(null);
+
+  const fetchOnce = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+      const ct = (res.headers.get("content-type") || "").toLowerCase();
+      const body = ct.includes("application/json") ? await res.json() : JSON.parse(await res.text());
+      setData(body);
+      setErr(null);
+      setFetchedAt(new Date());
+      const lm = res.headers.get("last-modified");
+      if (lm) setLastModified(new Date(lm));
+    } catch (e) {
+      setData(null);
+      setErr(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
+    if (!enabled) return;
     let alive = true;
-    (async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(url, { cache: "no-store" });
-        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-        const ct = (res.headers.get("content-type") || "").toLowerCase();
-        const body = ct.includes("application/json") ? await res.json() : JSON.parse(await res.text());
-        if (alive) { setData(body); setErr(null); }
-      } catch (e) { if (alive) { setData(null); setErr(e); } }
-      finally { if (alive) setLoading(false); }
-    })();
-    return () => { alive = false; };
-  }, [url]);
-  return { data, err, loading };
+    fetchOnce();
+    let id = null;
+    if (enabled && autoMs > 0) {
+      id = setInterval(() => alive && fetchOnce(), autoMs);
+    }
+    return () => { alive = false; if (id) clearInterval(id); };
+  }, [url, autoMs, enabled]);
+
+  return { data, err, loading, fetchedAt, lastModified, refetch: fetchOnce };
 }
 
 /* ----------------------------- API (SSE) --------------------------- */
@@ -147,8 +177,9 @@ function inferTeamFromNameForDST(name) {
 
 /* ============================== page =============================== */
 export default function NFLShowdownOptimizer() {
-  const { data, err, loading } = useJson(SOURCE);
-  const { data: siteIds } = useJson(SITE_IDS_SOURCE);
+  const [auto, setAuto] = useStickyState("sd.autoRefresh", true);
+  const { data, err, loading, fetchedAt, lastModified, refetch } = useJson(SOURCE, { autoMs: auto ? 30000 : 0, enabled: true });
+  const { data: siteIds } = useJson(SITE_IDS_SOURCE, { autoMs: auto ? 30000 : 0, enabled: true });
 
   const [site, setSite] = useStickyState("sd.site", "dk");
   const cfg = SITES[site];
@@ -165,9 +196,10 @@ export default function NFLShowdownOptimizer() {
   const [lineupPownCap, setLineupPownCap] = useStickyState("sd.lineupPownCap", "");
   const [q, setQ] = useState("");
 
-  const [locks, setLocks] = useState(() => new Set());
-  const [excls, setExcls] = useState(() => new Set());
-  const [boost, setBoost] = useState(() => ({}));
+  // sticky sets/maps for constraints
+  const [locks, setLocks] = useStickySet(`sd.${site}.locks`, []);
+  const [excls, setExcls] = useStickySet(`sd.${site}.excls`, []);
+  const [boost, setBoost] = useStickyState(`sd.${site}.boost`, {});
 
   // per-slot exposure maps, keyed by "Player::CPT" or "Player::MVP" or "Player::FLEX"
   const [minPctTag, setMinPctTag] = useStickyState(`sd.${site}.minPctTag`, {});
@@ -192,6 +224,12 @@ export default function NFLShowdownOptimizer() {
   const [progressActual, setProgressActual] = useState(0);
   const tickRef = useRef(null);
 
+  // live clock for "x seconds ago"
+  const [nowTick, setNowTick] = useState(Date.now());
+  useEffect(() => { const id = setInterval(() => setNowTick(Date.now()), 1000); return () => clearInterval(id); }, []);
+  const fmtTime = (d) => d ? d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "—";
+  const rel = (d) => d ? Math.max(0, Math.round((nowTick - d.getTime()) / 1000)) : null; // seconds
+
   useEffect(() => {
     if (!isOptimizing) return; clearInterval(tickRef.current);
     tickRef.current = setInterval(() => {
@@ -205,10 +243,9 @@ export default function NFLShowdownOptimizer() {
     return () => clearInterval(tickRef.current);
   }, [isOptimizing, progressActual, numLineups]);
 
+  // On site switch, just clear results (do NOT wipe sticky constraints)
   useEffect(() => {
     setLineups([]); setProgressActual(0); setProgressUI(0); setIsOptimizing(false);
-    setLocks(new Set()); setExcls(new Set()); setBoost({});
-    setMinPctTag({}); setMaxPctTag({});
   }, [site]);
 
   /* ------------------------------ rows ------------------------------ */
@@ -479,7 +516,7 @@ export default function NFLShowdownOptimizer() {
       <h1 className="text-2xl md:text-3xl font-extrabold mb-2">NFL — Showdown Optimizer</h1>
 
       {/* site toggle + view */}
-      <div className="mb-3 flex gap-2 items-center">
+      <div className="mb-3 flex flex-wrap gap-2 items-center">
         {Object.keys(SITES).map((s) => (
           <button key={s} onClick={() => setSite(s)} className={`px-3 py-1.5 rounded-full border text-sm inline-flex items-center gap-2 ${site === s ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300 text-gray-700"}`}>
             <img src={SITES[s].logo} alt="" className="w-4 h-4" /><span>{SITES[s].label}</span>
@@ -491,23 +528,42 @@ export default function NFLShowdownOptimizer() {
           ))}
         </div>
 
-        <div className="ml-auto flex items-center gap-2">
-          <label className="text-sm">Lineups</label>
-          <input className="w-16 border rounded-md px-2 py-1 text-sm" value={numLineups} onChange={(e) => setNumLineups(e.target.value)} />
-          <label className="text-sm">Max salary</label>
-          <input className="w-24 border rounded-md px-2 py-1 text-sm" value={maxSalary} onChange={(e) => setMaxSalary(e.target.value)} />
-          <label className="text-sm">Max Overlap</label>
-          <input className="w-14 border rounded-md px-2 py-1 text-sm" value={maxOverlap} onChange={(e) => setMaxOverlap(e.target.value)} title="How many FLEX names may overlap vs prior lineups" />
-          <label className="text-sm">Optimize by</label>
-          <select className="border rounded-md px-2 py-1 text-sm" value={optBy} onChange={(e)=>setOptBy(e.target.value)}>
-            <option value="proj">Projection</option><option value="floor">Floor</option><option value="ceil">Ceiling</option><option value="pown">pOWN%</option><option value="opt">Opt%</option>
-          </select>
-          <button className="px-2.5 py-1.5 text-sm rounded-lg bg-white border hover:bg-gray-50" onClick={resetConstraints}>Reset</button>
-          <button className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700" onClick={optimize}>{`Optimize ${numLineups}`}</button>
+        {/* Last updated + auto refresh controls */}
+        <div className="ml-auto flex items-center gap-2 text-xs text-gray-700">
+          <div className="inline-flex items-center gap-2 px-2 py-1 rounded border">
+            <span className="w-2 h-2 rounded-full" style={{ background: loading ? "#f59e0b" : "#10b981" }} />
+            <span>Last updated: {fetchedAt ? `${fmtTime(fetchedAt)} (${rel(fetchedAt)}s ago)` : "—"}</span>
+          </div>
+          {lastModified && (
+            <div className="hidden md:inline-block px-2 py-1 rounded border text-gray-600">
+              Source Last-Modified: {fmtTime(lastModified)}
+            </div>
+          )}
+          <button className="px-2 py-1 rounded border hover:bg-gray-50" onClick={refetch}>Refresh</button>
+          <label className="inline-flex items-center gap-1 cursor-pointer px-2 py-1 rounded border">
+            <input type="checkbox" checked={!!auto} onChange={(e) => setAuto(e.target.checked)} />
+            Auto 30s
+          </label>
         </div>
       </div>
 
       {/* global knobs */}
+      <div className="mb-2 flex flex-wrap gap-3 items-end">
+        <label className="text-sm">Lineups</label>
+        <input className="w-16 border rounded-md px-2 py-1 text-sm" value={numLineups} onChange={(e) => setNumLineups(e.target.value)} />
+        <label className="text-sm">Max salary</label>
+        <input className="w-24 border rounded-md px-2 py-1 text-sm" value={maxSalary} onChange={(e) => setMaxSalary(e.target.value)} />
+        <label className="text-sm">Max Overlap</label>
+        <input className="w-14 border rounded-md px-2 py-1 text-sm" value={maxOverlap} onChange={(e) => setMaxOverlap(e.target.value)} title="How many FLEX names may overlap vs prior lineups" />
+        <label className="text-sm">Optimize by</label>
+        <select className="border rounded-md px-2 py-1 text-sm" value={optBy} onChange={(e)=>setOptBy(e.target.value)}>
+          <option value="proj">Projection</option><option value="floor">Floor</option><option value="ceil">Ceiling</option><option value="pown">pOWN%</option><option value="opt">Opt%</option>
+        </select>
+        <button className="px-2.5 py-1.5 text-sm rounded-lg bg-white border hover:bg-gray-50" onClick={resetConstraints}>Reset</button>
+        <button className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700" onClick={optimize}>{`Optimize ${numLineups}`}</button>
+      </div>
+
+      {/* global knobs 2 */}
       <div className="mb-2 flex flex-wrap gap-3 items-end">
         <label className="text-sm">Randomness %</label>
         <input className="w-16 border rounded-md px-2 py-1 text-sm" value={randomness} onChange={(e) => setRandomness(e.target.value)} />
