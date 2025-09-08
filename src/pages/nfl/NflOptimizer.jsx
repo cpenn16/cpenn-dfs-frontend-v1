@@ -1,4 +1,3 @@
-// src/pages/nfl/NFLOptimizer.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 /* ----------------------------- helpers ----------------------------- */
@@ -122,38 +121,13 @@ function inferTeamFromNameForDST(name) {
 
 /* ------------------------------ colors ----------------------------- */
 const TEAM_COLORS = {
-  ARI: "#97233F",
-  ATL: "#A71930",
-  BAL: "#241773",
-  BUF: "#00338D",
-  CAR: "#0085CA",
-  CHI: "#0B162A",
-  CIN: "#FB4F14",
-  CLE: "#311D00",
-  DAL: "#041E42",
-  DEN: "#FB4F14",
-  DET: "#0076B6",
-  GB: "#203731",
-  HOU: "#03202F",
-  IND: "#002C5F",
-  JAX: "#006778",
-  KC: "#E31837",
-  LAC: "#0080C6",
-  LAR: "#003594",
-  LV: "#000000",
-  MIA: "#008E97",
-  MIN: "#4F2683",
-  NE: "#002244",
-  NO: "#D3BC8D",
-  NYG: "#0B2265",
-  NYJ: "#125740",
-  PHI: "#004C54",
-  PIT: "#FFB612",
-  SEA: "#002244",
-  SF: "#AA0000",
-  TB: "#D50A0A",
-  TEN: "#0C2340",
-  WAS: "#5A1414",
+  ARI: "#97233F", ATL: "#A71930", BAL: "#241773", BUF: "#00338D", CAR: "#0085CA",
+  CHI: "#0B162A", CIN: "#FB4F14", CLE: "#311D00", DAL: "#041E42", DEN: "#FB4F14",
+  DET: "#0076B6", GB: "#203731", HOU: "#03202F", IND: "#002C5F", JAX: "#006778",
+  KC: "#E31837", LAC: "#0080C6", LAR: "#003594", LV: "#000000", MIA: "#008E97",
+  MIN: "#4F2683", NE: "#002244", NO: "#D3BC8D", NYG: "#0B2265", NYJ: "#125740",
+  PHI: "#004C54", PIT: "#FFB612", SEA: "#002244", SF: "#AA0000", TB: "#D50A0A",
+  TEN: "#0C2340", WAS: "#5A1414",
 };
 const hexToRGB = (hex) => {
   const h = (hex || "#888").replace("#", "");
@@ -1472,6 +1446,52 @@ async function optimize() {
           </div>
         </div>
 
+        {/* GROUPS */}
+        <div className={`md:col-span-12 ${cls.card} p-2`}>
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-[11px] text-gray-600">Groups (at least / at most / exactly N from a list)</div>
+            <button className={cls.btn.ghost} onClick={() => setGroups((G) => [...G, { mode: "at_most", count: 1, players: [] }])}>
+              + Add group
+            </button>
+          </div>
+          {groups.length === 0 ? (
+            <div className="text-xs text-gray-500">No groups yet.</div>
+          ) : (
+            <div className="space-y-2">
+              {groups.map((g, i) => (
+                <div key={i} className="border rounded-md p-2">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <select
+                      className={cls.input}
+                      value={g.mode || "at_most"}
+                      onChange={(e) => setGroups((G) => G.map((x, j) => j === i ? { ...x, mode: e.target.value } : x))}
+                    >
+                      <option value="at_least">at least</option>
+                      <option value="at_most">at most</option>
+                      <option value="exactly">exactly</option>
+                    </select>
+                    <input
+                      className={cls.input + " w-20"}
+                      type="number"
+                      value={g.count ?? 1}
+                      onChange={(e) => setGroups((G) => G.map((x, j) => j === i ? { ...x, count: e.target.value } : x))}
+                    />
+                    <button className={`${cls.btn.ghost} ml-auto`} onClick={() => setGroups((G) => G.filter((_, j) => j !== i))}>
+                      Remove
+                    </button>
+                  </div>
+                  <PlayerMultiPicker
+                    allPlayers={allPlayerNames}
+                    value={Array.isArray(g.players) ? g.players : []}
+                    onChange={(vals) => setGroups((G) => G.map((x, j) => j === i ? { ...x, players: vals } : x))}
+                    placeholder="Add players to this group…"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* progress + button */}
         <div className="md:col-span-12 flex items-end gap-3">
           <button className={cls.btn.primary} onClick={optimize}>
@@ -1653,6 +1673,7 @@ async function optimize() {
                   <td className={`${cell} tabular-nums`}>{fmt1(r.floor)}</td>
                   <td className={`${cell} tabular-nums`}>{fmt1(r.ceil)}</td>
                   <td className={`${cell} tabular-nums`}>{fmt1(r.pown * 100)}</td>
+                  <td className={`${cell} tabular-nums`}>{fmt1(r.pown * 100)}</td>
                   <td className={`${cell} tabular-nums`}>{fmt1(r.opt * 100)}</td>
                   <td className={cell}>
                     <div className="inline-flex items-center gap-1">
@@ -1745,48 +1766,40 @@ async function optimize() {
       {builds.length > 0 && (
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <span className="text-sm text-gray-600">Builds:</span>
-
-          {/* Chips */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap gap-2">
             {builds
               .slice()
               .sort((a, b) => b.id - a.id)
-              .map((b) => (
-                <div key={b.id} className="relative inline-flex">
-                  {/* pill */}
-                  <button
-                    onClick={() => loadBuild(b.id)}
-                    className={`${cls.btn.chip} pr-7 ${
-                      activeBuildId === b.id
+              .map((b) => {
+                const active = activeBuildId === b.id;
+                return (
+                  <div
+                    key={b.id}
+                    className={`${cls.btn.chip} inline-flex items-center gap-2 ${
+                      active
                         ? "border-blue-600 bg-blue-600 text-white"
                         : "border-gray-300 bg-white hover:bg-gray-50"
                     }`}
                     title={new Date(b.ts).toLocaleString()}
                   >
-                    {b.name}
-                    <span className="ml-2 opacity-80">
-                      {b.lineups?.length ?? 0} • {timeAgo(b.ts)}
-                    </span>
-                  </button>
-
-                  {/* tiny X inside the pill (doesn't trigger load) */}
-                  <button
-                    aria-label="Remove build"
-                    title="Remove build"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteBuild(b.id);
-                    }}
-                    className="absolute -top-1 -right-1 w-5 h-5 leading-none rounded-full border border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
+                    <button onClick={() => loadBuild(b.id)} className="underline underline-offset-2">
+                      {b.name}
+                    </button>
+                    <span className="opacity-80">{b.lineups?.length ?? 0} • {timeAgo(b.ts)}</span>
+                    <button
+                      className="ml-1 rounded-full w-4 h-4 flex items-center justify-center bg-black/10 hover:bg-black/20"
+                      title="Delete build"
+                      onClick={() => deleteBuild(b.id)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                );
+              })}
           </div>
 
-          {/* Actions right next to chips, with a subtle divider */}
-          <div className="flex items-center gap-2 pl-2 ml-2 border-l border-gray-200">
+          {/* keep controls close to chips */}
+          <div className="flex items-center gap-2">
             {activeBuildId && (
               <>
                 <button
@@ -1921,9 +1934,7 @@ async function optimize() {
           <section className="lg:col-span-12 rounded-lg border bg-white p-3">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-base font-semibold">Cards</h3>
-              <div className="text-xs text-gray-500">
-                Grid auto-fits (≈4 per row on wide screens)
-              </div>
+              <div className="text-xs text-gray-500">Grid auto-fits (≈4 per row on wide screens)</div>
             </div>
             <LineupCards lineups={lineups} rows={rows} />
           </section>
@@ -2292,3 +2303,4 @@ function LineupCards({ lineups, rows }) {
     </div>
   );
 }
+
