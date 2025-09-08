@@ -1,17 +1,11 @@
-
 // src/pages/nfl/NFLOptimizer.jsx
-// DROP-IN v4
-// - Persists locks/excludes/min%/max%/boosts across refresh (per site)
-// - Chip-style "Builds" UI (click to load, "×" to delete, Rename nearby)
-// - Quick actions: Clear boosts | Clear min/max | Reset ALL constraints
-// - Safer downloads (anchor appended to DOM then removed)
-
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 /* ----------------------------- helpers ----------------------------- */
 import API_BASE from "../../utils/api";
 
-const clamp = (v, lo = 0, hi = 1e9) => Math.max(lo, Math.min(hi, Number.isFinite(+v) ? +v : lo));
+
+const clamp = (v, lo = 0, hi = 1e9) => Math.max(lo, Math.min(hi, v));
 const num = (v) => {
   if (v == null) return 0;
   if (typeof v === "number") return Number.isFinite(v) ? v : 0;
@@ -20,7 +14,7 @@ const num = (v) => {
   return Number.isFinite(n) ? n : 0;
 };
 const fmt0 = (n) => (Number.isFinite(n) ? n.toLocaleString() : "—");
-const fmt1 = (n) => (Number.isFinite(n) ? (+n).toFixed(1) : "—");
+const fmt1 = (n) => (Number.isFinite(n) ? n.toFixed(1) : "—");
 const escapeCSV = (s) => {
   const v = String(s ?? "");
   return /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
@@ -144,19 +138,6 @@ const useStickyState = (key, init) => {
   return [v, setV];
 };
 
-// persistent Set (stored as array)
-const useStickySet = (key, initArr = []) => {
-  const [arr, setArr] = useStickyState(key, initArr);
-  const set = useMemo(() => new Set(arr), [arr]);
-  const setSet = (updater) => {
-    setArr((prev) => {
-      const next = typeof updater === "function" ? updater(new Set(prev)) : updater;
-      return Array.from(next);
-    });
-  };
-  return [set, setSet];
-};
-
 function useJson(url) {
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
@@ -245,6 +226,7 @@ async function solveStreamNFL(payload, onItem, onDone) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
+
   if (!res.ok || !res.body) throw new Error("Stream failed to start");
 
   const reader = res.body.getReader();
@@ -255,10 +237,10 @@ async function solveStreamNFL(payload, onItem, onDone) {
     const { done, value } = await reader.read();
     if (done) break;
     buf += decoder.decode(value, { stream: true });
-    const parts = buf.split("\\n\\n");
+    const parts = buf.split("\n\n");
     buf = parts.pop() ?? "";
     for (const chunk of parts) {
-      const line = chunk.split("\\n").find((l) => l.startsWith("data: "));
+      const line = chunk.split("\n").find((l) => l.startsWith("data: "));
       if (!line) continue;
       try {
         const evt = JSON.parse(line.slice(6));
@@ -268,6 +250,7 @@ async function solveStreamNFL(payload, onItem, onDone) {
     }
   }
 }
+
 
 /* ---------------------- ordering helpers --------------------------- */
 function orderPlayersForSite(names, rowsMap) {
@@ -301,17 +284,6 @@ function orderPlayersForSite(names, rowsMap) {
 }
 
 /* ---------------------------- CSV export --------------------------- */
-function _download_blob(bytes, fname) {
-  const blob = new Blob([bytes], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = fname;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
-
 function toPlainCSV(lineups, rows, site) {
   const rowsByName = new Map(rows.map((r) => [r.name, r]));
   const header = ["#", "Salary", "Time", "Total", "Players"].join(",");
@@ -322,10 +294,14 @@ function toPlainCSV(lineups, rows, site) {
     const players = `"${ordered.map((r) => r.name).join(" • ")}"`;
     return [i + 1, L.salary, time, L.total.toFixed(1), players].join(",");
   });
-  return [header, ...lines].join("\\n");
+  return [header, ...lines].join("\n");
 }
 function downloadPlainCSV(lineups, rows, site, fname = "nfl_lineups.csv") {
-  _download_blob(toPlainCSV(lineups, rows, site), fname);
+  const blob = new Blob([toPlainCSV(lineups, rows, site)], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = fname; a.click();
+  URL.revokeObjectURL(url);
 }
 
 /** Export CSV with **site IDs** — positions-only header (FD uses DEF), no extra columns. */
@@ -337,7 +313,7 @@ function downloadSiteLineupsCSV({
 
   // Header: positions only (RB1->RB, WR3->WR). FD converts DST -> DEF
   const slotHeaders = slotList.map((s) => {
-    const base = String(s.name).replace(/\\d+$/, ""); // RB1->RB
+    const base = String(s.name).replace(/\d+$/, ""); // RB1->RB
     return siteKey === "fd" && base === "DST" ? "DEF" : base;
   });
   const header = slotHeaders.join(",");
@@ -452,8 +428,12 @@ function downloadSiteLineupsCSV({
     return cells.join(",");
   });
 
-  const csv = [header, ...lines].join("\\n");
-  _download_blob(csv, fname);
+  const csv = [header, ...lines].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = fname; a.click();
+  URL.revokeObjectURL(url);
 }
 
 /* ============================== page =============================== */
@@ -479,16 +459,18 @@ export default function NFLOptimizer() {
   // lineup-level pOWN% cap (sum)
   const [maxLineupPown, setMaxLineupPown] = useStickyState("nflOpt.maxLineupPown", "");
 
-  // constraints (PERSISTENT now)
-  const [locks, setLocks] = useStickySet(`nflOpt.${site}.locks`, []);
-  const [excls, setExcls] = useStickySet(`nflOpt.${site}.excls`, []);
-  const [minPct, setMinPct] = useStickyState(`nflOpt.${site}.minPct`, {});
-  const [maxPct, setMaxPct] = useStickyState(`nflOpt.${site}.maxPct`, {});
-  const [boost, setBoost]   = useStickyState(`nflOpt.${site}.boost`, {});
+  // constraints
+  const [qbStackMin, setQbStackMin] = useStickyState("nflOpt.qbStackMin", 2);
+  const [bringbackMin, setBringbackMin] = useStickyState("nflOpt.bringbackMin", 1);
+  const [allowTeInFlex, setAllowTeInFlex] = useStickyState("nflOpt.allowTeInFlex", true);
+  const [stackAllowRB, setStackAllowRB] = useStickyState("nflOpt.stackAllowRB", false);
+  const [avoidRbVsOppDst, setAvoidRbVsOppDst] = useStickyState("nflOpt.avoidRbVsOppDst", true);
+  const [avoidOffenseVsOppDst, setAvoidOffenseVsOppDst] = useStickyState("nflOpt.avoidOffVsOppDst", false);
+  const [maxFromTeam, setMaxFromTeam] = useStickyState("nflOpt.maxFromTeam", "");
 
-  // groups / team rules (already sticky)
-  const [groups, setGroups] = useStickyState(`nflOpt.${site}.groups`, []);
-  const [teamStacks, setTeamStacks] = useStickyState(`nflOpt.${site}.teamStacks`, []);
+  // Only allow stacks to originate from selected teams
+  const [restrictStacksToTeams, setRestrictStacksToTeams] =
+    useStickyState("nflOpt.restrictStacksToTeams", false);
 
   // team exposure caps per site (UI added below)
   const [teamMaxPct, setTeamMaxPct] = useStickyState(`nflOpt.${site}.teamMaxPct`, {});
@@ -497,6 +479,16 @@ export default function NFLOptimizer() {
   const [selectedGames, setSelectedGames] = useState(() => new Set());
   const [selectedTeams, setSelectedTeams] = useState(() => new Set());
   const [q, setQ] = useState("");
+
+  const [locks, setLocks] = useState(() => new Set());
+  const [excls, setExcls] = useState(() => new Set());
+  const [minPct, setMinPct] = useState(() => ({}));
+  const [maxPct, setMaxPct] = useState(() => ({}));
+  const [boost, setBoost] = useState(() => ({}));
+
+  // groups / team rules
+  const [groups, setGroups] = useStickyState(`nflOpt.${site}.groups`, []);
+  const [teamStacks, setTeamStacks] = useStickyState(`nflOpt.${site}.teamStacks`, []);
 
   // builds per site
   const buildsKey = (k) => `nflOpt.${site}.${k}`;
@@ -525,9 +517,9 @@ export default function NFLOptimizer() {
     return () => clearInterval(tickRef.current);
   }, [isOptimizing, progressActual, numLineups]);
 
-  // Clear build results on site switch but keep sticky constraints
   useEffect(() => {
     setLineups([]); setStopInfo(null); setProgressActual(0); setProgressUI(0); setIsOptimizing(false);
+    setLocks(new Set()); setExcls(new Set());
   }, [site]);
 
   /* ------------------------------ rows ------------------------------ */
@@ -696,8 +688,6 @@ export default function NFLOptimizer() {
   const toggleLock = (name) => setLocks((s) => { const n = new Set(s); n.has(name) ? n.delete(name) : n.add(name); return n; });
   const toggleExcl = (name) => setExcls((s) => { const n = new Set(s); n.has(name) ? n.delete(name) : n.add(name); return n; });
 
-  const actionClearBoosts = () => setBoost({});
-  const actionClearMinMax = () => { setMinPct({}); setMaxPct({}); };
   const resetConstraints = () => {
     setLocks(new Set()); setExcls(new Set()); setMinPct({}); setMaxPct({}); setBoost({});
     setGroups([]); setTeamStacks([]); setTeamMaxPct({});
@@ -708,8 +698,10 @@ export default function NFLOptimizer() {
     if (!rows.length) return;
     setLineups([]); setStopInfo(null); setProgressActual(0); setProgressUI(0); setIsOptimizing(true);
 
-    // Respect TE-in-FLEX toggle (removed in this drop-in: always allow TE in FLEX per original)
-    const slotsForSolve = cfg.slots;
+    // Respect TE-in-FLEX toggle
+    const slotsForSolve = cfg.slots.map((s) =>
+      s.name === "FLEX" ? { ...s, eligible: allowTeInFlex ? ["RB","WR","TE"] : ["RB","WR"] } : s
+    );
 
     const N = Math.max(1, Number(numLineups) || 1);
     const capVal = Math.min(cfg.cap, Number(maxSalary) || cfg.cap);
@@ -723,13 +715,31 @@ export default function NFLOptimizer() {
             .filter((r) => ((r.pown || 0) * 100) > cap)
             .map((r) => r.name);
 
+    // If the toggle is ON and you have selected teams, exclude QBs from all other teams.
+    // That forces stacks to originate only from the selected teams.
+    const qbExclByTeam =
+      restrictStacksToTeams && selectedTeams && selectedTeams.size > 0
+        ? rows
+            .filter((r) => r.pos === "QB" && !selectedTeams.has(r.team))
+            .map((r) => r.name)
+        : [];
+
+    // merge with existing excludes; keep unique
+    const mergedExcludes = Array.from(
+      new Set([
+        ...Array.from(excls),
+        ...autoExcludesByPown,
+        ...qbExclByTeam,
+      ])
+    );
+
     // lineup-level pOWN% handling
     const rowsByName = new Map(rows.map((r) => [r.name, r]));
     const lineupPownPct = (names) =>
       names.reduce((s, n) => s + (((rowsByName.get(n)?.pown) || 0) * 100), 0);
     const lineupCap = String(maxLineupPown).trim() === ""
       ? null
-      : clamp(Number(maxLineupPown) || 0, 0, 1000);
+      : clamp(Number(maxLineupPown) || 0, 0, 1000); // or just Number(...) with no clamp
 
     const payload = {
       site,
@@ -744,7 +754,7 @@ export default function NFLOptimizer() {
       cap: capVal,
       objective: optBy,
       locks: Array.from(locks),
-      excludes: Array.from(new Set([...Array.from(excls), ...autoExcludesByPown])),
+      excludes: mergedExcludes,
       boosts: boost,
       randomness: clamp(Number(randomness) || 0, 0, 100),
       global_max_pct: clamp(Number(globalMax) || 100, 0, 100),
@@ -752,15 +762,32 @@ export default function NFLOptimizer() {
       max_pct: Object.fromEntries(Object.entries(maxPct).map(([k, v]) => [k, clamp(Number(v) || 100, 0, 100)])),
       min_diff: 1,
       time_limit_ms: 1500,
+
+      qb_stack_min: Math.max(0, Number(qbStackMin) || 0),
+      stack_allow_rb: !!stackAllowRB,
+      bringback_min: Math.max(0, Number(bringbackMin) || 0),
+      max_from_team: String(maxFromTeam).trim() === "" ? null : Math.max(1, Number(maxFromTeam) || 1),
+      avoid_rb_vs_opp_dst: !!avoidRbVsOppDst,
+      avoid_offense_vs_opp_dst: !!avoidOffenseVsOppDst,
+
       groups: (groups || []).map((g) => ({
         mode: g.mode || "at_most",
         count: Math.max(0, Number(g.count) || 0),
         players: Array.isArray(g.players) ? g.players : [],
       })),
+
       team_stack_rules: (teamStacks || []).map((t) => ({
         team: t.team,
+        qb_stack_min: String(t.qb_stack_min).trim() === "" ? undefined : Math.max(0, Number(t.qb_stack_min) || 0),
+        bringback_min: String(t.bringback_min).trim() === "" ? undefined : Math.max(0, Number(t.bringback_min) || 0),
+        allow_rb_in_stack: !!t.allow_rb_in_stack,
+        bringback_teams: Array.isArray(t.bringback_teams) ? t.bringback_teams : undefined,
+        max_from_team: String(t.max_from_team).trim() === "" ? undefined : Math.max(1, Number(t.max_from_team) || 1),
       })),
+
       team_max_pct: teamMaxPct,
+
+      // for future server support (client already filters)
       max_lineup_pown_pct: lineupCap == null ? null : lineupCap,
     };
 
@@ -769,7 +796,10 @@ export default function NFLOptimizer() {
       await solveStreamNFL(
         payload,
         (evt) => {
-          if (lineupCap != null && lineupPownPct(evt.drivers) > lineupCap) return;
+          if (lineupCap != null && lineupPownPct(evt.drivers) > lineupCap) {
+            // reject this lineup due to lineup-level pOWN% cap
+            return;
+          }
           const L = { players: evt.drivers, salary: evt.salary, total: evt.total };
           out.push(L);
           setLineups((prev) => [...prev, L]);
@@ -826,7 +856,7 @@ export default function NFLOptimizer() {
       const raw = localStorage.getItem(`nflOpt.${site}.builds`);
       const arr = raw ? JSON.parse(raw) : [];
       const nums = arr
-        .map((b) => (b?.name ? String(b.name).match(/^Build\\s+(\\d+)$/i) : null))
+        .map((b) => (b?.name ? String(b.name).match(/^Build\s+(\d+)$/i) : null))
         .filter(Boolean)
         .map((m) => Number(m[1]))
         .filter((n) => Number.isFinite(n));
@@ -850,6 +880,12 @@ export default function NFLOptimizer() {
         cap: Math.min(cfg.cap, Number(maxSalary) || cfg.cap),
         globalMax,
         randomness,
+        qbStackMin,
+        bringbackMin,
+        stackAllowRB,
+        avoidRbVsOppDst,
+        avoidOffenseVsOppDst,
+        maxFromTeam,
         locks: [...locks],
         excls: [...excls],
         minPct,
@@ -935,17 +971,9 @@ export default function NFLOptimizer() {
             <span>{SITES[s].label}</span>
           </button>
         ))}
-        <div className="ml-auto flex gap-2">
-          <button className="px-2.5 py-1.5 text-sm rounded-lg bg-white border hover:bg-gray-50" onClick={actionClearBoosts}>
-            Clear boosts
-          </button>
-          <button className="px-2.5 py-1.5 text-sm rounded-lg bg-white border hover:bg-gray-50" onClick={actionClearMinMax}>
-            Clear min/max
-          </button>
-          <button className="px-2.5 py-1.5 text-sm rounded-lg bg-white border hover:bg-gray-50" onClick={resetConstraints}>
-            Reset ALL
-          </button>
-        </div>
+        <button className="ml-auto px-2.5 py-1.5 text-sm rounded-lg bg-white border hover:bg-gray-50" onClick={resetConstraints}>
+          Reset constraints
+        </button>
       </div>
 
       {/* controls */}
@@ -1003,6 +1031,217 @@ export default function NFLOptimizer() {
           />
         </div>
 
+        {/* Stacks / Bring-back */}
+        <div className="md:col-span-12 rounded-md border p-2">
+          <div className="text-[11px] text-gray-600 mb-1">Stacks / Bring-back</div>
+
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <label className="text-sm">QB Stack Min</label>
+            <input
+              type="number"
+              className="w-16 border rounded-md px-2 py-1 text-sm"
+              value={qbStackMin}
+              onChange={(e) => setQbStackMin(e.target.value)}
+            />
+
+            <label className="text-sm ml-2">Bring-back Min</label>
+            <input
+              type="number"
+              className="w-16 border rounded-md px-2 py-1 text-sm"
+              value={bringbackMin}
+              onChange={(e) => setBringbackMin(e.target.value)}
+            />
+
+            <label className="inline-flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={allowTeInFlex} onChange={(e) => setAllowTeInFlex(e.target.checked)} />
+              Allow TE in FLEX
+            </label>
+
+            <label className="inline-flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={stackAllowRB} onChange={(e) => setStackAllowRB(e.target.checked)} />
+              Allow RB in stacks
+            </label>
+
+            <label className="inline-flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={avoidRbVsOppDst} onChange={(e) => setAvoidRbVsOppDst(e.target.checked)} />
+              Avoid RB vs opp DST
+            </label>
+
+            <label className="inline-flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={avoidOffenseVsOppDst} onChange={(e) => setAvoidOffenseVsOppDst(e.target.checked)} />
+              Don’t allow offense vs opp DST
+            </label>
+
+            <label className="inline-flex items-center gap-2 text-sm">
+              Max from team
+              <input
+                className="w-16 border rounded-md px-2 py-1 text-sm"
+                placeholder="—"
+                value={maxFromTeam}
+                onChange={(e) => setMaxFromTeam(e.target.value)}
+              />
+            </label>
+
+            <label className="inline-flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={restrictStacksToTeams}
+                onChange={(e) => setRestrictStacksToTeams(e.target.checked)}
+              />
+              Only stack from selected teams
+            </label>
+          </div>
+
+          {/* Team chips + selected summary with caps */}
+          <div className="flex flex-col lg:flex-row gap-3">
+            {/* Chips */}
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <button
+                  className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50"
+                  onClick={() => setSelectedTeams(new Set(allTeams))}
+                >
+                  Select all
+                </button>
+                <button
+                  className="px-2 py-1 rounded-md border text-sm bg-white hover:bg-gray-50"
+                  onClick={() => setSelectedTeams(new Set())}
+                >
+                  Clear
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {allTeams.map((t) => {
+                  const active = selectedTeams.has(t);
+                  const bg = TEAM_COLORS[t] || "#E5E7EB";
+                  const fg = readableText(bg);
+                  return (
+                    <button
+                      key={t}
+                      onClick={() =>
+                        setSelectedTeams((S) => {
+                          const n = new Set(S);
+                          active ? n.delete(t) : n.add(t);
+                          return n;
+                        })
+                      }
+                      className="px-2 py-1 rounded-md border text-sm"
+                      style={{
+                        backgroundColor: bg,
+                        color: fg,
+                        borderColor: active ? "#111" : "rgba(0,0,0,0.15)",
+                        boxShadow: active ? "inset 0 0 0 1px #111" : "none",
+                      }}
+                      title={t}
+                    >
+                      {t}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Selected list + per-team cap editor */}
+            <TeamCapEditor
+              selectedTeams={selectedTeams}
+              teamMaxPct={teamMaxPct}
+              setTeamMaxPct={setTeamMaxPct}
+            />
+          </div>
+
+          {/* Team-specific rules */}
+          <div className="border-t pt-2 mt-2">
+            <div className="flex justify-between items-center mb-2">
+              <div className="text-[11px] text-gray-600">Team-specific stack rules (override globals)</div>
+              <button
+                className="px-2 py-1 text-sm rounded-md border hover:bg-gray-50"
+                onClick={() => setTeamStacks((T) => [...T, { team: "" }])}
+              >
+                + Add team rule
+              </button>
+            </div>
+
+            {teamStacks.length === 0 ? (
+              <div className="text-xs text-gray-500">
+                No team rules yet. Add one to override globals for a specific team.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {teamStacks.map((r, i) => (
+                  <div key={i} className="flex flex-wrap items-center gap-2 border rounded-md p-2">
+                    <TeamSelect
+                      teams={allTeams}
+                      value={r.team || ""}
+                      onChange={(v) =>
+                        setTeamStacks((T) => T.map((x, j) => (i === j ? { ...x, team: v } : x)))
+                      }
+                    />
+
+                    <label className="text-sm">QB stack</label>
+                    <input
+                      className="w-14 border rounded-md px-2 py-1 text-sm"
+                      placeholder="—"
+                      value={r.qb_stack_min ?? ""}
+                      onChange={(e) =>
+                        setTeamStacks((T) =>
+                          T.map((x, j) => (i === j ? { ...x, qb_stack_min: e.target.value } : x))
+                        )
+                      }
+                    />
+
+                    <label className="text-sm">Bring-back</label>
+                    <input
+                      className="w-14 border rounded-md px-2 py-1 text-sm"
+                      placeholder="—"
+                      value={r.bringback_min ?? ""}
+                      onChange={(e) =>
+                        setTeamStacks((T) =>
+                          T.map((x, j) => (i === j ? { ...x, bringback_min: e.target.value } : x))
+                        )
+                      }
+                    />
+
+                    <label className="inline-flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={!!r.allow_rb_in_stack}
+                        onChange={(e) =>
+                          setTeamStacks((T) =>
+                            T.map((x, j) =>
+                              i === j ? { ...x, allow_rb_in_stack: e.target.checked } : x
+                            )
+                          )
+                        }
+                      />
+                      Allow RB
+                    </label>
+
+                    <label className="text-sm">Max from team</label>
+                    <input
+                      className="w-16 border rounded-md px-2 py-1 text-sm"
+                      placeholder="—"
+                      value={r.max_from_team ?? ""}
+                      onChange={(e) =>
+                        setTeamStacks((T) =>
+                          T.map((x, j) => (i === j ? { ...x, max_from_team: e.target.value } : x))
+                        )
+                      }
+                    />
+
+                    <div className="ml-auto" />
+                    <button
+                      className="px-2 py-1 text-sm rounded-md border hover:bg-gray-50"
+                      onClick={() => setTeamStacks((T) => T.filter((_, j) => j !== i))}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* progress + button */}
         <div className="md:col-span-12 flex items-end gap-3">
           <button className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700" onClick={optimize}>
@@ -1025,45 +1264,6 @@ export default function NFLOptimizer() {
           </div>
         </div>
       </div>
-
-      {/* Builds as chips */}
-      {builds.length > 0 && (
-        <div className="mb-3">
-          <div className="text-sm text-gray-600 mb-1">Builds</div>
-          <div className="flex flex-wrap gap-2">
-            {builds.map((b) => {
-              const active = b.id === activeBuildId;
-              return (
-                <span key={b.id}
-                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm cursor-pointer ${active ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300"}`}
-                  onClick={() => loadBuild(b.id)}
-                >
-                  {b.name}
-                  <button
-                    className="ml-1 text-gray-500 hover:text-red-600"
-                    onClick={(e) => { e.stopPropagation(); deleteBuild(b.id); }}
-                    title="Delete"
-                  >
-                    ×
-                  </button>
-                </span>
-              );
-            })}
-            {activeBuildId && (
-              <button
-                className="px-2 py-1 text-sm border rounded bg-white hover:bg-gray-50"
-                onClick={() => {
-                  const cur = builds.find((b) => b.id === activeBuildId)?.name || "";
-                  const newName = window.prompt("Rename build", cur);
-                  if (newName) renameBuild(activeBuildId, newName);
-                }}
-              >
-                Rename
-              </button>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Position tabs */}
       <div className="mb-2 flex gap-3 text-sky-600 font-semibold text-sm">
@@ -1105,7 +1305,9 @@ export default function NFLOptimizer() {
                     return n;
                   })
                 }
-                className={`px-2 py-1 rounded-md border text-sm ${active ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300"}`}
+                className={`px-2 py-1 rounded-md border text-sm ${
+                  active ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300"
+                }`}
               >
                 {g.label}
               </button>
@@ -1184,6 +1386,32 @@ export default function NFLOptimizer() {
           </tbody>
         </table>
       </div>
+
+      {/* Build manager */}
+      {builds.length > 0 && (
+        <div className="mb-3 flex items-center gap-2">
+          <span className="text-sm text-gray-600">Builds:</span>
+          <select className="border rounded-md px-2 py-1 text-sm" value={activeBuildId ?? ""} onChange={(e) => loadBuild(Number(e.target.value))}>
+            <option value="">—</option>
+            {builds.map((b) => (
+              <option key={b.id} value={b.id}>{b.name}</option>
+            ))}
+          </select>
+          {activeBuildId && (
+            <>
+              <button className="px-2 py-1 text-sm border rounded" onClick={() => {
+                const newName = prompt("Rename build", builds.find((b) => b.id === activeBuildId)?.name || "");
+                if (newName) renameBuild(activeBuildId, newName);
+              }}>
+                Rename
+              </button>
+              <button className="px-2 py-1 text-sm border rounded" onClick={() => deleteBuild(activeBuildId)}>
+                Delete
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       {/* results & exposures */}
       {!!lineups.length && (
@@ -1268,7 +1496,7 @@ export default function NFLOptimizer() {
           {/* Stack Shapes */}
           <section className="lg:col-span-4 rounded-lg border bg-white p-3">
             <h3 className="text-base font-semibold mb-2">Stack Shapes</h3>
-            <StackShapesTable lineups={lineups} rows={rows} allowRB={true} />
+            <StackShapesTable lineups={lineups} rows={rows} allowRB={stackAllowRB} />
           </section>
 
           {/* Cards */}
@@ -1291,8 +1519,12 @@ function downloadExposuresCSV(lineups, fname = "nfl_exposures.csv") {
     .map(([name, cnt]) => [name, cnt, (cnt / total) * 100])
     .sort((a, b) => b[2] - a[2] || a[0].localeCompare(b[0]));
   const header = "Player,Count,Exposure %";
-  const body = rows.map((r) => `${escapeCSV(r[0])},${r[1]},${(+r[2]).toFixed(1)}`).join("\\n");
-  _download_blob(header + "\\n" + body, fname);
+  const body = rows.map((r) => `${escapeCSV(r[0])},${r[1]},${r[2].toFixed(1)}`).join("\n");
+  const blob = new Blob([header + "\n" + body], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = fname; a.click();
+  URL.revokeObjectURL(url);
 }
 
 /* ---------------------- small UI components ------------------------ */
