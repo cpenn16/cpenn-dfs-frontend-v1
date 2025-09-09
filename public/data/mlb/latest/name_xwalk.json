@@ -540,15 +540,6 @@
     "fd_id": "120316-119377"
   },
   {
-    "proj": "Hyeseong Kim",
-    "team": "LAD",
-    "pos": "2B",
-    "dk_name": "Hyeseong Kim",
-    "dk_id": "39973547",
-    "fd_name": "Hyeseong Kim",
-    "fd_id": "120316-222295"
-  },
-  {
     "proj": "Seiya Suzuki",
     "team": "CHC",
     "pos": "OF",
@@ -837,15 +828,6 @@
     "fd_id": "120316-222858"
   },
   {
-    "proj": "Sal Frelick",
-    "team": "MIL",
-    "pos": "OF",
-    "dk_name": "Sal Frelick",
-    "dk_id": "39973455",
-    "fd_name": "Sal Frelick",
-    "fd_id": "120316-165605"
-  },
-  {
     "proj": "Josh Naylor",
     "team": "SEA",
     "pos": "1B",
@@ -853,6 +835,15 @@
     "dk_id": "39973425",
     "fd_name": "Josh Naylor",
     "fd_id": "120316-79223"
+  },
+  {
+    "proj": "Sal Frelick",
+    "team": "MIL",
+    "pos": "OF",
+    "dk_name": "Sal Frelick",
+    "dk_id": "39973455",
+    "fd_name": "Sal Frelick",
+    "fd_id": "120316-165605"
   },
   {
     "proj": "Nathan Lukes",
@@ -1755,15 +1746,6 @@
     "fd_id": "120316-211906"
   },
   {
-    "proj": "Jordan Lawlar",
-    "team": "ARI",
-    "pos": "2B",
-    "dk_name": "Jordan Lawlar",
-    "dk_id": "39973710",
-    "fd_name": "Jordan Lawlar",
-    "fd_id": "120316-164495"
-  },
-  {
     "proj": "Curtis Mead",
     "team": "CWS",
     "pos": "1B",
@@ -1771,6 +1753,15 @@
     "dk_id": "39973612",
     "fd_name": "Curtis Mead",
     "fd_id": "120316-165701"
+  },
+  {
+    "proj": "Jordan Lawlar",
+    "team": "ARI",
+    "pos": "2B",
+    "dk_name": "Jordan Lawlar",
+    "dk_id": "39973710",
+    "fd_name": "Jordan Lawlar",
+    "fd_id": "120316-164495"
   },
   {
     "proj": "Jimmy Crooks",

@@ -125,18 +125,7 @@
       "Time": "7:40 PM",
       "Proj": "11.4",
       "Value": "2.16",
-      "pOWN": "11.5%"
-    },
-    {
-      "Player": "Hyeseong Kim",
-      "Salary": "3300",
-      "Team": "LAD",
-      "Opp": "COL",
-      "Vegas": "4.7",
-      "Time": "10:10 PM",
-      "Proj": "8.1",
-      "Value": "2.46",
-      "pOWN": "7.9%"
+      "pOWN": "12.5%"
     },
     {
       "Player": "Gleyber Torres",
@@ -147,7 +136,18 @@
       "Time": "7:05 PM",
       "Proj": "9.1",
       "Value": "2.17",
-      "pOWN": "7.1%"
+      "pOWN": "7.7%"
+    },
+    {
+      "Player": "Luis Rengifo",
+      "Salary": "3100",
+      "Team": "LAA",
+      "Opp": "MIN",
+      "Vegas": "4.5",
+      "Time": "9:38 PM",
+      "Proj": "7.2",
+      "Value": "2.33",
+      "pOWN": "6.1%"
     }
   ],
   "3B": [
@@ -359,14 +359,14 @@
   "Top Stacks": [
     {
       "Team": "LAD",
-      "Salary": "4310",
+      "Salary": "4422.2",
       "Opp": "COL",
       "Opp Pitcher": "German Marquez",
       "Vegas": "4.7",
       "Time": "10:10 PM",
-      "Proj": "99.24",
-      "Value": "2.56",
-      "pOWN": "10.1%"
+      "Proj": "91.11",
+      "Value": "2.29",
+      "pOWN": "10.4%"
     },
     {
       "Team": "TB",
@@ -377,7 +377,7 @@
       "Time": "7:40 PM",
       "Proj": "73.63",
       "Value": "1.95",
-      "pOWN": "4.8%"
+      "pOWN": "5.0%"
     },
     {
       "Team": "MIN",
@@ -388,7 +388,7 @@
       "Time": "9:38 PM",
       "Proj": "73.18",
       "Value": "2.33",
-      "pOWN": "5.1%"
+      "pOWN": "5.2%"
     },
     {
       "Team": "NYY",
@@ -432,7 +432,7 @@
       "Time": "9:38 PM",
       "Proj": "68.44",
       "Value": "2.25",
-      "pOWN": "6.4%"
+      "pOWN": "6.5%"
     },
     {
       "Team": "BOS",
@@ -443,7 +443,7 @@
       "Time": "10:05 PM",
       "Proj": "67.64",
       "Value": "1.88",
-      "pOWN": "4.7%"
+      "pOWN": "4.8%"
     },
     {
       "Team": "TOR",
