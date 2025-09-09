@@ -1305,6 +1305,9 @@ function LineupCard({ idx, names, rows, site, total, salary }) {
     ? ["P","P","C","1B","2B","3B","SS","OF","OF","OF"]
     : ["P","C/1B","2B","3B","SS","OF","OF","OF","UTIL"];
 
+  // compute total pOWN% (sum of player pOWN% × 100)
+  const totalPown = ordered.reduce((s, r) => s + ((r.pown || 0) * 100), 0);
+
   return (
     <div className="rounded-lg border p-3 bg-white">
       <div className="flex items-center justify-between mb-2">
@@ -1334,7 +1337,7 @@ function LineupCard({ idx, names, rows, site, total, salary }) {
           <tr className="border-t bg-gray-50">
             <td className="px-2 py-1 font-semibold text-center">Totals</td>
             <td />
-            <td /> {/* empty for pOWN% total */}
+            <td className="px-2 py-1 font-semibold text-center">{fmt1(totalPown)}</td>
             <td className="px-2 py-1 font-semibold text-center">{fmt1(total)}</td>
             <td className="px-2 py-1 font-semibold text-center">{fmt0(salary)}</td>
           </tr>
