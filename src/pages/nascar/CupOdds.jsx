@@ -154,26 +154,14 @@ function BettingTableBlock({ title, source, compact = false, maxHeight = "62vh",
             placeholder="Search…"
             className="border rounded-lg px-3 py-2 w-48 sm:w-56 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <button className="px-3 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200" onClick={showAll}>
-            Show all
-          </button>
-          <button className="px-3 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200" onClick={hideAll}>
-            Hide all
-          </button>
-          <button className="px-3 py-2 text-sm rounded-lg bg-white border hover:bg-gray-50" onClick={resetUI}>
-            Reset
-          </button>
-          <button
-            className="px-3 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-            onClick={exportCSV}
-          >
-            Export CSV
-          </button>
+          <button className="px-3 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200" onClick={showAll}>Show all</button>
+          <button className="px-3 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200" onClick={hideAll}>Hide all</button>
+          <button className="px-3 py-2 text-sm rounded-lg bg-white border hover:bg-gray-50" onClick={resetUI}>Reset</button>
+          <button className="px-3 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700" onClick={exportCSV}>Export CSV</button>
           <div className="text-xs text-gray-500">{sortedRows.length.toLocaleString()} rows</div>
         </div>
       </div>
 
-      {/* Column chips (collapsible on small screens) */}
       <details className="mb-2">
         <summary className="cursor-pointer text-xs text-gray-600 select-none">Show/Hide columns</summary>
         <div className="mt-2 flex items-center gap-2 flex-wrap">
@@ -202,10 +190,7 @@ function BettingTableBlock({ title, source, compact = false, maxHeight = "62vh",
       {err && <div className="text-sm text-red-600">Failed to load: {String(err)}</div>}
 
       {!loading && !err && (
-        <div
-          className="rounded-xl border bg-white shadow-sm overflow-auto"
-          style={{ maxHeight }}
-        >
+        <div className="rounded-xl border bg-white shadow-sm overflow-auto" style={{ maxHeight }}>
           <table className="w-full table-fixed border-separate" style={{ borderSpacing: 0 }}>
             <colgroup>
               {(visibleColNames.length ? visibleColNames : allCols).map((c) => (
@@ -230,8 +215,7 @@ function BettingTableBlock({ title, source, compact = false, maxHeight = "62vh",
                       title={c}
                       className={[
                         "sticky top-0 z-30 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/60",
-                        "font-semibold border-b border-gray-200",
-                        "text-center cursor-pointer select-none",
+                        "font-semibold border-b border-gray-200 text-center cursor-pointer select-none",
                         densityHead,
                         isDriverCol(c) ? "left-0" : "",
                       ].join(" ")}
@@ -447,11 +431,12 @@ function MiniTable({ title, rows, defaultSortCol = "FairOdds", compact = false }
   );
 }
 
-/* ----------------------------- Driver H2H Tool ----------------------------- */
-function H2HMatrixTool({ source, compact = false, maxHeight = "62vh" }) {
+/* ----------------------------- Driver H2H Tool (with zoom) ----------------------------- */
+function H2HMatrixTool({ source, compact = false, maxHeight = "78vh" }) {
   const SHOW_SOURCE = false;
   const { data, err, loading } = useJson(source);
 
+  // normalize rows
   const rows = useMemo(() => {
     if (!data) return [];
     if (Array.isArray(data)) return data;
@@ -466,6 +451,7 @@ function H2HMatrixTool({ source, compact = false, maxHeight = "62vh" }) {
     return [...names].sort((a, b) => a.localeCompare(b));
   }, [rows]);
 
+  // build grid lookup
   const grid = useMemo(() => {
     const g = {};
     for (const r of rows) {
@@ -481,6 +467,7 @@ function H2HMatrixTool({ source, compact = false, maxHeight = "62vh" }) {
     return g;
   }, [rows]);
 
+  // selections
   const [A, setA] = useState("");
   const [B, setB] = useState("");
   useEffect(() => {
@@ -527,6 +514,13 @@ function H2HMatrixTool({ source, compact = false, maxHeight = "62vh" }) {
     a.remove();
   };
 
+  // ----- NEW: zoom + column/padding/font scaling -----
+  const [zoom, setZoom] = useState(1.15);    // default bigger
+  const baseCol = compact ? 64 : 76;         // px
+  const colW = Math.round(baseCol * zoom);
+  const padY = zoom >= 1 ? 6 : 4;            // px
+  const padX = zoom >= 1 ? 8 : 6;            // px
+  const fontPx = Math.round((compact ? 11 : 12) * zoom);
   const density = compact ? "text-[11px]" : "text-xs";
 
   return (
@@ -536,74 +530,114 @@ function H2HMatrixTool({ source, compact = false, maxHeight = "62vh" }) {
         {SHOW_SOURCE && <code className="text-[11px] ml-2 px-2 py-1 rounded bg-gray-50 border text-gray-600">{source}</code>}
         {loading && <span className="text-xs text-gray-500 ml-2">loading…</span>}
         {err && <span className="text-xs text-red-600 ml-2">error: {String(err)}</span>}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-3">
+          <label className="flex items-center gap-2 text-xs sm:text-sm">
+            <span className="text-gray-600">Zoom</span>
+            <input
+              type="range"
+              min="0.9" max="1.5" step="0.05"
+              value={zoom}
+              onChange={(e) => setZoom(parseFloat(e.target.value))}
+              className="w-40"
+            />
+            <span className="w-10 text-right tabular-nums">{Math.round(zoom * 100)}%</span>
+          </label>
           <button onClick={exportCSV} className="px-3 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700">
             Export Matrix CSV
           </button>
         </div>
       </div>
 
-      {loading && <div className="text-sm text-gray-600">Loading…</div>}
-      {err && <div className="text-sm text-red-600">Failed to load: {String(err)}</div>}
-
+      {/* Picker */}
       {!loading && !err && !!drivers.length && (
-        <>
-          {/* Picker */}
-          <div className="rounded-xl border bg-white shadow-sm p-4 mb-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-              <div>
-                <label className="block text-xs font-semibold mb-1">Driver A</label>
-                <select value={A} onChange={(e) => setA(e.target.value)} className="w-full border rounded-md px-3 py-2 text-sm">
-                  {drivers.map((d) => <option key={`A-${d}`} value={d}>{d}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold mb-1">Driver B</label>
-                <select value={B} onChange={(e) => setB(e.target.value)} className="w-full border rounded-md px-3 py-2 text-sm">
-                  {drivers.map((d) => <option key={`B-${d}`} value={d}>{d}</option>)}
-                </select>
-              </div>
-              <div className="flex gap-2">
-                <button onClick={() => { const a=A,b=B; setA(b); setB(a); }} className="mt-5 px-3 py-2 text-sm rounded-lg border bg-white hover:bg-gray-50">
-                  Swap
-                </button>
-              </div>
+        <div className="rounded-xl border bg-white shadow-sm p-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+            <div>
+              <label className="block text-xs font-semibold mb-1">Driver A</label>
+              <select value={A} onChange={(e) => setA(e.target.value)} className="w-full border rounded-md px-3 py-2 text-sm">
+                {drivers.map((d) => <option key={`A-${d}`} value={d}>{d}</option>)}
+              </select>
             </div>
-
-            {/* Result cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-              <div className="rounded-lg border p-3">
-                <div className="text-sm text-gray-500">Chance {A || "—"} beats {B || "—"}</div>
-                <div className="text-2xl font-extrabold">{fmt1(probA)}</div>
-                <div className={density + " text-gray-600"}>Fair odds: {toAmerican(probA)}</div>
-                <div className={density + " text-gray-600"}>Edge vs 50/50: {Number.isFinite(probA) ? (probA - 50).toFixed(1) + "%" : "—"}</div>
-              </div>
-              <div className="rounded-lg border p-3">
-                <div className="text-sm text-gray-500">Chance {B || "—"} beats {A || "—"}</div>
-                <div className="text-2xl font-extrabold">{fmt1(probB)}</div>
-                <div className={density + " text-gray-600"}>Fair odds: {toAmerican(probB)}</div>
-                <div className={density + " text-gray-600"}>Edge vs 50/50: {Number.isFinite(probB) ? (probB - 50).toFixed(1) + "%" : "—"}</div>
-              </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1">Driver B</label>
+              <select value={B} onChange={(e) => setB(e.target.value)} className="w-full border rounded-md px-3 py-2 text-sm">
+                {drivers.map((d) => <option key={`B-${d}`} value={d}>{d}</option>)}
+              </select>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => { const a=A,b=B; setA(b); setB(a); }} className="mt-5 px-3 py-2 text-sm rounded-lg border bg-white hover:bg-gray-50">
+                Swap
+              </button>
             </div>
           </div>
 
-          {/* Heatmap table */}
+          {/* Result cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+            <div className="rounded-lg border p-3">
+              <div className="text-sm text-gray-500">Chance {A || "—"} beats {B || "—"}</div>
+              <div className="text-2xl font-extrabold">{fmt1(probA)}</div>
+              <div className={density + " text-gray-600"}>Fair odds: {toAmerican(probA)}</div>
+              <div className={density + " text-gray-600"}>Edge vs 50/50: {Number.isFinite(probA) ? (probA - 50).toFixed(1) + "%" : "—"}</div>
+            </div>
+            <div className="rounded-lg border p-3">
+              <div className="text-sm text-gray-500">Chance {B || "—"} beats {A || "—"}</div>
+              <div className="text-2xl font-extrabold">{fmt1(probB)}</div>
+              <div className={density + " text-gray-600"}>Fair odds: {toAmerican(probB)}</div>
+              <div className={density + " text-gray-600"}>Edge vs 50/50: {Number.isFinite(probB) ? (probB - 50).toFixed(1) + "%" : "—"}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {loading && <div className="text-sm text-gray-600">Loading…</div>}
+      {err && <div className="text-sm text-red-600">Failed to load: {String(err)}</div>}
+
+      {/* Heatmap table */}
+      {!loading && !err && !!drivers.length && (
+        <>
           <div className="rounded-xl border bg-white shadow-sm overflow-auto" style={{ maxHeight }}>
-            <table className="w-full table-fixed border-separate" style={{ borderSpacing: 0 }}>
+            <table
+              className="w-full border-separate"
+              style={{ borderSpacing: 0, fontSize: `${fontPx}px`, lineHeight: 1.15, minWidth: `${drivers.length * (colW + 2)}px` }}
+            >
+              <colgroup>
+                <col style={{ width: `${Math.max(160, 140 * zoom)}px` }} />
+                {drivers.map((d) => <col key={`colw-${d}`} style={{ width: `${colW}px` }} />)}
+              </colgroup>
+
               <thead className="sticky top-0 z-20 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/60">
                 <tr>
-                  <th className={`px-2 py-1 ${density} font-semibold text-left sticky left-0 bg-white border-b`}>Driver</th>
+                  <th
+                    className="font-semibold text-left sticky left-0 bg-white border-b"
+                    style={{ padding: `${padY}px ${padX}px` }}
+                  >
+                    Driver
+                  </th>
                   {drivers.map((d) => (
-                    <th key={`h2h-col-${d}`} className={`px-2 py-1 ${density} font-semibold border-b text-center`}>{d}</th>
+                    <th
+                      key={`h2h-col-${d}`}
+                      className="font-semibold border-b text-center"
+                      style={{ padding: `${padY}px ${padX}px`, whiteSpace: "nowrap" }}
+                      title={d}
+                    >
+                      {d}
+                    </th>
                   ))}
                 </tr>
               </thead>
+
               <tbody>
                 {drivers.map((rd, i) => {
                   const zebra = i % 2 ? "bg-gray-50/60" : "bg-white";
                   return (
                     <tr key={`row-${rd}`} className="hover:bg-blue-50/60 transition-colors">
-                      <td className={`px-2 py-1 ${density} font-medium sticky left-0 ${zebra} border-r`}>{rd}</td>
+                      <td
+                        className={`font-medium sticky left-0 ${zebra} border-r`}
+                        style={{ padding: `${padY}px ${padX}px` }}
+                      >
+                        {rd}
+                      </td>
+
                       {drivers.map((cd) => {
                         const v = rd === cd ? "" : grid?.[rd]?.[cd];
                         const p = Number.isFinite(v) ? v : (Number.isFinite(grid?.[cd]?.[rd]) ? 100 - grid[cd][rd] : NaN);
@@ -615,11 +649,12 @@ function H2HMatrixTool({ source, compact = false, maxHeight = "62vh" }) {
                           bg = `rgba(${r}, ${g}, 0, 0.12)`;
                         }
                         const isPick = (rd === A && cd === B) || (rd === B && cd === A);
+
                         return (
                           <td
                             key={`cell-${rd}-${cd}`}
-                            className={`px-2 py-1 ${density} text-center border-b tabular-nums ${isPick ? "ring-2 ring-blue-400 ring-inset" : ""}`}
-                            style={{ backgroundColor: Number.isFinite(p) ? bg : undefined }}
+                            className={`text-center border-b tabular-nums ${isPick ? "ring-2 ring-blue-400 ring-inset" : ""}`}
+                            style={{ backgroundColor: Number.isFinite(p) ? bg : undefined, padding: `${padY}px ${padX}px` }}
                             title={Number.isFinite(p) ? `${rd} vs ${cd}: ${p.toFixed(1)}%` : ""}
                             onClick={() => { if (rd !== cd) { setA(rd); setB(cd); } }}
                           >
@@ -634,7 +669,7 @@ function H2HMatrixTool({ source, compact = false, maxHeight = "62vh" }) {
             </table>
           </div>
           <div className="mt-2 text-[11px] text-gray-500">
-            Cells show <span className="font-medium">row driver’s</span> win % vs the column driver (click a cell to set A vs B).
+            Use the Zoom slider to scale cells and text. Headers + first column stay frozen while you scroll.
           </div>
         </>
       )}
@@ -820,7 +855,7 @@ function FinishDistTable({ source, compact = false, maxHeight = "62vh" }) {
                         "sticky top-0 z-30 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/60",
                         "font-semibold border-b border-gray-200",
                         c === "Driver" ? "text-left" : "text-center",
-                        compact ? "px-1 py-1 text-[11px]" : "px-2 py-1 text-xs",
+                        densityHead,
                       ].join(" ")}
                       title={c}
                     >
@@ -848,7 +883,7 @@ function FinishDistTable({ source, compact = false, maxHeight = "62vh" }) {
                         className={[
                           "border-b border-gray-100 tabular-nums",
                           c === "Driver" ? "text-left" : "text-center",
-                          compact ? "px-1 py-1 text-[11px]" : "px-2 py-1 text-xs",
+                          densityRow,
                         ].join(" ")}
                       >
                         {c === "Driver" ? (r?.Driver ?? "") : fmtPct(r?.[c])}
@@ -891,7 +926,7 @@ export default function CupBetting() {
   ];
 
   const [active, setActive] = useState("driver");
-  const [compact, setCompact] = useState(true); // default ON to make tables denser
+  const [compact, setCompact] = useState(true); // default ON
   const toggleCompact = () => setCompact((v) => !v);
 
   return (
@@ -927,16 +962,13 @@ export default function CupBetting() {
         </div>
       </div>
 
-      {/* Tab content (bounded width) */}
-      <div className="max-w-[1200px] mx-auto">
+      {/* Tab content — H2H gets a wider container */}
+      <div className={active === "h2h" ? "max-w-[min(1600px,95vw)] mx-auto" : "max-w-[1200px] mx-auto"}>
         {active === "driver" && (
           <BettingTableBlock title="Betting Dashboard (Driver Sims)" source={MAIN} compact={compact} maxHeight="70vh" />
         )}
-
         {active === "mfg" && <ManufacturerSections source={EXTRA} compact={compact} />}
-
-        {active === "h2h" && <H2HMatrixTool source={H2H} compact={compact} maxHeight="70vh" />}
-
+        {active === "h2h" && <H2HMatrixTool source={H2H} compact={compact} maxHeight="78vh" />}
         {active === "finish" && <FinishDistTable source={FINISH} compact={compact} maxHeight="70vh" />}
       </div>
     </div>
