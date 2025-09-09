@@ -253,6 +253,19 @@ function useOutsideClick(ref, onClose) {
   }, [ref, onClose]);
 }
 
+/* ============================ HEATMAP (O/U & Imp Total) ============================ */
+
+// which columns to color (use keynorm for robust matching)
+const HEAT_TARGETS = new Set([keynorm("O/U"), keynorm("Imptotal"), keynorm("Imp Total")]);
+
+// simple red→green scale (low=red, high=green)
+function heatColor(min, max, v) {
+  if (v == null || !Number.isFinite(v) || min == null || max == null || min === max) return null;
+  const t = Math.max(0, Math.min(1, (v - min) / (max - min))); // 0..1
+  const hue = 0 + t * 120; // 0=red → 120=green
+  return `hsl(${hue}, 75%, 92%)`; // light pastel background so text stays legible
+}
+
 /* ============================ MAIN ============================ */
 
 export default function NflPosData({ pos = "QB" }) {
@@ -303,19 +316,39 @@ export default function NflPosData({ pos = "QB" }) {
     });
   }, [data, q, selected]);
 
-// start with dummy, update once we know columns
-const [sort, setSort] = useState({ key: "Player", dir: "asc" });
+  // min/max for heat columns based on filtered rows
+  const heatStats = useMemo(() => {
+    const stats = {};
+    if (!filtered.length) return stats;
+    const cols = Object.keys(filtered[0] || {});
+    for (const col of cols) {
+      if (!HEAT_TARGETS.has(keynorm(col))) continue;
+      let min = Infinity, max = -Infinity;
+      for (const row of filtered) {
+        const n = parseNumericLike(row[col]);
+        if (n == null) continue;
+        if (n < min) min = n;
+        if (n > max) max = n;
+      }
+      if (min !== Infinity && max !== -Infinity) stats[col] = { min, max };
+    }
+    return stats;
+  }, [filtered]);
 
-useEffect(() => {
-  if (!columns || columns.length === 0) return;
-  // try to find DK Sal column
-  const dkSalKey = columns.find((c) => /\bdk\s*sal(ary)?\b/i.test(String(c)));
-  if (dkSalKey) {
-    setSort({ key: dkSalKey, dir: "desc" }); // highest → lowest
-  } else {
-    setSort({ key: columns[0], dir: "asc" }); // fallback
-  }
-}, [columns]);
+  // start with dummy, update once we know columns
+  const [sort, setSort] = useState({ key: "Player", dir: "asc" });
+
+  useEffect(() => {
+    if (!columns || columns.length === 0) return;
+    // try to find DK Sal column
+    const dkSalKey = columns.find((c) => /\bdk\s*sal(ary)?\b/i.test(String(c)));
+    if (dkSalKey) {
+      setSort({ key: dkSalKey, dir: "desc" }); // highest → lowest
+    } else {
+      setSort({ key: columns[0], dir: "asc" }); // fallback
+    }
+  }, [columns]);
+
   const onSort = (keyName) => {
     setSort((prev) =>
       prev.key === keyName ? { key: keyName, dir: prev.dir === "asc" ? "desc" : "asc" } : { key: keyName, dir: "desc" }
@@ -499,6 +532,14 @@ useEffect(() => {
                         ? "border-r-2 border-blue-300"
                         : "border-r border-blue-200";
 
+                    // compute heat background if this column is O/U or Imp Total
+                    const numVal = parseNumericLike(raw);
+                    const isHeat = HEAT_TARGETS.has(keynorm(c));
+                    const bg =
+                      isHeat && heatStats[c]
+                        ? heatColor(heatStats[c].min, heatStats[c].max, numVal)
+                        : null;
+
                     // Freeze the 2nd column (i === 1) with a sticky inner div
                     if (i === 1) {
                       return (
@@ -517,11 +558,12 @@ useEffect(() => {
                       );
                     }
 
-                    // All other columns unchanged
+                    // All other columns (with optional heat bg)
                     return (
                       <td
                         key={`${c}-${rIdx}`}
                         className={[cellCls, isPlayer ? "text-left font-medium" : "text-center", borders].join(" ")}
+                        style={bg ? { backgroundColor: bg } : undefined}
                       >
                         {content}
                       </td>
