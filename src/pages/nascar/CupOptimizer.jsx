@@ -262,42 +262,85 @@ async function fetchFirstOk(paths, init) {
 
 /* ----------------------------- server calls ----------------------------- */
 async function solveStream(payload, onItem, onDone) {
-  const res = await fetch(`${API_BASE}/cup/solve_stream`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...payload, series: "cup" }), // harmless even if server ignores it
-  });
-  if (!res.ok || !res.body) throw new Error("Stream failed to start");
+  // Try the primary streaming endpoint first
+  let res;
+  try {
+    res = await fetch(`${API_BASE}/cup/solve_stream`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      // harmless hint if backend ignores it
+      body: JSON.stringify({ ...payload, series: "cup" }),
+    });
+  } catch (_) {
+    res = null;
+  }
 
+  // If streaming couldn't start, fall back to batch immediately
+  if (!res || !res.ok || !res.body) {
+    const attempt = await fetchFirstOk([...CUP_POST_PATHS, "solve"], {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...payload, series: "cup" }),
+    });
+    if (!attempt) throw new Error("Solve failed: No working Cup endpoint found.");
+
+    const j = await attempt.res.json();
+    (j.lineups || []).forEach((L) => onItem && onItem(L));
+    onDone && onDone({ produced: (j.lineups || []).length, reason: "fallback-complete" });
+    return;
+  }
+
+  // --- Read the streaming body (newline-delimited JSON, "\n\n" separated) ---
   const reader = res.body.getReader();
   const decoder = new TextDecoder("utf-8");
   let buf = "";
+  let sawAny = false;
 
   while (true) {
     const { value, done } = await reader.read();
     if (done) break;
+
     buf += decoder.decode(value, { stream: true });
     const parts = buf.split("\n\n");
-    buf = parts.pop();
+    buf = parts.pop(); // keep partial
+
     for (const part of parts) {
-      if (!part.trim()) continue;
+      const trimmed = part.trim();
+      if (!trimmed) continue;
+
       try {
-        const msg = JSON.parse(part);
-        if (msg.done) onDone && onDone(msg);
-        else onItem && onItem(msg);
-      } catch {}
+        const msg = JSON.parse(trimmed);
+        sawAny = true;
+
+        if (msg.done) {
+          // ✅ Important: stop here so we DON'T run the batch fallback after success
+          onDone && onDone(msg);
+          return;
+        } else {
+          onItem && onItem(msg);
+        }
+      } catch {
+        // ignore parse blips; keep reading
+      }
     }
   }
 
+  // If the stream ended without a {done:true}, use non-streaming fallback once
+  if (!sawAny) {
+    const attempt = await fetchFirstOk([...CUP_POST_PATHS, "solve"], {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...payload, series: "cup" }),
+    });
+    if (!attempt) throw new Error("Solve failed: No working Cup endpoint found.");
 
-  // If streaming path didn’t work, fallback to non-streaming
-  const attempt2 = await probeAndPostCup(payload, { streaming: false });
-  if (!attempt2.res.ok) {
-    throw new Error(`Fallback solve failed with HTTP ${attempt2.res.status}`);
+    const j = await attempt.res.json();
+    (j.lineups || []).forEach((L) => onItem && onItem(L));
+    onDone && onDone({ produced: (j.lineups || []).length, reason: "fallback-complete" });
+  } else {
+    // We got some items but never saw an explicit done; still finish cleanly.
+    onDone && onDone({ produced: undefined, reason: "stream-ended-no-done" });
   }
-  const j = await attempt2.res.json();
-  (j.lineups || []).forEach((L) => onItem && onItem(L));
-  onDone && onDone({ produced: (j.lineups || []).length, reason: "fallback-complete" });
 }
 
 
