@@ -1243,7 +1243,7 @@ export default function MLBOptimizer() {
           {/* Lineup Cards */}
           <section className="lg:col-span-12">
             <h3 className="text-base font-semibold mb-2">Cards</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {lineups.map((L, idx) => (
                 <LineupCard
                   key={idx}
