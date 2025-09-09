@@ -26,7 +26,7 @@ from openpyxl import load_workbook
 THIS = Path(__file__).resolve()
 ROOT = THIS.parents[1]  # repo root (should contain /public)
 
-DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\NFL\NFL Week 1 Classic.xlsm"
+DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\NFL\NFL Week 2 Classic.xlsm"
 DEFAULT_PROJ   = str(ROOT)
 DEFAULT_CONFIG = str(ROOT / "scripts" / "configs" / "nfl_classic.json")
 
