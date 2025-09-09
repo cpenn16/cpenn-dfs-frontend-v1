@@ -947,8 +947,12 @@ async function optimize() {
       bringback_teams: Array.isArray(t.bringback_teams) ? t.bringback_teams : undefined,
       max_from_team: String(t.max_from_team).trim() === "" ? undefined : Math.max(1, Number(t.max_from_team) || 1),
     })),
-    team_max_pct: teamMaxPct,
-    max_lineup_pown_pct: lineupCap == null ? null : lineupCap,
+      team_max_pct: Object.keys(teamMaxPct || {}).reduce((acc, k) => {
+        acc[k] = clamp(Number((teamMaxPct || {})[k]) || 0, 0, 100);
+        return acc;
+      }, {}),
+      max_lineup_pown_pct: lineupCap == null ? null : lineupCap,
+
   };
 
   const out = [];
@@ -1672,7 +1676,6 @@ async function optimize() {
                   <td className={`${cell} tabular-nums`}>{fmt1(r.val)}</td>
                   <td className={`${cell} tabular-nums`}>{fmt1(r.floor)}</td>
                   <td className={`${cell} tabular-nums`}>{fmt1(r.ceil)}</td>
-                  <td className={`${cell} tabular-nums`}>{fmt1(r.pown * 100)}</td>
                   <td className={`${cell} tabular-nums`}>{fmt1(r.pown * 100)}</td>
                   <td className={`${cell} tabular-nums`}>{fmt1(r.opt * 100)}</td>
                   <td className={cell}>
