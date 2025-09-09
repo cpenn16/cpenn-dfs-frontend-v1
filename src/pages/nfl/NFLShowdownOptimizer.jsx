@@ -1,9 +1,10 @@
 // src/pages/nfl/NFLShowdownOptimizer.jsx
-// FULL DROP-IN — v4.0.0 (adds Player Groups for Showdown)
+// FULL DROP-IN — v4.0.0 (+ pOWN% columns + lineup pOWN% totals on list & cards)
 // Includes:
 // - Player Groups UI (at least / at most / exactly N of selected players)
 // - End-to-end wiring to /solve_showdown_stream (payload.groups)
-// - Everything else from your posted v3.9.5 (unchanged unless noted)
+// - pOWN% column before Proj on Cards, and a summed pOWN% total
+// - Lineups list gains "Total pOWN%" column (shows cap if set)
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API_BASE from "../../utils/api";
@@ -636,6 +637,18 @@ export default function NFLShowdownOptimizer() {
     const total = lineups.length || 1;
     return [...shapes.entries()].map(([shape, c]) => ({ shape, count: c, pct: +(100*c/total).toFixed(1) })).sort((a,b)=>b.count-a.count);
   }, [lineups, rows]);
+
+  /* -------- helper: lineup summed pOWN% (players, slot-aware) ------ */
+  const lineupPownSumPercent = (L) => {
+    const rowsMap = new Map(rows.map((r) => [r.name, r]));
+    let sum = 0;
+    (L.players || []).forEach((n, i) => {
+      const r = rowsMap.get(n);
+      if (!r) return;
+      sum += ((i === 0 ? r.cap_pown : r.pown) || 0) * 100;
+    });
+    return sum;
+  };
 
   /* ---------------------------- render ------------------------------ */
   const selectBuild = (idx) => { setActiveBuild(idx); if (builds[idx]) setLineups(builds[idx].lineups || []); };
@@ -1302,23 +1315,30 @@ export default function NFLShowdownOptimizer() {
                   <tr>
                     <th className={header}>#</th>
                     <th className={header}>Salary</th>
+                    <th className={header}>
+                      {`Total pOWN%${String(lineupPownCap).trim() !== "" ? ` (≤ ${lineupPownCap})` : ""}`}
+                    </th>
                     <th className={header}>Total {totalLabel}</th>
                     <th className={header + " text-left"}>Players</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {lineups.map((L, i) => (
-                    <tr key={i} className="odd:bg-white even:bg-gray-50">
-                      <td className={cell}>{i + 1}</td>
-                      <td className={`${cell} tabular-nums`}>{fmt0(L.salary)}</td>
-                      <td className={`${cell} tabular-nums`}>{fmt1(L.total)}</td>
-                      <td className={`${cell} leading-snug text-left`}>
-                        <span className="break-words">
-                          {L.players[0]} ({cfg.capTag}) • {L.players.slice(1).join(" • ")}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {lineups.map((L, i) => {
+                    const totalPown = lineupPownSumPercent(L);
+                    return (
+                      <tr key={i} className="odd:bg-white even:bg-gray-50">
+                        <td className={cell}>{i + 1}</td>
+                        <td className={`${cell} tabular-nums`}>{fmt0(L.salary)}</td>
+                        <td className={`${cell} tabular-nums`}>{fmt1(totalPown)}</td>
+                        <td className={`${cell} tabular-nums`}>{fmt1(L.total)}</td>
+                        <td className={`${cell} leading-snug text-left`}>
+                          <span className="break-words">
+                            {L.players[0]} ({cfg.capTag}) • {L.players.slice(1).join(" • ")}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -1328,51 +1348,61 @@ export default function NFLShowdownOptimizer() {
           <div className={`${cls.card} p-3`}>
             <div className="font-semibold mb-2">Cards</div>
             <div className="grid md:grid-cols-2 gap-4">
-              {lineups.map((L, idx) => (
-                <div key={idx} className="rounded-xl border border-gray-200 shadow-sm">
-                  <div className="px-3 py-2 text-sm font-semibold">Lineup #{idx + 1}</div>
-                  <table className={`w-full ${textSz}`}>
-                    <thead>
-                      <tr>
-                        <th className={header}>Slot</th>
-                        <th className={header + " text-left"}>Player</th>
-                        <th className={header}>Proj</th>
-                        <th className={header}>Sal</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {L.players.map((n, i) => {
-                        const metaRow = rows.find((r) => r.name === n);
-                        if (!metaRow)
+              {lineups.map((L, idx) => {
+                const rowsMap = new Map(rows.map((r) => [r.name, r]));
+                let totalPown = 0;
+                return (
+                  <div key={idx} className="rounded-xl border border-gray-200 shadow-sm">
+                    <div className="px-3 py-2 text-sm font-semibold">Lineup #{idx + 1}</div>
+                    <table className={`w-full ${textSz}`}>
+                      <thead>
+                        <tr>
+                          <th className={header}>Slot</th>
+                          <th className={header + " text-left"}>Player</th>
+                          <th className={header}>pOWN%</th>
+                          <th className={header}>Proj</th>
+                          <th className={header}>Sal</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {L.players.map((n, i) => {
+                          const metaRow = rowsMap.get(n);
+                          if (!metaRow)
+                            return (
+                              <tr key={`${n}-${i}`} className="odd:bg-white even:bg-gray-50">
+                                <td className={cell}>{i === 0 ? cfg.capTag : "FLEX"}</td>
+                                <td className="px-2 py-1 text-left">{n}</td>
+                                <td className={cell}>—</td>
+                                <td className={cell}>—</td>
+                                <td className={cell}>—</td>
+                              </tr>
+                            );
+                          const proj = i === 0 ? metaRow.cap_proj : metaRow.proj;
+                          const sal = i === 0 ? metaRow.cap_salary : metaRow.salary;
+                          const pownPct = ((i === 0 ? metaRow.cap_pown : metaRow.pown) || 0) * 100;
+                          totalPown += pownPct;
                           return (
                             <tr key={`${n}-${i}`} className="odd:bg-white even:bg-gray-50">
                               <td className={cell}>{i === 0 ? cfg.capTag : "FLEX"}</td>
                               <td className="px-2 py-1 text-left">{n}</td>
-                              <td className={`${cell}`}>—</td>
-                              <td className={`${cell}`}>—</td>
+                              <td className={cell}>{fmt1(pownPct)}</td>
+                              <td className={cell}>{fmt1(proj)}</td>
+                              <td className={cell}>{fmt0(sal)}</td>
                             </tr>
                           );
-                        const proj = i === 0 ? metaRow.cap_proj : metaRow.proj;
-                        const sal = i === 0 ? metaRow.cap_salary : metaRow.salary;
-                        return (
-                          <tr key={`${n}-${i}`} className="odd:bg-white even:bg-gray-50">
-                            <td className={cell}>{i === 0 ? cfg.capTag : "FLEX"}</td>
-                            <td className="px-2 py-1 text-left">{n}</td>
-                            <td className={cell}>{fmt1(proj)}</td>
-                            <td className={cell}>{fmt0(sal)}</td>
-                          </tr>
-                        );
-                      })}
-                      <tr className="bg-gray-50 font-medium">
-                        <td className={cell}>Totals</td>
-                        <td className="px-2 py-1"></td>
-                        <td className={cell}>{fmt1(L.total)}</td>
-                        <td className={cell}>{fmt0(L.salary)}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              ))}
+                        })}
+                        <tr className="bg-gray-50 font-medium">
+                          <td className={cell}>Totals</td>
+                          <td className="px-2 py-1"></td>
+                          <td className={cell}>{fmt1(totalPown)}</td>
+                          <td className={cell}>{fmt1(L.total)}</td>
+                          <td className={cell}>{fmt0(L.salary)}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
