@@ -170,9 +170,12 @@ async function solveStreamMLB(payload, onItem, onDone) {
     body: JSON.stringify(payload)
   });
   if (!res.ok || !res.body) throw new Error("Stream failed");
+
   const reader = res.body.getReader();
   const decoder = new TextDecoder("utf-8");
   let buf = "";
+  let doneSeen = false;
+
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
@@ -184,11 +187,18 @@ async function solveStreamMLB(payload, onItem, onDone) {
       if (!line) continue;
       try {
         const evt = JSON.parse(line.slice(6));
-        if (evt.done) onDone?.(evt);
-        else onItem?.(evt);
+        if (evt.done) {
+          doneSeen = true;
+          onDone?.(evt);
+        } else {
+          onItem?.(evt);
+        }
       } catch {}
     }
   }
+
+  // If server closed without an explicit final event, still signal completion.
+  if (!doneSeen) onDone?.({ produced: null, reason: "stream-ended" });
 }
 
 /* ---------------- CSV + ID helpers (DK/FD) ------------------------- */
@@ -536,89 +546,100 @@ export default function MLBOptimizer() {
     setLocks(new Set()); setExcls(new Set()); setMinPct({}); setMaxPct({}); setBoost({});
   };
 
-  /* --------------------------- optimize (SSE) ------------------------ */
-  async function optimize() {
-    if (!rows.length) return;
-    setLineups([]); setStopInfo(null); setProgressActual(0); setProgressUI(0); setIsOptimizing(true);
+/* --------------------------- optimize (SSE) ------------------------ */
+async function optimize() {
+  if (!rows.length) return;
+  setLineups([]); 
+  setStopInfo(null); 
+  setProgressActual(0); 
+  setProgressUI(0); 
+  setIsOptimizing(true);
 
-    const N = Math.max(1, Number(numLineups) || 1);
-    const capVal = Math.min(cfg.cap, Number(maxSalary) || cfg.cap);
+  const N = Math.max(1, Number(numLineups) || 1);
+  const capVal = Math.min(cfg.cap, Number(maxSalary) || cfg.cap);
 
-    // limit hitters to selected stack teams, pitchers always allowed
-    const allowedHittersOnly = onlyUseStackTeams && stackSet.size > 0;
-    const playerPool = allowedHittersOnly
-      ? rows.filter(r => r.isPitcher || stackSet.has(r.team))
-      : rows;
+  const payload = {
+    site,
+    slots: cfg.slots,
+    players: rows.map((r) => ({
+      name: r.name, team: r.team, opp: r.opp, eligible: r.eligible,
+      salary: Math.round(r.salary || 0),
+      proj: r.proj || 0, floor: r.floor || 0, ceil: r.ceil || 0,
+      pown: r.pown || 0, opt: r.opt || 0,
+    })),
+    n: N,
+    cap: capVal,
+    objective: optBy,
+    locks: Array.from(locks),
+    excludes: Array.from(excls),
+    boosts: boost,
+    randomness: clamp(Number(randomness) || 0, 0, 100),
+    global_max_pct: clamp(Number(globalMax) || 100, 0, 100),
+    min_pct: Object.fromEntries(
+      Object.entries(minPct).map(([k, v]) => [k, clamp(Number(v) || 0, 0, 100)])
+    ),
+    max_pct: Object.fromEntries(
+      Object.entries(maxPct).map(([k, v]) => [k, clamp(Number(v) || 100, 0, 100)])
+    ),
+    min_diff: Math.max(1, Number(minDiff) || 1),
+    time_limit_ms: 1500,
+    primary_stack_size: Math.max(0, Number(primaryStack) || 0),
+    secondary_stack_size: Math.max(0, Number(secondaryStack) || 0),
+    avoid_hitters_vs_opp_pitcher: !!avoidHittersVsOppP,
+    max_hitters_vs_opp_pitcher: Math.max(0, Number(maxHittersVsOppP) || 0),
+    lineup_pown_max:
+      String(lineupPownCap).trim() === ""
+        ? null
+        : clamp(Number(lineupPownCap) || 0, 0, 500),
+    min_distinct_teams: site === "fd" ? 3 : 2,
+    // ✅ Backend enforces hitter team restriction
+    allowed_teams: onlyUseStackTeams ? Array.from(stackSet) : [],
+  };
 
-    const payload = {
-      site,
-      slots: cfg.slots,
-      players: playerPool.map((r) => ({
-        name: r.name, team: r.team, opp: r.opp, eligible: r.eligible,
-        salary: Math.round(r.salary || 0),
-        proj: r.proj || 0, floor: r.floor || 0, ceil: r.ceil || 0,
-        pown: r.pown || 0, opt: r.opt || 0,
-      })),
-      n: N,
-      cap: capVal,
-      objective: optBy,
-      locks: Array.from(locks),
-      excludes: Array.from(excls),
-      boosts: boost,
-      randomness: clamp(Number(randomness) || 0, 0, 100),
-      global_max_pct: clamp(Number(globalMax) || 100, 0, 100),
-      min_pct: Object.fromEntries(Object.entries(minPct).map(([k, v]) => [k, clamp(Number(v) || 0, 0, 100)])),
-      max_pct: Object.fromEntries(Object.entries(maxPct).map(([k, v]) => [k, clamp(Number(v) || 100, 0, 100)])),
-      min_diff: Math.max(1, Number(minDiff) || 1),
-      time_limit_ms: 1500,
-      primary_stack_size: Math.max(0, Number(primaryStack) || 0),
-      secondary_stack_size: Math.max(0, Number(secondaryStack) || 0),
-      avoid_hitters_vs_opp_pitcher: !!avoidHittersVsOppP,
-      max_hitters_vs_opp_pitcher: Math.max(0, Number(maxHittersVsOppP) || 0),
-      lineup_pown_max: String(lineupPownCap).trim() === "" ? null : clamp(Number(lineupPownCap)||0, 0, 500),
-      min_distinct_teams: site === "fd" ? 3 : 2,
-      allowed_teams: onlyUseStackTeams ? Array.from(stackSet) : [],
-    };
-
-    const out = [];
-    try {
-      await solveStreamMLB(
-        payload,
-        (evt) => {
-          const L = { players: evt.drivers, salary: evt.salary, total: evt.total };
-          out.push(L);
-          setLineups((prev) => [...prev, L]);
-          setProgressActual(out.length);
-        },
-        (done) => {
-          if (done?.reason) setStopInfo(done);
-          setProgressActual(out.length || payload.n);
-          setProgressUI(out.length || payload.n);
-          setIsOptimizing(false);
-          clearInterval(tickRef.current);
-        }
-      );
-    } catch (e) {
-      const res = await fetch(`${API_BASE}/solve_mlb`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        alert(`Solve failed: ${await res.text()}`);
+  const out = [];
+  try {
+    await solveStreamMLB(
+      payload,
+      (evt) => {
+        const L = { players: evt.drivers, salary: evt.salary, total: evt.total };
+        out.push(L);
+        setLineups((prev) => [...prev, L]);
+        setProgressActual(out.length);
+      },
+      (done) => {
+        if (done?.reason) setStopInfo(done);
+        setProgressActual(out.length || payload.n);
+        setProgressUI(out.length || payload.n);
         setIsOptimizing(false);
         clearInterval(tickRef.current);
-        return;
       }
-      const j = await res.json();
-      const raw = (j.lineups || []).map((L) => ({ players: L.drivers, salary: L.salary, total: L.total })) || [];
-      setLineups(raw);
-      setProgressActual(raw.length);
-      setProgressUI(raw.length);
+    );
+  } catch (e) {
+    const res = await fetch(`${API_BASE}/solve_mlb`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      alert(`Solve failed: ${await res.text()}`);
       setIsOptimizing(false);
       clearInterval(tickRef.current);
+      return;
     }
+    const j = await res.json();
+    const raw =
+      (j.lineups || []).map((L) => ({
+        players: L.drivers,
+        salary: L.salary,
+        total: L.total,
+      })) || [];
+    setLineups(raw);
+    setProgressActual(raw.length);
+    setProgressUI(raw.length);
+    setIsOptimizing(false);
+    clearInterval(tickRef.current);
   }
+}
 
   /* ------------------------------- UI -------------------------------- */
   const metricLabel =
