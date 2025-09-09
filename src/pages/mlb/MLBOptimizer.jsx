@@ -1002,13 +1002,16 @@ export default function MLBOptimizer() {
                   <tr>
                     <th className={header}>#</th>
                     <th className={header}>Salary</th>
-                    <th className={header}>Total pOWN%</th>
+                    <th className={header}>
+                      {`Total pOWN%${String(lineupPownCap).trim() !== "" ? ` (≤ ${lineupPownCap})` : ""}`}
+                    </th>
                     <th className={header}>
                       Total {optBy === "pown" || optBy === "opt" ? "Projection" : metricLabel}
                     </th>
                     <th className={header}>Players</th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {lineups.map((L, i) => {
                     const rowsByName = new Map(rows.map((r) => [r.name, r]));
