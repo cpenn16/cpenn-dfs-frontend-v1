@@ -9,7 +9,7 @@
       "Time": "10:10 PM",
       "Proj": "14.9",
       "Value": "1.65",
-      "pOWN": "18.5%"
+      "pOWN": "19.2%"
     },
     {
       "Player": "Zebby Matthews",
@@ -20,7 +20,7 @@
       "Time": "9:38 PM",
       "Proj": "14.2",
       "Value": "1.84",
-      "pOWN": "21.3%"
+      "pOWN": "22.1%"
     },
     {
       "Player": "Spencer Strider",
@@ -31,7 +31,7 @@
       "Time": "7:15 PM",
       "Proj": "13.4",
       "Value": "1.52",
-      "pOWN": "10.2%"
+      "pOWN": "10.6%"
     },
     {
       "Player": "Robbie Ray",
@@ -42,7 +42,7 @@
       "Time": "9:45 PM",
       "Proj": "14.3",
       "Value": "1.50",
-      "pOWN": "13.0%"
+      "pOWN": "13.5%"
     }
   ],
   "C": [
@@ -55,7 +55,7 @@
       "Time": "10:05 PM",
       "Proj": "11.2",
       "Value": "2.10",
-      "pOWN": "14.6%"
+      "pOWN": "15.6%"
     },
     {
       "Player": "Will Smith",
@@ -66,18 +66,18 @@
       "Time": "10:10 PM",
       "Proj": "10.1",
       "Value": "2.02",
-      "pOWN": "10.3%"
+      "pOWN": "11.0%"
     },
     {
-      "Player": "Mickey Gasper",
-      "Salary": "2200",
-      "Team": "MIN",
-      "Opp": "LAA",
-      "Vegas": "4.5",
-      "Time": "9:38 PM",
-      "Proj": "5",
-      "Value": "2.27",
-      "pOWN": "4.5%"
+      "Player": "Tyler Stephenson",
+      "Salary": "3400",
+      "Team": "CIN",
+      "Opp": "SD",
+      "Vegas": "3.9",
+      "Time": "9:40 PM",
+      "Proj": "6.9",
+      "Value": "2.02",
+      "pOWN": "4.3%"
     }
   ],
   "1B": [
@@ -263,7 +263,7 @@
       "Time": "7:40 PM",
       "Proj": "8.7",
       "Value": "2.42",
-      "pOWN": "7.9%"
+      "pOWN": "7.8%"
     },
     {
       "Player": "Pete Crow-Armstrong",
@@ -307,7 +307,7 @@
       "Time": "10:05 PM",
       "Proj": "9.0",
       "Value": "2.30",
-      "pOWN": "7.6%"
+      "pOWN": "8.2%"
     },
     {
       "Player": "Joc Pederson",
@@ -331,7 +331,7 @@
       "Time": "10:10 PM",
       "Proj": "14.9",
       "Value": "1.65",
-      "pOWN": "18.5%"
+      "pOWN": "19.2%"
     },
     {
       "Player": "Shohei Ohtani",
@@ -366,7 +366,7 @@
       "Time": "10:10 PM",
       "Proj": "91.11",
       "Value": "2.29",
-      "pOWN": "10.4%"
+      "pOWN": "10.5%"
     },
     {
       "Team": "TB",
@@ -381,14 +381,14 @@
     },
     {
       "Team": "MIN",
-      "Salary": "3490",
+      "Salary": "3633.3",
       "Opp": "LAA",
       "Opp Pitcher": "Kyle Hendricks",
       "Vegas": "4.5",
       "Time": "9:38 PM",
-      "Proj": "73.18",
-      "Value": "2.33",
-      "pOWN": "5.2%"
+      "Proj": "68.18",
+      "Value": "2.09",
+      "pOWN": "5.3%"
     },
     {
       "Team": "NYY",
@@ -399,7 +399,7 @@
       "Time": "7:05 PM",
       "Proj": "71.08",
       "Value": "1.69",
-      "pOWN": "3.4%"
+      "pOWN": "3.5%"
     },
     {
       "Team": "ATH",
@@ -410,7 +410,7 @@
       "Time": "10:05 PM",
       "Proj": "71.04",
       "Value": "1.95",
-      "pOWN": "5.9%"
+      "pOWN": "6.0%"
     },
     {
       "Team": "ATL",
@@ -421,18 +421,18 @@
       "Time": "7:15 PM",
       "Proj": "69.03",
       "Value": "1.97",
-      "pOWN": "4.4%"
+      "pOWN": "4.5%"
     },
     {
       "Team": "LAA",
-      "Salary": "3377.8",
+      "Salary": "3450",
       "Opp": "MIN",
       "Opp Pitcher": "Zebby Matthews",
       "Vegas": "4.5",
       "Time": "9:38 PM",
-      "Proj": "68.44",
-      "Value": "2.25",
-      "pOWN": "6.5%"
+      "Proj": "62.85",
+      "Value": "2.02",
+      "pOWN": "6.9%"
     },
     {
       "Team": "BOS",
@@ -443,7 +443,7 @@
       "Time": "10:05 PM",
       "Proj": "67.64",
       "Value": "1.88",
-      "pOWN": "4.8%"
+      "pOWN": "4.9%"
     },
     {
       "Team": "TOR",
@@ -454,7 +454,7 @@
       "Time": "7:07 PM",
       "Proj": "65.73",
       "Value": "1.96",
-      "pOWN": "4.0%"
+      "pOWN": "4.1%"
     }
   ]
 }
