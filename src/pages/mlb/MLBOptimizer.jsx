@@ -1316,6 +1316,7 @@ function LineupCard({ idx, names, rows, site, total, salary }) {
           <tr className="text-gray-600">
             <th className="px-2 py-1 font-semibold text-center">Slot</th>
             <th className="px-2 py-1 font-semibold text-left">Player</th>
+            <th className="px-2 py-1 font-semibold text-center">pOWN%</th>
             <th className="px-2 py-1 font-semibold text-center">Proj</th>
             <th className="px-2 py-1 font-semibold text-center">Salary</th>
           </tr>
@@ -1325,6 +1326,7 @@ function LineupCard({ idx, names, rows, site, total, salary }) {
             <tr key={r.name} className="odd:bg-white even:bg-gray-50">
               <td className="px-2 py-1 text-center">{slotLabels[i] || "—"}</td>
               <td className="px-2 py-1">{r.name}</td>
+              <td className="px-2 py-1 text-center">{fmt1((r.pown || 0) * 100)}</td>
               <td className="px-2 py-1 text-center">{fmt1(r.proj)}</td>
               <td className="px-2 py-1 text-center">{fmt0(r.salary)}</td>
             </tr>
@@ -1332,6 +1334,7 @@ function LineupCard({ idx, names, rows, site, total, salary }) {
           <tr className="border-t bg-gray-50">
             <td className="px-2 py-1 font-semibold text-center">Totals</td>
             <td />
+            <td /> {/* empty for pOWN% total */}
             <td className="px-2 py-1 font-semibold text-center">{fmt1(total)}</td>
             <td className="px-2 py-1 font-semibold text-center">{fmt0(salary)}</td>
           </tr>
