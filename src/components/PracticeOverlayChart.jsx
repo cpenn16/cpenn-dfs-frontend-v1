@@ -1,331 +1,374 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import {
   ResponsiveContainer,
   LineChart,
   Line,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   Legend,
-  ReferenceLine,
+  CartesianGrid,
+  LabelList,
 } from "recharts";
 
-/** Tiny helpers */
+/* -------------------- helpers -------------------- */
 const num = (v) => {
-  if (v === null || v === undefined) return NaN;
-  const n = Number(String(v).replace(/[, ]/g, ""));
+  const n = Number(String(v).replace(/[,\s]/g, ""));
   return Number.isFinite(n) ? n : NaN;
 };
-const numericColName = (c) => /^\d+$/.test(String(c));
-const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+const isNumericKey = (k) => /^\d+$/.test(String(k));
+const inferDriverKey = (row) =>
+  Object.keys(row || {}).find((k) => /^driver\b/i.test(k)) || "Driver";
 
-/** Moving average (window must be odd: 3,5,7…) */
-function smooth(arr, key, win = 3) {
-  if (!Array.isArray(arr) || win <= 1) return arr;
-  const half = Math.floor(win / 2);
-  const out = arr.map((p, i) => {
-    let sum = 0, cnt = 0;
-    for (let k = i - half; k <= i + half; k++) {
-      if (k >= 0 && k < arr.length) {
-        const v = num(arr[k][key]);
-        if (Number.isFinite(v)) { sum += v; cnt++; }
-      }
-    }
-    return { ...p, [key]: cnt ? sum / cnt : p[key] };
-  });
-  return out;
-}
+// stable color from string
+const hashColor = (s) => {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  // higher contrast palette-ish HSL
+  return `hsl(${h % 360} 70% 45%)`;
+};
 
-/** Basic distinct palette that stays readable on white */
-const PALETTE = [
-  "#2563eb", "#16a34a", "#dc2626", "#9333ea", "#ea580c", "#0891b2",
-  "#7c3aed", "#059669", "#e11d48", "#3b82f6", "#0ea5e9", "#f59e0b",
-  "#10b981", "#ef4444", "#8b5cf6",
-];
+// dash pattern to help differentiate similar hues
+const dashFor = (s) => {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) >>> 0;
+  const idx = h % 4;
+  return ["", "6 4", "3 4", "2 2"][idx];
+};
 
-/**
- * PracticeOverlayChart
- * Props:
- *  - rows: array of selected driver rows (each row has lap columns "1","2",…)
- *  - driverKey: column name for driver (e.g., "Driver_1")
- *  - maxLap: default X max (e.g., 100)
- *  - maxLapTime: default Y max cap (e.g., 40)
- */
-export default function PracticeOverlayChart({
-  rows = [],
-  driverKey = "Driver_1",
-  maxLap = 100,
-  maxLapTime = 40,
-}) {
-  /** ---------- Controls (zoom / focus) ---------- */
-  const [height, setHeight] = useState(360);               // px
-  const [xMax, setXMax] = useState(maxLap || 100);         // laps
-  const [yMax, setYMax] = useState(maxLapTime || 40);      // sec cap
-  const [maWin, setMaWin] = useState(1);                   // 1 = off, 3,5 on
-  const [normalize, setNormalize] = useState(false);
+const niceDomain = (vals, pad = 0.02) => {
+  if (!vals.length) return [0, 1];
+  let lo = Math.min(...vals);
+  let hi = Math.max(...vals);
+  if (lo === hi) {
+    lo -= 0.1;
+    hi += 0.1;
+  }
+  const span = hi - lo;
+  return [lo - span * pad, hi + span * pad];
+};
 
-  const reset = () => {
-    setHeight(360);
-    setXMax(maxLap || 100);
-    setYMax(maxLapTime || 40);
-    setMaWin(1);
-    setNormalize(false);
-  };
-
-  /** ---------- Transform input rows → series ---------- */
-  const series = useMemo(() => {
-    return rows.map((r, idx) => {
-      const name = r?.[driverKey] ?? `Driver ${idx + 1}`;
-      // Collect (lap, time) pairs from numeric lap columns
-      const laps = Object.entries(r || {})
-        .filter(([k, v]) => numericColName(k) && Number(k) >= 1)
-        .map(([k, v]) => ({ lap: Number(k), t: num(v) }))
-        .filter((p) => Number.isFinite(p.t))
-        .sort((a, b) => a.lap - b.lap);
-
-      // Optional normalize by driver's best time (delta vs min)
-      let adj = laps;
-      if (normalize && laps.length) {
-        const best = Math.min(...laps.map((p) => p.t));
-        adj = laps.map((p) => ({ ...p, t: p.t - best }));
-      }
-
-      // Optional smoothing
-      const smoothed = maWin > 1 ? smooth(adj, "t", maWin) : adj;
-
-      // Trim by xMax
-      const trimmed = smoothed.filter((p) => p.lap <= xMax);
-
-      return {
-        name,
-        color: PALETTE[idx % PALETTE.length],
-        data: trimmed,
-      };
-    });
-  }, [rows, driverKey, xMax, maWin, normalize]);
-
-  /** Build a unified dataset so each X tick has values per series */
-  const chartData = useMemo(() => {
-    const maxLapSeen = Math.max(
-      xMax,
-      ...series.map((s) => (s.data.length ? s.data[s.data.length - 1].lap : 0))
-    );
-    const map = new Map(); // lap -> object
-    for (let L = 1; L <= maxLapSeen; L++) map.set(L, { lap: L });
-
-    series.forEach((s, idx) => {
-      s.data.forEach(({ lap, t }) => {
-        const row = map.get(lap);
-        row[`y${idx}`] = t;
-      });
-    });
-
-    return [...map.values()].filter((row) => row.lap <= xMax);
-  }, [series, xMax]);
-
-  /** Determine y-domain with cap */
-  const yDomain = useMemo(() => {
-    // When normalized, show a tight domain that still respects cap
-    if (normalize) {
-      let maxVal = 0;
-      series.forEach((s, idx) => {
-        s.data.forEach(({ t }) => { if (Number.isFinite(t)) maxVal = Math.max(maxVal, t); });
-      });
-      return [0, clamp(Math.ceil(maxVal * 10) / 10, 2, yMax)];
-    }
-    // Non-normalized: start a bit under min (or 0 if that makes more sense)
-    let minV = Infinity, maxV = -Infinity;
-    series.forEach((s) => {
-      s.data.forEach(({ t }) => {
-        if (Number.isFinite(t)) {
-          minV = Math.min(minV, t);
-          maxV = Math.max(maxV, t);
-        }
-      });
-    });
-    if (!(minV < Infinity)) return [0, yMax];
-    const lo = Math.max(0, Math.floor((minV - 0.3) * 10) / 10);
-    const hi = Math.min(yMax, Math.ceil((maxV + 0.2) * 10) / 10);
-    return [lo, hi];
-  }, [series, yMax, normalize]);
-
-  /** ---------- Export PNG (serialize the SVG) ---------- */
-  const svgRef = useRef(null);
-  const downloadPNG = () => {
-    // Recharts renders a single <svg> inside the container
-    const svg = svgRef.current?.querySelector("svg");
-    if (!svg) return;
-
-    const s = new XMLSerializer().serializeToString(svg);
-    const blob = new Blob([s], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const r = svg.getBoundingClientRect();
-      canvas.width = Math.max(800, Math.floor(r.width));
-      canvas.height = Math.max(300, Math.floor(r.height));
-      const ctx = canvas.getContext("2d");
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      URL.revokeObjectURL(url);
-
-      canvas.toBlob((png) => {
-        if (!png) return;
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(png);
-        a.download = "practice_overlay.png";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      });
-    };
-    img.src = url;
-  };
+/* -------------------- custom tooltip -------------------- */
+function OverlayTooltip({ active, payload, label }) {
+  if (!active || !payload || !payload.length) return null;
+  // payload contains one entry per Line (each with its dataKey value)
+  const rows = payload
+    .map((p) => ({
+      name: p.name,
+      color: p.color || p.stroke,
+      value: p.value,
+      avg: p.payload?.[`__avg_${p.name}`], // attached by chartData builder
+    }))
+    .filter((r) => Number.isFinite(r.value))
+    .sort((a, b) => a.value - b.value); // lower = better
 
   return (
-    <section className="rounded-xl border bg-white shadow-sm p-3">
-      {/* Controls */}
-      <div className="flex flex-wrap gap-3 items-center mb-3">
-        <div className="text-sm font-semibold">Overlay Controls</div>
-
-        <label className="flex items-center gap-2 text-xs">
-          Height
-          <input
-            type="range" min="200" max="520" step="10"
-            value={height}
-            onChange={(e) => setHeight(Number(e.target.value))}
-          />
-          <span className="tabular-nums w-10 text-right">{height}px</span>
-        </label>
-
-        <label className="flex items-center gap-2 text-xs">
-          X max lap
-          <input
-            type="range" min="10" max="200" step="1"
-            value={xMax}
-            onChange={(e) => setXMax(Number(e.target.value))}
-          />
-          <span className="tabular-nums w-8 text-right">{xMax}</span>
-        </label>
-
-        <label className="flex items-center gap-2 text-xs">
-          Y cap (s)
-          <input
-            type="range" min="20" max="60" step="0.5"
-            value={yMax}
-            onChange={(e) => setYMax(Number(e.target.value))}
-          />
-          <span className="tabular-nums w-10 text-right">{yMax.toFixed(1)}</span>
-        </label>
-
-        <label className="flex items-center gap-2 text-xs">
-          Smooth
-          <select
-            className="border rounded px-2 py-1 text-xs"
-            value={maWin}
-            onChange={(e) => setMaWin(Number(e.target.value))}
-          >
-            <option value={1}>Off</option>
-            <option value={3}>MA(3)</option>
-            <option value={5}>MA(5)</option>
-          </select>
-        </label>
-
-        <label className="flex items-center gap-2 text-xs">
-          <input type="checkbox" checked={normalize} onChange={(e) => setNormalize(e.target.checked)} />
-          Normalize (Δ vs best)
-        </label>
-
-        <button
-          onClick={reset}
-          className="ml-auto px-3 py-1.5 text-xs rounded-md border bg-white hover:bg-gray-50"
+    <div
+      style={{
+        background: "rgba(255,255,255,0.95)",
+        border: "1px solid #e5e7eb",
+        boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+        padding: "8px 10px",
+        borderRadius: 8,
+        fontSize: 12,
+      }}
+    >
+      <div style={{ fontWeight: 700, marginBottom: 4 }}>Lap {label}</div>
+      {rows.map((r) => (
+        <div
+          key={r.name}
+          style={{ display: "flex", alignItems: "center", gap: 8, lineHeight: 1.4 }}
         >
-          Reset
-        </button>
-        <button
-          onClick={downloadPNG}
-          className="px-3 py-1.5 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-700"
-        >
-          Export PNG
-        </button>
-      </div>
-
-      {/* Legend */}
-      {!!rows.length && (
-        <div className="flex flex-wrap gap-3 mb-2">
-          {rows.map((r, idx) => (
-            <div key={idx} className="flex items-center gap-2 text-xs">
-              <span
-                className="inline-block w-3 h-3 rounded-sm"
-                style={{ backgroundColor: PALETTE[idx % PALETTE.length] }}
-              />
-              <span className="text-gray-800">{r?.[driverKey] ?? `Driver ${idx + 1}`}</span>
-            </div>
-          ))}
+          <span
+            style={{
+              width: 10,
+              height: 10,
+              borderRadius: 10,
+              background: r.color,
+              display: "inline-block",
+            }}
+          />
+          <span style={{ minWidth: 130 }}>{r.name}</span>
+          <span style={{ color: "#111827", fontVariantNumeric: "tabular-nums" }}>
+            {r.value.toFixed(2)} s
+          </span>
+          {Number.isFinite(r.avg) && (
+            <span style={{ marginLeft: 8, color: "#6b7280", fontVariantNumeric: "tabular-nums" }}>
+              avg {r.avg.toFixed(2)} s
+            </span>
+          )}
         </div>
-      )}
+      ))}
+    </div>
+  );
+}
 
-      {/* Chart */}
-      <div ref={svgRef} style={{ width: "100%", height }}>
-        <ResponsiveContainer>
-          <LineChart
-            data={chartData}
-            margin={{ top: 10, right: 16, bottom: 10, left: 0 }}
+/* -------------------- custom legend -------------------- */
+function LegendList({ payload = [], onHover, onLeave, onToggle, pinned, avgs }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 14,
+        paddingTop: 6,
+      }}
+    >
+      {payload.map((p) => {
+        const name = p.value;
+        const color = p.color || p.payload?.stroke || "#555";
+        const isPinned = pinned === name;
+        const avg = avgs?.get(name);
+        return (
+          <button
+            key={name}
+            onMouseEnter={() => onHover(name)}
+            onMouseLeave={() => onLeave()}
+            onClick={() => onToggle(name)}
+            title={isPinned ? "Click to unpin" : "Click to pin highlight"}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              border: `1px solid ${isPinned ? color : "#e5e7eb"}`,
+              background: isPinned ? "rgba(0,0,0,0.02)" : "white",
+              padding: "6px 8px",
+              borderRadius: 999,
+              cursor: "pointer",
+              fontSize: 12,
+              lineHeight: 1,
+            }}
           >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="lap"
-              allowDecimals={false}
-              type="number"
-              domain={[1, xMax]}
-              tickCount={Math.min(10, xMax)}
-              label={{ value: "Lap", position: "insideBottom", offset: -6 }}
-            />
-            <YAxis
-              type="number"
-              domain={yDomain}
-              tickCount={8}
-              label={{
-                value: normalize ? "Δ Time vs Best (s)" : "Lap Time (s)",
-                angle: -90,
-                position: "insideLeft",
-                offset: 10,
+            <span
+              style={{
+                width: 12,
+                height: 12,
+                borderRadius: 12,
+                background: color,
+                display: "inline-block",
               }}
             />
-            <Tooltip
-              formatter={(v) => (Number.isFinite(v) ? Number(v).toFixed(3) + " s" : "")}
-              labelFormatter={(l) => `Lap ${l}`}
-            />
-            {!normalize && (
-              <ReferenceLine y={yMax} stroke="#ef4444" strokeDasharray="4 4" label={{ value: `Cap ${yMax.toFixed(1)}s`, fill: "#ef4444", fontSize: 11 }} />
+            <span>{name}</span>
+            {Number.isFinite(avg) && (
+              <span style={{ color: "#6b7280", fontVariantNumeric: "tabular-nums" }}>
+                — avg {avg.toFixed(2)}s
+              </span>
             )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
-            {series.map((s, idx) => (
-              <Line
-                key={s.name}
-                type={maWin > 1 ? "monotone" : "linear"}
-                dataKey={`y${idx}`}
-                name={s.name}
-                stroke={s.color}
-                strokeWidth={2}
-                dot={false}
-                connectNulls
-                isAnimationActive={false}
-              />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
+/* -------------------- chart -------------------- */
+export default function PracticeOverlayChart({ rows, driverKey: dk }) {
+  const driverKey = dk || (rows?.length ? inferDriverKey(rows[0]) : "Driver");
+
+  // Controls for excluding junk laps and overly long runs
+  const [maxTime, setMaxTime] = useState(30); // seconds
+  const [maxLap, setMaxLap] = useState(80); // lap number
+
+  // highlight control
+  const [hovered, setHovered] = useState(null);
+  const [pinned, setPinned] = useState(null);
+  const highlight = pinned || hovered || null;
+
+  const togglePin = useCallback(
+    (name) => setPinned((p) => (p === name ? null : name)),
+    []
+  );
+
+  const series = useMemo(() => {
+    const out = [];
+    for (const r of rows || []) {
+      const name = r?.[driverKey];
+      if (!name) continue;
+
+      const pts = Object.entries(r)
+        .filter(([k]) => isNumericKey(k))
+        .map(([k, v]) => ({ lap: Number(k), time: num(v) }))
+        .filter((p) => Number.isFinite(p.time) && p.time > 0)
+        .filter((p) => (!maxLap || p.lap <= maxLap) && (!maxTime || p.time <= maxTime))
+        .sort((a, b) => a.lap - b.lap);
+
+      if (pts.length >= 2) {
+        const avg =
+          pts.reduce((s, p) => s + p.time, 0) / (pts.length || 1);
+        out.push({
+          name,
+          color: hashColor(name),
+          dash: dashFor(name),
+          data: pts,
+          last: pts[pts.length - 1],
+          avg,
+        });
+      }
+    }
+    return out;
+  }, [rows, driverKey, maxLap, maxTime]);
+
+  // map of name -> avg (for legend)
+  const avgMap = useMemo(() => {
+    const m = new Map();
+    for (const s of series) m.set(s.name, s.avg);
+    return m;
+  }, [series]);
+
+  // overall average across all plotted points
+  const overallAvg = useMemo(() => {
+    const all = series.flatMap((s) => s.data.map((p) => p.time));
+    if (!all.length) return NaN;
+    return all.reduce((a, b) => a + b, 0) / all.length;
+  }, [series]);
+
+  const times = useMemo(
+    () => series.flatMap((s) => s.data.map((p) => p.time)),
+    [series]
+  );
+  const yDomain = niceDomain(times);
+
+  // Build a “shared” data array so we can attach each line’s avg to tooltip rows
+  const chartData = useMemo(() => {
+    const maxX = Math.max(...series.map((s) => (s.data.at(-1)?.lap ?? 0)), maxLap || 0);
+    const rows = [];
+    for (let L = 0; L <= maxX; L++) {
+      const row = { lap: L };
+      series.forEach((s) => {
+        const pt = s.data.find((p) => p.lap === L);
+        if (pt) row[s.name] = pt.time;
+        row[`__avg_${s.name}`] = s.avg;
+      });
+      rows.push(row);
+    }
+    return rows;
+  }, [series, maxLap]);
+
+  return (
+    <div className="rounded-xl shadow bg-white p-4">
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <div className="text-sm font-semibold">
+          Practice Lap Times — Overlay ({series.length} driver{series.length === 1 ? "" : "s"})
+        </div>
+        <div className="flex items-center gap-2 ml-auto">
+          {Number.isFinite(overallAvg) && (
+            <div className="text-xs text-gray-600 mr-3" title="Average of all plotted laps">
+              Avg (plotted): <span className="font-semibold tabular-nums">{overallAvg.toFixed(2)}s</span>
+            </div>
+          )}
+          <label className="text-sm text-gray-700" htmlFor="maxLapTime">Max lap time (s):</label>
+          <input id="maxLapTime"
+            type="number"
+            step="0.1"
+            min="0"
+            value={maxTime}
+            onChange={(e) => setMaxTime(Number(e.target.value))}
+            className="border rounded-md px-2 py-1 w-24"
+          />
+          <label className="text-sm text-gray-700 ml-3" htmlFor="maxLapNumber">Max lap #:</label>
+          <input id="maxLapNumber"
+            type="number"
+            min="1"
+            value={maxLap}
+            onChange={(e) => setMaxLap(Number(e.target.value))}
+            className="border rounded-md px-2 py-1 w-24"
+          />
+        </div>
       </div>
 
-      {!rows.length && (
-        <div className="text-xs text-gray-500 mt-2">
-          Select drivers in the table to plot them here.
-        </div>
+      {series.length === 0 ? (
+        <div className="text-sm text-gray-600">Select drivers in the table above to plot.</div>
+      ) : (
+        <>
+          <div style={{ width: "100%", height: 520 }}>
+            <ResponsiveContainer>
+              <LineChart data={chartData} margin={{ top: 10, right: 28, bottom: 30, left: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  type="number"
+                  dataKey="lap"
+                  allowDecimals={false}
+                  domain={[0, maxLap || "dataMax"]}
+                  label={{ value: "Lap Number", position: "insideBottom", offset: -5 }}
+                />
+                <YAxis
+                  type="number"
+                  domain={yDomain}
+                  label={{ value: "Lap Time (s)", angle: -90, position: "insideLeft" }}
+                />
+                <Tooltip content={<OverlayTooltip />} />
+                <Legend
+                  verticalAlign="bottom"
+                  align="center"
+                  content={(props) => (
+                    <LegendList
+                      {...props}
+                      onHover={setHovered}
+                      onLeave={() => setHovered(null)}
+                      onToggle={togglePin}
+                      pinned={pinned}
+                      avgs={avgMap}
+                    />
+                  )}
+                />
+
+                {series.map((s) => {
+                  const faded = highlight && highlight !== s.name;
+                  const strokeOpacity = faded ? 0.25 : 1;
+                  const width = faded ? 2 : 3; // bolder when highlighted
+                  return (
+                    <Line
+                      key={s.name}
+                      dataKey={s.name}
+                      name={s.name}
+                      stroke={s.color}
+                      strokeOpacity={strokeOpacity}
+                      strokeWidth={width}
+                      strokeDasharray={s.dash}
+                      dot={false}
+                      isAnimationActive={false}
+                      onMouseEnter={() => setHovered(s.name)}
+                      onMouseLeave={() => setHovered(null)}
+                    >
+                      <LabelList
+                        dataKey={s.name}
+                        position="right"
+                        content={({ x, y, value }) => {
+                          const isLast = value === s.last.time && s.last.lap <= (maxLap || s.last.lap);
+                          if (!isLast || x == null || y == null) return null;
+                          return (
+                            <g>
+                              <rect
+                                x={x + 6}
+                                y={y - 9}
+                                rx={4}
+                                ry={4}
+                                width={Math.max(40, s.name.length * 6.5)}
+                                height={18}
+                                fill="rgba(255,255,255,0.9)"
+                                stroke="rgba(0,0,0,0.06)"
+                              />
+                              <text
+                                x={x + 10}
+                                y={y + 4}
+                                fontSize={12}
+                                fill={s.color}
+                                style={{ pointerEvents: "none", fontWeight: 600 }}
+                              >
+                                {s.name}
+                              </text>
+                            </g>
+                          );
+                        }}
+                      />
+                    </Line>
+                  );
+                })}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </>
       )}
-    </section>
+    </div>
   );
 }
