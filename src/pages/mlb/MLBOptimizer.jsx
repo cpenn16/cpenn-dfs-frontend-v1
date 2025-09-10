@@ -1301,54 +1301,87 @@ function orderPlayersForSite(site, names, rowsMap) {
 function LineupCard({ idx, names, rows, site, total, salary }) {
   const rowsMap = useMemo(() => new Map(rows.map((r) => [r.name, r])), [rows]);
   const ordered = orderPlayersForSite(site, names, rowsMap);
-  const slotLabels = site === "dk"
-    ? ["P","P","C","1B","2B","3B","SS","OF","OF","OF"]
-    : ["P","C/1B","2B","3B","SS","OF","OF","OF","UTIL"];
 
-  // compute total pOWN% (sum of player pOWN% × 100)
+  const slotLabels =
+    site === "dk"
+      ? ["P","P","C","1B","2B","3B","SS","OF","OF","OF"]
+      : ["P","C/1B","2B","3B","SS","OF","OF","OF","UTIL"];
+
+  // Sum of player pOWN% (displayed as percent)
   const totalPown = ordered.reduce((s, r) => s + ((r.pown || 0) * 100), 0);
+
+  // Helper to get batting order for hitters (dash for pitchers)
+  const getBattingOrder = (r) => {
+    if (r.isPitcher) return "—";
+    const raw = r.__raw || {};
+    const bo =
+      raw.battingOrder ?? raw.BattingOrder ?? raw.bo ?? raw.BO ??
+      raw.lineupOrder ?? raw.LineupOrder ?? raw.order ?? raw.Order ??
+      raw.batting_order ?? raw.LineupSpot ?? raw.spot;
+    return (bo ?? "—");
+  };
 
   return (
     <div className="rounded-lg border p-3 bg-white">
       <div className="flex items-center justify-between mb-2">
         <div className="font-semibold">Lineup #{idx + 1}</div>
-        <img src={SITES[site].logo} alt="" className="w-4 h-4 opacity-70" title={SITES[site].label} />
+        <img
+          src={SITES[site].logo}
+          alt=""
+          className="w-4 h-4 opacity-70"
+          title={SITES[site].label}
+        />
       </div>
+
       <table className="w-full text-[12px]">
         <thead>
           <tr className="text-gray-600">
             <th className="px-2 py-1 font-semibold text-center">Slot</th>
+            <th className="px-2 py-1 font-semibold text-center">Batting Order</th>
             <th className="px-2 py-1 font-semibold text-left">Player</th>
+            <th className="px-2 py-1 font-semibold text-center">Team</th>
             <th className="px-2 py-1 font-semibold text-center">pOWN%</th>
             <th className="px-2 py-1 font-semibold text-center">Proj</th>
             <th className="px-2 py-1 font-semibold text-center">Salary</th>
           </tr>
         </thead>
+
         <tbody>
           {ordered.map((r, i) => (
             <tr key={r.name} className="odd:bg-white even:bg-gray-50">
               <td className="px-2 py-1 text-center">{slotLabels[i] || "—"}</td>
-              <td className="px-2 py-1">
-                <div className="flex items-center gap-2">
-                  <span>{r.name}</span>
-                  {r.team ? (
-                    <span
-                      className="px-1.5 py-0.5 rounded text-[11px]"
-                      style={chipStyle(r.team)}
-                      title={r.team}
-                    >
-                      {r.team}
-                    </span>
-                  ) : null}
-                </div>
+
+              {/* Batting Order */}
+              <td className="px-2 py-1 text-center">{getBattingOrder(r)}</td>
+
+              {/* Player */}
+              <td className="px-2 py-1">{r.name}</td>
+
+              {/* Team */}
+              <td className="px-2 py-1 text-center">
+                {r.team ? (
+                  <span
+                    className="px-1.5 py-0.5 rounded text-[11px]"
+                    style={chipStyle(r.team)}
+                    title={r.team}
+                  >
+                    {r.team}
+                  </span>
+                ) : "—"}
               </td>
+
+              {/* pOWN / Proj / Salary */}
               <td className="px-2 py-1 text-center">{fmt1((r.pown || 0) * 100)}</td>
               <td className="px-2 py-1 text-center">{fmt1(r.proj)}</td>
               <td className="px-2 py-1 text-center">{fmt0(r.salary)}</td>
             </tr>
           ))}
+
+          {/* Totals row (pad with empty cells for Batting Order, Player, Team) */}
           <tr className="border-t bg-gray-50">
             <td className="px-2 py-1 font-semibold text-center">Totals</td>
+            <td />
+            <td />
             <td />
             <td className="px-2 py-1 font-semibold text-center">{fmt1(totalPown)}</td>
             <td className="px-2 py-1 font-semibold text-center">{fmt1(total)}</td>
