@@ -310,16 +310,6 @@ function heatColor(min, max, v, dir, palette) {
   }
 }
 
-function legendStyle(palette) {
-  if (palette === "blueorange") {
-    return { background: "linear-gradient(90deg, hsl(220,60%,90%) 0%, hsl(0,0%,97%) 50%, hsl(30,85%,90%) 100%)" };
-  }
-  if (palette === "none") {
-    return { background: "linear-gradient(90deg, #f3f4f6, #e5e7eb)" };
-  }
-  return { background: "linear-gradient(90deg, hsl(0,78%,94%) 0%, hsl(60,88%,92%) 50%, hsl(120,70%,94%) 100%)" };
-}
-
 /* ============================ MAIN ============================ */
 
 export default function NflPosData({ pos = "QB" }) {
@@ -328,8 +318,8 @@ export default function NflPosData({ pos = "QB" }) {
   const title = TITLES[key] || "NFL — Data";
   const { data, loading, err } = useJson(src);
 
-  // palette control (no density toggle; compact-only)
-  const [palette, setPalette] = useState("rdylgn");
+  // palette control — DEFAULT: none
+  const [palette, setPalette] = useState("none");
 
   const rawCols = useMemo(() => (data.length ? Object.keys(data[0]) : []), [data]);
   const { columns, bands } = useMemo(() => buildColumnsAndBandsForPos(key, rawCols), [key, rawCols]);
@@ -443,20 +433,20 @@ export default function NflPosData({ pos = "QB" }) {
   const headerCls = `${HEADER_PAD} font-semibold text-center whitespace-nowrap cursor-pointer select-none`;
 
   return (
-    <div className="px-4 md:px-6 py-5">
-      <div className="flex items-center justify-between gap-3 mb-2">
+    <div className="px-3 md:px-6 py-4 md:py-5">
+      <div className="flex items-start md:items-center justify-between gap-3 mb-2 flex-col md:flex-row">
         <div className="flex items-baseline gap-3">
-          <h1 className="text-2xl md:text-3xl font-extrabold">{title}</h1>
-          <div className="text-sm text-gray-600">
+          <h1 className="text-xl md:text-3xl font-extrabold">{title}</h1>
+          <div className="text-xs md:text-sm text-gray-600">
             {loading ? "Loading…" : err ? `Error: ${err}` : `${sorted.length.toLocaleString()} rows`}
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Player picker */}
           <div className="relative" ref={pickerRef}>
             <button
-              className="h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm hover:bg-slate-50"
+              className="h-8 md:h-9 rounded-lg border border-slate-300 bg-white px-2.5 md:px-3 text-xs md:text-sm hover:bg-slate-50"
               onClick={() => setPickerOpen((v) => !v)}
             >
               {selected.size === 0 ? "All players" : `${selected.size} selected`}
@@ -501,31 +491,26 @@ export default function NflPosData({ pos = "QB" }) {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search player / team / opp…"
-            className="h-9 w-72 rounded-lg border border-slate-300 px-3 text-sm focus:ring-2 focus:ring-indigo-500"
+            className="h-8 md:h-9 w-44 md:w-72 rounded-lg border border-slate-300 px-2 md:px-3 text-xs md:text-sm focus:ring-2 focus:ring-indigo-500"
           />
 
-          {/* palette selector */}
-          <div className="hidden md:flex items-center gap-2">
-            <label className="text-xs text-slate-600">Palette</label>
+          {/* palette selector (default None) */}
+          <div className="flex items-center gap-1 md:gap-2">
+            <label className="text-xs text-slate-600 hidden md:block">Palette</label>
             <select
               value={palette}
               onChange={(e) => setPalette(e.target.value)}
               className="h-8 rounded-lg border px-2 text-xs"
             >
+              <option value="none">None</option>
               <option value="rdylgn">Rd–Yl–Gn</option>
               <option value="blueorange">Blue–Orange</option>
-              <option value="none">None</option>
             </select>
           </div>
         </div>
       </div>
 
-      {/* legend */}
-      <div className="mt-1 mb-2 text-[11px] text-slate-500 flex items-center gap-2">
-        <span>Lower ⟶ Higher</span>
-        <span className="h-3 w-28 rounded" style={legendStyle(palette)} />
-        <span className="ml-2">(color only when a palette is selected)</span>
-      </div>
+      {/* legend removed */}
 
       <div className={`${THEME.radius} border ${THEME.border} bg-white shadow-sm overflow-auto`}>
         <table className={`w-full border-separate ${TEXT_SZ}`} style={{ borderSpacing: 0 }}>

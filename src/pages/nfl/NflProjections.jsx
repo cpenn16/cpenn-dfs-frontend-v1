@@ -181,7 +181,7 @@ function TeamsDropdown({ allTeams, selected, onChange }) {
 
 /* ======================= HEATMAP: rules + palettes ======================= */
 
-/** Which columns get colored and in which direction */
+// Which columns get colored and in which direction
 function dirForKey(k) {
   if (/^(dk|fd)_(proj|val|opt|lev|rtg)$/i.test(k)) return "higher";
   if (/^(dk|fd)_pown$/i.test(k)) return "lower";
@@ -201,7 +201,6 @@ function heatColor(min, max, v, dir, palette) {
   t = Math.max(0, Math.min(1, t));
   if (dir === "lower") t = 1 - t;
 
-  // Blue → White → Orange, with orange = better
   if (palette === "blueorange") {
     if (t < 0.5) {
       const u = t / 0.5; // blue → white
@@ -221,33 +220,17 @@ function heatColor(min, max, v, dir, palette) {
   // Default: red → yellow → green
   if (t < 0.5) {
     const u = t / 0.5;
-    const h = 0 + u * 60; // red → yellow
+    const h = 0 + u * 60;
     const s = 78 + u * 10;
     const l = 94 - u * 2;
     return `hsl(${h}, ${s}%, ${l}%)`;
   } else {
     const u = (t - 0.5) / 0.5;
-    const h = 60 + u * 60; // yellow → green
+    const h = 60 + u * 60;
     const s = 88 - u * 18;
     const l = 92 + u * 2;
     return `hsl(${h}, ${s}%, ${l}%)`;
   }
-}
-
-function legendStyle(palette) {
-  if (palette === "blueorange") {
-    return {
-      background:
-        "linear-gradient(90deg, hsl(220,60%,90%) 0%, hsl(0,0%,97%) 50%, hsl(30,85%,90%) 100%)",
-    };
-  }
-  if (palette === "none") {
-    return { background: "linear-gradient(90deg, #f3f4f6, #e5e7eb)" };
-  }
-  return {
-    background:
-      "linear-gradient(90deg, hsl(0,78%,94%) 0%, hsl(60,88%,92%) 50%, hsl(120,70%,94%) 100%)",
-  };
 }
 
 /* ------------------------------- page -------------------------------- */
@@ -256,7 +239,7 @@ export default function NflProjections() {
 
   const [site, setSite] = useState("both"); // "dk" | "fd" | "both"
   const [q, setQ] = useState("");
-  const [palette, setPalette] = useState("rdylgn"); // rdylgn | blueorange | none
+  const [palette, setPalette] = useState("none"); // DEFAULT: None
 
   // position + team filters
   const posOptions = ["QB", "RB", "WR", "TE", "DST"];
@@ -373,29 +356,22 @@ export default function NflProjections() {
   /* styling */
   const cell = "px-2 py-1 text-center";
   const header = "px-2 py-1 font-semibold text-center";
-  const textSz = "text-[12px]";
+  const textSz = "text-[11px] md:text-[12px]";
 
   return (
-    <div className="px-4 md:px-6 py-5">
-      <div className="flex items-center justify-between gap-3 mb-2">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold mb-0.5">NFL — DFS Projections</h1>
-          <div className="mt-1 text-[11px] text-slate-500 flex items-center gap-2">
-            <span>Lower ⟶ Higher</span>
-            <span className="h-3 w-28 rounded" style={legendStyle(palette)} />
-            <span className="ml-2">(applies to projections/vals/opt/lev/rtg; pOWN% inverted)</span>
-          </div>
-        </div>
+    <div className="px-3 md:px-6 py-4 md:py-5">
+      <div className="flex items-start md:items-center justify-between gap-3 mb-2 flex-col md:flex-row">
+        <h1 className="text-xl md:text-3xl font-extrabold">NFL — DFS Projections</h1>
 
         {/* site toggle + filters + search + export */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* site toggle */}
           <div className="inline-flex items-center gap-2 rounded-xl bg-gray-100 p-1">
             {["dk", "fd", "both"].map((k) => (
               <button
                 key={k}
                 onClick={() => setSite(k)}
-                className={`px-3 py-1.5 rounded-lg text-sm inline-flex items-center gap-1 ${
+                className={`px-2.5 md:px-3 py-1.5 rounded-lg text-xs md:text-sm inline-flex items-center gap-1 ${
                   site === k ? "bg-white shadow font-semibold" : "text-gray-700"
                 }`}
               >
@@ -435,29 +411,30 @@ export default function NflProjections() {
 
           {/* search */}
           <input
-            className="h-9 w-64 rounded-lg border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="h-8 md:h-9 w-40 md:w-64 rounded-lg border border-gray-300 px-2 md:px-3 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Search player / team / opp…"
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
 
-          {/* palette */}
-          <div className="hidden md:flex items-center gap-2">
-            <label className="text-xs text-slate-600">Palette</label>
+          {/* palette (default None) */}
+          <div className="flex items-center gap-1 md:gap-2">
+            <label className="text-xs text-slate-600 hidden md:block">Palette</label>
             <select
               value={palette}
               onChange={(e) => setPalette(e.target.value)}
               className="h-8 rounded-lg border px-2 text-xs"
+              title="Cell coloring palette"
             >
+              <option value="none">None</option>
               <option value="rdylgn">Rd–Yl–Gn</option>
               <option value="blueorange">Blue–Orange</option>
-              <option value="none">None</option>
             </select>
           </div>
 
           {/* export */}
           <button
-            className="ml-1 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700"
+            className="px-3 py-2 rounded-lg bg-blue-600 text-white text-xs md:text-sm hover:bg-blue-700"
             onClick={() => downloadCSV(sorted, columns)}
           >
             Export CSV
