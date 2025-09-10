@@ -1,3 +1,4 @@
+// src/pages/nfl/NflPosDataShowdown.jsx (or your current file path)
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 /* ============================ CONFIG ============================ */
@@ -130,7 +131,6 @@ function TeamWithLogo({ code }) {
 }
 
 /* ============================ EXACT COLUMN ORDERS ============================ */
-/* Each item can be a string or an array of alias strings (we'll pick the first present). */
 
 const ORDER = {
   QB: {
@@ -138,68 +138,35 @@ const ORDER = {
     "Matchup Info": ["Team", "OPP", "Home", "Time"],
     Vegas: ["O/U", "Imp Total", "Spread"],
     "Player Stats (Per Game)": [
-      "Yards",
-      "TD",
-      ["Int", "INT"],
-      "Attempts",
-      "YPA",
-      ["Comp %", "Comp%"],
-      "Rush Yds",
-      "Rush Att",
-      "Rush TD",
-      "YPC",
-      "QBR",
+      "Yards","TD",["Int","INT"],"Attempts","YPA",["Comp %","Comp%"],
+      "Rush Yds","Rush Att","Rush TD","YPC","QBR",
     ],
-    Matchup: ["DK Pts", "Rank", "Yards", "TD", "INT", "R. Yds", "R. TD"],
+    Matchup: ["DK Pts","Rank","Yards","TD","INT","R. Yds","R. TD"],
   },
-
   RB: {
-    "Player Info": ["POS", "Player", "DK Sal", "FD Sal"],
-    "Matchup Info": ["Team", "OPP", "Home", "Time"],
-    Vegas: ["O/U", "Imp Total", "Spread"],
-    "Player Stats (Per Game)": [
-      "Rush Yds",
-      "Rush Att",
-      "Rush TD",
-      "YPC",
-      "Rec Yds",
-      "Targets",
-      "Rec",
-      "TD",
-      "Tgt Shr",
-      "Opr",
-    ],
-    Matchup: ["DK Pts", "Rank", "RuYds", "RuTD", "ReYds", "Rec", "ReTD"],
+    "Player Info": ["POS","Player","DK Sal","FD Sal"],
+    "Matchup Info": ["Team","OPP","Home","Time"],
+    Vegas: ["O/U","Imp Total","Spread"],
+    "Player Stats (Per Game)": ["Rush Yds","Rush Att","Rush TD","YPC","Rec Yds","Targets","Rec","TD","Tgt Shr","Opr"],
+    Matchup: ["DK Pts","Rank","RuYds","RuTD","ReYds","Rec","ReTD"],
   },
-
   WR: {
-    "Player Info": ["POS", "Player", "DK Sal", "FD Sal"],
-    "Matchup Info": ["Team", "OPP", "Home", "Time"],
-    Vegas: ["O/U", "Imp Total", "Line"],
-    "Player Stats (Per Game)": ["Rec Yds", "Rec", "Targets", "TD", "Tgt Shr", "MsAir", "adot"],
-    Matchup: ["DK Pts", "Rank", "Yards", "TD"],
+    "Player Info": ["POS","Player","DK Sal","FD Sal"],
+    "Matchup Info": ["Team","OPP","Home","Time"],
+    Vegas: ["O/U","Imp Total","Line"],
+    "Player Stats (Per Game)": ["Rec Yds","Rec","Targets","TD","Tgt Shr","MsAir","adot"],
+    Matchup: ["DK Pts","Rank","Yards","TD"],
   },
-
   TE: {
-    "Player Info": ["POS", "Player", "DK Sal", "FD Sal"],
-    "Matchup Info": ["Team", "OPP", "Home", "Time"],
-    Vegas: ["O/U", "Imp Total", "Line"],
-    "Player Stats (Per Game)": [
-      "Rec Yds",
-      "Rec",
-      "Targets",
-      "TD",
-      "Tgt Shr",
-      "Routes%",
-      "Block%",
-      "MsAir",
-      "adot",
-    ],
-    Matchup: ["DK Pts", "Rank", "Yards", "TD"],
+    "Player Info": ["POS","Player","DK Sal","FD Sal"],
+    "Matchup Info": ["Team","OPP","Home","Time"],
+    Vegas: ["O/U","Imp Total","Line"],
+    "Player Stats (Per Game)": ["Rec Yds","Rec","Targets","TD","Tgt Shr","Routes%","Block%","MsAir","adot"],
+    Matchup: ["DK Pts","Rank","Yards","TD"],
   },
 };
 
-const BAND_ORDER = ["Player Info", "Matchup Info", "Vegas", "Player Stats (Per Game)", "Matchup"]; // Factors omitted
+const BAND_ORDER = ["Player Info","Matchup Info","Vegas","Player Stats (Per Game)","Matchup"];
 
 // Map desired header -> actual column name in the data (handles aliases)
 function resolveOne(spec, rawCols, used) {
@@ -211,35 +178,118 @@ function resolveOne(spec, rawCols, used) {
   }
   return null;
 }
-
 function buildColumnsAndBandsForPos(pos, rawCols) {
   const spec = ORDER[pos] || {};
   const used = new Set();
   const buckets = new Map(BAND_ORDER.map((b) => [b, []]));
-
   for (const band of BAND_ORDER) {
     for (const item of spec[band] || []) {
       const real = resolveOne(item, rawCols, used);
-      if (real) {
-        buckets.get(band).push(real);
-        used.add(real);
-      }
+      if (real) { buckets.get(band).push(real); used.add(real); }
     }
   }
-
   const columns = BAND_ORDER.flatMap((b) => buckets.get(b));
   const bands = [];
   let start = 0;
   for (const b of BAND_ORDER) {
     const n = buckets.get(b).length;
-    if (n > 0) {
-      bands.push({ name: b, start, span: n });
-      start += n;
-    }
+    if (n > 0) { bands.push({ name: b, start, span: n }); start += n; }
   }
   const boundaries = new Set(bands.map((s) => s.start + s.span - 1));
   return { columns, bands, boundaries };
 }
+
+/* ============================ PALETTE (same rules as classic) ============================ */
+
+// Always heat O/U & Imp Total as higher = better
+const ALWAYS_HEAT_HIGH = [/^o\/u$/i, /^imp[\s._-]*total$/i];
+
+// Regex direction rules
+const DIR_RULES = [
+  // higher is better
+  { re: /^(yards?|yds)$/i, dir: "higher" },
+  { re: /^rec[\s._-]*yds$|^re[\s._-]*yds$|^ru[\s._-]*yds$|^rush[\s._-]*yds$/i, dir: "higher" },
+  { re: /^(td|ru[\s._-]*td|re[\s._-]*td|rush[\s._-]*td)$/i, dir: "higher" },
+  { re: /^ypa$/i, dir: "higher" },
+  { re: /^comp%$/i, dir: "higher" },
+  { re: /^rush[\s._-]*att$|^attempts?$/i, dir: "higher" },
+  { re: /^ypc$/i, dir: "higher" },
+  { re: /^qbr$/i, dir: "higher" },
+  { re: /^dk[\s._-]*pts?$/i, dir: "higher" },
+  { re: /^rank$/i, dir: "higher" },
+  { re: /^rec$/i, dir: "higher" },
+  { re: /^targets?$/i, dir: "higher" },
+  { re: /^tgt[\s._-]*shr$/i, dir: "higher" },
+  { re: /^opr$/i, dir: "higher" },
+  { re: /^adot$/i, dir: "higher" },
+  { re: /^msair$/i, dir: "higher" },
+  { re: /^routes%$/i, dir: "higher" },
+
+  // lower is better
+  { re: /^int$/i, dir: "lower" },
+  { re: /^r[\s._-]*yds$/i, dir: "lower" },  // defense allowed "R. Yds"
+  { re: /^r[\s._-]*td$/i, dir: "lower" },
+  { re: /^dk[\s._-]*sal(ary)?$/i, dir: "lower" },
+  { re: /^fd[\s._-]*sal(ary)?$/i, dir: "lower" },
+  { re: /^block%$/i, dir: "lower" },
+];
+
+function directionForColumn(colName) {
+  const k = String(colName).trim();
+  if (ALWAYS_HEAT_HIGH.some((rx) => rx.test(k))) return "higher";
+  for (const { re, dir } of DIR_RULES) if (re.test(k)) return dir;
+  return null;
+}
+
+// palette: 'rdylgn' (red→yellow→green), 'blueorange' (blue→white→orange), 'none'
+function heatColor(min, max, v, dir, palette) {
+  if (palette === "none") return null;
+  if (v == null || min == null || max == null || min === max || !dir) return null;
+  let t = (v - min) / (max - min);
+  t = Math.max(0, Math.min(1, t));
+  if (dir === "lower") t = 1 - t;
+
+  if (palette === "blueorange") {
+    if (t < 0.5) {
+      const u = t / 0.5;                 // blue → white
+      const h = 220;                      // blue hue
+      const s = 60 - u * 55;
+      const l = 90 + u * 7;
+      return `hsl(${h}, ${s}%, ${l}%)`;
+    } else {
+      const u = (t - 0.5) / 0.5;          // white → orange
+      const h = 30;                        // orange hue
+      const s = 5 + u * 80;
+      const l = 97 - u * 7;
+      return `hsl(${h}, ${s}%, ${l}%)`;
+    }
+  }
+
+  // default Rd→Yl→Gn with soft mid
+  if (t < 0.5) {
+    const u = t / 0.5;
+    const h = 0 + u * 60;   // red → yellow
+    const s = 78 + u * 10;
+    const l = 94 - u * 2;
+    return `hsl(${h}, ${s}%, ${l}%)`;
+  } else {
+    const u = (t - 0.5) / 0.5;
+    const h = 60 + u * 60;  // yellow → green
+    const s = 88 - u * 18;
+    const l = 92 + u * 2;
+    return `hsl(${h}, ${s}%, ${l}%)`;
+  }
+}
+
+const legendStyle = (palette) => {
+  if (palette === "blueorange") {
+    return { background: "linear-gradient(90deg, hsl(220,60%,90%) 0%, hsl(0,0%,97%) 50%, hsl(30,85%,90%) 100%)" };
+  }
+  if (palette === "none") {
+    return { background: "linear-gradient(90deg, #f3f4f6, #e5e7eb)" };
+  }
+  return { background: "linear-gradient(90deg, hsl(0,78%,94%) 0%, hsl(60,88%,92%) 50%, hsl(120,70%,94%) 100%)" };
+};
 
 /* ============================ PLAYER PICKER ============================ */
 
@@ -260,6 +310,9 @@ export default function NflPosData({ pos = "QB" }) {
   const src = DATA_SOURCES[key] || DATA_SOURCES.QB;
   const title = TITLES[key] || "NFL — Data";
   const { data, loading, err } = useJson(src);
+
+  // palette control (default None)
+  const [palette, setPalette] = useState("none");
 
   const rawCols = useMemo(() => (data.length ? Object.keys(data[0]) : []), [data]);
   const { columns, bands, boundaries } = useMemo(
@@ -302,6 +355,26 @@ export default function NflPosData({ pos = "QB" }) {
       return lower(name).includes(s) || t.includes(s) || o.includes(s);
     });
   }, [data, q, selected]);
+
+  // Build min/max for any column we plan to color (based on current filtered set)
+  const heatStats = useMemo(() => {
+    const stats = {};
+    if (!filtered.length) return stats;
+    const cols = Object.keys(filtered[0] || {});
+    for (const col of cols) {
+      const dir = directionForColumn(col);
+      if (!dir) continue;
+      let min = Infinity, max = -Infinity;
+      for (const row of filtered) {
+        const n = parseNumericLike(row[col]);
+        if (n == null) continue;
+        if (n < min) min = n;
+        if (n > max) max = n;
+      }
+      if (min !== Infinity && max !== -Infinity) stats[col] = { min, max, dir };
+    }
+    return stats;
+  }, [filtered]);
 
   // sorting (header text acts as the sort key)
   const [sort, setSort] = useState({ key: columns[0] || "Player", dir: "asc" });
@@ -352,7 +425,7 @@ export default function NflPosData({ pos = "QB" }) {
 
   return (
     <div className="px-4 md:px-6 py-5">
-      <div className="flex items-center justify-between gap-3 mb-2">
+      <div className="flex items-start md:items-center justify-between gap-3 mb-2 flex-col md:flex-row">
         <div className="flex items-baseline gap-3">
           <h1 className="text-2xl md:text-3xl font-extrabold">{title}</h1>
           <div className="text-sm text-gray-600">
@@ -360,7 +433,7 @@ export default function NflPosData({ pos = "QB" }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Player picker */}
           <div className="relative" ref={pickerRef}>
             <button
@@ -409,9 +482,30 @@ export default function NflPosData({ pos = "QB" }) {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search player / team / opp…"
-            className="h-9 w-72 rounded-lg border border-gray-300 px-3 text-sm focus:ring-2 focus:ring-indigo-500"
+            className="h-9 w-56 md:w-72 rounded-lg border border-gray-300 px-3 text-sm focus:ring-2 focus:ring-indigo-500"
           />
+
+          {/* palette (default None) */}
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-slate-600 hidden md:block">Palette</label>
+            <select
+              value={palette}
+              onChange={(e) => setPalette(e.target.value)}
+              className="h-8 rounded-lg border px-2 text-xs"
+            >
+              <option value="none">None</option>
+              <option value="rdylgn">Rd–Yl–Gn</option>
+              <option value="blueorange">Blue–Orange</option>
+            </select>
+          </div>
         </div>
+      </div>
+
+      {/* legend */}
+      <div className="mt-1 mb-2 text-[11px] text-slate-500 flex items-center gap-2">
+        <span>Lower ⟶ Higher</span>
+        <span className="h-3 w-28 rounded" style={legendStyle(palette)} />
+        <span className="ml-2">(color only when a palette is selected)</span>
       </div>
 
       <div className="rounded-xl border bg-white shadow-sm overflow-auto">
@@ -477,6 +571,11 @@ export default function NflPosData({ pos = "QB" }) {
                     const isTeam = keynorm(c) === keynorm("Team");
                     const isOpp = keynorm(c) === keynorm("OPP");
                     const isPlayer = keynorm(c) === keynorm("Player");
+
+                    const stat = heatStats[c];
+                    const numVal = parseNumericLike(raw);
+                    const bg = stat ? heatColor(stat.min, stat.max, numVal, stat.dir, palette) : null;
+
                     return (
                       <td
                         key={`${c}-${rIdx}`}
@@ -487,6 +586,7 @@ export default function NflPosData({ pos = "QB" }) {
                             ? "border-r-2 border-blue-300"
                             : "border-r border-blue-200",
                         ].join(" ")}
+                        style={bg ? { backgroundColor: bg } : undefined}
                       >
                         {isTeam || isOpp ? <TeamWithLogo code={raw} /> : fmtCellValue(c, raw)}
                       </td>

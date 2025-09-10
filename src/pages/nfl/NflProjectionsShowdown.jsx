@@ -10,7 +10,7 @@ import React, { useEffect, useMemo, useState } from "react";
    - PNG logos
    - FD DST salary fix: backfill from site_ids.json by team if missing
    - Frozen first column + auto-fit column widths
-   - Width capped so it doesn't look ridiculous on ultrawide screens :)
+   - Optional heatmap palette (default: None)
 ------------------------------------------------------------------- */
 
 const PROJ_SRC = "/data/nfl/showdown/latest/projections.json";
@@ -110,6 +110,53 @@ function downloadCSV(rows, cols, fname = "nfl_showdown_projections.csv") {
   URL.revokeObjectURL(url);
 }
 
+/* ---------------- heatmap rules + palettes ---------------- */
+// Direction: higher/lower for table field keys (we normalize to sal/proj/val/pOwn/opt)
+function dirForKey(k) {
+  if (!k) return null;
+  const id = String(k).toLowerCase();
+  if (id === "sal") return null;         // never color salaries
+  if (id === "pown") return "lower";     // ownership lower = better (Flex/CPT/MVP all treated the same)
+  if (id === "opt")  return "higher";    // opt% higher = better
+  if (id === "proj" || id === "val") return "higher";
+  return null;
+}
+
+// palette: 'rdylgn' (red→yellow→green), 'blueorange' (blue→white→orange), 'none'
+function heatColor(min, max, v, dir, palette) {
+  if (palette === "none") return null;
+  if (v == null || min == null || max == null || min === max || !dir) return null;
+  let t = (v - min) / (max - min);
+  t = Math.max(0, Math.min(1, t));
+  if (dir === "lower") t = 1 - t;
+
+  if (palette === "blueorange") {
+    if (t < 0.5) {
+      const u = t / 0.5; // blue → white
+      const h = 220, s = 60 - u * 55, l = 90 + u * 7;
+      return `hsl(${h}, ${s}%, ${l}%)`;
+    } else {
+      const u = (t - 0.5) / 0.5; // white → orange
+      const h = 30, s = 5 + u * 80, l = 97 - u * 7;
+      return `hsl(${h}, ${s}%, ${l}%)`;
+    }
+  }
+  // rd → yl → gn
+  if (t < 0.5) {
+    const u = t / 0.5, h = 0 + u * 60, s = 78 + u * 10, l = 94 - u * 2;
+    return `hsl(${h}, ${s}%, ${l}%)`;
+  } else {
+    const u = (t - 0.5) / 0.5, h = 60 + u * 60, s = 88 - u * 18, l = 92 + u * 2;
+    return `hsl(${h}, ${s}%, ${l}%)`;
+  }
+}
+const legendStyle = (palette) =>
+  palette === "blueorange"
+    ? { background: "linear-gradient(90deg, hsl(220,60%,90%) 0%, hsl(0,0%,97%) 50%, hsl(30,85%,90%) 100%)" }
+    : palette === "none"
+    ? { background: "linear-gradient(90deg, #f3f4f6, #e5e7eb)" }
+    : { background: "linear-gradient(90deg, hsl(0,78%,94%) 0%, hsl(60,88%,92%) 50%, hsl(120,70%,94%) 100%)" };
+
 /* ------------------------------- page ------------------------------- */
 export default function NflProjectionsShowdown() {
   const { data: projRaw, loading: projLoading, err: projErr } = useJson(PROJ_SRC);
@@ -141,6 +188,7 @@ export default function NflProjectionsShowdown() {
   const [site, setSite] = useState("fd");  // default to FD
   const [slot, setSlot] = useState("flex");
   const [q, setQ] = useState("");
+  const [palette, setPalette] = useState("none"); // default OFF
 
   // normalize rows + DST display (FD full team name, DK nickname)
   const rows = useMemo(() => {
@@ -159,7 +207,7 @@ export default function NflProjectionsShowdown() {
       const fd_sal     = pick(r, ["FD Sal", "fd_sal", "FD Flex Sal", "fd_flex_sal"]);
       const fd_mvp_sal = pick(r, ["FD MVP Sal", "fd_mvp_sal"]);
 
-      // ownership / opt
+      // ownership / opt (we'll normalize to pOwn / opt later; here we just collect)
       const dk_flex_pown = pick(r, ["DK Flex pOWN%", "DK Flex pOWN", "dk_flex_pown", "dk_flex_own", "dk_pown"]);
       const dk_cpt_pown  = pick(r, ["DK CPT pOWN%", "DK CPT pOWN", "DK Cap pOWN%", "dk_cpt_pown", "dk_capt_pown", "dk_cpt_own", "dk_capt_own"]);
       const dk_flex_opt  = pick(r, ["DK Flex Opt%", "DK Flex Opt", "dk_flex_opt", "dk_opt"]);
@@ -318,8 +366,29 @@ export default function NflProjectionsShowdown() {
     });
   };
 
+  /* --------- heat stats over visible rows --------- */
+  const heatStats = useMemo(() => {
+    const stats = {};
+    if (!sorted.length) return stats;
+    for (const c of columns) {
+      const dir = dirForKey(c.key);
+      if (!dir) continue;
+      let min = Infinity, max = -Infinity;
+      for (const r of sorted) {
+        // for % columns we allow "12%" strings; strip % for range
+        const raw = c.type === "pct" ? String(r[c.key]).replace("%","") : r[c.key];
+        const v = toNum(raw);
+        if (v == null) continue;
+        if (v < min) min = v;
+        if (v > max) max = v;
+      }
+      if (min !== Infinity && max !== -Infinity) stats[c.key] = { min, max, dir };
+    }
+    return stats;
+  }, [sorted, columns]);
+
   /* compact look */
-  const textSz = "text-[11px]"; // smaller font
+  const textSz = "text-[11px]";
   const cell   = "px-1.5 py-1 text-center tabular-nums";
   const header = "px-1.5 py-1 font-semibold text-center";
 
@@ -329,9 +398,17 @@ export default function NflProjectionsShowdown() {
   return (
     // WIDTH CAP + centered content
     <div className="mx-auto max-w-[1200px] 2xl:max-w-[1400px] px-4 md:px-6 py-5">
-      <div className="flex items-center justify-between gap-3 mb-2">
-        <h1 className="text-2xl md:text-3xl font-extrabold mb-0.5">NFL — DFS Projections (Showdown)</h1>
-        <div className="flex items-center gap-2">
+      <div className="flex items-start md:items-center justify-between gap-3 mb-2 flex-col md:flex-row">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-extrabold mb-0.5">NFL — DFS Projections (Showdown)</h1>
+          <div className="mt-1 text-[11px] text-slate-500 flex items-center gap-2">
+            <span>Lower ⟶ Higher</span>
+            <span className="h-3 w-28 rounded" style={legendStyle(palette)} />
+            <span className="ml-2">(color on Proj/Val/Opt = higher better; pOWN% = lower better)</span>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
           {/* Site toggle */}
           <div className="inline-flex items-center gap-1 rounded-xl bg-gray-100 p-1">
             {["dk", "fd"].map((k) => (
@@ -380,8 +457,22 @@ export default function NflProjectionsShowdown() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search player / team / opp…"
-            className="px-3 py-2 rounded-lg border w-64"
+            className="px-3 py-2 rounded-lg border w-56 md:w-64 text-sm"
           />
+
+          {/* palette (default None) */}
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-slate-600 hidden md:block">Palette</label>
+            <select
+              value={palette}
+              onChange={(e) => setPalette(e.target.value)}
+              className="h-8 rounded-lg border px-2 text-xs"
+            >
+              <option value="none">None</option>
+              <option value="rdylgn">Rd–Yl–Gn</option>
+              <option value="blueorange">Blue–Orange</option>
+            </select>
+          </div>
 
           {/* export */}
           <button
@@ -425,10 +516,10 @@ export default function NflProjectionsShowdown() {
 
           <tbody>
             { (projLoading || idsLoading) && (
-              <tr><td className={`${cell} text-gray-500`} colSpan={columns.length}>Loading…</td></tr>
+              <tr><td className={`px-2 py-2 text-gray-500 text-center`} colSpan={columns.length}>Loading…</td></tr>
             )}
             { (projErr || idsErr) && !(projLoading || idsLoading) && (
-              <tr><td className={`${cell} text-red-600`} colSpan={columns.length}>Failed to load: {projErr || idsErr}</td></tr>
+              <tr><td className={`px-2 py-2 text-red-600 text-center`} colSpan={columns.length}>Failed to load: {projErr || idsErr}</td></tr>
             )}
 
             {!projLoading && !idsLoading && !(projErr || idsErr) && sorted.map((r, i) => (
@@ -438,6 +529,7 @@ export default function NflProjectionsShowdown() {
                     // Frozen first column with logo + name
                     return (
                       <td
+                        key={c.key}
                         className={`sticky left-0 z-10 px-2 py-1 text-left ${
                           i % 2 === 0 ? "bg-white" : "bg-gray-50"
                         } shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)] w-[160px] max-w-[160px]`}
@@ -458,7 +550,13 @@ export default function NflProjectionsShowdown() {
                     );
                   }
 
-                  // other cells
+                  // Heat background for metrics (proj/val/opt/pOwn)
+                  const stat = heatStats[c.key];
+                  // for % cells, strip % before parsing range value
+                  const rawForRange = c.type === "pct" ? String(r[c.key]).replace("%","") : r[c.key];
+                  const vNum = toNum(rawForRange);
+                  const bg = stat ? heatColor(stat.min, stat.max, vNum, stat.dir, palette) : null;
+
                   let content = r[c.key];
                   if (c.type === "money") content = fmt0(content);
                   if (c.type === "num1")  content = fmt1(content);
@@ -469,6 +567,8 @@ export default function NflProjectionsShowdown() {
                     <td
                       key={c.key}
                       className={`${c.tdClass || ""} ${c.type === "text" ? "px-2" : ""} ${align} py-1 whitespace-nowrap ${c.type !== "text" ? "tabular-nums px-1.5" : ""}`}
+                      style={bg ? { backgroundColor: bg } : undefined}
+                      title={String(content ?? "")}
                     >
                       {content}
                     </td>
@@ -478,7 +578,7 @@ export default function NflProjectionsShowdown() {
             ))}
 
             {!projLoading && !idsLoading && !(projErr || idsErr) && !sorted.length && (
-              <tr><td className={`${cell} text-gray-500`} colSpan={columns.length}>No data.</td></tr>
+              <tr><td className={`px-2 py-2 text-gray-500 text-center`} colSpan={columns.length}>No data.</td></tr>
             )}
           </tbody>
         </table>

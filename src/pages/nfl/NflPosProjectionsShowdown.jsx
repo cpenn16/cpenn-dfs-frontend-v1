@@ -12,7 +12,7 @@ const NAME_XWALK_URL  = "/data/nfl/showdown/latest/name_xwalk.json";
 const PROJECTIONS_URL = "/data/nfl/showdown/latest/projections.json";
 const teamLogo = (abbr) => (abbr ? `/logos/nfl/${abbr}.png` : "");
 
-/* ---------------- helpers (same as classic) ---------------- */
+/* ---------------- helpers ---------------- */
 const num = (v) => { const n = Number(String(v ?? "").replace(/[,%\s]/g, "")); return Number.isFinite(n) ? n : null; };
 const pct = (v) => {
   if (v == null || v === "") return "";
@@ -114,6 +114,59 @@ const OWN_COLS = [
   { id:"fd_pown",  label:"FD pOWN%", type:"pct"  },
 ];
 
+/* ---------------- CSV ---------------- */
+const escapeCSV = (s) =>
+  /[",\r\n]/.test(String(s ?? "")) ? `"${String(s ?? "").replace(/"/g,'""')}"` : String(s ?? "");
+const formatVal = (type, raw) =>
+  type==="money" ? int0(raw) : type==="pct" ? pct(raw) : type==="num1" ? smart1(raw) : (raw ?? "");
+function downloadCSV(rows, cols, fname){
+  const header = cols.map(c=>c.label).join(",");
+  const body = rows.map(r => cols.map(c => escapeCSV(formatVal(c.type, r[c.id]))).join(",")).join("\n");
+  const blob = new Blob([header + "\n" + body], { type:"text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=fname; a.click(); URL.revokeObjectURL(url);
+}
+
+/* ---------------- heatmap (same rules as classic) ---------------- */
+// which column IDs get colored and direction
+function dirFor(colId) {
+  if (!colId) return null;
+  const id = String(colId).toLowerCase();
+  if (id.includes("sal")) return null;                  // salaries never colored
+  if (id === "team" || id === "player") return null;    // text
+  if (id === "int" || /pown$/.test(id)) return "lower"; // turnovers & ownership lower=better
+  if (/(_proj|_val)$/.test(id)) return "higher";        // projections/value higher=better
+  return "higher";                                      // volume/efficiency
+}
+
+// palette: 'rdylgn' (red→yellow→green), 'blueorange' (blue→white→orange), 'none' (off)
+function heatColor(min, max, v, dir, palette) {
+  if (palette === "none") return null;
+  if (v == null || min == null || max == null || min === max || !dir) return null;
+  let t = (v - min) / (max - min);
+  t = Math.max(0, Math.min(1, t));
+  if (dir === "lower") t = 1 - t;
+
+  if (palette === "blueorange") {
+    if (t < 0.5) {
+      const u = t / 0.5; // blue → white
+      const h = 220, s = 60 - u * 55, l = 90 + u * 7;
+      return `hsl(${h}, ${s}%, ${l}%)`;
+    } else {
+      const u = (t - 0.5) / 0.5; // white → orange
+      const h = 30, s = 5 + u * 80, l = 97 - u * 7;
+      return `hsl(${h}, ${s}%, ${l}%)`;
+    }
+  }
+  // rd → yl → gn
+  if (t < 0.5) {
+    const u = t / 0.5, h = 0 + u * 60, s = 78 + u * 10, l = 94 - u * 2;
+    return `hsl(${h}, ${s}%, ${l}%)`;
+  } else {
+    const u = (t - 0.5) / 0.5, h = 60 + u * 60, s = 88 - u * 18, l = 92 + u * 2;
+    return `hsl(${h}, ${s}%, ${l}%)`;
+  }
+}
+
 /* ---------------- component ---------------- */
 export default function NflPosProjectionsShowdown({ pos="QB" }){
   const src = POS_TO_SRC[pos] || POS_TO_SRC.QB;
@@ -142,12 +195,12 @@ export default function NflPosProjectionsShowdown({ pos="QB" }){
     }catch{ setNameToTeam({}); }
   })(); },[]);
 
-  /* choose columns: same as classic, but only include pOWN if present in the feed */
+  /* choose columns (only add pOWN% if present) */
   const hasOwnCols = useMemo(() => {
     if (!rawRows?.length) return false;
     const k = buildKeyMap(rawRows[0]);
-    return getVal(k, "dk pown%","dk pown","dk_ pown","dk own%") !== "" ||
-           getVal(k, "fd pown%","fd pown","fd_ pown","fd own%") !== "";
+    return getVal(k, "dk pown%","dk pown","dk_pown","dk own%") !== "" ||
+           getVal(k, "fd pown%","fd pown","fd_pown","fd own%") !== "";
   }, [rawRows]);
 
   const POS_TO_COLS = useMemo(() => {
@@ -163,7 +216,7 @@ export default function NflPosProjectionsShowdown({ pos="QB" }){
 
   const cols = POS_TO_COLS[pos] || POS_TO_COLS.QB;
 
-  // normalize each row (headers now match classic)
+  // normalize each row to a stable shape
   const rows = useMemo(()=>rawRows.map((row)=>{
     const k = buildKeyMap(row);
 
@@ -185,7 +238,7 @@ export default function NflPosProjectionsShowdown({ pos="QB" }){
     const pa_td    = getVal(k, "pa td","pa_td","pass td");
     const int      = getVal(k, "int");
 
-    // derive Pa Comp if missing (common in some feeds)
+    // derive Pa Comp if missing
     if ((!num(pa_comp) || num(pa_comp) === 0) && num(pa_att) != null && num(pa_pct) != null) {
       const pctNum = num(pa_pct);
       const frac = pctNum > 1 ? pctNum/100 : pctNum;
@@ -219,7 +272,7 @@ export default function NflPosProjectionsShowdown({ pos="QB" }){
     };
   }),[rawRows, nameToTeam, pos]);
 
-  // search/sort (same as classic)
+  // search/sort
   const [q,setQ]=useState("");
   const filtered = useMemo(()=>{
     const n=q.trim().toLowerCase(); if(!n) return rows;
@@ -240,7 +293,7 @@ export default function NflPosProjectionsShowdown({ pos="QB" }){
   },[filtered,sort]);
   const onSort = (col) => setSort(prev => prev.key===col.id ? { key:col.id, dir: prev.dir==="desc"?"asc":"desc"} : { key:col.id, dir:"desc" });
 
-  // sticky team column offset (same as classic)
+  // measure Player column width to offset Team sticky
   const playerThRef = useRef(null);
   const [playerColWidth, setPlayerColWidth] = useState(0);
   useLayoutEffect(() => {
@@ -255,20 +308,62 @@ export default function NflPosProjectionsShowdown({ pos="QB" }){
     return () => window.removeEventListener("resize", calc);
   }, [cols, sorted]);
 
+  /* --------- heatmap stats (visible rows) -------- */
+  const [palette, setPalette] = useState("none"); // default OFF
+  const heatStats = useMemo(() => {
+    const stats = {};
+    if (!sorted.length) return stats;
+    for (const c of cols) {
+      const dir = dirFor(c.id);
+      if (!dir) continue;
+      let min = Infinity, max = -Infinity;
+      for (const r of sorted) {
+        const v = num(c.type === "pct" ? String(r[c.id]).replace("%","") : r[c.id]);
+        if (v == null) continue;
+        if (v < min) min = v;
+        if (v > max) max = v;
+      }
+      if (min !== Infinity && max !== -Infinity) stats[c.id] = { min, max, dir };
+    }
+    return stats;
+  }, [sorted, cols]);
+
   // COMPACT STYLE
   const cell="px-3 py-1 text-center";
   const header="px-3 py-1 font-semibold text-center";
   const small="text-[12px] md:text-[13px]";
 
   return (
-    <div className="px-4 md:px-6 py-5">
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <h1 className="text-xl md:text-2xl font-extrabold mb-0.5">NFL — {pos} Projections</h1>
-        <div className="flex items-center gap-2">
-          <input className="h-9 w-64 rounded-lg border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                 placeholder="Search player / team…" value={q} onChange={(e)=>setQ(e.target.value)} />
-          <button className="ml-1 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700"
-                  onClick={()=>downloadCSV(sorted, cols, `nfl_${pos.toLowerCase()}_projections.csv`)}>
+    <div className="px-3 md:px-6 py-4 md:py-5">
+      <div className="flex items-start md:items-center justify-between gap-3 mb-3 flex-col md:flex-row">
+        <h1 className="text-lg md:text-2xl font-extrabold mb-0.5">NFL — {pos} Projections</h1>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            className="h-8 md:h-9 w-44 md:w-64 rounded-lg border border-gray-300 px-2 md:px-3 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Search player / team…"
+            value={q}
+            onChange={(e)=>setQ(e.target.value)}
+          />
+
+          {/* palette selector (default None) */}
+          <div className="flex items-center gap-1 md:gap-2">
+            <label className="text-xs text-slate-600 hidden md:block">Palette</label>
+            <select
+              value={palette}
+              onChange={(e) => setPalette(e.target.value)}
+              className="h-8 rounded-lg border px-2 text-xs"
+            >
+              <option value="none">None</option>
+              <option value="rdylgn">Rd–Yl–Gn</option>
+              <option value="blueorange">Blue–Orange</option>
+            </select>
+          </div>
+
+          <button
+            className="ml-1 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700"
+            onClick={()=>downloadCSV(sorted, cols, `nfl_showdown_${pos.toLowerCase()}_projections.csv`)}
+          >
             Export CSV
           </button>
         </div>
@@ -335,12 +430,27 @@ export default function NflPosProjectionsShowdown({ pos="QB" }){
                       </td>
                     );
                   }
+
+                  // heat background for numeric metrics
+                  const stat = heatStats[c.id];
+                  const vNum = num(c.type === "pct" ? String(r[c.id]).replace("%","") : r[c.id]);
+                  const bg = stat ? heatColor(stat.min, stat.max, vNum, stat.dir, palette) : null;
+
                   let val=r[c.id] ?? "";
                   if(c.type==="money") val=int0(val);
                   else if(c.type==="pct") val=pct(val);
                   else if(c.type==="num1") val=smart1(val);
-                  const left = c.id==="player";
-                  return <td key={c.id} className={`${cell} ${left?"text-left":"text-center"} tabular-nums whitespace-nowrap`} title={String(val)}>{val}</td>;
+
+                  return (
+                    <td
+                      key={c.id}
+                      className={`${cell} ${c.id==="player"?"text-left":"text-center"} tabular-nums whitespace-nowrap`}
+                      title={String(val)}
+                      style={bg ? { backgroundColor: bg } : undefined}
+                    >
+                      {val}
+                    </td>
+                  );
                 })}
               </tr>
             ))}
