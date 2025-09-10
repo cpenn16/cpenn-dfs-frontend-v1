@@ -23,7 +23,6 @@ const SITES = {
 /* ------------------------------ helpers ------------------------------- */
 const teamLogo = (team) => `/logos/nfl/${String(team || "").toUpperCase()}.png`;
 
-// robust numeric parser
 const asNum = (v) => {
   if (v === null || v === undefined || v === "") return null;
   let s = String(v).trim();
@@ -38,7 +37,6 @@ const num = (v) => {
   return Number.isFinite(n) ? n : null;
 };
 
-// Detect whether a whole column looks like 0..1 fractions. If yes → scale by 100.
 const detectPctScale = (vals) => {
   const nums = (vals || [])
     .map((v) => asNum(v))
@@ -204,7 +202,6 @@ const METRICS = {
   fd_sal: { label: "FD Salary", key: "fd_sal", site: "fd" },
 };
 
-/* Presets: "Team Total" means IMPLIED total here */
 const PRESETS = [
   { id: "sal_vs_total", label: "Team Sal vs Implied Total", x_dk: "dk_sal", x_fd: "fd_sal", y: "imp_tot" },
   { id: "totals", label: "Team Total vs Proj", x: "imp_tot", y_dk: "dk_total", y_fd: "fd_total" },
@@ -214,7 +211,7 @@ const PRESETS = [
 
 function LogoDot({ cx, cy, payload }) {
   const abv = String(payload.team || "").toUpperCase();
-  const size = 26;
+  const size = 24;
   if (cx == null || cy == null) return null;
   return (
     <image
@@ -281,11 +278,7 @@ function StacksInsights({ rows, site = "both" }) {
       const yKey = preset[`y_${sid}`] || preset.y;
       if (!xKey || !yKey) return null;
       const pts = data
-        .map((d) => ({
-          x: d[xKey],
-          y: d[yKey],
-          team: d.team,
-        }))
+        .map((d) => ({ x: d[xKey], y: d[yKey], team: d.team }))
         .filter((p) => p.x != null && p.y != null && Number.isFinite(p.x) && Number.isFinite(p.y));
       return { id: sid, label: sid.toUpperCase(), points: pts, xKey, yKey };
     };
@@ -330,15 +323,15 @@ function StacksInsights({ rows, site = "both" }) {
   const yAvg = avg(ptsForDomain.map((p) => p.y));
 
   return (
-    <div className="mt-6 rounded-2xl border bg-white shadow-sm">
-      <div className="p-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <div className="font-semibold">Insights</div>
+    <div className="mt-4 md:mt-6 rounded-2xl border bg-white shadow-sm">
+      <div className="p-3 md:p-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <div className="font-semibold text-sm md:text-base">Insights</div>
         <div className="flex flex-wrap gap-2 items-center">
           <div className="inline-flex rounded-xl bg-gray-100 p-1">
             {PRESETS.map((p) => (
               <button
                 key={p.id}
-                className={`px-3 py-1.5 text-sm rounded-lg ${
+                className={`px-2.5 md:px-3 py-1.5 text-xs md:text-sm rounded-lg ${
                   presetId === p.id ? "bg-white shadow font-semibold" : "text-gray-700"
                 }`}
                 onClick={() => setPresetId(p.id)}
@@ -351,7 +344,7 @@ function StacksInsights({ rows, site = "both" }) {
             {["dk", "fd", "both"].map((k) => (
               <button
                 key={k}
-                className={`px-3 py-1.5 text-sm rounded-lg inline-flex items-center gap-2 ${
+                className={`px-2.5 md:px-3 py-1.5 text-xs md:text-sm rounded-lg inline-flex items-center gap-2 ${
                   site === k ? "bg-white shadow font-semibold" : "text-gray-700"
                 }`}
                 onClick={() => {
@@ -367,9 +360,9 @@ function StacksInsights({ rows, site = "both" }) {
         </div>
       </div>
 
-      <div className="h-[560px] px-2 pb-4">
+      <div className="h-[420px] md:h-[560px] px-2 pb-4">
         <ResponsiveContainer width="100%" height="100%">
-          <ScatterChart margin={{ top: 48, right: 56, bottom: 36, left: 44 }}>
+          <ScatterChart margin={{ top: 36, right: 40, bottom: 28, left: 36 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               type="number"
@@ -377,7 +370,7 @@ function StacksInsights({ rows, site = "both" }) {
               name={xLabel}
               domain={[xMin, xMax]}
               tickFormatter={(v) => (typeof v === "number" ? (Number.isInteger(v) ? v : v.toFixed(1)) : v)}
-              label={{ value: xLabel, position: "insideBottom", offset: -20 }}
+              label={{ value: xLabel, position: "insideBottom", offset: -16 }}
             />
             <YAxis
               type="number"
@@ -400,7 +393,7 @@ function StacksInsights({ rows, site = "both" }) {
                 stroke="blue"
                 strokeDasharray="4 4"
                 ifOverflow="extendDomain"
-                label={{ value: "AVG", position: "top", fill: "blue", offset: 10 }}
+                label={{ value: "AVG", position: "top", fill: "blue", offset: 8 }}
               />
             )}
             {yAvg != null && (
@@ -409,13 +402,13 @@ function StacksInsights({ rows, site = "both" }) {
                 stroke="blue"
                 strokeDasharray="4 4"
                 ifOverflow="extendDomain"
-                label={{ value: "AVG", position: "right", fill: "blue", offset: 10 }}
+                label={{ value: "AVG", position: "right", fill: "blue", offset: 8 }}
               />
             )}
 
             {series.map((s) => (
               <Scatter key={s.id} name={s.label} data={s.points} shape={<LogoDot />}>
-                <ZAxis type="number" dataKey="z" range={[60, 60]} />
+                <ZAxis type="number" dataKey="z" range={[56, 56]} />
               </Scatter>
             ))}
           </ScatterChart>
@@ -429,15 +422,35 @@ function StacksInsights({ rows, site = "both" }) {
 
 function dirForLabel(label) {
   const k = String(label).toLowerCase();
-  // higher is better
-  if (["o/u", "imp. tot", "dk%", "fd%", "dk rtg", "fd rtg", "dk qb", "fd qb", "dk rb", "fd rb", "dk wr", "fd wr", "dk te", "fd te", "dk dst", "fd dst", "dk total", "fd total", "dk opt%", "fd opt%"].includes(k))
+  if (
+    [
+      "o/u",
+      "imp. tot",
+      "dk%",
+      "fd%",
+      "dk rtg",
+      "fd rtg",
+      "dk qb",
+      "fd qb",
+      "dk rb",
+      "fd rb",
+      "dk wr",
+      "fd wr",
+      "dk te",
+      "fd te",
+      "dk dst",
+      "fd dst",
+      "dk total",
+      "fd total",
+      "dk opt%",
+      "fd opt%",
+    ].includes(k)
+  )
     return "higher";
-  // lower is better
   if (["dk sal", "fd sal"].includes(k)) return "lower";
   return null;
 }
 
-// palette: 'rdylgn' (red→yellow→green), 'blueorange' (blue→white→orange), 'none'
 function heatColor(min, max, v, dir, palette) {
   if (palette === "none") return null;
   if (v == null || min == null || max == null || min === max || !dir) return null;
@@ -448,31 +461,32 @@ function heatColor(min, max, v, dir, palette) {
   if (palette === "blueorange") {
     if (t < 0.5) {
       const u = t / 0.5;
-      const h = 220, s = 60 - u * 55, l = 90 + u * 7;
+      const h = 220,
+        s = 60 - u * 55,
+        l = 90 + u * 7;
       return `hsl(${h}, ${s}%, ${l}%)`;
     } else {
       const u = (t - 0.5) / 0.5;
-      const h = 30, s = 5 + u * 80, l = 97 - u * 7;
+      const h = 30,
+        s = 5 + u * 80,
+        l = 97 - u * 7;
       return `hsl(${h}, ${s}%, ${l}%)`;
     }
   }
 
   if (t < 0.5) {
     const u = t / 0.5;
-    const h = 0 + u * 60, s = 78 + u * 10, l = 94 - u * 2;
+    const h = 0 + u * 60,
+      s = 78 + u * 10,
+      l = 94 - u * 2;
     return `hsl(${h}, ${s}%, ${l}%)`;
   } else {
     const u = (t - 0.5) / 0.5;
-    const h = 60 + u * 60, s = 88 - u * 18, l = 92 + u * 2;
+    const h = 60 + u * 60,
+      s = 88 - u * 18,
+      l = 92 + u * 2;
     return `hsl(${h}, ${s}%, ${l}%)`;
   }
-}
-function legendStyle(palette) {
-  if (palette === "blueorange") {
-    return { background: "linear-gradient(90deg, hsl(220,60%,90%) 0%, hsl(0,0%,97%) 50%, hsl(30,85%,90%) 100%)" };
-  }
-  if (palette === "none") return { background: "linear-gradient(90deg, #f3f4f6, #e5e7eb)" };
-  return { background: "linear-gradient(90deg, hsl(0,78%,94%) 0%, hsl(60,88%,92%) 50%, hsl(120,70%,94%) 100%)" };
 }
 
 /* -------------------------------- page -------------------------------- */
@@ -481,10 +495,9 @@ export default function NflStacks() {
 
   const [site, setSite] = useState("both");
   const [q, setQ] = useState("");
-  const [palette, setPalette] = useState("rdylgn"); // rdylgn | blueorange | none
+  const [palette, setPalette] = useState("none"); // default to NONE
   const [view, setView] = useState("both"); // table | insights | both
 
-  // reset default sort when site changes
   const defaultSortFor = (s) => {
     if (s === "dk") return { key: ["dk_total", "dkTotal", "DK Total"], dir: "desc" };
     if (s === "fd") return { key: ["fd_total", "fdTotal", "FD Total"], dir: "desc" };
@@ -505,7 +518,6 @@ export default function NflStacks() {
     return rows.filter((r) => `${r.team ?? ""} ${r.opp ?? ""}`.toLowerCase().includes(needle));
   }, [rows, q]);
 
-  // Percent-to-number helper for sorting
   const pctToNumber = (v) => {
     if (v === null || v === undefined || v === "") return null;
     const hadPercent = /%$/.test(String(v).trim());
@@ -526,7 +538,8 @@ export default function NflStacks() {
     arr.sort((a, b) => {
       const avRaw = getVal(a, key);
       const bvRaw = getVal(b, key);
-      let av = null, bv = null;
+      let av = null,
+        bv = null;
       if (t === "pct1") {
         av = pctToNumber(avRaw);
         bv = pctToNumber(bvRaw);
@@ -555,7 +568,6 @@ export default function NflStacks() {
     });
   };
 
-  // compute heat stats for visible rows/columns according to label direction
   const heatStats = useMemo(() => {
     const stats = {};
     if (!sorted.length) return stats;
@@ -567,7 +579,6 @@ export default function NflStacks() {
       let max = -Infinity;
       for (const r of sorted) {
         let v = getVal(r, col.key);
-        // normalize numbers (strip % if present)
         if (col.type === "pct1") v = String(v ?? "").replace(/%$/, "");
         const n = num(v);
         if (n == null) continue;
@@ -579,12 +590,10 @@ export default function NflStacks() {
     return stats;
   }, [sorted, columns]);
 
-  /* styling */
   const cell = "px-2 py-1 text-center";
   const header = "px-2 py-1 font-semibold text-center";
-  const textSz = "text-[12px]";
+  const textSz = "text-[11px] md:text-[12px]";
 
-  // Keep insights DK/FD toggle in sync with the page-level toggle.
   useEffect(() => {
     const handler = (e) => setSite(e.detail);
     window.addEventListener("nfl-stacks-site-change", handler);
@@ -592,25 +601,18 @@ export default function NflStacks() {
   }, []);
 
   return (
-    <div className="px-4 md:px-6 py-5">
-      <div className="flex items-center justify-between gap-3 mb-2">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold mb-0.5">NFL — Stacks</h1>
-          <div className="mt-1 text-[11px] text-slate-500 flex items-center gap-2">
-            <span>Lower ⟶ Higher</span>
-            <span className="h-3 w-28 rounded" style={legendStyle(palette)} />
-            <span className="ml-2">(salaries invert; others as specified)</span>
-          </div>
-        </div>
+    <div className="px-3 md:px-6 py-4 md:py-5">
+      <div className="flex items-start md:items-center justify-between gap-3 mb-2 flex-col md:flex-row">
+        <h1 className="text-xl md:text-3xl font-extrabold mb-1 md:mb-0">NFL — Stacks</h1>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* site toggle */}
           <div className="inline-flex items-center gap-2 rounded-xl bg-gray-100 p-1">
             {["dk", "fd", "both"].map((k) => (
               <button
                 key={k}
                 onClick={() => setSite(k)}
-                className={`px-3 py-1.5 rounded-lg text-sm inline-flex items-center gap-1 ${
+                className={`px-2.5 md:px-3 py-1.5 rounded-lg text-xs md:text-sm inline-flex items-center gap-1 ${
                   site === k ? "bg-white shadow font-semibold" : "text-gray-700"
                 }`}
               >
@@ -620,13 +622,13 @@ export default function NflStacks() {
             ))}
           </div>
 
-          {/* view toggle (Table/Insights/Both) */}
+          {/* view toggle */}
           <div className="inline-flex items-center gap-2 rounded-xl bg-gray-100 p-1">
             {["table", "insights", "both"].map((v) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
-                className={`px-3 py-1.5 rounded-lg text-sm ${
+                className={`px-2.5 md:px-3 py-1.5 rounded-lg text-xs md:text-sm ${
                   view === v ? "bg-white shadow font-semibold" : "text-gray-700"
                 }`}
               >
@@ -635,29 +637,30 @@ export default function NflStacks() {
             ))}
           </div>
 
-          {/* palette */}
-          <div className="hidden md:flex items-center gap-2">
-            <label className="text-xs text-slate-600">Palette</label>
+          {/* palette selector (default None) */}
+          <div className="flex items-center gap-1 md:gap-2">
+            <label className="text-xs text-slate-600 hidden md:block">Palette</label>
             <select
               value={palette}
               onChange={(e) => setPalette(e.target.value)}
               className="h-8 rounded-lg border px-2 text-xs"
+              title="Cell coloring palette"
             >
+              <option value="none">None</option>
               <option value="rdylgn">Rd–Yl–Gn</option>
               <option value="blueorange">Blue–Orange</option>
-              <option value="none">None</option>
             </select>
           </div>
 
           <input
-            className="h-9 w-64 rounded-lg border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="h-8 md:h-9 w-40 md:w-64 rounded-lg border border-gray-300 px-2 md:px-3 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Search team / opp…"
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
 
           <button
-            className="ml-1 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700"
+            className="px-3 py-2 rounded-lg bg-blue-600 text-white text-xs md:text-sm hover:bg-blue-700"
             onClick={() => downloadCSV(sorted, columns)}
           >
             Export CSV
@@ -721,7 +724,6 @@ export default function NflStacks() {
                     {columns.map((c) => {
                       const raw = getVal(r, c.key);
 
-                      // Sticky first col (team with logo)
                       if ((Array.isArray(c.key) ? c.key[0] : c.key) === "team") {
                         const abv = String(r.team || "").toUpperCase();
                         return (
@@ -744,14 +746,12 @@ export default function NflStacks() {
                         );
                       }
 
-                      // Heatmap bg
                       const stat = heatStats[c.label];
                       let base = raw;
                       if (c.type === "pct1") base = String(base ?? "").replace(/%$/, "");
                       const n = num(base);
                       const bg = stat ? heatColor(stat.min, stat.max, n, stat.dir, palette) : null;
 
-                      // format display
                       let val = raw;
                       if (c.type === "int") val = fmt.int(raw);
                       if (c.type === "smart1") val = fmt.smart1(raw);
@@ -778,7 +778,6 @@ export default function NflStacks() {
         </div>
       )}
 
-      {/* Insights panel */}
       {(view === "insights" || view === "both") && !loading && !err ? (
         <StacksInsights rows={filtered} site={site} />
       ) : null}
