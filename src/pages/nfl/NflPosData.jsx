@@ -19,18 +19,40 @@ const TITLES = {
 };
 
 const SHOW_TEAM_LOGOS = true;
-const HIDE_PLAYER_INFO_LABEL = true;
+const HIDE_PLAYER_INFO_LABEL = true; // show/hide the "Player Info" band title
 
 // logos are served from /public/logos/nfl/XXX.png -> /logos/nfl/XXX.png
 const LOGO_BASE = "/logos/nfl";
 const LOGO_EXT = "png";
 const TEAM_ABBR_MAP = { WSH: "WAS", JAC: "JAX", OAK: "LV", SD: "LAC", STL: "LAR" };
 
+/* ============================ UI THEME / PREFERENCES ============================ */
+
+// Tunable theme (neutral chrome so heat colors pop)
+const THEME = {
+  radius: "rounded-2xl",
+  headerBg: "bg-slate-100",
+  bandBg: "bg-slate-200",
+  zebraOdd: "bg-white",
+  zebraEven: "bg-slate-50/60",
+  border: "border-slate-200",
+  bandBorder: "border-slate-300",
+};
+
+function useUiPrefs() {
+  const [dense, setDense] = useState(false);
+  const [palette, setPalette] = useState("rdylgn"); // 'rdylgn' | 'greenred' | 'mono'
+  const cellPad = dense ? "px-2 py-1.5" : "px-2.5 py-2";
+  const headerPad = dense ? "px-2 py-1.5" : "px-2.5 py-2";
+  const textSz = dense ? "text-[11.5px]" : "text-[12px]";
+  return { dense, setDense, palette, setPalette, cellPad, headerPad, textSz };
+}
+
 /* ============================ HELPERS ============================ */
 
 const norm = (s) => String(s ?? "").trim();
 const lower = (s) => norm(s).toLowerCase();
-const keynorm = (s) => lower(String(s).replace(/[\s._%]/g, "")); // unify keys
+const keynorm = (s) => lower(String(s).replace(/[\s._%]/g, "")); // helps match "Comp %" vs "Comp%"
 
 function parseNumericLike(v) {
   if (v == null) return null;
@@ -130,6 +152,7 @@ function TeamWithLogo({ code }) {
 }
 
 /* ============================ EXACT COLUMN ORDERS ============================ */
+/* Each item can be a string or an array of alias strings (we'll pick the first present). */
 
 const ORDER = {
   QB: {
@@ -137,38 +160,70 @@ const ORDER = {
     "Matchup Info": ["Team", "OPP", "Home", "Time"],
     Vegas: ["O/U", "Imp Total", "Spread"],
     "Player Stats (Per Game)": [
-      "Yards","TD",["Int","INT"],"Attempts","YPA",["Comp %","Comp%"],
-      "Rush Yds","Rush Att","Rush TD","YPC","QBR",
+      "Yards",
+      "TD",
+      ["Int", "INT"],
+      "Attempts",
+      "YPA",
+      ["Comp %", "Comp%"],
+      "Rush Yds",
+      "Rush Att",
+      "Rush TD",
+      "YPC",
+      "QBR",
     ],
-    Matchup: ["DK Pts","Rank","Yards","TD","INT","R. Yds","R. TD"],
+    Matchup: ["DK Pts", "Rank", "Yards", "TD", "INT", "R. Yds", "R. TD"],
   },
+
   RB: {
     "Player Info": ["POS", "Player", "DK Sal", "FD Sal"],
     "Matchup Info": ["Team", "OPP", "Home", "Time"],
     Vegas: ["O/U", "Imp Total", "Spread"],
     "Player Stats (Per Game)": [
-      "Rush Yds","Rush Att","Rush TD","YPC","Rec Yds","Targets","Rec","TD","Tgt Shr","Opr",
+      "Rush Yds",
+      "Rush Att",
+      "Rush TD",
+      "YPC",
+      "Rec Yds",
+      "Targets",
+      "Rec",
+      "TD",
+      "Tgt Shr",
+      "Opr",
     ],
-    Matchup: ["DK Pts","Rank","RuYds","RuTD","ReYds","Rec","ReTD"],
+    Matchup: ["DK Pts", "Rank", "RuYds", "RuTD", "ReYds", "Rec", "ReTD"],
   },
+
   WR: {
     "Player Info": ["POS", "Player", "DK Sal", "FD Sal"],
     "Matchup Info": ["Team", "OPP", "Home", "Time"],
     Vegas: ["O/U", "Imp Total", "Line"],
-    "Player Stats (Per Game)": ["Rec Yds","Rec","Targets","TD","Tgt Shr","MsAir","adot"],
-    Matchup: ["DK Pts","Rank","Yards","TD"],
+    "Player Stats (Per Game)": ["Rec Yds", "Rec", "Targets", "TD", "Tgt Shr", "MsAir", "adot"],
+    Matchup: ["DK Pts", "Rank", "Yards", "TD"],
   },
+
   TE: {
     "Player Info": ["POS", "Player", "DK Sal", "FD Sal"],
     "Matchup Info": ["Team", "OPP", "Home", "Time"],
     Vegas: ["O/U", "Imp Total", "Line"],
-    "Player Stats (Per Game)": ["Rec Yds","Rec","Targets","TD","Tgt Shr","Routes%","Block%","MsAir","adot"],
-    Matchup: ["DK Pts","Rank","Yards","TD"],
+    "Player Stats (Per Game)": [
+      "Rec Yds",
+      "Rec",
+      "Targets",
+      "TD",
+      "Tgt Shr",
+      "Routes%",
+      "Block%",
+      "MsAir",
+      "adot",
+    ],
+    Matchup: ["DK Pts", "Rank", "Yards", "TD"],
   },
 };
 
-const BAND_ORDER = ["Player Info","Matchup Info","Vegas","Player Stats (Per Game)","Matchup"];
+const BAND_ORDER = ["Player Info", "Matchup Info", "Vegas", "Player Stats (Per Game)", "Matchup"];
 
+// Map desired header -> actual column name in the data (handles aliases)
 function resolveOne(spec, rawCols, used) {
   const cands = Array.isArray(spec) ? spec : [spec];
   for (const cand of cands) {
@@ -183,6 +238,7 @@ function buildColumnsAndBandsForPos(pos, rawCols) {
   const spec = ORDER[pos] || {};
   const used = new Set();
   const buckets = new Map(BAND_ORDER.map((b) => [b, []]));
+
   for (const band of BAND_ORDER) {
     for (const item of spec[band] || []) {
       const real = resolveOne(item, rawCols, used);
@@ -192,6 +248,7 @@ function buildColumnsAndBandsForPos(pos, rawCols) {
       }
     }
   }
+
   const columns = BAND_ORDER.flatMap((b) => buckets.get(b));
   const bands = [];
   let start = 0;
@@ -218,22 +275,24 @@ function useOutsideClick(ref, onClose) {
   }, [ref, onClose]);
 }
 
-/* ============================ HEATMAP (direction-aware, regex) ============================ */
+/* ============================ HEATMAP (direction-aware, regex rules) ============================ */
 
 // Always heat O/U & Imp Total as higher = better
 const ALWAYS_HEAT_HIGH = [/^o\/u$/i, /^imp[\s._-]*total$/i];
 
-// Direction rules using regex, so aliases like "R. Yds", "Rec Yds", "ReYds" all match.
+// Regex direction rules (covers variants like "R. Yds", "Rec Yds", "ReYds", etc.)
 const DIR_RULES = [
-  // higher is better
-  { re: /^(yards?|yds)$|^rec[\s._-]*yds$|^re[\s._-]*yds$|^ru[\s._-]*yds$|^rush[\s._-]*yds$/i, dir: "higher" },
+  // HIGHER IS BETTER
+  { re: /^(yards?|yds)$/i, dir: "higher" },
+  { re: /^rec[\s._-]*yds$|^re[\s._-]*yds$|^ru[\s._-]*yds$|^rush[\s._-]*yds$/i, dir: "higher" },
   { re: /^(td|ru[\s._-]*td|re[\s._-]*td|rush[\s._-]*td)$/i, dir: "higher" },
   { re: /^ypa$/i, dir: "higher" },
   { re: /^comp%$/i, dir: "higher" },
-  { re: /^rush[\s._-]*att$/i, dir: "higher" },
+  { re: /^rush[\s._-]*att$|^attempts?$/i, dir: "higher" },
   { re: /^ypc$/i, dir: "higher" },
   { re: /^qbr$/i, dir: "higher" },
   { re: /^dk[\s._-]*pts?$/i, dir: "higher" },
+  { re: /^rank$/i, dir: "higher" }, // per your preference list
   { re: /^rec$/i, dir: "higher" },
   { re: /^targets?$/i, dir: "higher" },
   { re: /^tgt[\s._-]*shr$/i, dir: "higher" },
@@ -242,10 +301,10 @@ const DIR_RULES = [
   { re: /^msair$/i, dir: "higher" },
   { re: /^routes%$/i, dir: "higher" },
 
-  // lower is better
+  // LOWER IS BETTER
   { re: /^int$/i, dir: "lower" },
-  { re: /^r[\s._-]*yds$/i, dir: "lower" },   // "R. Yds" (allowed)
-  { re: /^r[\s._-]*td$/i, dir: "lower" },    // "R. TD"
+  { re: /^r[\s._-]*yds$/i, dir: "lower" },    // "R. Yds" in defense-against column
+  { re: /^r[\s._-]*td$/i, dir: "lower" },
   { re: /^dk[\s._-]*sal(ary)?$/i, dir: "lower" },
   { re: /^fd[\s._-]*sal(ary)?$/i, dir: "lower" },
   { re: /^block%$/i, dir: "lower" },
@@ -259,29 +318,39 @@ function directionForColumn(colName) {
   return null; // no coloring
 }
 
-// Rd→Yl→Gn palette with soft mid; invert for "lower"
-function rdylgn(min, max, v, dir) {
+// Palette: 'rdylgn' (default), 'greenred', 'mono' (teal lightness)
+function heatColor(min, max, v, dir, palette = "rdylgn") {
   if (v == null || !Number.isFinite(v) || min == null || max == null || min === max || !dir) return null;
   let t = (v - min) / (max - min);
   t = Math.max(0, Math.min(1, t));
   if (dir === "lower") t = 1 - t;
 
-  // piecewise: red→yellow (0..0.5), yellow→green (0.5..1)
-  // work in HSL for simplicity; keep high lightness for legibility
   const lerp = (a, b, u) => a + (b - a) * u;
-  let h, s, l;
+
+  if (palette === "mono") {
+    const l = lerp(96, 86, t);
+    return `hsl(180, 45%, ${l}%)`;
+  }
+
+  if (palette === "greenred") {
+    const h = lerp(0, 120, t); // red → green
+    return `hsl(${h}, 70%, 93%)`;
+  }
+
+  // Rd→Yl→Gn with soft mid
   if (t < 0.5) {
     const u = t / 0.5;
-    h = lerp(0, 60, u);   // 0=red → 60=yellow
-    s = lerp(80, 90, u);
-    l = lerp(92, 90, u);
+    const h = lerp(0, 60, u);
+    const s = lerp(78, 88, u);
+    const l = lerp(94, 92, u);
+    return `hsl(${h}, ${s}%, ${l}%)`;
   } else {
     const u = (t - 0.5) / 0.5;
-    h = lerp(60, 120, u); // 60=yellow → 120=green
-    s = lerp(90, 70, u);
-    l = lerp(90, 92, u);
+    const h = lerp(60, 120, u);
+    const s = lerp(88, 70, u);
+    const l = lerp(92, 94, u);
+    return `hsl(${h}, ${s}%, ${l}%)`;
   }
-  return `hsl(${h}, ${s}%, ${l}%)`;
 }
 
 /* ============================ MAIN ============================ */
@@ -292,8 +361,13 @@ export default function NflPosData({ pos = "QB" }) {
   const title = TITLES[key] || "NFL — Data";
   const { data, loading, err } = useJson(src);
 
+  const { dense, setDense, palette, setPalette, cellPad, headerPad, textSz } = useUiPrefs();
+
   const rawCols = useMemo(() => (data.length ? Object.keys(data[0]) : []), [data]);
-  const { columns, bands, boundaries } = useMemo(() => buildColumnsAndBandsForPos(key, rawCols), [key, rawCols]);
+  const { columns, bands } = useMemo(
+    () => buildColumnsAndBandsForPos(key, rawCols),
+    [key, rawCols]
+  );
 
   // search + player picker
   const [q, setQ] = useState("");
@@ -331,7 +405,7 @@ export default function NflPosData({ pos = "QB" }) {
     });
   }, [data, q, selected]);
 
-  // Build min/max for any column we plan to color
+  // Build min/max for any column we plan to color (based on current filtered set)
   const heatStats = useMemo(() => {
     const stats = {};
     if (!filtered.length) return stats;
@@ -400,9 +474,8 @@ export default function NflPosData({ pos = "QB" }) {
   }, [filtered, sort]);
 
   // UI classes
-  const textSz = "text-[12px]";
-  const cellCls = "px-2 py-1 text-center";
-  const headerCls = "px-2 py-1 font-semibold text-center whitespace-nowrap cursor-pointer select-none";
+  const cellCls = `${cellPad} text-center`;
+  const headerCls = `${headerPad} font-semibold text-center whitespace-nowrap cursor-pointer select-none`;
 
   return (
     <div className="px-4 md:px-6 py-5">
@@ -418,13 +491,13 @@ export default function NflPosData({ pos = "QB" }) {
           {/* Player picker */}
           <div className="relative" ref={pickerRef}>
             <button
-              className="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm hover:bg-gray-50"
+              className="h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm hover:bg-slate-50"
               onClick={() => setPickerOpen((v) => !v)}
             >
               {selected.size === 0 ? "All players" : `${selected.size} selected`}
             </button>
             {pickerOpen && (
-              <div className="absolute right-0 z-20 mt-2 w-80 rounded-xl border border-gray-200 bg-white shadow p-2">
+              <div className="absolute right-0 z-20 mt-2 w-80 rounded-xl border border-slate-200 bg-white shadow p-2">
                 <div className="mb-2 flex items-center gap-2">
                   <button onClick={() => setSelected(new Set(allPlayers))} className="px-2 py-1 text-xs rounded border">
                     All
@@ -440,7 +513,10 @@ export default function NflPosData({ pos = "QB" }) {
                   />
                 </div>
                 <div className="max-h-72 overflow-auto pr-1">
-                  {(pickFilter ? allPlayers.filter((n) => lower(n).includes(lower(pickFilter))) : allPlayers).map((name) => (
+                  {(pickFilter
+                    ? allPlayers.filter((n) => lower(n).includes(lower(pickFilter)))
+                    : allPlayers
+                  ).map((name) => (
                     <label key={name} className="flex items-center gap-2 py-1 text-xs">
                       <input
                         type="checkbox"
@@ -460,25 +536,56 @@ export default function NflPosData({ pos = "QB" }) {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search player / team / opp…"
-            className="h-9 w-72 rounded-lg border border-gray-300 px-3 text-sm focus:ring-2 focus:ring-indigo-500"
+            className="h-9 w-72 rounded-lg border border-slate-300 px-3 text-sm focus:ring-2 focus:ring-indigo-500"
           />
+
+          {/* density + palette */}
+          <div className="hidden md:flex items-center gap-2">
+            <label className="text-xs text-slate-600">Density</label>
+            <button onClick={() => setDense((d) => !d)} className="h-8 px-2 rounded-lg border text-xs">
+              {dense ? "Compact" : "Comfort"}
+            </button>
+            <label className="text-xs text-slate-600 ml-2">Palette</label>
+            <select
+              value={palette}
+              onChange={(e) => setPalette(e.target.value)}
+              className="h-8 rounded-lg border px-2 text-xs"
+            >
+              <option value="rdylgn">Rd–Yl–Gn</option>
+              <option value="greenred">Green–Red</option>
+              <option value="mono">Monochrome</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      <div className="rounded-xl border bg-white shadow-sm overflow-auto">
+      {/* tiny legend */}
+      <div className="mt-1 mb-2 text-[11px] text-slate-500 flex items-center gap-2">
+        <span>Lower ⟶ Higher</span>
+        <span className="h-3 w-24 rounded bg-gradient-to-r from-[#fde8e8] via-[#fff3bf] to-[#e6f5e6]" />
+        <span className="ml-2">(green = better per column)</span>
+      </div>
+
+      <div className={`${THEME.radius} border ${THEME.border} bg-white shadow-sm overflow-auto`}>
         <table className={`w-full border-separate ${textSz}`} style={{ borderSpacing: 0 }}>
           {columns.length > 0 && (
             <thead className="sticky top-0 z-10">
-              {/* band row */}
-              <tr className="bg-blue-100 text-[11px] font-bold text-gray-700 uppercase">
-                {bands.map((g) => (
-                  <th key={`${g.name}-${g.start}`} colSpan={g.span} className="px-2 py-1 text-center border-b border-blue-200">
+              {/* merged band row */}
+              <tr className={`${THEME.bandBg} text-[11px] font-bold text-slate-700 uppercase`}>
+                {bands.map((g, idx) => (
+                  <th
+                    key={`${g.name}-${g.start}`}
+                    colSpan={g.span}
+                    className={`px-2 py-1 text-center border-b ${THEME.bandBorder} ${
+                      idx === 0 ? "first:rounded-tl-2xl" : ""
+                    } ${idx === bands.length - 1 ? "last:rounded-tr-2xl" : ""}`}
+                  >
                     {HIDE_PLAYER_INFO_LABEL && g.name === "Player Info" ? "" : g.name}
                   </th>
                 ))}
               </tr>
-              {/* header row */}
-              <tr className="bg-blue-50">
+              {/* column headers */}
+              <tr className={`${THEME.headerBg}`}>
                 {columns.map((c, i) => {
                   const isBandEnd = bands.some((b) => b.start + b.span - 1 === i);
                   return (
@@ -486,9 +593,9 @@ export default function NflPosData({ pos = "QB" }) {
                       key={c}
                       className={[
                         headerCls,
-                        isBandEnd ? "border-r-2 border-blue-300" : "border-r border-blue-200",
+                        isBandEnd ? `border-r-2 ${THEME.bandBorder}` : `border-r ${THEME.border}`,
                         c === "Player" ? "text-left" : "",
-                        i === 1 ? "sticky left-0 z-20 bg-blue-50" : "",
+                        i === 1 ? "sticky left-0 z-20 " + THEME.headerBg : "", // freeze 2nd header cell
                       ].join(" ")}
                       onClick={() => onSort(c)}
                       title="Click to sort"
@@ -496,9 +603,9 @@ export default function NflPosData({ pos = "QB" }) {
                       <span className="inline-flex items-center gap-1">
                         <span>{c}</span>
                         {sort.key === c ? (
-                          <span className="text-gray-500">{sort.dir === "desc" ? "▼" : "▲"}</span>
+                          <span className="text-slate-500">{sort.dir === "desc" ? "▼" : "▲"}</span>
                         ) : (
-                          <span className="text-gray-300">▲</span>
+                          <span className="text-slate-300">▲</span>
                         )}
                       </span>
                     </th>
@@ -523,56 +630,57 @@ export default function NflPosData({ pos = "QB" }) {
                 </td>
               </tr>
             )}
+            {!loading &&
+              !err &&
+              sorted.map((row, rIdx) => (
+                <tr
+                  key={rIdx}
+                  className={`${rIdx % 2 ? THEME.zebraEven : THEME.zebraOdd} hover:bg-sky-50/40 transition-colors`}
+                >
+                  {columns.map((c, i) => {
+                    const raw = row[c];
+                    const isTeam = keynorm(c) === keynorm("Team");
+                    const isOpp = keynorm(c) === keynorm("OPP");
+                    const isPlayer = keynorm(c) === keynorm("Player");
+                    const content = isTeam || isOpp ? <TeamWithLogo code={raw} /> : fmtCellValue(c, raw);
 
-            {!loading && !err && sorted.map((row, rIdx) => (
-              <tr key={rIdx} className={rIdx % 2 ? "bg-gray-50/40" : "bg-white"}>
-                {columns.map((c, i) => {
-                  const raw = row[c];
-                  const isTeam = keynorm(c) === keynorm("Team");
-                  const isOpp = keynorm(c) === keynorm("OPP");
-                  const isPlayer = keynorm(c) === keynorm("Player");
+                    const borders =
+                      bands.some((b) => b.start + b.span - 1 === i)
+                        ? `border-r-2 ${THEME.bandBorder}`
+                        : `border-r ${THEME.border}`;
 
-                  const content = isTeam || isOpp ? <TeamWithLogo code={raw} /> : fmtCellValue(c, raw);
-                  const borders =
-                    bands.some((b) => b.start + b.span - 1 === i)
-                      ? "border-r-2 border-blue-300"
-                      : "border-r border-blue-200";
+                    // compute heat background if this column matches a rule
+                    const stat = heatStats[c];
+                    const numVal = parseNumericLike(raw);
+                    const bg = stat ? heatColor(stat.min, stat.max, numVal, stat.dir, palette) : null;
 
-                  // heat bg (direction aware)
-                  const stat = heatStats[c];
-                  const numVal = parseNumericLike(raw);
-                  const bg = stat ? rdylgn(stat.min, stat.max, numVal, stat.dir) : null;
+                    // Freeze the 2nd column (i === 1) with a sticky inner div
+                    if (i === 1) {
+                      return (
+                        <td key={`${c}-${rIdx}`} className={[cellCls, isPlayer ? "text-left font-medium" : "text-center", borders].join(" ")}>
+                          <div
+                            className={`sticky left-0 z-10 ${
+                              rIdx % 2 ? THEME.zebraEven : THEME.zebraOdd
+                            } -ml-2 pl-2 pr-2 shadow-[inset_-5px_0_5px_-5px_rgba(0,0,0,0.12)]`}
+                          >
+                            {content}
+                          </div>
+                        </td>
+                      );
+                    }
 
-                  // sticky 2nd column visual
-                  if (i === 1) {
                     return (
                       <td
                         key={`${c}-${rIdx}`}
                         className={[cellCls, isPlayer ? "text-left font-medium" : "text-center", borders].join(" ")}
+                        style={bg ? { backgroundColor: bg } : undefined}
                       >
-                        <div
-                          className={`sticky left-0 z-10 ${
-                            rIdx % 2 ? "bg-gray-50/40" : "bg-white"
-                          } -ml-2 pl-2 pr-2 shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)]`}
-                        >
-                          {content}
-                        </div>
+                        {content}
                       </td>
                     );
-                  }
-
-                  return (
-                    <td
-                      key={`${c}-${rIdx}`}
-                      className={[cellCls, isPlayer ? "text-left font-medium" : "text-center", borders].join(" ")}
-                      style={bg ? { backgroundColor: bg } : undefined}
-                    >
-                      {content}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
+                  })}
+                </tr>
+              ))}
 
             {!loading && !err && sorted.length === 0 && (
               <tr>
