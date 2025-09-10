@@ -19,7 +19,7 @@ const TITLES = {
 };
 
 const SHOW_TEAM_LOGOS = true;
-const HIDE_PLAYER_INFO_LABEL = true; // show/hide the "Player Info" band title
+const HIDE_PLAYER_INFO_LABEL = true;
 
 // logos are served from /public/logos/nfl/XXX.png -> /logos/nfl/XXX.png
 const LOGO_BASE = "/logos/nfl";
@@ -30,7 +30,7 @@ const TEAM_ABBR_MAP = { WSH: "WAS", JAC: "JAX", OAK: "LV", SD: "LAC", STL: "LAR"
 
 const norm = (s) => String(s ?? "").trim();
 const lower = (s) => norm(s).toLowerCase();
-const keynorm = (s) => lower(String(s).replace(/[\s._%]/g, "")); // helps match "Comp %" vs "Comp%"
+const keynorm = (s) => lower(String(s).replace(/[\s._%]/g, "")); // unify keys
 
 function parseNumericLike(v) {
   if (v == null) return null;
@@ -130,7 +130,6 @@ function TeamWithLogo({ code }) {
 }
 
 /* ============================ EXACT COLUMN ORDERS ============================ */
-/* Each item can be a string or an array of alias strings (we'll pick the first present). */
 
 const ORDER = {
   QB: {
@@ -138,70 +137,38 @@ const ORDER = {
     "Matchup Info": ["Team", "OPP", "Home", "Time"],
     Vegas: ["O/U", "Imp Total", "Spread"],
     "Player Stats (Per Game)": [
-      "Yards",
-      "TD",
-      ["Int", "INT"],
-      "Attempts",
-      "YPA",
-      ["Comp %", "Comp%"],
-      "Rush Yds",
-      "Rush Att",
-      "Rush TD",
-      "YPC",
-      "QBR",
+      "Yards","TD",["Int","INT"],"Attempts","YPA",["Comp %","Comp%"],
+      "Rush Yds","Rush Att","Rush TD","YPC","QBR",
     ],
-    Matchup: ["DK Pts", "Rank", "Yards", "TD", "INT", "R. Yds", "R. TD"],
+    Matchup: ["DK Pts","Rank","Yards","TD","INT","R. Yds","R. TD"],
   },
-
   RB: {
     "Player Info": ["POS", "Player", "DK Sal", "FD Sal"],
     "Matchup Info": ["Team", "OPP", "Home", "Time"],
     Vegas: ["O/U", "Imp Total", "Spread"],
     "Player Stats (Per Game)": [
-      "Rush Yds",
-      "Rush Att",
-      "Rush TD",
-      "YPC",
-      "Rec Yds",
-      "Targets",
-      "Rec",
-      "TD",
-      "Tgt Shr",
-      "Opr",
+      "Rush Yds","Rush Att","Rush TD","YPC","Rec Yds","Targets","Rec","TD","Tgt Shr","Opr",
     ],
-    Matchup: ["DK Pts", "Rank", "RuYds", "RuTD", "ReYds", "Rec", "ReTD"],
+    Matchup: ["DK Pts","Rank","RuYds","RuTD","ReYds","Rec","ReTD"],
   },
-
   WR: {
     "Player Info": ["POS", "Player", "DK Sal", "FD Sal"],
     "Matchup Info": ["Team", "OPP", "Home", "Time"],
     Vegas: ["O/U", "Imp Total", "Line"],
-    "Player Stats (Per Game)": ["Rec Yds", "Rec", "Targets", "TD", "Tgt Shr", "MsAir", "adot"],
-    Matchup: ["DK Pts", "Rank", "Yards", "TD"],
+    "Player Stats (Per Game)": ["Rec Yds","Rec","Targets","TD","Tgt Shr","MsAir","adot"],
+    Matchup: ["DK Pts","Rank","Yards","TD"],
   },
-
   TE: {
     "Player Info": ["POS", "Player", "DK Sal", "FD Sal"],
     "Matchup Info": ["Team", "OPP", "Home", "Time"],
     Vegas: ["O/U", "Imp Total", "Line"],
-    "Player Stats (Per Game)": [
-      "Rec Yds",
-      "Rec",
-      "Targets",
-      "TD",
-      "Tgt Shr",
-      "Routes%",
-      "Block%",
-      "MsAir",
-      "adot",
-    ],
-    Matchup: ["DK Pts", "Rank", "Yards", "TD"],
+    "Player Stats (Per Game)": ["Rec Yds","Rec","Targets","TD","Tgt Shr","Routes%","Block%","MsAir","adot"],
+    Matchup: ["DK Pts","Rank","Yards","TD"],
   },
 };
 
-const BAND_ORDER = ["Player Info", "Matchup Info", "Vegas", "Player Stats (Per Game)", "Matchup"]; // Factors omitted
+const BAND_ORDER = ["Player Info","Matchup Info","Vegas","Player Stats (Per Game)","Matchup"];
 
-// Map desired header -> actual column name in the data (handles aliases)
 function resolveOne(spec, rawCols, used) {
   const cands = Array.isArray(spec) ? spec : [spec];
   for (const cand of cands) {
@@ -216,7 +183,6 @@ function buildColumnsAndBandsForPos(pos, rawCols) {
   const spec = ORDER[pos] || {};
   const used = new Set();
   const buckets = new Map(BAND_ORDER.map((b) => [b, []]));
-
   for (const band of BAND_ORDER) {
     for (const item of spec[band] || []) {
       const real = resolveOne(item, rawCols, used);
@@ -226,7 +192,6 @@ function buildColumnsAndBandsForPos(pos, rawCols) {
       }
     }
   }
-
   const columns = BAND_ORDER.flatMap((b) => buckets.get(b));
   const bands = [];
   let start = 0;
@@ -253,17 +218,48 @@ function useOutsideClick(ref, onClose) {
   }, [ref, onClose]);
 }
 
-/* ============================ HEATMAP (O/U & Imp Total) ============================ */
+/* ============================ HEATMAP (direction-aware) ============================ */
 
-// which columns to color (use keynorm for robust matching)
-const HEAT_TARGETS = new Set([keynorm("O/U"), keynorm("Imptotal"), keynorm("Imp Total")]);
+/** columns where bigger is better (green when high) */
+const HIGHER_BETTER = new Set([
+  // from your list (normalize via keynorm below)
+  "yards","td","ypa","comp%","rushyds","rushatt","ypc","qbr","dkpts","rank",
+  "recyds","targets","rec","tgtshr","opr","ruyds","rutd","reyds","retd",
+  "td","adot","msair","routes%",
+  // aliases that show up in some sheets
+  "recyards","recyds","recyd","dkpts","dkpoints","dkpt","dkp",
+]);
 
-// simple red→green scale (low=red, high=green)
-function heatColor(min, max, v) {
-  if (v == null || !Number.isFinite(v) || min == null || max == null || min === max) return null;
-  const t = Math.max(0, Math.min(1, (v - min) / (max - min))); // 0..1
+/** columns where smaller is better (green when low) */
+const LOWER_BETTER = new Set([
+  // from your list
+  "int","r.yds","r.td","dksal","fdsal","block%","bloxk%",
+  // aliases
+  "salary","dksalary","fdsalary","blocks%","rtd",
+]);
+
+// Always heatmap O/U and Imp Total as "higher is better" like you asked earlier
+const ALWAYS_HEAT_HIGH = new Set([ "o/u", "imptotal", "imp total" ].map(keynorm));
+
+function directionForColumn(colName) {
+  const k = keynorm(colName);
+  if (ALWAYS_HEAT_HIGH.has(k)) return "higher";
+  if (HIGHER_BETTER.has(k)) return "higher";
+  if (LOWER_BETTER.has(k)) return "lower";
+  // special dotted aliases that keynorm collapses:
+  if (k === "recyds" || k === "recyards") return "higher";
+  if (k === "ruyds" || k === "rushyds") return "higher";
+  if (k === "rtd" || k === "rtds" || k === "rtd") return "lower";
+  return null; // no coloring
+}
+
+// red→green palette; invert when lower is better
+function heatColor(min, max, v, dir /* 'higher' | 'lower' */) {
+  if (v == null || !Number.isFinite(v) || min == null || max == null || min === max || !dir) return null;
+  let t = Math.max(0, Math.min(1, (v - min) / (max - min))); // 0..1
+  if (dir === "lower") t = 1 - t; // low values green
   const hue = 0 + t * 120; // 0=red → 120=green
-  return `hsl(${hue}, 75%, 92%)`; // light pastel background so text stays legible
+  return `hsl(${hue}, 75%, 92%)`; // soft pastel bg
 }
 
 /* ============================ MAIN ============================ */
@@ -275,10 +271,7 @@ export default function NflPosData({ pos = "QB" }) {
   const { data, loading, err } = useJson(src);
 
   const rawCols = useMemo(() => (data.length ? Object.keys(data[0]) : []), [data]);
-  const { columns, bands, boundaries } = useMemo(
-    () => buildColumnsAndBandsForPos(key, rawCols),
-    [key, rawCols]
-  );
+  const { columns, bands, boundaries } = useMemo(() => buildColumnsAndBandsForPos(key, rawCols), [key, rawCols]);
 
   // search + player picker
   const [q, setQ] = useState("");
@@ -316,13 +309,14 @@ export default function NflPosData({ pos = "QB" }) {
     });
   }, [data, q, selected]);
 
-  // min/max for heat columns based on filtered rows
+  // Build min/max for any column we plan to color
   const heatStats = useMemo(() => {
     const stats = {};
     if (!filtered.length) return stats;
     const cols = Object.keys(filtered[0] || {});
     for (const col of cols) {
-      if (!HEAT_TARGETS.has(keynorm(col))) continue;
+      const dir = directionForColumn(col);
+      if (!dir) continue;
       let min = Infinity, max = -Infinity;
       for (const row of filtered) {
         const n = parseNumericLike(row[col]);
@@ -330,23 +324,18 @@ export default function NflPosData({ pos = "QB" }) {
         if (n < min) min = n;
         if (n > max) max = n;
       }
-      if (min !== Infinity && max !== -Infinity) stats[col] = { min, max };
+      if (min !== Infinity && max !== -Infinity) stats[col] = { min, max, dir };
     }
     return stats;
   }, [filtered]);
 
-  // start with dummy, update once we know columns
+  // default sort
   const [sort, setSort] = useState({ key: "Player", dir: "asc" });
-
   useEffect(() => {
     if (!columns || columns.length === 0) return;
-    // try to find DK Sal column
     const dkSalKey = columns.find((c) => /\bdk\s*sal(ary)?\b/i.test(String(c)));
-    if (dkSalKey) {
-      setSort({ key: dkSalKey, dir: "desc" }); // highest → lowest
-    } else {
-      setSort({ key: columns[0], dir: "asc" }); // fallback
-    }
+    if (dkSalKey) setSort({ key: dkSalKey, dir: "desc" });
+    else setSort({ key: columns[0], dir: "asc" });
   }, [columns]);
 
   const onSort = (keyName) => {
@@ -391,8 +380,7 @@ export default function NflPosData({ pos = "QB" }) {
   // UI classes
   const textSz = "text-[12px]";
   const cellCls = "px-2 py-1 text-center";
-  const headerCls =
-    "px-2 py-1 font-semibold text-center whitespace-nowrap cursor-pointer select-none";
+  const headerCls = "px-2 py-1 font-semibold text-center whitespace-nowrap cursor-pointer select-none";
 
   return (
     <div className="px-4 md:px-6 py-5">
@@ -430,10 +418,7 @@ export default function NflPosData({ pos = "QB" }) {
                   />
                 </div>
                 <div className="max-h-72 overflow-auto pr-1">
-                  {(pickFilter
-                    ? allPlayers.filter((n) => lower(n).includes(lower(pickFilter)))
-                    : allPlayers
-                  ).map((name) => (
+                  {(pickFilter ? allPlayers.filter((n) => lower(n).includes(lower(pickFilter))) : allPlayers).map((name) => (
                     <label key={name} className="flex items-center gap-2 py-1 text-xs">
                       <input
                         type="checkbox"
@@ -462,7 +447,7 @@ export default function NflPosData({ pos = "QB" }) {
         <table className={`w-full border-separate ${textSz}`} style={{ borderSpacing: 0 }}>
           {columns.length > 0 && (
             <thead className="sticky top-0 z-10">
-              {/* merged band row */}
+              {/* band row */}
               <tr className="bg-blue-100 text-[11px] font-bold text-gray-700 uppercase">
                 {bands.map((g) => (
                   <th key={`${g.name}-${g.start}`} colSpan={g.span} className="px-2 py-1 text-center border-b border-blue-200">
@@ -470,7 +455,7 @@ export default function NflPosData({ pos = "QB" }) {
                   </th>
                 ))}
               </tr>
-              {/* column headers */}
+              {/* header row */}
               <tr className="bg-blue-50">
                 {columns.map((c, i) => {
                   const isBandEnd = bands.some((b) => b.start + b.span - 1 === i);
@@ -481,7 +466,7 @@ export default function NflPosData({ pos = "QB" }) {
                         headerCls,
                         isBandEnd ? "border-r-2 border-blue-300" : "border-r border-blue-200",
                         c === "Player" ? "text-left" : "",
-                        i === 1 ? "sticky left-0 z-20 bg-blue-50" : "", // ← freeze 2nd header cell
+                        i === 1 ? "sticky left-0 z-20 bg-blue-50" : "",
                       ].join(" ")}
                       onClick={() => onSort(c)}
                       title="Click to sort"
@@ -516,61 +501,56 @@ export default function NflPosData({ pos = "QB" }) {
                 </td>
               </tr>
             )}
-            {!loading &&
-              !err &&
-              sorted.map((row, rIdx) => (
-                <tr key={rIdx} className={rIdx % 2 ? "bg-gray-50/40" : "bg-white"}>
-                  {columns.map((c, i) => {
-                    const raw = row[c];
-                    const isTeam = keynorm(c) === keynorm("Team");
-                    const isOpp = keynorm(c) === keynorm("OPP");
-                    const isPlayer = keynorm(c) === keynorm("Player");
 
-                    const content = isTeam || isOpp ? <TeamWithLogo code={raw} /> : fmtCellValue(c, raw);
-                    const borders =
-                      bands.some((b) => b.start + b.span - 1 === i)
-                        ? "border-r-2 border-blue-300"
-                        : "border-r border-blue-200";
+            {!loading && !err && sorted.map((row, rIdx) => (
+              <tr key={rIdx} className={rIdx % 2 ? "bg-gray-50/40" : "bg-white"}>
+                {columns.map((c, i) => {
+                  const raw = row[c];
+                  const isTeam = keynorm(c) === keynorm("Team");
+                  const isOpp = keynorm(c) === keynorm("OPP");
+                  const isPlayer = keynorm(c) === keynorm("Player");
 
-                    // compute heat background if this column is O/U or Imp Total
-                    const numVal = parseNumericLike(raw);
-                    const isHeat = HEAT_TARGETS.has(keynorm(c));
-                    const bg =
-                      isHeat && heatStats[c]
-                        ? heatColor(heatStats[c].min, heatStats[c].max, numVal)
-                        : null;
+                  const content = isTeam || isOpp ? <TeamWithLogo code={raw} /> : fmtCellValue(c, raw);
+                  const borders =
+                    bands.some((b) => b.start + b.span - 1 === i)
+                      ? "border-r-2 border-blue-300"
+                      : "border-r border-blue-200";
 
-                    // Freeze the 2nd column (i === 1) with a sticky inner div
-                    if (i === 1) {
-                      return (
-                        <td
-                          key={`${c}-${rIdx}`}
-                          className={[cellCls, isPlayer ? "text-left font-medium" : "text-center", borders].join(" ")}
-                        >
-                          <div
-                            className={`sticky left-0 z-10 ${
-                              rIdx % 2 ? "bg-gray-50/40" : "bg-white"
-                            } -ml-2 pl-2 pr-2 shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)]`}
-                          >
-                            {content}
-                          </div>
-                        </td>
-                      );
-                    }
+                  // heat bg (direction aware)
+                  const stat = heatStats[c];
+                  const numVal = parseNumericLike(raw);
+                  const bg = stat ? heatColor(stat.min, stat.max, numVal, stat.dir) : null;
 
-                    // All other columns (with optional heat bg)
+                  // sticky 2nd column visual
+                  if (i === 1) {
                     return (
                       <td
                         key={`${c}-${rIdx}`}
                         className={[cellCls, isPlayer ? "text-left font-medium" : "text-center", borders].join(" ")}
-                        style={bg ? { backgroundColor: bg } : undefined}
                       >
-                        {content}
+                        <div
+                          className={`sticky left-0 z-10 ${
+                            rIdx % 2 ? "bg-gray-50/40" : "bg-white"
+                          } -ml-2 pl-2 pr-2 shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)]`}
+                        >
+                          {content}
+                        </div>
                       </td>
                     );
-                  })}
-                </tr>
-              ))}
+                  }
+
+                  return (
+                    <td
+                      key={`${c}-${rIdx}`}
+                      className={[cellCls, isPlayer ? "text-left font-medium" : "text-center", borders].join(" ")}
+                      style={bg ? { backgroundColor: bg } : undefined}
+                    >
+                      {content}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
 
             {!loading && !err && sorted.length === 0 && (
               <tr>
