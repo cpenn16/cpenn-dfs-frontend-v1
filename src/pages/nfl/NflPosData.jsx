@@ -26,9 +26,8 @@ const LOGO_BASE = "/logos/nfl";
 const LOGO_EXT = "png";
 const TEAM_ABBR_MAP = { WSH: "WAS", JAC: "JAX", OAK: "LV", SD: "LAC", STL: "LAR" };
 
-/* ============================ UI THEME / PREFERENCES ============================ */
+/* ============================ UI THEME (compact-only) ============================ */
 
-// Tunable theme (neutral chrome so heat colors pop)
 const THEME = {
   radius: "rounded-2xl",
   headerBg: "bg-slate-100",
@@ -39,20 +38,15 @@ const THEME = {
   bandBorder: "border-slate-300",
 };
 
-function useUiPrefs() {
-  const [dense, setDense] = useState(false);
-  const [palette, setPalette] = useState("rdylgn"); // 'rdylgn' | 'greenred' | 'mono'
-  const cellPad = dense ? "px-2 py-1.5" : "px-2.5 py-2";
-  const headerPad = dense ? "px-2 py-1.5" : "px-2.5 py-2";
-  const textSz = dense ? "text-[11.5px]" : "text-[12px]";
-  return { dense, setDense, palette, setPalette, cellPad, headerPad, textSz };
-}
+const CELL_PAD = "px-2 py-1.5";
+const HEADER_PAD = "px-2 py-1.5";
+const TEXT_SZ = "text-[11.5px]";
 
 /* ============================ HELPERS ============================ */
 
 const norm = (s) => String(s ?? "").trim();
 const lower = (s) => norm(s).toLowerCase();
-const keynorm = (s) => lower(String(s).replace(/[\s._%]/g, "")); // helps match "Comp %" vs "Comp%"
+const keynorm = (s) => lower(String(s).replace(/[\s._%]/g, "")); // unify keys like "Comp %" vs "Comp%"
 
 function parseNumericLike(v) {
   if (v == null) return null;
@@ -152,7 +146,6 @@ function TeamWithLogo({ code }) {
 }
 
 /* ============================ EXACT COLUMN ORDERS ============================ */
-/* Each item can be a string or an array of alias strings (we'll pick the first present). */
 
 const ORDER = {
   QB: {
@@ -160,70 +153,39 @@ const ORDER = {
     "Matchup Info": ["Team", "OPP", "Home", "Time"],
     Vegas: ["O/U", "Imp Total", "Spread"],
     "Player Stats (Per Game)": [
-      "Yards",
-      "TD",
-      ["Int", "INT"],
-      "Attempts",
-      "YPA",
-      ["Comp %", "Comp%"],
-      "Rush Yds",
-      "Rush Att",
-      "Rush TD",
-      "YPC",
-      "QBR",
+      "Yards", "TD", ["Int", "INT"], "Attempts", "YPA", ["Comp %", "Comp%"],
+      "Rush Yds", "Rush Att", "Rush TD", "YPC", "QBR",
     ],
     Matchup: ["DK Pts", "Rank", "Yards", "TD", "INT", "R. Yds", "R. TD"],
   },
-
   RB: {
     "Player Info": ["POS", "Player", "DK Sal", "FD Sal"],
     "Matchup Info": ["Team", "OPP", "Home", "Time"],
     Vegas: ["O/U", "Imp Total", "Spread"],
     "Player Stats (Per Game)": [
-      "Rush Yds",
-      "Rush Att",
-      "Rush TD",
-      "YPC",
-      "Rec Yds",
-      "Targets",
-      "Rec",
-      "TD",
-      "Tgt Shr",
-      "Opr",
+      "Rush Yds","Rush Att","Rush TD","YPC","Rec Yds","Targets","Rec","TD","Tgt Shr","Opr",
     ],
-    Matchup: ["DK Pts", "Rank", "RuYds", "RuTD", "ReYds", "Rec", "ReTD"],
+    Matchup: ["DK Pts","Rank","RuYds","RuTD","ReYds","Rec","ReTD"],
   },
-
   WR: {
     "Player Info": ["POS", "Player", "DK Sal", "FD Sal"],
     "Matchup Info": ["Team", "OPP", "Home", "Time"],
     Vegas: ["O/U", "Imp Total", "Line"],
-    "Player Stats (Per Game)": ["Rec Yds", "Rec", "Targets", "TD", "Tgt Shr", "MsAir", "adot"],
-    Matchup: ["DK Pts", "Rank", "Yards", "TD"],
+    "Player Stats (Per Game)": ["Rec Yds","Rec","Targets","TD","Tgt Shr","MsAir","adot"],
+    Matchup: ["DK Pts","Rank","Yards","TD"],
   },
-
   TE: {
     "Player Info": ["POS", "Player", "DK Sal", "FD Sal"],
     "Matchup Info": ["Team", "OPP", "Home", "Time"],
     Vegas: ["O/U", "Imp Total", "Line"],
-    "Player Stats (Per Game)": [
-      "Rec Yds",
-      "Rec",
-      "Targets",
-      "TD",
-      "Tgt Shr",
-      "Routes%",
-      "Block%",
-      "MsAir",
-      "adot",
-    ],
-    Matchup: ["DK Pts", "Rank", "Yards", "TD"],
+    "Player Stats (Per Game)": ["Rec Yds","Rec","Targets","TD","Tgt Shr","Routes%","Block%","MsAir","adot"],
+    Matchup: ["DK Pts","Rank","Yards","TD"],
   },
 };
 
-const BAND_ORDER = ["Player Info", "Matchup Info", "Vegas", "Player Stats (Per Game)", "Matchup"];
+const BAND_ORDER = ["Player Info","Matchup Info","Vegas","Player Stats (Per Game)","Matchup"];
 
-// Map desired header -> actual column name in the data (handles aliases)
+// desired header -> actual column name (handles aliases)
 function resolveOne(spec, rawCols, used) {
   const cands = Array.isArray(spec) ? spec : [spec];
   for (const cand of cands) {
@@ -233,34 +195,24 @@ function resolveOne(spec, rawCols, used) {
   }
   return null;
 }
-
 function buildColumnsAndBandsForPos(pos, rawCols) {
   const spec = ORDER[pos] || {};
   const used = new Set();
   const buckets = new Map(BAND_ORDER.map((b) => [b, []]));
-
   for (const band of BAND_ORDER) {
     for (const item of spec[band] || []) {
       const real = resolveOne(item, rawCols, used);
-      if (real) {
-        buckets.get(band).push(real);
-        used.add(real);
-      }
+      if (real) { buckets.get(band).push(real); used.add(real); }
     }
   }
-
   const columns = BAND_ORDER.flatMap((b) => buckets.get(b));
   const bands = [];
   let start = 0;
   for (const b of BAND_ORDER) {
     const n = buckets.get(b).length;
-    if (n > 0) {
-      bands.push({ name: b, start, span: n });
-      start += n;
-    }
+    if (n > 0) { bands.push({ name: b, start, span: n }); start += n; }
   }
-  const boundaries = new Set(bands.map((s) => s.start + s.span - 1));
-  return { columns, bands, boundaries };
+  return { columns, bands };
 }
 
 /* ============================ PLAYER PICKER ============================ */
@@ -275,14 +227,14 @@ function useOutsideClick(ref, onClose) {
   }, [ref, onClose]);
 }
 
-/* ============================ HEATMAP (direction-aware, regex rules) ============================ */
+/* ============================ DIRECTION RULES + PALETTES ============================ */
 
 // Always heat O/U & Imp Total as higher = better
 const ALWAYS_HEAT_HIGH = [/^o\/u$/i, /^imp[\s._-]*total$/i];
 
-// Regex direction rules (covers variants like "R. Yds", "Rec Yds", "ReYds", etc.)
+// Regex direction rules (captures aliases like "R. Yds", "ReYds", etc.)
 const DIR_RULES = [
-  // HIGHER IS BETTER
+  // higher is better
   { re: /^(yards?|yds)$/i, dir: "higher" },
   { re: /^rec[\s._-]*yds$|^re[\s._-]*yds$|^ru[\s._-]*yds$|^rush[\s._-]*yds$/i, dir: "higher" },
   { re: /^(td|ru[\s._-]*td|re[\s._-]*td|rush[\s._-]*td)$/i, dir: "higher" },
@@ -292,7 +244,7 @@ const DIR_RULES = [
   { re: /^ypc$/i, dir: "higher" },
   { re: /^qbr$/i, dir: "higher" },
   { re: /^dk[\s._-]*pts?$/i, dir: "higher" },
-  { re: /^rank$/i, dir: "higher" }, // per your preference list
+  { re: /^rank$/i, dir: "higher" },
   { re: /^rec$/i, dir: "higher" },
   { re: /^targets?$/i, dir: "higher" },
   { re: /^tgt[\s._-]*shr$/i, dir: "higher" },
@@ -301,56 +253,71 @@ const DIR_RULES = [
   { re: /^msair$/i, dir: "higher" },
   { re: /^routes%$/i, dir: "higher" },
 
-  // LOWER IS BETTER
+  // lower is better
   { re: /^int$/i, dir: "lower" },
-  { re: /^r[\s._-]*yds$/i, dir: "lower" },    // "R. Yds" in defense-against column
+  { re: /^r[\s._-]*yds$/i, dir: "lower" },  // defense allowed "R. Yds"
   { re: /^r[\s._-]*td$/i, dir: "lower" },
   { re: /^dk[\s._-]*sal(ary)?$/i, dir: "lower" },
   { re: /^fd[\s._-]*sal(ary)?$/i, dir: "lower" },
   { re: /^block%$/i, dir: "lower" },
 ];
 
-// Decide direction by column name
 function directionForColumn(colName) {
   const k = String(colName).trim();
   if (ALWAYS_HEAT_HIGH.some((rx) => rx.test(k))) return "higher";
   for (const { re, dir } of DIR_RULES) if (re.test(k)) return dir;
-  return null; // no coloring
+  return null;
 }
 
-// Palette: 'rdylgn' (default), 'greenred', 'mono' (teal lightness)
-function heatColor(min, max, v, dir, palette = "rdylgn") {
-  if (v == null || !Number.isFinite(v) || min == null || max == null || min === max || !dir) return null;
+// palette: 'rdylgn' (red→yellow→green), 'blueorange' (blue→white→orange, orange=better), 'none' (off)
+function heatColor(min, max, v, dir, palette) {
+  if (palette === "none") return null;
+  if (v == null || min == null || max == null || min === max || !dir) return null;
   let t = (v - min) / (max - min);
   t = Math.max(0, Math.min(1, t));
   if (dir === "lower") t = 1 - t;
 
-  const lerp = (a, b, u) => a + (b - a) * u;
-
-  if (palette === "mono") {
-    const l = lerp(96, 86, t);
-    return `hsl(180, 45%, ${l}%)`;
+  // Blue → White → Orange
+  if (palette === "blueorange") {
+    if (t < 0.5) {
+      const u = t / 0.5;                 // blue → white
+      const h = 220;                      // blue hue
+      const s = 60 - u * 55;
+      const l = 90 + u * 7;
+      return `hsl(${h}, ${s}%, ${l}%)`;
+    } else {
+      const u = (t - 0.5) / 0.5;          // white → orange
+      const h = 30;                        // orange hue
+      const s = 5 + u * 80;
+      const l = 97 - u * 7;
+      return `hsl(${h}, ${s}%, ${l}%)`;
+    }
   }
 
-  if (palette === "greenred") {
-    const h = lerp(0, 120, t); // red → green
-    return `hsl(${h}, 70%, 93%)`;
-  }
-
-  // Rd→Yl→Gn with soft mid
+  // default Rd→Yl→Gn with soft mid
   if (t < 0.5) {
     const u = t / 0.5;
-    const h = lerp(0, 60, u);
-    const s = lerp(78, 88, u);
-    const l = lerp(94, 92, u);
+    const h = 0 + u * 60;   // red → yellow
+    const s = 78 + u * 10;
+    const l = 94 - u * 2;
     return `hsl(${h}, ${s}%, ${l}%)`;
   } else {
     const u = (t - 0.5) / 0.5;
-    const h = lerp(60, 120, u);
-    const s = lerp(88, 70, u);
-    const l = lerp(92, 94, u);
+    const h = 60 + u * 60;  // yellow → green
+    const s = 88 - u * 18;
+    const l = 92 + u * 2;
     return `hsl(${h}, ${s}%, ${l}%)`;
   }
+}
+
+function legendStyle(palette) {
+  if (palette === "blueorange") {
+    return { background: "linear-gradient(90deg, hsl(220,60%,90%) 0%, hsl(0,0%,97%) 50%, hsl(30,85%,90%) 100%)" };
+  }
+  if (palette === "none") {
+    return { background: "linear-gradient(90deg, #f3f4f6, #e5e7eb)" };
+  }
+  return { background: "linear-gradient(90deg, hsl(0,78%,94%) 0%, hsl(60,88%,92%) 50%, hsl(120,70%,94%) 100%)" };
 }
 
 /* ============================ MAIN ============================ */
@@ -361,13 +328,11 @@ export default function NflPosData({ pos = "QB" }) {
   const title = TITLES[key] || "NFL — Data";
   const { data, loading, err } = useJson(src);
 
-  const { dense, setDense, palette, setPalette, cellPad, headerPad, textSz } = useUiPrefs();
+  // palette control (no density toggle; compact-only)
+  const [palette, setPalette] = useState("rdylgn");
 
   const rawCols = useMemo(() => (data.length ? Object.keys(data[0]) : []), [data]);
-  const { columns, bands } = useMemo(
-    () => buildColumnsAndBandsForPos(key, rawCols),
-    [key, rawCols]
-  );
+  const { columns, bands } = useMemo(() => buildColumnsAndBandsForPos(key, rawCols), [key, rawCols]);
 
   // search + player picker
   const [q, setQ] = useState("");
@@ -474,8 +439,8 @@ export default function NflPosData({ pos = "QB" }) {
   }, [filtered, sort]);
 
   // UI classes
-  const cellCls = `${cellPad} text-center`;
-  const headerCls = `${headerPad} font-semibold text-center whitespace-nowrap cursor-pointer select-none`;
+  const cellCls = `${CELL_PAD} text-center`;
+  const headerCls = `${HEADER_PAD} font-semibold text-center whitespace-nowrap cursor-pointer select-none`;
 
   return (
     <div className="px-4 md:px-6 py-5">
@@ -539,38 +504,34 @@ export default function NflPosData({ pos = "QB" }) {
             className="h-9 w-72 rounded-lg border border-slate-300 px-3 text-sm focus:ring-2 focus:ring-indigo-500"
           />
 
-          {/* density + palette */}
+          {/* palette selector */}
           <div className="hidden md:flex items-center gap-2">
-            <label className="text-xs text-slate-600">Density</label>
-            <button onClick={() => setDense((d) => !d)} className="h-8 px-2 rounded-lg border text-xs">
-              {dense ? "Compact" : "Comfort"}
-            </button>
-            <label className="text-xs text-slate-600 ml-2">Palette</label>
+            <label className="text-xs text-slate-600">Palette</label>
             <select
               value={palette}
               onChange={(e) => setPalette(e.target.value)}
               className="h-8 rounded-lg border px-2 text-xs"
             >
               <option value="rdylgn">Rd–Yl–Gn</option>
-              <option value="greenred">Green–Red</option>
-              <option value="mono">Monochrome</option>
+              <option value="blueorange">Blue–Orange</option>
+              <option value="none">None</option>
             </select>
           </div>
         </div>
       </div>
 
-      {/* tiny legend */}
+      {/* legend */}
       <div className="mt-1 mb-2 text-[11px] text-slate-500 flex items-center gap-2">
         <span>Lower ⟶ Higher</span>
-        <span className="h-3 w-24 rounded bg-gradient-to-r from-[#fde8e8] via-[#fff3bf] to-[#e6f5e6]" />
-        <span className="ml-2">(green = better per column)</span>
+        <span className="h-3 w-28 rounded" style={legendStyle(palette)} />
+        <span className="ml-2">(color only when a palette is selected)</span>
       </div>
 
       <div className={`${THEME.radius} border ${THEME.border} bg-white shadow-sm overflow-auto`}>
-        <table className={`w-full border-separate ${textSz}`} style={{ borderSpacing: 0 }}>
+        <table className={`w-full border-separate ${TEXT_SZ}`} style={{ borderSpacing: 0 }}>
           {columns.length > 0 && (
             <thead className="sticky top-0 z-10">
-              {/* merged band row */}
+              {/* band row */}
               <tr className={`${THEME.bandBg} text-[11px] font-bold text-slate-700 uppercase`}>
                 {bands.map((g, idx) => (
                   <th
@@ -595,7 +556,7 @@ export default function NflPosData({ pos = "QB" }) {
                         headerCls,
                         isBandEnd ? `border-r-2 ${THEME.bandBorder}` : `border-r ${THEME.border}`,
                         c === "Player" ? "text-left" : "",
-                        i === 1 ? "sticky left-0 z-20 " + THEME.headerBg : "", // freeze 2nd header cell
+                        i === 1 ? "sticky left-0 z-20 " + THEME.headerBg : "",
                       ].join(" ")}
                       onClick={() => onSort(c)}
                       title="Click to sort"
@@ -630,57 +591,55 @@ export default function NflPosData({ pos = "QB" }) {
                 </td>
               </tr>
             )}
-            {!loading &&
-              !err &&
-              sorted.map((row, rIdx) => (
-                <tr
-                  key={rIdx}
-                  className={`${rIdx % 2 ? THEME.zebraEven : THEME.zebraOdd} hover:bg-sky-50/40 transition-colors`}
-                >
-                  {columns.map((c, i) => {
-                    const raw = row[c];
-                    const isTeam = keynorm(c) === keynorm("Team");
-                    const isOpp = keynorm(c) === keynorm("OPP");
-                    const isPlayer = keynorm(c) === keynorm("Player");
-                    const content = isTeam || isOpp ? <TeamWithLogo code={raw} /> : fmtCellValue(c, raw);
 
-                    const borders =
-                      bands.some((b) => b.start + b.span - 1 === i)
-                        ? `border-r-2 ${THEME.bandBorder}`
-                        : `border-r ${THEME.border}`;
+            {!loading && !err && sorted.map((row, rIdx) => (
+              <tr
+                key={rIdx}
+                className={`${rIdx % 2 ? THEME.zebraEven : THEME.zebraOdd} hover:bg-sky-50/40 transition-colors`}
+              >
+                {columns.map((c, i) => {
+                  const raw = row[c];
+                  const isTeam = keynorm(c) === keynorm("Team");
+                  const isOpp = keynorm(c) === keynorm("OPP");
+                  const isPlayer = keynorm(c) === keynorm("Player");
+                  const content = isTeam || isOpp ? <TeamWithLogo code={raw} /> : fmtCellValue(c, raw);
 
-                    // compute heat background if this column matches a rule
-                    const stat = heatStats[c];
-                    const numVal = parseNumericLike(raw);
-                    const bg = stat ? heatColor(stat.min, stat.max, numVal, stat.dir, palette) : null;
+                  const borders =
+                    bands.some((b) => b.start + b.span - 1 === i)
+                      ? `border-r-2 ${THEME.bandBorder}`
+                      : `border-r ${THEME.border}`;
 
-                    // Freeze the 2nd column (i === 1) with a sticky inner div
-                    if (i === 1) {
-                      return (
-                        <td key={`${c}-${rIdx}`} className={[cellCls, isPlayer ? "text-left font-medium" : "text-center", borders].join(" ")}>
-                          <div
-                            className={`sticky left-0 z-10 ${
-                              rIdx % 2 ? THEME.zebraEven : THEME.zebraOdd
-                            } -ml-2 pl-2 pr-2 shadow-[inset_-5px_0_5px_-5px_rgba(0,0,0,0.12)]`}
-                          >
-                            {content}
-                          </div>
-                        </td>
-                      );
-                    }
+                  const stat = heatStats[c];
+                  const numVal = parseNumericLike(raw);
+                  const bg = stat ? heatColor(stat.min, stat.max, numVal, stat.dir, palette) : null;
 
+                  // sticky 2nd column
+                  if (i === 1) {
                     return (
-                      <td
-                        key={`${c}-${rIdx}`}
-                        className={[cellCls, isPlayer ? "text-left font-medium" : "text-center", borders].join(" ")}
-                        style={bg ? { backgroundColor: bg } : undefined}
-                      >
-                        {content}
+                      <td key={`${c}-${rIdx}`} className={[cellCls, isPlayer ? "text-left font-medium" : "text-center", borders].join(" ")}>
+                        <div
+                          className={`sticky left-0 z-10 ${
+                            rIdx % 2 ? THEME.zebraEven : THEME.zebraOdd
+                          } -ml-2 pl-2 pr-2 shadow-[inset_-5px_0_5px_-5px_rgba(0,0,0,0.12)]`}
+                        >
+                          {content}
+                        </div>
                       </td>
                     );
-                  })}
-                </tr>
-              ))}
+                  }
+
+                  return (
+                    <td
+                      key={`${c}-${rIdx}`}
+                      className={[cellCls, isPlayer ? "text-left font-medium" : "text-center", borders].join(" ")}
+                      style={bg ? { backgroundColor: bg } : undefined}
+                    >
+                      {content}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
 
             {!loading && !err && sorted.length === 0 && (
               <tr>
