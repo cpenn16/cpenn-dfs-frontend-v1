@@ -18,7 +18,6 @@ const pct = (v) => {
   const s = String(v).trim();
   if (s.endsWith("%")) return s;
   const n = num(s);
-  // scale only if true fraction
   return n == null ? "" : (Math.abs(n) > 0 && Math.abs(n) < 1 ? (n*100).toFixed(1) : n.toFixed(1)) + "%";
 };
 const smart1 = (v) => { const n = num(v); return n == null ? "" : (Number.isInteger(n) ? String(n) : n.toFixed(1)); };
@@ -61,7 +60,7 @@ function useJson(url){
   return { rows,loading,err };
 }
 
-/* ---------------- column sets (match your sheet labels) ---------------- */
+/* ---------------- column sets ---------------- */
 const COLS_COMMON = [
   { id:"player", label:"Player", type:"text",  w:"min-w-[12rem] text-left" },
   { id:"team",   label:"Team",   type:"team",  w:"min-w-[4.5rem]" },
@@ -136,6 +135,58 @@ function downloadCSV(rows, cols, fname){
   const url = URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=fname; a.click(); URL.revokeObjectURL(url);
 }
 
+/* ---------------- heatmap palette ---------------- */
+// which column IDs get colored and direction
+function dirFor(colId) {
+  if (!colId) return null;
+  const id = String(colId).toLowerCase();
+  if (id.includes("sal")) return null;                         // never color salaries
+  if (id === "team" || id === "player") return null;           // text
+  if (id === "int" || /pown$/.test(id)) return "lower";        // turnovers & ownership lower=better
+  // projections / value / volume / efficiency higher=better
+  if (/(_proj|_val)$/.test(id)) return "higher";
+  return "higher";
+}
+
+// palette: 'rdylgn' (red→yellow→green), 'blueorange' (blue→white→orange, orange=better), 'none' (off)
+function heatColor(min, max, v, dir, palette) {
+  if (palette === "none") return null;
+  if (v == null || min == null || max == null || min === max || !dir) return null;
+  let t = (v - min) / (max - min);
+  t = Math.max(0, Math.min(1, t));
+  if (dir === "lower") t = 1 - t;
+
+  if (palette === "blueorange") {
+    if (t < 0.5) {
+      const u = t / 0.5;                 // blue → white
+      const h = 220;
+      const s = 60 - u * 55;
+      const l = 90 + u * 7;
+      return `hsl(${h}, ${s}%, ${l}%)`;
+    } else {
+      const u = (t - 0.5) / 0.5;          // white → orange
+      const h = 30;
+      const s = 5 + u * 80;
+      const l = 97 - u * 7;
+      return `hsl(${h}, ${s}%, ${l}%)`;
+    }
+  }
+  // rd→yl→gn
+  if (t < 0.5) {
+    const u = t / 0.5;                    // red → yellow
+    const h = 0 + u * 60;
+    const s = 78 + u * 10;
+    const l = 94 - u * 2;
+    return `hsl(${h}, ${s}%, ${l}%)`;
+  } else {
+    const u = (t - 0.5) / 0.5;            // yellow → green
+    const h = 60 + u * 60;
+    const s = 88 - u * 18;
+    const l = 92 + u * 2;
+    return `hsl(${h}, ${s}%, ${l}%)`;
+  }
+}
+
 /* ---------------- component ---------------- */
 export default function NflPosProjections({ pos="QB" }){
   const src = POS_TO_SRC[pos] || POS_TO_SRC.QB;
@@ -192,7 +243,6 @@ export default function NflPosProjections({ pos="QB" }){
     const pa_yards = getVal(k, "pa yards","pass yards","pa_yards");
     const pa_att   = getVal(k, "pa att","pass attempts","pa attempts","pa_att");
     const pa_comp  = getVal(k, "pa comp","pass comp","pa_comp");
-    // Comp%: prefer the explicit percentage field
     const pa_pct   = getVal(k, "pa_comp_pct","comp%","completion%","pass comp%","pa comp%");
     const pa_td    = getVal(k, "pa td","pa_td");
     const int      = getVal(k, "int");
@@ -264,20 +314,62 @@ export default function NflPosProjections({ pos="QB" }){
     return () => window.removeEventListener("resize", calc);
   }, [cols, sorted]);
 
+  /* --------- heatmap stats (visible rows) -------- */
+  const [palette, setPalette] = useState("none"); // default OFF
+  const heatStats = useMemo(() => {
+    const stats = {};
+    if (!sorted.length) return stats;
+    for (const c of cols) {
+      const dir = dirFor(c.id);
+      if (!dir) continue;
+      let min = Infinity, max = -Infinity;
+      for (const r of sorted) {
+        const v = num(c.type === "pct" ? String(r[c.id]).replace("%","") : r[c.id]);
+        if (v == null) continue;
+        if (v < min) min = v;
+        if (v > max) max = v;
+      }
+      if (min !== Infinity && max !== -Infinity) stats[c.id] = { min, max, dir };
+    }
+    return stats;
+  }, [sorted, cols]);
+
   // COMPACT STYLE
   const cell="px-3 py-1 text-center";
   const header="px-3 py-1 font-semibold text-center";
   const small="text-[12px] md:text-[13px]";
 
   return (
-    <div className="px-4 md:px-6 py-5">
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <h1 className="text-xl md:text-2xl font-extrabold mb-0.5">NFL — {pos} Projections</h1>
-        <div className="flex items-center gap-2">
-          <input className="h-9 w-64 rounded-lg border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                 placeholder="Search player / team…" value={q} onChange={(e)=>setQ(e.target.value)} />
-          <button className="ml-1 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700"
-                  onClick={()=>downloadCSV(sorted, cols, `nfl_${pos.toLowerCase()}_projections.csv`)}>
+    <div className="px-3 md:px-6 py-4 md:py-5">
+      <div className="flex items-start md:items-center justify-between gap-3 mb-3 flex-col md:flex-row">
+        <h1 className="text-lg md:text-2xl font-extrabold mb-0.5">NFL — {pos} Projections</h1>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            className="h-8 md:h-9 w-44 md:w-64 rounded-lg border border-gray-300 px-2 md:px-3 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Search player / team…"
+            value={q}
+            onChange={(e)=>setQ(e.target.value)}
+          />
+
+          {/* palette selector (default None) */}
+          <div className="flex items-center gap-1 md:gap-2">
+            <label className="text-xs text-slate-600 hidden md:block">Palette</label>
+            <select
+              value={palette}
+              onChange={(e) => setPalette(e.target.value)}
+              className="h-8 rounded-lg border px-2 text-xs"
+            >
+              <option value="none">None</option>
+              <option value="rdylgn">Rd–Yl–Gn</option>
+              <option value="blueorange">Blue–Orange</option>
+            </select>
+          </div>
+
+          <button
+            className="ml-1 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700"
+            onClick={()=>downloadCSV(sorted, cols, `nfl_${pos.toLowerCase()}_projections.csv`)}
+          >
             Export CSV
           </button>
         </div>
@@ -316,13 +408,17 @@ export default function NflPosProjections({ pos="QB" }){
             {!loading && !err && sorted.map((r,i)=>(
               <tr key={`${r.player||i}-${i}`} className="odd:bg-white even:bg-gray-50">
                 {cols.map(c=>{
+                  // sticky team cell with logo
                   if(c.type==="team"){
                     const abbr=String(r.team||"").toUpperCase();
+                    const stat = heatStats[c.id];
+                    const vNum = null; // no color on team cells
+                    const bg = stat ? heatColor(stat.min, stat.max, vNum, stat.dir, palette) : null;
                     return (
                       <td
                         key={c.id}
                         className={`px-3 py-1 text-center sticky z-10 ${i%2===0?"bg-white":"bg-gray-50"} shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)] whitespace-nowrap`}
-                        style={{ left: playerColWidth }}
+                        style={{ left: playerColWidth, ...(bg ? { backgroundColor: bg } : {}) }}
                         title={abbr}
                       >
                         <div className="inline-flex items-center gap-2 justify-center">
@@ -332,6 +428,7 @@ export default function NflPosProjections({ pos="QB" }){
                       </td>
                     );
                   }
+                  // sticky player cell
                   if(c.id==="player"){
                     const val = r[c.id] ?? "";
                     return (
@@ -344,12 +441,27 @@ export default function NflPosProjections({ pos="QB" }){
                       </td>
                     );
                   }
+
+                  // heat background for numeric metrics
+                  const stat = heatStats[c.id];
+                  const vNum = num(c.type === "pct" ? String(r[c.id]).replace("%","") : r[c.id]);
+                  const bg = stat ? heatColor(stat.min, stat.max, vNum, stat.dir, palette) : null;
+
                   let val=r[c.id] ?? "";
                   if(c.type==="money") val=int0(val);
                   else if(c.type==="pct") val=pct(val);
                   else if(c.type==="num1") val=smart1(val);
-                  const left = c.id==="player";
-                  return <td key={c.id} className={`${cell} ${left?"text-left":"text-center"} tabular-nums whitespace-nowrap`} title={String(val)}>{val}</td>;
+
+                  return (
+                    <td
+                      key={c.id}
+                      className={`${cell} ${c.id==="player"?"text-left":"text-center"} tabular-nums whitespace-nowrap`}
+                      title={String(val)}
+                      style={bg ? { backgroundColor: bg } : undefined}
+                    >
+                      {val}
+                    </td>
+                  );
                 })}
               </tr>
             ))}
