@@ -999,7 +999,7 @@ export default function CupBetting() {
 
   const [active, setActive] = useState("driver");
   const [compact, setCompact] = useState(true);           // default ON
-  const [palette, setPalette] = useState("rdylgn");       // default colorful
+  const [palette, setPalette] = useState("none");   // default: no coloring
 
   return (
     <div className="px-5 py-6">

@@ -125,9 +125,6 @@ export default function CupCheatSheets() {
   return (
     <div className="px-5 py-6">
       <h1 className="text-3xl font-extrabold mb-2">NASCAR Cup — Cheat Sheets</h1>
-      <div className="text-sm text-gray-500 mb-6">
-        Data source: <code>{SOURCE}</code>
-      </div>
 
       <div className="mb-3 flex items-center gap-3">
         <label className="text-sm font-medium">Choose a table:</label>
@@ -168,4 +165,5 @@ export default function CupCheatSheets() {
       )}
     </div>
   );
+
 }

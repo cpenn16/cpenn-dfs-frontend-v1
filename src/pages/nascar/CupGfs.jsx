@@ -73,6 +73,23 @@ const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
 const findDriverKey = (row) =>
   Object.keys(row || {}).find((k) => /^driver\b/i.test(k)) || "Driver";
 
+/* ---- LOWER-IS-BETTER flags ---- */
+const LOWER_SET = [
+  "intermediate",
+  "short/flat",
+  "road course",
+  "this track",
+  "high tire wear",
+  "tire codes",
+  "overall",
+];
+function isLowerBetter(col) {
+  const s = String(col || "").toLowerCase().replace(/\s+/g, " ").trim();
+  // any 4-digit year starting with 20xx (future-proof: 2000–2099)
+  if (/^20\d{2}$/.test(s)) return true;
+  return LOWER_SET.includes(s);
+}
+
 /* ------------ page ------------ */
 export default function CupGFS() {
   const SOURCE = "/data/nascar/cup/latest/gfs.json";
@@ -237,7 +254,9 @@ export default function CupGFS() {
               onClick={() => toggleCol(i)}
               className={[
                 "px-2 py-1 rounded-full text-xs border transition",
-                on ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50",
+                on
+                  ? "bg-blue-50 border-blue-300 text-blue-800"
+                  : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50",
               ].join(" ")}
               title={on ? "Hide column" : "Show column"}
             >
@@ -266,14 +285,23 @@ export default function CupGFS() {
               <tr>
                 {visibleColNames.map((c) => {
                   const active = sort.col === c;
-                  const arrow = active ? (sort.dir === "asc" ? "▲" : "▼") : "▲";
+                  // Pre-indicate default “good” direction (▲ lower-better, ▼ higher-better)
+                  const arrow = active
+                    ? sort.dir === "asc"
+                      ? "▲"
+                      : "▼"
+                    : isLowerBetter(c)
+                    ? "▲"
+                    : "▼";
                   const w = widthCh[c] ?? 10;
                   return (
                     <th
                       key={c}
                       onClick={() =>
                         setSort((s) =>
-                          s.col === c ? { col: c, dir: s.dir === "asc" ? "desc" : "asc" } : { col: c, dir: "asc" }
+                          s.col === c
+                            ? { col: c, dir: s.dir === "asc" ? "desc" : "asc" }
+                            : { col: c, dir: isLowerBetter(c) ? "asc" : "desc" }
                         )
                       }
                       title={c}
@@ -287,8 +315,17 @@ export default function CupGFS() {
                       ].join(" ")}
                       style={{ maxWidth: `${w}ch` }}
                     >
-                      <div className={["inline-flex items-center gap-1 justify-center w-full", headerWrap, c === driverKey ? "justify-start" : ""].join(" ")}>
-                        {c} <span className="opacity-60">{arrow}</span>
+                      <div
+                        className={[
+                          "inline-flex items-center gap-1 justify-center w-full",
+                          headerWrap,
+                          c === driverKey ? "justify-start" : "",
+                        ].join(" ")}
+                      >
+                        {c}{" "}
+                        <span className={active ? "opacity-80 text-blue-600" : "opacity-50 text-gray-400"}>
+                          {arrow}
+                        </span>
                       </div>
                     </th>
                   );
