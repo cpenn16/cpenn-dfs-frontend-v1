@@ -66,6 +66,7 @@ const LOWER_SET = [
   "short/flat",
   "road course",
   "this track",
+  "similar tracks",
   "high tire wear",
   "tire codes",
   "overall",
