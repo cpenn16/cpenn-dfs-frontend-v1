@@ -1193,7 +1193,7 @@ export default function MLBOptimizer() {
                         <td className={`${cell} tabular-nums`}>{fmt1(L.total)}</td>
                         <td className={`${cell} leading-snug`}>
                           <span className="break-words">
-                            {ordered.map((r) => siteNameWithId(site, r.name, idMap)).join(" • ")}
+                            {ordered.map((r) => r.name).join(" • ")}
                           </span>
                         </td>
                       </tr>
