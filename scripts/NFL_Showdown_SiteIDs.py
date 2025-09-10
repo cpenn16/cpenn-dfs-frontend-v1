@@ -38,7 +38,7 @@ from openpyxl import load_workbook
 # ---------- defaults ----------
 THIS = Path(__file__).resolve()
 ROOT = THIS.parents[1] if (len(THIS.parents) > 1) else THIS.parent
-DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\NFL\NFL MNF Showdown Bears vs Vikings.xlsm"
+DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\NFL\NFL TNF Showdown Commanders vs Packers.xlsm"
 DEFAULT_PROJ   = str(ROOT)
 DEFAULT_CONFIG = str(ROOT / "scripts" / "configs" / "nfl_showdown.json")
 DEFAULT_OUTREL = "data/nfl/showdown/latest/site_ids"

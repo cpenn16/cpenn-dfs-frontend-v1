@@ -1,25 +1,25 @@
 [
   {
-    "away": "MIN",
-    "home": "CHI",
+    "away": "WAS",
+    "home": "GB",
     "lines": [
-      "O/U: 44.5 | MIN ML: -125 | CHI ML: 105",
-      "Spread: MIN -1.5 | CHI 1.5",
-      "Totals: MIN 23.5 | CHI 22.5",
-      "Weather: 65.43°F | 3.83 mph mph | Clear Sky",
-      "MIN (23.5) | CHI (22.5)",
-      "QB:  J.J. McCarthy 17.5 9k | 16.6 12k | QB:  Caleb Williams 17.0 9.2k | 16.5 12.6k",
-      "RB1: Aaron Jones Sr. 14.5 7.4k | 13.2 10.4k | RB1: D'Andre Swift 13.9 8.8k | 12.7 9.4k",
-      "RB2: Jordan Mason 9.7 7k | 9.3 5.8k | RB2: Roschon Johnson 5.7 3k | 5.1 4.4k",
-      "RB3: Ty Chandler 3.1 2.4k | 3.0 2.4k | RB3: Kyle Monangai 3.5 2.8k | 3.3 1.4k",
-      "WR1: Justin Jefferson 18.5 10.8k | 15.5 14.8k | WR1: DJ Moore 13.8 9.6k | 11.4 10.2k",
-      "WR2: Adam Thielen 9.9 4.4k | 8.1 7.8k | WR2: Rome Odunze 10.6 8k | 9.0 8k",
-      "WR3: Jalen Nailor 5.6 3.6k | 4.8 4k | WR3: Luther Burden III 5.6 4.6k | 4.7 3.6k",
-      "WR4: Tai Felton 1.8 800 | 1.6 1k | WR4: Olamide Zaccheaus 4.4 2k | 3.7 3.2k",
-      "WR5: Myles Price 0.0 200 | 0.0 1k | WR5: Devin Duvernay 1.2 200 | 1.0 2.8k",
-      "TE1: T.J. Hockenson 10.6 6.6k | 8.5 8.4k | TE1: Colston Loveland 7.3 5.8k | 5.9 5.4k",
-      "TE2: Josh Oliver 2.4 1.6k | 2.0 2k | TE2: Cole Kmet 5.1 4k | 4.1 4.8k",
-      "TE3: Ben Yurosek 0.0 1.2k | 0.0 1k | TE3: Durham Smythe 0.0 600 | 0.0 1.8k"
+      "O/U: 48.5 | WAS ML: 150 | GB ML: -180",
+      "Spread: WAS 3.5 | GB -3.5",
+      "Totals: WAS 22.5 | GB 26.5",
+      "Weather: 62.42°F | 5.01 mph mph | Broken Clouds",
+      "WAS (22.5) | GB (26.5)",
+      "QB:  Jayden Daniels 22.2 11k | 21.5 13.6k | QB:  Jordan Love 17.4 10k | 16.5 11.8k",
+      "RB1: Austin Ekeler 14.2 6.8k | 12.7 7.8k | RB1: Josh Jacobs 19.0 10.6k | 18.0 12.4k",
+      "RB2: Jacory Croskey-Merritt 10.1 7k | 9.5 8.6k | RB2: Chris Brooks 2.6 400 | 2.3 1.2k",
+      "RB3: Chris Rodriguez Jr. 1.1 1.4k | 1.1 2k | RB3: Emanuel Wilson 5.1 2k | 4.7 2.4k",
+      "WR1: Terry McLaurin 14.8 9k | 12.4 11.4k | WR1: Jayden Reed 12.3 8.2k | 10.5 9.8k",
+      "WR2: Deebo Samuel Sr. 14.3 8.6k | 12.2 10.2k | WR2: Matthew Golden 9.0 6.4k | 7.6 5.6k",
+      "WR3: Noah Brown 5.8 3.2k | 4.7 3.2k | WR3: Romeo Doubs 10.4 4k | 8.7 4.2k",
+      "WR4: Luke McCaffrey 2.3 1.2k | 1.9 2.6k | WR4: Dontayvion Wicks 4.2 3.6k | 3.6 3.6k",
+      "WR5: Jaylin Lane 2.3 1.6k | 1.9 2.2k | WR5: Savion Williams 1.5 1k | 1.3 1.4k",
+      "TE1: Zach Ertz 9.3 5.8k | 7.4 5.2k | TE1: Tucker Kraft 10.3 5.4k | 8.6 5k",
+      "TE2: John Bates 1.3 600 | 1.0 1.2k | TE2: Luke Musgrave 2.1 2.4k | 1.7 1.8k",
+      "TE3: Ben Sinnott 0.9 200 | 0.8 1.6k | TE3: John FitzPatrick 0.2 200 | 0.1 1k"
     ]
   }
 ]
