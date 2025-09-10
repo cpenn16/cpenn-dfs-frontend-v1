@@ -27,22 +27,15 @@ const teamLogo = (team) => `/logos/nfl/${String(team || "").toUpperCase()}.png`;
 const asNum = (v) => {
   if (v === null || v === undefined || v === "") return null;
   let s = String(v).trim();
-
-  // remove non-breaking/thin spaces
   s = s.replace(/\u00A0|\u2009|\u202F/g, "");
-
-  // If it looks like a decimal comma (e.g. "1,2" or "-3,75") AND there's no dot,
-  // convert comma to a decimal point.
-  if (/^-?\d+,\d+$/.test(s) && !s.includes(".")) {
-    s = s.replace(",", ".");
-  } else {
-    // Otherwise treat commas as thousands separators only (1,234 or 12,345,678)
-    s = s.replace(/(\d),(?=\d{3}\b)/g, "$1");
-  }
-
-  // Strip everything except the first number (keeps leading minus and decimal point)
+  if (/^-?\d+,\d+$/.test(s) && !s.includes(".")) s = s.replace(",", ".");
+  else s = s.replace(/(\d),(?=\d{3}\b)/g, "$1");
   const m = s.match(/-?\d+(?:\.\d+)?/);
   return m ? parseFloat(m[0]) : null;
+};
+const num = (v) => {
+  const n = asNum(v);
+  return Number.isFinite(n) ? n : null;
 };
 
 // Detect whether a whole column looks like 0..1 fractions. If yes → scale by 100.
@@ -53,17 +46,11 @@ const detectPctScale = (vals) => {
   if (!nums.length) return 1;
   return Math.max(...nums) <= 1 ? 100 : 1;
 };
-
 const clampPct = (n) => {
   if (n == null || !Number.isFinite(n)) return null;
   if (n < 0) return 0;
   if (n > 100) return 100;
   return n;
-};
-
-const num = (v) => {
-  const n = asNum(v);
-  return Number.isFinite(n) ? n : null;
 };
 
 const getVal = (row, key) => {
@@ -103,10 +90,7 @@ const fmt = {
     const hadPercent = /%$/.test(String(v).trim());
     const n = asNum(hadPercent ? String(v).trim().slice(0, -1) : v);
     if (n === null) return "";
-    // If user typed "0.9" but meant % and no '%' present, we do NOT auto-scale here.
-    // Raw table expects percent already; scaling is handled centrally in Insights only.
-    const out = hadPercent ? n : n;
-    return `${out.toFixed(1)}%`;
+    return `${n.toFixed(1)}%`;
   },
 };
 
@@ -283,7 +267,6 @@ function StacksInsights({ rows, site = "both" }) {
         fd_total: asNum(r.fd_total),
         dk_rtg: asNum(r.dk_rtg),
         fd_rtg: asNum(r.fd_rtg),
-        // scale pOWN% only if the whole column is fractional (0..1)
         dk_pct: clampPct(asNum(r.dk_pct) * dkPctScale),
         fd_pct: clampPct(asNum(r.fd_pct) * fdPctScale),
         dk_sal: asNum(r.dk_sal),
@@ -372,7 +355,6 @@ function StacksInsights({ rows, site = "both" }) {
                   site === k ? "bg-white shadow font-semibold" : "text-gray-700"
                 }`}
                 onClick={() => {
-                  // no-op here; the parent controls site and passes it down.
                   const ev = new CustomEvent("nfl-stacks-site-change", { detail: k });
                   window.dispatchEvent(ev);
                 }}
@@ -412,7 +394,6 @@ function StacksInsights({ rows, site = "both" }) {
               cursor={{ strokeDasharray: "3 3" }}
             />
 
-            {/* Average guide lines (blue) */}
             {xAvg != null && (
               <ReferenceLine
                 x={xAvg}
@@ -444,13 +425,66 @@ function StacksInsights({ rows, site = "both" }) {
   );
 }
 
+/* ======================= Heatmap: rules + palettes ======================= */
+
+function dirForLabel(label) {
+  const k = String(label).toLowerCase();
+  // higher is better
+  if (["o/u", "imp. tot", "dk%", "fd%", "dk rtg", "fd rtg", "dk qb", "fd qb", "dk rb", "fd rb", "dk wr", "fd wr", "dk te", "fd te", "dk dst", "fd dst", "dk total", "fd total", "dk opt%", "fd opt%"].includes(k))
+    return "higher";
+  // lower is better
+  if (["dk sal", "fd sal"].includes(k)) return "lower";
+  return null;
+}
+
+// palette: 'rdylgn' (red→yellow→green), 'blueorange' (blue→white→orange), 'none'
+function heatColor(min, max, v, dir, palette) {
+  if (palette === "none") return null;
+  if (v == null || min == null || max == null || min === max || !dir) return null;
+  let t = (v - min) / (max - min);
+  t = Math.max(0, Math.min(1, t));
+  if (dir === "lower") t = 1 - t;
+
+  if (palette === "blueorange") {
+    if (t < 0.5) {
+      const u = t / 0.5;
+      const h = 220, s = 60 - u * 55, l = 90 + u * 7;
+      return `hsl(${h}, ${s}%, ${l}%)`;
+    } else {
+      const u = (t - 0.5) / 0.5;
+      const h = 30, s = 5 + u * 80, l = 97 - u * 7;
+      return `hsl(${h}, ${s}%, ${l}%)`;
+    }
+  }
+
+  if (t < 0.5) {
+    const u = t / 0.5;
+    const h = 0 + u * 60, s = 78 + u * 10, l = 94 - u * 2;
+    return `hsl(${h}, ${s}%, ${l}%)`;
+  } else {
+    const u = (t - 0.5) / 0.5;
+    const h = 60 + u * 60, s = 88 - u * 18, l = 92 + u * 2;
+    return `hsl(${h}, ${s}%, ${l}%)`;
+  }
+}
+function legendStyle(palette) {
+  if (palette === "blueorange") {
+    return { background: "linear-gradient(90deg, hsl(220,60%,90%) 0%, hsl(0,0%,97%) 50%, hsl(30,85%,90%) 100%)" };
+  }
+  if (palette === "none") return { background: "linear-gradient(90deg, #f3f4f6, #e5e7eb)" };
+  return { background: "linear-gradient(90deg, hsl(0,78%,94%) 0%, hsl(60,88%,92%) 50%, hsl(120,70%,94%) 100%)" };
+}
+
 /* -------------------------------- page -------------------------------- */
 export default function NflStacks() {
   const { rows, loading, err } = useJson(SOURCE);
+
   const [site, setSite] = useState("both");
   const [q, setQ] = useState("");
+  const [palette, setPalette] = useState("rdylgn"); // rdylgn | blueorange | none
+  const [view, setView] = useState("both"); // table | insights | both
 
-  // reset default sort when site changes (prevents weirdness when FD selected)
+  // reset default sort when site changes
   const defaultSortFor = (s) => {
     if (s === "dk") return { key: ["dk_total", "dkTotal", "DK Total"], dir: "desc" };
     if (s === "fd") return { key: ["fd_total", "fdTotal", "FD Total"], dir: "desc" };
@@ -521,6 +555,30 @@ export default function NflStacks() {
     });
   };
 
+  // compute heat stats for visible rows/columns according to label direction
+  const heatStats = useMemo(() => {
+    const stats = {};
+    if (!sorted.length) return stats;
+    for (const col of columns) {
+      const label = col.label;
+      const dir = dirForLabel(label.toLowerCase());
+      if (!dir) continue;
+      let min = Infinity;
+      let max = -Infinity;
+      for (const r of sorted) {
+        let v = getVal(r, col.key);
+        // normalize numbers (strip % if present)
+        if (col.type === "pct1") v = String(v ?? "").replace(/%$/, "");
+        const n = num(v);
+        if (n == null) continue;
+        if (n < min) min = n;
+        if (n > max) max = n;
+      }
+      if (min !== Infinity && max !== -Infinity) stats[label] = { min, max, dir };
+    }
+    return stats;
+  }, [sorted, columns]);
+
   /* styling */
   const cell = "px-2 py-1 text-center";
   const header = "px-2 py-1 font-semibold text-center";
@@ -536,9 +594,17 @@ export default function NflStacks() {
   return (
     <div className="px-4 md:px-6 py-5">
       <div className="flex items-center justify-between gap-3 mb-2">
-        <h1 className="text-2xl md:text-3xl font-extrabold mb-0.5">NFL — Stacks</h1>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-extrabold mb-0.5">NFL — Stacks</h1>
+          <div className="mt-1 text-[11px] text-slate-500 flex items-center gap-2">
+            <span>Lower ⟶ Higher</span>
+            <span className="h-3 w-28 rounded" style={legendStyle(palette)} />
+            <span className="ml-2">(salaries invert; others as specified)</span>
+          </div>
+        </div>
 
         <div className="flex items-center gap-2">
+          {/* site toggle */}
           <div className="inline-flex items-center gap-2 rounded-xl bg-gray-100 p-1">
             {["dk", "fd", "both"].map((k) => (
               <button
@@ -552,6 +618,35 @@ export default function NflStacks() {
                 <span>{SITES[k].label}</span>
               </button>
             ))}
+          </div>
+
+          {/* view toggle (Table/Insights/Both) */}
+          <div className="inline-flex items-center gap-2 rounded-xl bg-gray-100 p-1">
+            {["table", "insights", "both"].map((v) => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                className={`px-3 py-1.5 rounded-lg text-sm ${
+                  view === v ? "bg-white shadow font-semibold" : "text-gray-700"
+                }`}
+              >
+                {v[0].toUpperCase() + v.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          {/* palette */}
+          <div className="hidden md:flex items-center gap-2">
+            <label className="text-xs text-slate-600">Palette</label>
+            <select
+              value={palette}
+              onChange={(e) => setPalette(e.target.value)}
+              className="h-8 rounded-lg border px-2 text-xs"
+            >
+              <option value="rdylgn">Rd–Yl–Gn</option>
+              <option value="blueorange">Blue–Orange</option>
+              <option value="none">None</option>
+            </select>
           </div>
 
           <input
@@ -570,107 +665,123 @@ export default function NflStacks() {
         </div>
       </div>
 
-      <div className="rounded-xl border bg-white shadow-sm overflow-auto">
-        <table className={`w-full border-separate ${textSz}`} style={{ borderSpacing: 0 }}>
-          <thead className="bg-gray-50 sticky top-0 z-10">
-            <tr>
-              {columns.map((c) => (
-                <th
-                  key={Array.isArray(c.key) ? c.key.join("|") : c.key}
-                  className={`${header} whitespace-nowrap cursor-pointer select-none ${c.w || ""} ${
-                    (Array.isArray(c.key) ? c.key[0] : c.key) === "team" ? "sticky left-0 z-20 bg-gray-50" : ""
-                  }`}
-                  onClick={() => onSort(c)}
-                  title="Click to sort"
-                >
-                  <div className="inline-flex items-center gap-1">
-                    <span>{c.label}</span>
-                    {Array.isArray(sort.key) ? (
-                      Array.isArray(c.key) && sort.key.join("|") === c.key.join("|") ? (
+      {/* Table */}
+      {(view === "table" || view === "both") && (
+        <div className="rounded-xl border bg-white shadow-sm overflow-auto">
+          <table className={`w-full border-separate ${textSz}`} style={{ borderSpacing: 0 }}>
+            <thead className="bg-gray-50 sticky top-0 z-10">
+              <tr>
+                {columns.map((c) => (
+                  <th
+                    key={Array.isArray(c.key) ? c.key.join("|") : c.key}
+                    className={`${header} whitespace-nowrap cursor-pointer select-none ${c.w || ""} ${
+                      (Array.isArray(c.key) ? c.key[0] : c.key) === "team" ? "sticky left-0 z-20 bg-gray-50" : ""
+                    }`}
+                    onClick={() => onSort(c)}
+                    title="Click to sort"
+                  >
+                    <div className="inline-flex items-center gap-1">
+                      <span>{c.label}</span>
+                      {Array.isArray(sort.key) ? (
+                        Array.isArray(c.key) && sort.key.join("|") === c.key.join("|") ? (
+                          <span className="text-gray-400">{sort.dir === "desc" ? "▼" : "▲"}</span>
+                        ) : (
+                          <span className="text-gray-300">▲</span>
+                        )
+                      ) : sort.key === c.key ? (
                         <span className="text-gray-400">{sort.dir === "desc" ? "▼" : "▲"}</span>
                       ) : (
                         <span className="text-gray-300">▲</span>
-                      )
-                    ) : sort.key === c.key ? (
-                      <span className="text-gray-400">{sort.dir === "desc" ? "▼" : "▲"}</span>
-                    ) : (
-                      <span className="text-gray-300">▲</span>
-                    )}
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
+                      )}
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
 
-          <tbody>
-            {loading && (
-              <tr>
-                <td className={`${cell} text-gray-500`} colSpan={columns.length}>
-                  Loading…
-                </td>
-              </tr>
-            )}
-            {err && (
-              <tr>
-                <td className={`${cell} text-red-600`} colSpan={columns.length}>
-                  Failed to load: {err}
-                </td>
-              </tr>
-            )}
-            {!loading &&
-              !err &&
-              sorted.map((r, i) => (
-                <tr key={`${r.team}-${r.opp}-${i}`} className="odd:bg-white even:bg-gray-50">
-                  {columns.map((c) => {
-                    const raw = getVal(r, c.key);
-                    if ((Array.isArray(c.key) ? c.key[0] : c.key) === "team") {
-                      const abv = String(r.team || "").toUpperCase();
+            <tbody>
+              {loading && (
+                <tr>
+                  <td className={`${cell} text-gray-500`} colSpan={columns.length}>
+                    Loading…
+                  </td>
+                </tr>
+              )}
+              {err && (
+                <tr>
+                  <td className={`${cell} text-red-600`} colSpan={columns.length}>
+                    Failed to load: {err}
+                  </td>
+                </tr>
+              )}
+              {!loading &&
+                !err &&
+                sorted.map((r, i) => (
+                  <tr key={`${r.team}-${r.opp}-${i}`} className="odd:bg-white even:bg-gray-50">
+                    {columns.map((c) => {
+                      const raw = getVal(r, c.key);
+
+                      // Sticky first col (team with logo)
+                      if ((Array.isArray(c.key) ? c.key[0] : c.key) === "team") {
+                        const abv = String(r.team || "").toUpperCase();
+                        return (
+                          <td
+                            key={Array.isArray(c.key) ? c.key.join("|") : c.key}
+                            className={`px-2 py-1 text-left sticky left-0 z-10 ${
+                              i % 2 === 0 ? "bg-white" : "bg-gray-50"
+                            } min-w-[7rem] shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)]`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <img
+                                src={teamLogo(r.team)}
+                                alt=""
+                                className="w-4 h-4 rounded-sm object-contain"
+                                onError={(e) => (e.currentTarget.style.visibility = "hidden")}
+                              />
+                              <span className="whitespace-nowrap font-medium">{abv}</span>
+                            </div>
+                          </td>
+                        );
+                      }
+
+                      // Heatmap bg
+                      const stat = heatStats[c.label];
+                      let base = raw;
+                      if (c.type === "pct1") base = String(base ?? "").replace(/%$/, "");
+                      const n = num(base);
+                      const bg = stat ? heatColor(stat.min, stat.max, n, stat.dir, palette) : null;
+
+                      // format display
+                      let val = raw;
+                      if (c.type === "int") val = fmt.int(raw);
+                      if (c.type === "smart1") val = fmt.smart1(raw);
+                      if (c.type === "signed-smart1") val = fmt.signedSmart1(raw);
+                      if (c.type === "num1") val = fmt.num1(raw);
+                      if (c.type === "pct1") val = fmt.pct1(raw);
+
+                      const cls = c.type === "text" ? "px-2 py-1 text-center" : `${cell} tabular-nums`;
                       return (
-                        // First column: make the TD itself sticky
                         <td
                           key={Array.isArray(c.key) ? c.key.join("|") : c.key}
-                          className={`px-2 py-1 text-left sticky left-0 z-10 ${
-                            i % 2 === 0 ? "bg-white" : "bg-gray-50"
-                          } min-w-[7rem] shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)]`}
+                          className={`${cls} whitespace-nowrap`}
+                          title={String(val ?? "")}
+                          style={bg ? { backgroundColor: bg } : undefined}
                         >
-                          <div className="flex items-center gap-2">
-                            <img
-                              src={teamLogo(r.team)}
-                              alt=""
-                              className="w-4 h-4 rounded-sm object-contain"
-                              onError={(e) => (e.currentTarget.style.visibility = "hidden")}
-                            />
-                            <span className="whitespace-nowrap font-medium">{abv}</span>
-                          </div>
+                          {val ?? ""}
                         </td>
                       );
-                    }
-                    let val = raw;
-                    if (c.type === "int") val = fmt.int(raw);
-                    if (c.type === "smart1") val = fmt.smart1(raw);
-                    if (c.type === "signed-smart1") val = fmt.signedSmart1(raw);
-                    if (c.type === "num1") val = fmt.num1(raw);
-                    if (c.type === "pct1") val = fmt.pct1(raw);
+                    })}
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-                    const cls = c.type === "text" ? "px-2 py-1 text-center" : `${cell} tabular-nums`;
-                    return (
-                      <td
-                        key={Array.isArray(c.key) ? c.key.join("|") : c.key}
-                        className={`${cls} whitespace-nowrap`}
-                        title={String(val ?? "")}
-                      >
-                        {val ?? ""}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Insights panel below the table */}
-      {!loading && !err ? <StacksInsights rows={filtered} site={site} /> : null}
+      {/* Insights panel */}
+      {(view === "insights" || view === "both") && !loading && !err ? (
+        <StacksInsights rows={filtered} site={site} />
+      ) : null}
     </div>
   );
 }
