@@ -19,23 +19,23 @@ const COLS_COMMON = [
 ];
 
 const COLS_DK = [
-  { key: "dk_sal", label: "DK Sal", type: "money" },      // ← NEW
+  { key: "dk_sal", label: "DK Sal", type: "money" }, // no coloring
   { key: "dk_proj", label: "DK Proj", type: "num1" },
   { key: "dk_val", label: "DK Val", type: "num1" },
   { key: "dk_pown", label: "DK pOWN%", type: "pct" },
   { key: "dk_opt", label: "DK Opt%", type: "pct" },
   { key: "dk_lev", label: "DK Lev%", type: "pct" },
-  { key: "dk_rtg", label: "DK Rtg", type: "num1-force" }, // always 1 decimal
+  { key: "dk_rtg", label: "DK Rtg", type: "num1-force" },
 ];
 
 const COLS_FD = [
-  { key: "fd_sal", label: "FD Sal", type: "money" },      // ← NEW
+  { key: "fd_sal", label: "FD Sal", type: "money" }, // no coloring
   { key: "fd_proj", label: "FD Proj", type: "num1" },
   { key: "fd_val", label: "FD Val", type: "num1" },
   { key: "fd_pown", label: "FD pOWN%", type: "pct" },
   { key: "fd_opt", label: "FD Opt%", type: "pct" },
   { key: "fd_lev", label: "FD Lev%", type: "pct" },
-  { key: "fd_rtg", label: "FD Rtg", type: "num1-force" }, // always 1 decimal
+  { key: "fd_rtg", label: "FD Rtg", type: "num1-force" },
 ];
 
 /* ------------------------------ helpers ------------------------------- */
@@ -43,7 +43,7 @@ const num = (v) => {
   const n = Number(String(v ?? "").replace(/[,$%\s]/g, ""));
   return Number.isFinite(n) ? n : null;
 };
-const fmt0 = (v) => {                      // 49,500 style
+const fmt0 = (v) => {
   const n = num(v);
   return n === null ? "" : n.toLocaleString();
 };
@@ -98,7 +98,7 @@ function downloadCSV(rows, cols, fname = "nfl_projections.csv") {
           const val = r[c.key];
           if (c.type === "num1-force") return escapeCSV(fmt1(val));
           if (c.type === "num1") return escapeCSV(fmt1(val));
-          if (c.type === "money") return escapeCSV(fmt0(val)); // ← NEW
+          if (c.type === "money") return escapeCSV(fmt0(val));
           return escapeCSV(val ?? "");
         })
         .join(",")
@@ -179,12 +179,84 @@ function TeamsDropdown({ allTeams, selected, onChange }) {
   );
 }
 
+/* ======================= HEATMAP: rules + palettes ======================= */
+
+/** Which columns get colored and in which direction */
+function dirForKey(k) {
+  if (/^(dk|fd)_(proj|val|opt|lev|rtg)$/i.test(k)) return "higher";
+  if (/^(dk|fd)_pown$/i.test(k)) return "lower";
+  return null; // no coloring (salaries, text, etc.)
+}
+
+/** Color palettes:
+ *  - rdylgn: red → yellow → green (green = better)
+ *  - blueorange: blue → white → orange (orange = better)
+ *  - none: no background
+ */
+function heatColor(min, max, v, dir, palette) {
+  if (palette === "none") return null;
+  if (v == null || min == null || max == null || min === max || !dir) return null;
+
+  let t = (v - min) / (max - min);
+  t = Math.max(0, Math.min(1, t));
+  if (dir === "lower") t = 1 - t;
+
+  // Blue → White → Orange, with orange = better
+  if (palette === "blueorange") {
+    if (t < 0.5) {
+      const u = t / 0.5; // blue → white
+      const h = 220;
+      const s = 60 - u * 55;
+      const l = 90 + u * 7;
+      return `hsl(${h}, ${s}%, ${l}%)`;
+    } else {
+      const u = (t - 0.5) / 0.5; // white → orange
+      const h = 30;
+      const s = 5 + u * 80;
+      const l = 97 - u * 7;
+      return `hsl(${h}, ${s}%, ${l}%)`;
+    }
+  }
+
+  // Default: red → yellow → green
+  if (t < 0.5) {
+    const u = t / 0.5;
+    const h = 0 + u * 60; // red → yellow
+    const s = 78 + u * 10;
+    const l = 94 - u * 2;
+    return `hsl(${h}, ${s}%, ${l}%)`;
+  } else {
+    const u = (t - 0.5) / 0.5;
+    const h = 60 + u * 60; // yellow → green
+    const s = 88 - u * 18;
+    const l = 92 + u * 2;
+    return `hsl(${h}, ${s}%, ${l}%)`;
+  }
+}
+
+function legendStyle(palette) {
+  if (palette === "blueorange") {
+    return {
+      background:
+        "linear-gradient(90deg, hsl(220,60%,90%) 0%, hsl(0,0%,97%) 50%, hsl(30,85%,90%) 100%)",
+    };
+  }
+  if (palette === "none") {
+    return { background: "linear-gradient(90deg, #f3f4f6, #e5e7eb)" };
+  }
+  return {
+    background:
+      "linear-gradient(90deg, hsl(0,78%,94%) 0%, hsl(60,88%,92%) 50%, hsl(120,70%,94%) 100%)",
+  };
+}
+
 /* ------------------------------- page -------------------------------- */
 export default function NflProjections() {
   const { rows, loading, err } = useJson(SOURCE);
 
   const [site, setSite] = useState("both"); // "dk" | "fd" | "both"
   const [q, setQ] = useState("");
+  const [palette, setPalette] = useState("rdylgn"); // rdylgn | blueorange | none
 
   // position + team filters
   const posOptions = ["QB", "RB", "WR", "TE", "DST"];
@@ -261,7 +333,7 @@ export default function NflProjections() {
     });
   };
 
-  /* --- NEW: measure Player column width to offset Team's sticky left --- */
+  /* --- measure Player column width to offset Team's sticky left --- */
   const playerThRef = useRef(null);
   const [playerColWidth, setPlayerColWidth] = useState(0);
 
@@ -277,6 +349,27 @@ export default function NflProjections() {
     return () => window.removeEventListener("resize", calc);
   }, [columns, sorted]);
 
+  /* --------- compute per-column min/max for heatmap (visible rows only) -------- */
+  const heatStats = useMemo(() => {
+    const stats = {};
+    if (!sorted.length) return stats;
+    for (const col of columns) {
+      const k = col.key;
+      const dir = dirForKey(k);
+      if (!dir) continue; // only our whitelisted metrics
+      let min = Infinity;
+      let max = -Infinity;
+      for (const r of sorted) {
+        const v = num(r[k]);
+        if (v == null) continue;
+        if (v < min) min = v;
+        if (v > max) max = v;
+      }
+      if (min !== Infinity && max !== -Infinity) stats[k] = { min, max, dir };
+    }
+    return stats;
+  }, [sorted, columns]);
+
   /* styling */
   const cell = "px-2 py-1 text-center";
   const header = "px-2 py-1 font-semibold text-center";
@@ -287,6 +380,11 @@ export default function NflProjections() {
       <div className="flex items-center justify-between gap-3 mb-2">
         <div>
           <h1 className="text-2xl md:text-3xl font-extrabold mb-0.5">NFL — DFS Projections</h1>
+          <div className="mt-1 text-[11px] text-slate-500 flex items-center gap-2">
+            <span>Lower ⟶ Higher</span>
+            <span className="h-3 w-28 rounded" style={legendStyle(palette)} />
+            <span className="ml-2">(applies to projections/vals/opt/lev/rtg; pOWN% inverted)</span>
+          </div>
         </div>
 
         {/* site toggle + filters + search + export */}
@@ -343,6 +441,20 @@ export default function NflProjections() {
             onChange={(e) => setQ(e.target.value)}
           />
 
+          {/* palette */}
+          <div className="hidden md:flex items-center gap-2">
+            <label className="text-xs text-slate-600">Palette</label>
+            <select
+              value={palette}
+              onChange={(e) => setPalette(e.target.value)}
+              className="h-8 rounded-lg border px-2 text-xs"
+            >
+              <option value="rdylgn">Rd–Yl–Gn</option>
+              <option value="blueorange">Blue–Orange</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+
           {/* export */}
           <button
             className="ml-1 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700"
@@ -360,7 +472,7 @@ export default function NflProjections() {
               {columns.map((c) => (
                 <th
                   key={c.key}
-                  ref={c.key === "player" ? playerThRef : undefined}  // ← NEW: measure Player header width
+                  ref={c.key === "player" ? playerThRef : undefined}
                   className={`${header} whitespace-nowrap cursor-pointer select-none ${c.w || ""} ${
                     c.key === "player"
                       ? "sticky left-0 z-20 bg-gray-50"
@@ -368,7 +480,7 @@ export default function NflProjections() {
                       ? "sticky z-20 bg-gray-50"
                       : ""
                   }`}
-                  style={c.key === "team" ? { left: playerColWidth } : undefined} // ← NEW: dynamic offset for Team
+                  style={c.key === "team" ? { left: playerColWidth } : undefined}
                   onClick={() => onSort(c)}
                   title="Click to sort"
                 >
@@ -404,16 +516,18 @@ export default function NflProjections() {
               sorted.map((r, i) => (
                 <tr key={`${r.player}-${i}`} className="odd:bg-white even:bg-gray-50">
                   {columns.map((c) => {
-                    if (c.key === "player") {
+                    const k = c.key;
+
+                    // Sticky Player cell with logo
+                    if (k === "player") {
                       return (
                         <td
-                          key={c.key}
+                          key={k}
                           className={`px-2 py-1 text-left sticky left-0 z-10 ${
                             i % 2 === 0 ? "bg-white" : "bg-gray-50"
                           } shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)]`}
                         >
                           <div className="flex items-center gap-2">
-                            {/* team logo */}
                             <img
                               src={teamLogo(r.team)}
                               alt=""
@@ -426,27 +540,38 @@ export default function NflProjections() {
                       );
                     }
 
-                    if (c.key === "team") {
+                    // Sticky Team cell
+                    if (k === "team") {
                       return (
                         <td
-                          key={c.key}
+                          key={k}
                           className={`px-2 py-1 text-center sticky z-10 ${
                             i % 2 === 0 ? "bg-white" : "bg-gray-50"
                           } shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)]`}
-                          style={{ left: playerColWidth }} // ← NEW: dynamic offset matching Player col width
+                          style={{ left: playerColWidth }}
                         >
                           {r.team}
                         </td>
                       );
                     }
 
-                    const cls = c.type === "text" ? "px-2 py-1 text-center" : `${cell} tabular-nums`;
-                    let val = r[c.key];
+                    // Heatmap background (only for whitelisted metrics)
+                    const stat = heatStats[k];
+                    const vNum = num(r[k]);
+                    const bg = stat ? heatColor(stat.min, stat.max, vNum, stat.dir, palette) : null;
+
+                    // Formatting
+                    let val = r[k];
                     if (c.type === "num1-force") val = fmt1(val);
                     if (c.type === "num1") val = fmt1(val);
-                    if (c.type === "money") val = fmt0(val); // ← NEW
+                    if (c.type === "money") val = fmt0(val);
+
                     return (
-                      <td key={c.key} className={cls}>
+                      <td
+                        key={k}
+                        className={`${c.type === "text" ? "px-2 py-1 text-center" : `${cell} tabular-nums`}`}
+                        style={bg ? { backgroundColor: bg } : undefined}
+                      >
                         {val ?? ""}
                       </td>
                     );
