@@ -218,48 +218,70 @@ function useOutsideClick(ref, onClose) {
   }, [ref, onClose]);
 }
 
-/* ============================ HEATMAP (direction-aware) ============================ */
+/* ============================ HEATMAP (direction-aware, regex) ============================ */
 
-/** columns where bigger is better (green when high) */
-const HIGHER_BETTER = new Set([
-  // from your list (normalize via keynorm below)
-  "yards","td","ypa","comp%","rushyds","rushatt","ypc","qbr","dkpts","rank",
-  "recyds","targets","rec","tgtshr","opr","ruyds","rutd","reyds","retd",
-  "td","adot","msair","routes%",
-  // aliases that show up in some sheets
-  "recyards","recyds","recyd","dkpts","dkpoints","dkpt","dkp",
-]);
+// Always heat O/U & Imp Total as higher = better
+const ALWAYS_HEAT_HIGH = [/^o\/u$/i, /^imp[\s._-]*total$/i];
 
-/** columns where smaller is better (green when low) */
-const LOWER_BETTER = new Set([
-  // from your list
-  "int","r.yds","r.td","dksal","fdsal","block%","bloxk%",
-  // aliases
-  "salary","dksalary","fdsalary","blocks%","rtd",
-]);
+// Direction rules using regex, so aliases like "R. Yds", "Rec Yds", "ReYds" all match.
+const DIR_RULES = [
+  // higher is better
+  { re: /^(yards?|yds)$|^rec[\s._-]*yds$|^re[\s._-]*yds$|^ru[\s._-]*yds$|^rush[\s._-]*yds$/i, dir: "higher" },
+  { re: /^(td|ru[\s._-]*td|re[\s._-]*td|rush[\s._-]*td)$/i, dir: "higher" },
+  { re: /^ypa$/i, dir: "higher" },
+  { re: /^comp%$/i, dir: "higher" },
+  { re: /^rush[\s._-]*att$/i, dir: "higher" },
+  { re: /^ypc$/i, dir: "higher" },
+  { re: /^qbr$/i, dir: "higher" },
+  { re: /^dk[\s._-]*pts?$/i, dir: "higher" },
+  { re: /^rec$/i, dir: "higher" },
+  { re: /^targets?$/i, dir: "higher" },
+  { re: /^tgt[\s._-]*shr$/i, dir: "higher" },
+  { re: /^opr$/i, dir: "higher" },
+  { re: /^adot$/i, dir: "higher" },
+  { re: /^msair$/i, dir: "higher" },
+  { re: /^routes%$/i, dir: "higher" },
 
-// Always heatmap O/U and Imp Total as "higher is better" like you asked earlier
-const ALWAYS_HEAT_HIGH = new Set([ "o/u", "imptotal", "imp total" ].map(keynorm));
+  // lower is better
+  { re: /^int$/i, dir: "lower" },
+  { re: /^r[\s._-]*yds$/i, dir: "lower" },   // "R. Yds" (allowed)
+  { re: /^r[\s._-]*td$/i, dir: "lower" },    // "R. TD"
+  { re: /^dk[\s._-]*sal(ary)?$/i, dir: "lower" },
+  { re: /^fd[\s._-]*sal(ary)?$/i, dir: "lower" },
+  { re: /^block%$/i, dir: "lower" },
+];
 
+// Decide direction by column name
 function directionForColumn(colName) {
-  const k = keynorm(colName);
-  if (ALWAYS_HEAT_HIGH.has(k)) return "higher";
-  if (HIGHER_BETTER.has(k)) return "higher";
-  if (LOWER_BETTER.has(k)) return "lower";
-  // special dotted aliases that keynorm collapses:
-  if (k === "recyds" || k === "recyards") return "higher";
-  if (k === "ruyds" || k === "rushyds") return "higher";
-  if (k === "rtd" || k === "rtds" || k === "rtd") return "lower";
+  const k = String(colName).trim();
+  if (ALWAYS_HEAT_HIGH.some((rx) => rx.test(k))) return "higher";
+  for (const { re, dir } of DIR_RULES) if (re.test(k)) return dir;
   return null; // no coloring
 }
 
-// red→green palette; invert when lower is better
-function heatColor(min, max, v, dir /* 'higher' | 'lower' */) {
+// Rd→Yl→Gn palette with soft mid; invert for "lower"
+function rdylgn(min, max, v, dir) {
   if (v == null || !Number.isFinite(v) || min == null || max == null || min === max || !dir) return null;
-  let t = Math.max(0, Math.min(1, (v - min) / (max - min))); // 0..1
-  if (dir === "lower") t = 1 - t; // low values green
-  const hue = 0 + t * 120; // 0=red → 120=green
-  return `hsl(${hue}, 75%, 92%)`; // soft pastel bg
+  let t = (v - min) / (max - min);
+  t = Math.max(0, Math.min(1, t));
+  if (dir === "lower") t = 1 - t;
+
+  // piecewise: red→yellow (0..0.5), yellow→green (0.5..1)
+  // work in HSL for simplicity; keep high lightness for legibility
+  const lerp = (a, b, u) => a + (b - a) * u;
+  let h, s, l;
+  if (t < 0.5) {
+    const u = t / 0.5;
+    h = lerp(0, 60, u);   // 0=red → 60=yellow
+    s = lerp(80, 90, u);
+    l = lerp(92, 90, u);
+  } else {
+    const u = (t - 0.5) / 0.5;
+    h = lerp(60, 120, u); // 60=yellow → 120=green
+    s = lerp(90, 70, u);
+    l = lerp(90, 92, u);
+  }
+  return `hsl(${h}, ${s}%, ${l}%)`;
 }
 
 /* ============================ MAIN ============================ */
@@ -519,7 +541,7 @@ export default function NflPosData({ pos = "QB" }) {
                   // heat bg (direction aware)
                   const stat = heatStats[c];
                   const numVal = parseNumericLike(raw);
-                  const bg = stat ? heatColor(stat.min, stat.max, numVal, stat.dir) : null;
+                  const bg = stat ? rdylgn(stat.min, stat.max, numVal, stat.dir) : null;
 
                   // sticky 2nd column visual
                   if (i === 1) {
