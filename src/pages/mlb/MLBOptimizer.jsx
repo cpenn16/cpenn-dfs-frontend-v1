@@ -1328,7 +1328,20 @@ function LineupCard({ idx, names, rows, site, total, salary }) {
           {ordered.map((r, i) => (
             <tr key={r.name} className="odd:bg-white even:bg-gray-50">
               <td className="px-2 py-1 text-center">{slotLabels[i] || "—"}</td>
-              <td className="px-2 py-1">{r.name}</td>
+              <td className="px-2 py-1">
+                <div className="flex items-center gap-2">
+                  <span>{r.name}</span>
+                  {r.team ? (
+                    <span
+                      className="px-1.5 py-0.5 rounded text-[11px]"
+                      style={chipStyle(r.team)}
+                      title={r.team}
+                    >
+                      {r.team}
+                    </span>
+                  ) : null}
+                </div>
+              </td>
               <td className="px-2 py-1 text-center">{fmt1((r.pown || 0) * 100)}</td>
               <td className="px-2 py-1 text-center">{fmt1(r.proj)}</td>
               <td className="px-2 py-1 text-center">{fmt0(r.salary)}</td>
