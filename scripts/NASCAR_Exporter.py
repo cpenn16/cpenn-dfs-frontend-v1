@@ -26,7 +26,7 @@ import numpy as np
 import pandas as pd
 
 # --------------------- DEFAULTS ---------------------
-DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\2025 NASCAR\Cup Enjoy Illinois 300 Gateway.xlsm"
+DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\2025 NASCAR\Cup Bass Pro Shops Night Race Bristol.xlsm"
 DEFAULT_PROJ   = r"C:\Users\cpenn\Downloads\cpenn-dfs_frontend-v1"
 DEFAULT_CONFIG = r"C:\Users\cpenn\Downloads\cpenn-dfs_frontend-v1\scripts\configs\nascar_cup.json"
 # ---------------------------------------------------

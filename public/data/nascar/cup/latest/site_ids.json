@@ -1,294 +1,161 @@
 {
   "fd": [
     {
-      "name": "Ryan Blaney",
-      "id": "120106-82858"
-    },
-    {
-      "name": "Christopher Bell",
-      "id": "120106-118521"
+      "name": "Kyle Larson",
+      "id": "120350-82888"
     },
     {
       "name": "Denny Hamlin",
-      "id": "120106-82878"
+      "id": "120350-82878"
     },
     {
-      "name": "Kyle Larson",
-      "id": "120106-82888"
+      "name": "Ryan Blaney",
+      "id": "120350-82858"
     },
     {
-      "name": "Joey Logano",
-      "id": "120106-82889"
+      "name": "Christopher Bell",
+      "id": "120350-118521"
     },
     {
       "name": "Chase Briscoe",
-      "id": "120106-146285"
-    },
-    {
-      "name": "William Byron",
-      "id": "120106-82864"
-    },
-    {
-      "name": "Tyler Reddick",
-      "id": "120106-102623"
-    },
-    {
-      "name": "Austin Cindric",
-      "id": "120106-146657"
+      "id": "120350-146285"
     },
     {
       "name": "Chase Elliott",
-      "id": "120106-82872"
+      "id": "120350-82872"
     },
     {
-      "name": "Ross Chastain",
-      "id": "120106-82866"
-    },
-    {
-      "name": "Bubba Wallace",
-      "id": "120106-82904"
-    },
-    {
-      "name": "Brad Keselowski",
-      "id": "120106-82886"
-    },
-    {
-      "name": "Kyle Busch",
-      "id": "120106-82863"
-    },
-    {
-      "name": "Josh Berry",
-      "id": "120106-150102"
-    },
-    {
-      "name": "Chris Buescher",
-      "id": "120106-82861"
-    },
-    {
-      "name": "Carson Hocevar",
-      "id": "120106-187152"
+      "name": "William Byron",
+      "id": "120350-82864"
     },
     {
       "name": "Alex Bowman",
-      "id": "120106-82859"
+      "id": "120350-82859"
+    },
+    {
+      "name": "Joey Logano",
+      "id": "120350-82889"
+    },
+    {
+      "name": "Bubba Wallace",
+      "id": "120350-82904"
+    },
+    {
+      "name": "Tyler Reddick",
+      "id": "120350-102623"
+    },
+    {
+      "name": "Brad Keselowski",
+      "id": "120350-82886"
+    },
+    {
+      "name": "Ross Chastain",
+      "id": "120350-82866"
     },
     {
       "name": "Ty Gibbs",
-      "id": "120106-174405"
+      "id": "120350-174405"
     },
     {
-      "name": "Austin Dillon",
-      "id": "120106-82869"
+      "name": "Chris Buescher",
+      "id": "120350-82861"
+    },
+    {
+      "name": "Carson Hocevar",
+      "id": "120350-187152"
+    },
+    {
+      "name": "Josh Berry",
+      "id": "120350-150102"
     },
     {
       "name": "Ryan Preece",
-      "id": "120106-101999"
+      "id": "120350-101999"
     },
     {
-      "name": "Erik Jones",
-      "id": "120106-82883"
+      "name": "Kyle Busch",
+      "id": "120350-82863"
+    },
+    {
+      "name": "Austin Cindric",
+      "id": "120350-146657"
+    },
+    {
+      "name": "Austin Dillon",
+      "id": "120350-82869"
+    },
+    {
+      "name": "AJ Allmendinger",
+      "id": "120350-82854"
     },
     {
       "name": "Michael McDowell",
-      "id": "120106-82891"
-    },
-    {
-      "name": "Daniel Suarez",
-      "id": "120106-82901"
+      "id": "120350-82891"
     },
     {
       "name": "John Hunter Nemechek",
-      "id": "120106-118091"
-    },
-    {
-      "name": "AJ Allmendinger",
-      "id": "120106-82854"
+      "id": "120350-118091"
     },
     {
       "name": "Justin Haley",
-      "id": "120106-103754"
-    },
-    {
-      "name": "Ricky Stenhouse Jr.",
-      "id": "120106-82900"
-    },
-    {
-      "name": "Shane van Gisbergen",
-      "id": "120106-188888"
-    },
-    {
-      "name": "Zane Smith",
-      "id": "120106-170604"
-    },
-    {
-      "name": "Noah Gragson",
-      "id": "120106-147038"
-    },
-    {
-      "name": "Todd Gilliland",
-      "id": "120106-164023"
-    },
-    {
-      "name": "Cole Custer",
-      "id": "120106-82867"
-    },
-    {
-      "name": "Riley Herbst",
-      "id": "120106-182931"
-    },
-    {
-      "name": "Ty Dillon",
-      "id": "120106-82870"
-    },
-    {
-      "name": "Cody Ware",
-      "id": "120106-82905"
-    }
-  ],
-  "dk": [
-    {
-      "name": "Ryan Blaney",
-      "id": "39879281"
-    },
-    {
-      "name": "Denny Hamlin",
-      "id": "39879282"
-    },
-    {
-      "name": "Christopher Bell",
-      "id": "39879283"
-    },
-    {
-      "name": "Chase Briscoe",
-      "id": "39879284"
-    },
-    {
-      "name": "William Byron",
-      "id": "39879285"
-    },
-    {
-      "name": "Kyle Larson",
-      "id": "39879286"
-    },
-    {
-      "name": "Tyler Reddick",
-      "id": "39879287"
-    },
-    {
-      "name": "Joey Logano",
-      "id": "39879288"
-    },
-    {
-      "name": "Chase Elliott",
-      "id": "39879289"
-    },
-    {
-      "name": "Austin Cindric",
-      "id": "39879290"
-    },
-    {
-      "name": "Bubba Wallace",
-      "id": "39879291"
-    },
-    {
-      "name": "Josh Berry",
-      "id": "39879292"
-    },
-    {
-      "name": "Kyle Busch",
-      "id": "39879293"
-    },
-    {
-      "name": "Ross Chastain",
-      "id": "39879294"
-    },
-    {
-      "name": "Brad Keselowski",
-      "id": "39879295"
-    },
-    {
-      "name": "Chris Buescher",
-      "id": "39879296"
-    },
-    {
-      "name": "Alex Bowman",
-      "id": "39879297"
-    },
-    {
-      "name": "Austin Dillon",
-      "id": "39879298"
-    },
-    {
-      "name": "Carson Hocevar",
-      "id": "39879299"
-    },
-    {
-      "name": "Ryan Preece",
-      "id": "39879300"
-    },
-    {
-      "name": "Ty Gibbs",
-      "id": "39879301"
+      "id": "120350-103754"
     },
     {
       "name": "Erik Jones",
-      "id": "39879302"
+      "id": "120350-82883"
     },
     {
-      "name": "John H. Nemechek",
-      "id": "39879303"
-    },
-    {
-      "name": "Justin Haley",
-      "id": "39879304"
+      "name": "Ricky Stenhouse Jr.",
+      "id": "120350-82900"
     },
     {
       "name": "Daniel Suarez",
-      "id": "39879305"
-    },
-    {
-      "name": "AJ Allmendinger",
-      "id": "39879306"
-    },
-    {
-      "name": "Michael McDowell",
-      "id": "39879307"
-    },
-    {
-      "name": "Shane Van Gisbergen",
-      "id": "39879308"
-    },
-    {
-      "name": "Zane Smith",
-      "id": "39879309"
-    },
-    {
-      "name": "Todd Gilliland",
-      "id": "39879310"
+      "id": "120350-82901"
     },
     {
       "name": "Noah Gragson",
-      "id": "39879311"
+      "id": "120350-147038"
     },
     {
-      "name": "Ricky Stenhouse Jr",
-      "id": "39879312"
+      "name": "Corey Heim",
+      "id": "120350-200943"
+    },
+    {
+      "name": "Zane Smith",
+      "id": "120350-170604"
+    },
+    {
+      "name": "Austin Hill",
+      "id": "120350-175280"
+    },
+    {
+      "name": "Shane van Gisbergen",
+      "id": "120350-188888"
     },
     {
       "name": "Cole Custer",
-      "id": "39879313"
+      "id": "120350-82867"
     },
     {
-      "name": "Ty Dillon",
-      "id": "39879314"
+      "name": "Todd Gilliland",
+      "id": "120350-164023"
     },
     {
       "name": "Riley Herbst",
-      "id": "39879315"
+      "id": "120350-182931"
+    },
+    {
+      "name": "Ty Dillon",
+      "id": "120350-82870"
     },
     {
       "name": "Cody Ware",
-      "id": "39879316"
+      "id": "120350-82905"
+    },
+    {
+      "name": "Chad Finchum",
+      "id": "120350-82937"
     }
-  ]
+  ],
+  "dk": []
 }
