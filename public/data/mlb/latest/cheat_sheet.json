@@ -32,17 +32,6 @@
       "Proj": "12.6",
       "Value": "1.68",
       "pOWN": "32.0%"
-    },
-    {
-      "Player": "Jose Soriano",
-      "Salary": "7700",
-      "Team": "LAA",
-      "Opp": "MIN",
-      "Vegas": "4.5",
-      "Time": "4:07 PM",
-      "Proj": "12.0",
-      "Value": "1.56",
-      "pOWN": "22.6%"
     }
   ],
   "C": [
@@ -372,7 +361,7 @@
       "Team": "MIN",
       "Salary": "3622.2",
       "Opp": "LAA",
-      "Opp Pitcher": "Jose Soriano",
+      "Opp Pitcher": "0",
       "Vegas": "4.5",
       "Time": "4:07 PM",
       "Proj": "70.97",
