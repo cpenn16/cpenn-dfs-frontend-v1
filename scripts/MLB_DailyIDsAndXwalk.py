@@ -28,7 +28,7 @@ from difflib import SequenceMatcher
 THIS = Path(__file__).resolve()
 ROOT = THIS.parents[1]  # repo root (should contain /public)
 
-DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\MLB\MLB September 9th.xlsm"
+DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\MLB\MLB September 10th.xlsm"
 DEFAULT_PROJ   = str(ROOT)
 DEFAULT_CONFIG = str(ROOT / "scripts" / "configs" / "mlb_classic.json")
 
