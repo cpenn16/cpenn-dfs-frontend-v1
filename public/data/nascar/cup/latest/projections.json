@@ -2,7 +2,7 @@
   {
     "Driver":"Kyle Larson",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":11500,
     "FD Sal":14000,
     "DK Proj":" ",
     "DK Val":" ",
@@ -21,7 +21,7 @@
   {
     "Driver":"Denny Hamlin",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":11000,
     "FD Sal":13500,
     "DK Proj":" ",
     "DK Val":" ",
@@ -40,7 +40,7 @@
   {
     "Driver":"Ryan Blaney",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":10700,
     "FD Sal":13000,
     "DK Proj":" ",
     "DK Val":" ",
@@ -59,7 +59,7 @@
   {
     "Driver":"Christopher Bell",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":10200,
     "FD Sal":12500,
     "DK Proj":" ",
     "DK Val":" ",
@@ -78,7 +78,7 @@
   {
     "Driver":"Chase Briscoe",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":10000,
     "FD Sal":12000,
     "DK Proj":" ",
     "DK Val":" ",
@@ -97,7 +97,7 @@
   {
     "Driver":"Chase Elliott",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":9500,
     "FD Sal":11500,
     "DK Proj":" ",
     "DK Val":" ",
@@ -111,12 +111,12 @@
     "FD PP":" ",
     "FD Dom":50.5,
     "DK Rtg":86.0,
-    "FD RTG":83.8
+    "FD RTG":69.8
   },
   {
     "Driver":"William Byron",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":9800,
     "FD Sal":11000,
     "DK Proj":" ",
     "DK Val":" ",
@@ -130,12 +130,12 @@
     "FD PP":" ",
     "FD Dom":"",
     "DK Rtg":55.6,
-    "FD RTG":69.8
+    "FD RTG":83.8
   },
   {
     "Driver":"Joey Logano",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":9200,
     "FD Sal":10000,
     "DK Proj":" ",
     "DK Val":" ",
@@ -154,7 +154,7 @@
   {
     "Driver":"Ty Gibbs",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":8700,
     "FD Sal":8000,
     "DK Proj":" ",
     "DK Val":" ",
@@ -168,12 +168,12 @@
     "FD PP":" ",
     "FD Dom":50.2,
     "DK Rtg":76.4,
-    "FD RTG":90.9
+    "FD RTG":63.0
   },
   {
     "Driver":"Alex Bowman",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":8100,
     "FD Sal":10500,
     "DK Proj":" ",
     "DK Val":" ",
@@ -187,12 +187,12 @@
     "FD PP":" ",
     "FD Dom":50.1,
     "DK Rtg":48.7,
-    "FD RTG":63.0
+    "FD RTG":70.1
   },
   {
     "Driver":"Bubba Wallace",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":9000,
     "FD Sal":9500,
     "DK Proj":" ",
     "DK Val":" ",
@@ -206,12 +206,12 @@
     "FD PP":" ",
     "FD Dom":50.4,
     "DK Rtg":60.2,
-    "FD RTG":76.3
+    "FD RTG":90.9
   },
   {
     "Driver":"Brad Keselowski",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":7800,
     "FD Sal":8500,
     "DK Proj":" ",
     "DK Val":" ",
@@ -225,12 +225,12 @@
     "FD PP":" ",
     "FD Dom":50.6,
     "DK Rtg":37.2,
-    "FD RTG":47.4
+    "FD RTG":97.4
   },
   {
     "Driver":"Ross Chastain",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":8300,
     "FD Sal":8200,
     "DK Proj":" ",
     "DK Val":" ",
@@ -244,12 +244,12 @@
     "FD PP":" ",
     "FD Dom":50.6,
     "DK Rtg":67.4,
-    "FD RTG":70.1
+    "FD RTG":47.4
   },
   {
     "Driver":"Tyler Reddick",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":8500,
     "FD Sal":9000,
     "DK Proj":" ",
     "DK Val":" ",
@@ -263,12 +263,12 @@
     "FD PP":" ",
     "FD Dom":"",
     "DK Rtg":29.8,
-    "FD RTG":35.9
+    "FD RTG":76.3
   },
   {
     "Driver":"Kyle Busch",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":8000,
     "FD Sal":6800,
     "DK Proj":" ",
     "DK Val":" ",
@@ -282,12 +282,12 @@
     "FD PP":" ",
     "FD Dom":"",
     "DK Rtg":88.4,
-    "FD RTG":97.4
+    "FD RTG":35.9
   },
   {
     "Driver":"Josh Berry",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":6800,
     "FD Sal":7200,
     "DK Proj":" ",
     "DK Val":" ",
@@ -301,12 +301,12 @@
     "FD PP":" ",
     "FD Dom":"",
     "DK Rtg":20.4,
-    "FD RTG":21.3
+    "FD RTG":61.2
   },
   {
     "Driver":"Chris Buescher",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":7700,
     "FD Sal":7800,
     "DK Proj":" ",
     "DK Val":" ",
@@ -320,12 +320,12 @@
     "FD PP":" ",
     "FD Dom":"",
     "DK Rtg":56.7,
-    "FD RTG":58.2
+    "FD RTG":21.3
   },
   {
     "Driver":"Carson Hocevar",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":7500,
     "FD Sal":7500,
     "DK Proj":" ",
     "DK Val":" ",
@@ -339,12 +339,12 @@
     "FD PP":" ",
     "FD Dom":50.2,
     "DK Rtg":31.1,
-    "FD RTG":35.2
+    "FD RTG":58.2
   },
   {
     "Driver":"Ryan Preece",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":7000,
     "FD Sal":7000,
     "DK Proj":" ",
     "DK Val":" ",
@@ -358,12 +358,12 @@
     "FD PP":" ",
     "FD Dom":50.3,
     "DK Rtg":74.4,
-    "FD RTG":76.9
+    "FD RTG":64.4
   },
   {
     "Driver":"Austin Dillon",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":7300,
     "FD Sal":6200,
     "DK Proj":" ",
     "DK Val":" ",
@@ -377,12 +377,12 @@
     "FD PP":" ",
     "FD Dom":"",
     "DK Rtg":70.2,
-    "FD RTG":64.4
+    "FD RTG":35.2
   },
   {
     "Driver":"Austin Cindric",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":7200,
     "FD Sal":6500,
     "DK Proj":" ",
     "DK Val":" ",
@@ -396,12 +396,12 @@
     "FD PP":" ",
     "FD Dom":"",
     "DK Rtg":58.3,
-    "FD RTG":61.2
+    "FD RTG":76.9
   },
   {
     "Driver":"Erik Jones",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":6300,
     "FD Sal":5000,
     "DK Proj":" ",
     "DK Val":" ",
@@ -415,12 +415,12 @@
     "FD PP":" ",
     "FD Dom":50.0,
     "DK Rtg":18.6,
-    "FD RTG":16.7
+    "FD RTG":33.5
   },
   {
     "Driver":"John Hunter Nemechek",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":6200,
     "FD Sal":5500,
     "DK Proj":" ",
     "DK Val":" ",
@@ -434,12 +434,12 @@
     "FD PP":" ",
     "FD Dom":50.0,
     "DK Rtg":20.1,
-    "FD RTG":16.5
+    "FD RTG":13.9
   },
   {
     "Driver":"AJ Allmendinger",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":6600,
     "FD Sal":6000,
     "DK Proj":" ",
     "DK Val":" ",
@@ -453,12 +453,12 @@
     "FD PP":" ",
     "FD Dom":50.1,
     "DK Rtg":31.8,
-    "FD RTG":21.1
+    "FD RTG":16.7
   },
   {
     "Driver":"Michael McDowell",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":6100,
     "FD Sal":5800,
     "DK Proj":" ",
     "DK Val":" ",
@@ -472,12 +472,12 @@
     "FD PP":" ",
     "FD Dom":50.2,
     "DK Rtg":39.2,
-    "FD RTG":33.5
+    "FD RTG":40.3
   },
   {
     "Driver":"Shane Van Gisbergen",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":6500,
     "FD Sal":3200,
     "DK Proj":" ",
     "DK Val":" ",
@@ -491,12 +491,12 @@
     "FD PP":" ",
     "FD Dom":50.1,
     "DK Rtg":16.4,
-    "FD RTG":13.9
+    "FD RTG":16.5
   },
   {
     "Driver":"Noah Gragson",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":5800,
     "FD Sal":4200,
     "DK Proj":" ",
     "DK Val":" ",
@@ -510,12 +510,12 @@
     "FD PP":" ",
     "FD Dom":50.0,
     "DK Rtg":49.9,
-    "FD RTG":40.3
+    "FD RTG":25.4
   },
   {
     "Driver":"Justin Haley",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":5700,
     "FD Sal":5200,
     "DK Proj":" ",
     "DK Val":" ",
@@ -529,12 +529,12 @@
     "FD PP":" ",
     "FD Dom":"",
     "DK Rtg":6.6,
-    "FD RTG":0.7
+    "FD RTG":14.9
   },
   {
     "Driver":"Ricky Stenhouse Jr",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":6400,
     "FD Sal":4800,
     "DK Proj":" ",
     "DK Val":" ",
@@ -548,12 +548,12 @@
     "FD PP":" ",
     "FD Dom":50.1,
     "DK Rtg":0.0,
-    "FD RTG":0.0
+    "FD RTG":21.1
   },
   {
     "Driver":"Daniel Suarez",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":6000,
     "FD Sal":4500,
     "DK Proj":" ",
     "DK Val":" ",
@@ -567,12 +567,12 @@
     "FD PP":" ",
     "FD Dom":"",
     "DK Rtg":31.8,
-    "FD RTG":25.4
+    "FD RTG":0.7
   },
   {
     "Driver":"Corey Heim",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":5900,
     "FD Sal":4000,
     "DK Proj":" ",
     "DK Val":" ",
@@ -586,12 +586,12 @@
     "FD PP":" ",
     "FD Dom":"",
     "DK Rtg":19.7,
-    "FD RTG":14.9
+    "FD RTG":0.0
   },
   {
     "Driver":"Cole Custer",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":5100,
     "FD Sal":3000,
     "DK Proj":" ",
     "DK Val":" ",
@@ -605,12 +605,12 @@
     "FD PP":" ",
     "FD Dom":50.1,
     "DK Rtg":39.0,
-    "FD RTG":23.7
+    "FD RTG":16.1
   },
   {
     "Driver":"Zane Smith",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":5500,
     "FD Sal":3800,
     "DK Proj":" ",
     "DK Val":" ",
@@ -624,12 +624,12 @@
     "FD PP":" ",
     "FD Dom":"",
     "DK Rtg":27.8,
-    "FD RTG":22.0
+    "FD RTG":23.7
   },
   {
     "Driver":"Todd Gilliland",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":5400,
     "FD Sal":3000,
     "DK Proj":" ",
     "DK Val":" ",
@@ -643,12 +643,12 @@
     "FD PP":" ",
     "FD Dom":"",
     "DK Rtg":25.9,
-    "FD RTG":18.4
+    "FD RTG":22.0
   },
   {
     "Driver":"Austin Hill",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":5300,
     "FD Sal":3500,
     "DK Proj":" ",
     "DK Val":" ",
@@ -662,12 +662,12 @@
     "FD PP":" ",
     "FD Dom":"",
     "DK Rtg":25.9,
-    "FD RTG":16.1
+    "FD RTG":18.4
   },
   {
     "Driver":"Ty Dillon",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":4800,
     "FD Sal":2500,
     "DK Proj":" ",
     "DK Val":" ",
@@ -681,12 +681,12 @@
     "FD PP":" ",
     "FD Dom":"",
     "DK Rtg":25.6,
-    "FD RTG":20.4
+    "FD RTG":0.0
   },
   {
     "Driver":"Riley Herbst",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":5000,
     "FD Sal":2500,
     "DK Proj":" ",
     "DK Val":" ",
@@ -700,12 +700,12 @@
     "FD PP":" ",
     "FD Dom":"",
     "DK Rtg":0.0,
-    "FD RTG":0.0
+    "FD RTG":20.4
   },
   {
     "Driver":"Cody Ware",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":4700,
     "FD Sal":2000,
     "DK Proj":" ",
     "DK Val":" ",
@@ -724,7 +724,7 @@
   {
     "Driver":"Chad Finchum",
     "Qual":" ",
-    "DK Sal":" ",
+    "DK Sal":4500,
     "FD Sal":2000,
     "DK Proj":" ",
     "DK Val":" ",
