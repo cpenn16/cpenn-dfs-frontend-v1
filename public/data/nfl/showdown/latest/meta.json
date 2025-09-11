@@ -1,13 +1,13 @@
 {
-  "last_updated": "2025-09-11T17:09:22",
-  "last_updated_ms": 1757624962514,
+  "last_updated": "2025-09-11T18:54:40",
+  "last_updated_ms": 1757631280564,
   "source_workbook": "C:\\Users\\cpenn\\Dropbox\\Sports Models\\NFL\\NFL TNF Showdown Commanders vs Packers.xlsm",
   "artifacts": [
     {
       "path": "public/data/nfl/showdown/latest/projections.json",
       "sheet": "Projections",
       "record_count": 28,
-      "duration_ms": 735,
+      "duration_ms": 615,
       "kind": "task",
       "format": "json"
     },
@@ -15,7 +15,7 @@
       "path": "public/data/nfl/showdown/latest/qb_data.json",
       "sheet": "QB",
       "record_count": 2,
-      "duration_ms": 100,
+      "duration_ms": 86,
       "kind": "task",
       "format": "json"
     },
@@ -23,7 +23,7 @@
       "path": "public/data/nfl/showdown/latest/rb_data.json",
       "sheet": "RB",
       "record_count": 6,
-      "duration_ms": 97,
+      "duration_ms": 91,
       "kind": "task",
       "format": "json"
     },
@@ -31,7 +31,7 @@
       "path": "public/data/nfl/showdown/latest/wr_data.json",
       "sheet": "WR",
       "record_count": 10,
-      "duration_ms": 124,
+      "duration_ms": 121,
       "kind": "task",
       "format": "json"
     },
@@ -39,7 +39,7 @@
       "path": "public/data/nfl/showdown/latest/te_data.json",
       "sheet": "TE",
       "record_count": 6,
-      "duration_ms": 96,
+      "duration_ms": 90,
       "kind": "task",
       "format": "json"
     },
@@ -47,7 +47,7 @@
       "path": "public/data/nfl/showdown/latest/dst_data.json",
       "sheet": "DST",
       "record_count": 2,
-      "duration_ms": 91,
+      "duration_ms": 90,
       "kind": "task",
       "format": "json"
     },
@@ -55,7 +55,7 @@
       "path": "public/data/nfl/showdown/latest/qb_projections.json",
       "sheet": "QB Projections",
       "record_count": 2,
-      "duration_ms": 104,
+      "duration_ms": 101,
       "kind": "task",
       "format": "json"
     },
@@ -63,7 +63,7 @@
       "path": "public/data/nfl/showdown/latest/rb_projections.json",
       "sheet": "RB Projections",
       "record_count": 6,
-      "duration_ms": 84,
+      "duration_ms": 83,
       "kind": "task",
       "format": "json"
     },
@@ -71,7 +71,7 @@
       "path": "public/data/nfl/showdown/latest/wr_projections.json",
       "sheet": "WR Projections",
       "record_count": 10,
-      "duration_ms": 86,
+      "duration_ms": 83,
       "kind": "task",
       "format": "json"
     },
@@ -79,7 +79,7 @@
       "path": "public/data/nfl/showdown/latest/te_projections.json",
       "sheet": "TE Projections",
       "record_count": 6,
-      "duration_ms": 102,
+      "duration_ms": 104,
       "kind": "task",
       "format": "json"
     },
@@ -87,14 +87,14 @@
       "path": "public/data/nfl/showdown/latest/nfl_gameboard.json",
       "sheet": "NFL Dashboard",
       "record_count": 1,
-      "duration_ms": 136,
+      "duration_ms": 141,
       "kind": "gameboard"
     },
     {
       "path": "public/data/nfl/showdown/latest/projections.json",
       "sheet": null,
       "record_count": 28,
-      "duration_ms": 19,
+      "duration_ms": 11,
       "kind": "merge",
       "dk_flex_ids": 28,
       "dk_cpt_ids": 28,
