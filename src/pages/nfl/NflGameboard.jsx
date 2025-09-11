@@ -15,6 +15,9 @@ const COLORS = {
 const YELLOW = "#f5c842";
 const CHIP_BG = "#2c62f0";
 
+const SOURCE = "/data/nfl/classic/latest/nfl_gameboard.json";
+const META_URL = "/data/nfl/classic/latest/meta.json";
+
 const onlyPlayers = (lines = []) => {
   const re = /^(QB|RB\d?|WR\d?|TE\d?):/i;
   return lines.filter((s) => re.test((s || "").trim()));
@@ -22,14 +25,36 @@ const onlyPlayers = (lines = []) => {
 
 const logoSrc = (abbr) => `/logos/nfl/${(abbr || "").toUpperCase()}.png`;
 
+/* ------------------------------ meta hook ------------------------------ */
+
+function useMeta(url) {
+  const [meta, setMeta] = useState(null);
+  useEffect(() => {
+    let ok = true;
+    (async () => {
+      try {
+        const r = await fetch(`${url}?_=${Date.now()}`, { cache: "no-store" });
+        if (!r.ok) throw new Error();
+        const j = await r.json();
+        if (ok) setMeta(j);
+      } catch {
+        if (ok) setMeta(null);
+      }
+    })();
+    return () => { ok = false; };
+  }, [url]);
+  return meta;
+}
+
 /* --------------------------- gameboard component --------------------------- */
 
 export default function NflGameboard() {
   const [games, setGames] = useState([]);
   const [sel, setSel] = useState(new Set());
+  const meta = useMeta(META_URL);
 
   useEffect(() => {
-    fetch("/data/nfl/classic/latest/nfl_gameboard.json", { cache: "no-store" })
+    fetch(`${SOURCE}?_=${Date.now()}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((arr) => {
         const clean = Array.isArray(arr) ? arr : [];
@@ -38,6 +63,20 @@ export default function NflGameboard() {
       })
       .catch(() => setGames([]));
   }, []);
+
+  const updatedStamp = useMemo(() => {
+    const art = meta?.artifacts?.find((x) => String(x.path || "").endsWith(SOURCE));
+    const raw = art?.last_updated || art?.tags?.last_updated || meta?.last_updated;
+    if (!raw) return null;
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return null;
+    return d.toLocaleString(undefined, {
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }, [meta]);
 
   const visibleGames = useMemo(
     () => games.map((g, i) => ({ ...g, __i: i })).filter((g) => sel.has(g.__i)),
@@ -75,7 +114,12 @@ export default function NflGameboard() {
 
   return (
     <div className="px-4 sm:px-6 md:px-8 py-6">
-      <h1 className="text-2xl font-extrabold mb-4">NFL Gameboard</h1>
+      <div className="flex items-start md:items-center justify-between gap-3 mb-4 flex-col md:flex-row">
+        <h1 className="text-2xl font-extrabold">NFL Gameboard</h1>
+        <div className="text-xs md:text-sm text-gray-600 whitespace-nowrap">
+          Updated: {updatedStamp ?? "—"}
+        </div>
+      </div>
 
       {/* Picker row */}
       <div className="flex items-center gap-3 flex-wrap mb-4">
