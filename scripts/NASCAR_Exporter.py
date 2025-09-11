@@ -10,6 +10,7 @@ Export selected sheets from an Excel .xlsm workbook into CSV and/or JSON files.
   driver strings as "Name (ID)" for DK/FD.
 - NEW: Stages a temp copy of the workbook so Excel can stay open while reading.
 - NEW: More verbose logging (paths, sheet list, each task) for easy debugging.
+- NEW: Automatically writes `meta.json` with timestamps next to each exported file.
 """
 
 from __future__ import annotations
@@ -21,6 +22,8 @@ import sys
 import shutil
 import tempfile
 from typing import Iterable, List, Dict, Any, Optional, Union
+from datetime import datetime, timezone
+import time
 
 import numpy as np
 import pandas as pd
@@ -31,6 +34,8 @@ DEFAULT_PROJ   = r"C:\Users\cpenn\Downloads\cpenn-dfs_frontend-v1"
 DEFAULT_CONFIG = r"C:\Users\cpenn\Downloads\cpenn-dfs_frontend-v1\scripts\configs\nascar_xfinity.json"
 # ---------------------------------------------------
 
+# Directories that should receive a meta.json (populated as we export)
+_META_DIRS: set[Path] = set()
 
 # -------------------- utilities --------------------
 def ensure_parent(path: Path) -> None:
@@ -97,6 +102,47 @@ def to_json_records(df: pd.DataFrame) -> str:
     df2 = df.astype(object).where(pd.notna(df), "")
     return df2.to_json(orient="records", force_ascii=False, indent=2)
 
+# -------------------- meta helpers --------------------
+def _mark_meta_dir(path_like: Optional[Path]) -> None:
+    if not path_like:
+        return
+    p = Path(path_like).resolve()
+    if p.is_file():
+        _META_DIRS.add(p.parent)
+    else:
+        _META_DIRS.add(p)
+
+def _write_meta_files(xlsm_path: Path) -> None:
+    """
+    Write meta.json into every directory in _META_DIRS.
+    Contains local ISO time, UTC time, epoch, source file + source mtime.
+    """
+    if not _META_DIRS:
+        return
+    now_local = datetime.now().astimezone()
+    now_utc   = now_local.astimezone(timezone.utc)
+    src_name  = xlsm_path.name
+    try:
+        mtime = datetime.fromtimestamp(xlsm_path.stat().st_mtime).astimezone()
+        mtime_iso = mtime.isoformat(timespec="seconds")
+    except Exception:
+        mtime_iso = None
+
+    meta = {
+        "updated_iso": now_local.isoformat(timespec="seconds"),
+        "updated_utc": now_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "updated_epoch": int(time.time()),
+        "source_file": src_name,
+        "source_mtime_iso": mtime_iso,
+    }
+
+    for d in sorted(_META_DIRS):
+        try:
+            ensure_parent(d / "meta.json")
+            (d / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+            print(f"🕒 meta  → {d / 'meta.json'}")
+        except Exception as e:
+            print(f"⚠️  meta write failed for {d}: {e}")
 
 # -------------------- reading helpers --------------------
 def read_with_header_and_start(xlsm_path: Path, sheet: str,
@@ -121,7 +167,6 @@ def read_with_header_and_start(xlsm_path: Path, sheet: str,
     df = raw.iloc[best_row + 1:].copy()
     df.columns = names
     return df
-
 
 # -------------------- formatting helpers --------------------
 def maybe_apply_column_mapping(df: pd.DataFrame, mapping: Dict[str,str] | None) -> pd.DataFrame:
@@ -194,7 +239,6 @@ def round_integer_columns(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
             if s.notna().any():
                 df[col] = s.round(0).astype("Int64")
     return df
-
 
 # -------------------- filtering --------------------
 def _resolve_col(df: pd.DataFrame, name: str) -> Optional[str]:
@@ -300,7 +344,6 @@ def _apply_filters(df: pd.DataFrame, filters: Union[List, Dict]) -> pd.DataFrame
         return df[mask]
     return df
 
-
 # -------------------- export core --------------------
 def export_one(df: pd.DataFrame, out_csv: Optional[Path], out_json: Optional[Path]) -> None:
     if out_csv:
@@ -308,10 +351,12 @@ def export_one(df: pd.DataFrame, out_csv: Optional[Path], out_json: Optional[Pat
         df_csv = df.astype(object).where(pd.notna(df), "")
         df_csv.to_csv(out_csv, index=False, encoding="utf-8-sig")
         print(f"✔️  CSV  → {out_csv}")
+        _mark_meta_dir(out_csv.parent)
     if out_json:
         ensure_parent(out_json)
         out_json.write_text(to_json_records(df), encoding="utf-8")
         print(f"✔️  JSON → {out_json}")
+        _mark_meta_dir(out_json.parent)
 
 def run_task(xlsm_path: Path, project_root: Path, task: Dict[str, Any]) -> None:
     sheet = task.get("sheet")
@@ -369,7 +414,6 @@ def run_task(xlsm_path: Path, project_root: Path, task: Dict[str, Any]) -> None:
     json_path = base.with_suffix(".json") if fmt in ("json", "both") else None
 
     export_one(df, csv_path, json_path)
-
 
 # -------------------- cheatsheets exporter --------------------
 def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> None:
@@ -504,7 +548,7 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
     out_path.write_text(json.dumps({"tables": tables_out}, ensure_ascii=False, indent=2),
                         encoding="utf-8")
     print(f"✔️  JSON → {out_path}  (tables written: {len(tables_out)} of {len(tables_cfg)})")
-
+    _mark_meta_dir(out_path.parent)
 
 # -------------------- site id exporter --------------------
 def _norm_str(v: Any) -> str:
@@ -630,8 +674,9 @@ def run_site_ids(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> No
     ensure_parent(out_path)
     out_path.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"✔️  JSON → {out_path}  (dk={len(out['dk'])}, fd={len(out['fd'])})")
+    _mark_meta_dir(out_path.parent)
 
-    # -------------------- H2H matrix exporter --------------------
+# -------------------- H2H matrix exporter --------------------
 def _clean_h2h_number(x: Any) -> Optional[float]:
     if x is None or (isinstance(x, float) and pd.isna(x)):
         return None
@@ -648,25 +693,15 @@ def _clean_h2h_number(x: Any) -> Optional[float]:
     except Exception:
         return None
 
-
 def run_h2h_matrix(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> None:
     """
     Reads a 'Driver vs Driver' matrix and writes a JSON array of records:
       [{ "Driver": "A", "B": 51.2, "C": 48.8, ... }, ...]
-
-    Config (optional; has safe defaults):
-      "h2h_matrix": {
-        "sheet": "H2H Matrix",
-        "out_rel": "data/nascar/cup/latest/h2h_matrix",
-        "header_row": 1,         # optional, 1-based
-        "data_start_row": 2      # optional, 1-based
-      }
     """
     hcfg = cfg.get("h2h_matrix", {}) or {}
     sheet   = hcfg.get("sheet") or "H2H Matrix"
     out_rel = (hcfg.get("out_rel") or "data/nascar/cup/latest/h2h_matrix").lstrip(r"\/")
 
-    # read sheet (honor optional header/data rows; otherwise use heuristic)
     df = read_with_header_and_start(
         xlsm_path=xlsm_path,
         sheet=sheet,
@@ -677,14 +712,12 @@ def run_h2h_matrix(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> 
         print(f"⚠️  SKIP h2h_matrix: empty sheet '{sheet}'")
         return
 
-    # make sure first column is named 'Driver'
     if df.columns.size == 0:
         print(f"⚠️  SKIP h2h_matrix: no columns detected on '{sheet}'")
         return
     if df.columns[0] != "Driver":
         df = df.rename(columns={df.columns[0]: "Driver"})
 
-    # drop blank rows/cols and ensure driver names are strings
     df = df.dropna(axis=1, how="all").dropna(axis=0, how="all").copy()
     if "Driver" not in df.columns:
         print(f"⚠️  SKIP h2h_matrix: first column not detected as 'Driver'")
@@ -692,25 +725,22 @@ def run_h2h_matrix(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> 
     df["Driver"] = df["Driver"].astype(object).where(pd.notna(df["Driver"]), "").map(lambda s: str(s).strip())
     df = df[df["Driver"] != ""]
 
-    # clean numeric cells; leave diagonal empty
     cols = list(df.columns)
     opp_cols = [c for c in cols if c != "Driver"]
     for c in opp_cols:
         df[c] = df[c].map(_clean_h2h_number)
 
-    # optional: clear diagonal (Driver vs same Driver) if your sheet includes it
     diag = set(df["Driver"])
     for c in opp_cols:
-        # if the column name matches a driver name, blank those cells
         if c in diag:
             mask = df["Driver"] == c
             df.loc[mask, c] = None
 
-    # write JSON
     out_path = (project_root / "public" / Path(out_rel)).with_suffix(".json")
     ensure_parent(out_path)
     out_path.write_text(to_json_records(df), encoding="utf-8")
     print(f"✔️  JSON → {out_path}  (H2H rows: {len(df)})")
+    _mark_meta_dir(out_path.parent)
 
 # -------------------- Finish distribution exporter (robust) --------------------
 def _clean_percent_cell(x: Any) -> Optional[float]:
@@ -753,22 +783,18 @@ def run_finish_distribution(xlsm_path: Path, project_root: Path, cfg: Dict[str, 
         print(f"⚠️  SKIP finish_distribution: empty sheet '{sheet}'")
         return
 
-    # Ensure first column is 'Driver'
     if df.columns.size == 0:
         print(f"⚠️  SKIP finish_distribution: no columns on '{sheet}'"); return
     if df.columns[0] != "Driver":
         df = df.rename(columns={df.columns[0]: "Driver"})
 
-    # Trim blanks
     df = df.dropna(axis=1, how="all").dropna(axis=0, how="all").copy()
     if "Driver" not in df.columns:
         print("⚠️  SKIP finish_distribution: first column is not 'Driver'"); return
     df["Driver"] = df["Driver"].astype(object).where(pd.notna(df["Driver"]), "").map(lambda s: str(s).strip())
     df = df[df["Driver"] != ""]
 
-    # Identify position columns (e.g., "1","2",... or already "P1","P2",...)
     pos_cols_raw = [c for c in df.columns if c != "Driver"]
-    # Build mapping to P{n}; keep numeric order
     pos_map = {}
     for c in pos_cols_raw:
         m = re.fullmatch(r"P?(\d+)", str(c).strip(), flags=re.IGNORECASE)
@@ -776,36 +802,29 @@ def run_finish_distribution(xlsm_path: Path, project_root: Path, cfg: Dict[str, 
             n = int(m.group(1))
             pos_map[c] = f"P{n}"
         else:
-            # non-numeric column — keep as-is but not in the ordered list
             pass
 
-    # Reorder columns numerically where possible
     ordered = sorted([(int(re.fullmatch(r"P?(\d+)", str(c).strip(), flags=re.IGNORECASE).group(1)), c)
                       for c in pos_cols_raw
                       if re.fullmatch(r"P?(\d+)", str(c).strip(), flags=re.IGNORECASE)],
                      key=lambda t: t[0])
     ordered_src = [c for _, c in ordered]
 
-    # Clean numeric values
     for c in pos_cols_raw:
         df[c] = df[c].map(_clean_percent_cell)
 
-    # Auto-detect scale: if a typical row sums to ~1, scale everything by 100
     if ordered_src:
         row_sums = df[ordered_src].sum(axis=1, skipna=True)
         med_sum = float(np.nanmedian(row_sums.values)) if len(row_sums) else np.nan
         if med_sum and med_sum <= 2.0:
             df[ordered_src] = df[ordered_src] * 100.0
 
-    # Optional tidy rounding (1 decimal like 14.3)
     for c in ordered_src:
         df[c] = pd.to_numeric(df[c], errors="coerce").round(1)
 
-    # Rename to P1,P2,... for clean API
     if pos_map:
         df = df.rename(columns=pos_map)
 
-    # Keep only Driver + ordered P* columns (drop weird extras)
     keep_cols = ["Driver"] + [pos_map.get(c, c) for c in ordered_src]
     df = df[[c for c in keep_cols if c in df.columns]]
 
@@ -813,7 +832,7 @@ def run_finish_distribution(xlsm_path: Path, project_root: Path, cfg: Dict[str, 
     ensure_parent(out_path)
     out_path.write_text(to_json_records(df), encoding="utf-8")
     print(f"✔️  JSON → {out_path}  (Finish Dist rows: {len(df)}, positions: {len(keep_cols)-1})")
-
+    _mark_meta_dir(out_path.parent)
 
 # -------------------- main --------------------
 def main() -> None:
@@ -891,17 +910,20 @@ def main() -> None:
         except Exception as e:
             print(f"⚠️  SKIP h2h_matrix: {e}")
 
-        print("\nDone.")
-
         print("\n=== FINISH DISTRIBUTION ===")
         try:
             run_finish_distribution(staged_xlsm, project_root, cfg)
         except Exception as e:
             print(f"⚠️  SKIP finish_distribution: {e}")
+
+        # finally write meta files for all touched dirs
+        print("\n=== META ===")
+        _write_meta_files(xlsm_path)
+
+        print("\nDone.")
     finally:
         try: shutil.rmtree(temp_dir, ignore_errors=True)
         except Exception: pass
-
 
 if __name__ == "__main__":
     main()
