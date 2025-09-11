@@ -2,6 +2,42 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine } from "recharts";
 
+/* ---------------- LAST UPDATED (shared) ---------------- */
+function useLastUpdated(mainUrl, metaUrl) {
+  const [updatedAt, setUpdatedAt] = React.useState(null);
+
+  React.useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const h = await fetch(mainUrl, { method: "HEAD", cache: "no-store" });
+        const lm = h.headers.get("last-modified");
+        if (alive && lm) { setUpdatedAt(new Date(lm)); return; }
+      } catch (_) {}
+
+      try {
+        const r = await fetch(mainUrl, { cache: "no-store" });
+        const lm2 = r.headers.get("last-modified");
+        if (alive && lm2) { setUpdatedAt(new Date(lm2)); return; }
+      } catch (_) {}
+
+      try {
+        if (!metaUrl) return;
+        const m = await fetch(`${metaUrl}?_=${Date.now()}`, { cache: "no-store" }).then(x => x.json());
+        const iso = m?.updated_iso || m?.updated_utc || m?.updated || m?.lastUpdated || m?.timestamp;
+        const ep  = m?.updated_epoch;
+        const d   = iso ? new Date(iso) : (Number.isFinite(ep) ? new Date(ep * 1000) : null);
+        if (alive && d && !isNaN(d)) setUpdatedAt(d);
+      } catch (_) {}
+    })();
+    return () => { alive = false; };
+  }, [mainUrl, metaUrl]);
+
+  return updatedAt;
+}
+const fmtUpdated = (d) =>
+  d ? d.toLocaleString(undefined, { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" }) : null;
+
 /* ------------------------ tiny data hook ------------------------ */
 function useJson(url) {
   const [data, setData] = useState(null);
@@ -62,7 +98,7 @@ const dirForCol = (colName) => {
 
   // Lower-better
   if (/^proj\s*fin$/.test(k)) return "lower";
-  if (/^(win|t3|t5|t10)$/.test(k)) return "lower";           // raw counts
+  if (/^(win|t3|t5|t10)$/.test(k)) return "lower";
   if (/fair\s*odds/.test(k)) return "lower";
 
   // Higher-better
@@ -563,7 +599,7 @@ function H2HMatrixTool({ source, compact = false, maxHeight = "78vh" }) {
     if (q >= 0.5) return Math.round((-100 * q) / (1 - q)).toString();
     return `+${Math.round((100 * (1 - q)) / q)}`;
   };
-  const fmt1 = (n) => (Number.isFinite(n) ? `${n.toFixed(1)}%` : "—");
+  const fmt1pct = (n) => (Number.isFinite(n) ? `${n.toFixed(1)}%` : "—");
 
   const exportCSV = () => {
     if (!rows.length) return;
@@ -639,13 +675,13 @@ function H2HMatrixTool({ source, compact = false, maxHeight = "78vh" }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
             <div className="rounded-lg border p-3">
               <div className="text-sm text-gray-500">Chance {A || "—"} beats {B || "—"}</div>
-              <div className="text-2xl font-extrabold">{fmt1(probA)}</div>
+              <div className="text-2xl font-extrabold">{fmt1pct(probA)}</div>
               <div className={density + " text-gray-600"}>Fair odds: {toAmerican(probA)}</div>
               <div className={density + " text-gray-600"}>Edge vs 50/50: {Number.isFinite(probA) ? (probA - 50).toFixed(1) + "%" : "—"}</div>
             </div>
             <div className="rounded-lg border p-3">
               <div className="text-sm text-gray-500">Chance {B || "—"} beats {A || "—"}</div>
-              <div className="text-2xl font-extrabold">{fmt1(probB)}</div>
+              <div className="text-2xl font-extrabold">{fmt1pct(probB)}</div>
               <div className={density + " text-gray-600"}>Fair odds: {toAmerican(probB)}</div>
               <div className={density + " text-gray-600"}>Edge vs 50/50: {Number.isFinite(probB) ? (probB - 50).toFixed(1) + "%" : "—"}</div>
             </div>
@@ -990,6 +1026,22 @@ export default function CupBetting() {
   const H2H    = `${BASE}data/nascar/cup/latest/h2h_matrix.json`;
   const FINISH = `${BASE}data/nascar/cup/latest/finish_dist.json`;
 
+  // meta.json fallbacks (optional on your server)
+  const MAIN_META   = MAIN.replace(/odds_main\.json$/, "meta.json");
+  const EXTRA_META  = EXTRA.replace(/odds_extra\.json$/, "meta.json");
+  const H2H_META    = H2H.replace(/h2h_matrix\.json$/, "meta.json");
+  const FINISH_META = FINISH.replace(/finish_dist\.json$/, "meta.json");
+
+  // collect freshest timestamp across all tabs
+  const upMain   = useLastUpdated(MAIN, MAIN_META);
+  const upExtra  = useLastUpdated(EXTRA, EXTRA_META);
+  const upH2H    = useLastUpdated(H2H, H2H_META);
+  const upFinish = useLastUpdated(FINISH, FINISH_META);
+  const updatedAt = useMemo(() => {
+    const ds = [upMain, upExtra, upH2H, upFinish].filter(Boolean).map((d) => +d);
+    return ds.length ? new Date(Math.max(...ds)) : null;
+  }, [upMain, upExtra, upH2H, upFinish]);
+
   const TABS = [
     { id: "driver", label: "Driver Sims" },
     { id: "mfg",    label: "Manufacturer Sims" },
@@ -998,15 +1050,20 @@ export default function CupBetting() {
   ];
 
   const [active, setActive] = useState("driver");
-  const [compact, setCompact] = useState(true);           // default ON
-  const [palette, setPalette] = useState("none");   // default: no coloring
+  const [compact, setCompact] = useState(true);      // default ON
+  const [palette, setPalette] = useState("none");    // default: no coloring
 
   return (
     <div className="px-5 py-6">
       {/* Page header + controls */}
       <div className="max-w-[1200px] mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-end gap-3 mb-4">
-          <h1 className="text-2xl sm:text-3xl font-extrabold">NASCAR Cup — Betting Sims</h1>
+          <div className="flex items-end gap-3">
+            <h1 className="text-2xl sm:text-3xl font-extrabold">NASCAR Cup — Betting Sims</h1>
+            {updatedAt && (
+              <div className="text-sm text-gray-500">Updated: {fmtUpdated(updatedAt)}</div>
+            )}
+          </div>
 
           {/* prettier compact switch + palette */}
           <div className="sm:ml-auto flex items-center gap-3">

@@ -36,7 +36,7 @@ function useJson(url) {
   return { data, err, loading };
 }
 
-/* ---------------- LAST UPDATED (NEW) ---------------- */
+/* ---------------- LAST UPDATED ---------------- */
 function useLastUpdated(mainUrl, metaUrl) {
   const [updatedAt, setUpdatedAt] = useState(null);
 
@@ -151,14 +151,18 @@ function heatColor(min, max, v, dir, palette) {
 
 /* ----------------------------- page ----------------------------- */
 export default function CupProjections() {
-  const SOURCE = "/data/nascar/cup/latest/projections.json";
+  const BASE = import.meta?.env?.BASE_URL ?? "/";
+  const SOURCE = `${BASE}data/nascar/cup/latest/projections.json`;
+  const META   = SOURCE.replace(/projections\.json$/, "meta.json");
+  const LOGO_DK = `${BASE}logos/dk.png`;
+  const LOGO_FD = `${BASE}logos/fd.png`;
+
   const SHOW_SOURCE = false;
 
   const { data, err, loading } = useJson(SOURCE);
 
-  // NEW: last updated (meta.json sits next to projections.json)
-  const metaUrl = SOURCE.replace(/projections\.json$/, "meta.json");
-  const updatedAt = useLastUpdated(SOURCE, metaUrl);
+  // last updated
+  const updatedAt = useLastUpdated(SOURCE, META);
 
   const rows = useMemo(() => {
     if (!data) return [];
@@ -299,14 +303,14 @@ export default function CupProjections() {
   return (
     <div className="px-4 py-5">
       <div className="mb-3 flex items-start md:items-center gap-3 flex-wrap">
-        <h1 className="text-2xl font-extrabold tracking-tight">
-          NASCAR Cup — DFS Projections
-        </h1>
-
-        {/* NEW: Updated stamp */}
-        {updatedAt && (
-          <div className="text-sm text-gray-500">Updated: {fmtUpdated(updatedAt)}</div>
-        )}
+        <div className="flex items-end gap-3">
+          <h1 className="text-2xl font-extrabold tracking-tight">
+            NASCAR Cup — DFS Projections
+          </h1>
+          {updatedAt && (
+            <div className="text-sm text-gray-500">Updated: {fmtUpdated(updatedAt)}</div>
+          )}
+        </div>
 
         {/* Brand segmented control */}
         <div
@@ -318,7 +322,7 @@ export default function CupProjections() {
               key: "DK",
               label: (
                 <>
-                  <img src="/logos/dk.png" alt="DK" className="h-4 w-4 mr-1 object-contain" />
+                  <img src={LOGO_DK} alt="DK" className="h-4 w-4 mr-1 object-contain" />
                   DK
                 </>
               ),
@@ -327,7 +331,7 @@ export default function CupProjections() {
               key: "FD",
               label: (
                 <>
-                  <img src="/logos/FD.png" alt="FD" className="h-4 w-4 mr-1 object-contain" />
+                  <img src={LOGO_FD} alt="FD" className="h-4 w-4 mr-1 object-contain" />
                   FD
                 </>
               ),

@@ -2,6 +2,42 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API_BASE from "../../utils/api";
 
+/* ---------------- LAST UPDATED (shared) ---------------- */
+function useLastUpdated(mainUrl, metaUrl) {
+  const [updatedAt, setUpdatedAt] = React.useState(null);
+
+  React.useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const h = await fetch(mainUrl, { method: "HEAD", cache: "no-store" });
+        const lm = h.headers.get("last-modified");
+        if (alive && lm) { setUpdatedAt(new Date(lm)); return; }
+      } catch (_) {}
+
+      try {
+        const r = await fetch(mainUrl, { cache: "no-store" });
+        const lm2 = r.headers.get("last-modified");
+        if (alive && lm2) { setUpdatedAt(new Date(lm2)); return; }
+      } catch (_) {}
+
+      try {
+        if (!metaUrl) return;
+        const m = await fetch(`${metaUrl}?_=${Date.now()}`, { cache: "no-store" }).then(x => x.json());
+        const iso = m?.updated_iso || m?.updated_utc || m?.updated || m?.lastUpdated || m?.timestamp;
+        const ep  = m?.updated_epoch;
+        const d   = iso ? new Date(iso) : (Number.isFinite(ep) ? new Date(ep * 1000) : null);
+        if (alive && d && !isNaN(d)) setUpdatedAt(d);
+      } catch (_) {}
+    })();
+    return () => { alive = false; };
+  }, [mainUrl, metaUrl]);
+
+  return updatedAt;
+}
+const fmtUpdated = (d) =>
+  d ? d.toLocaleString(undefined, { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" }) : null;
+
 /* ----------------------------- helpers ----------------------------- */
 const clamp = (v, lo = 0, hi = 1e9) => Math.max(lo, Math.min(hi, v));
 const num = (v) => {
@@ -51,7 +87,6 @@ const normName = (s) =>
 function buildSiteIdIndex(siteIdsList) {
   const idx = new Map();
   for (const r of siteIdsList || []) {
-    // be generous with possible id fields
     const id =
       String(
         r.id ??
@@ -123,6 +158,10 @@ const SITES = {
 
 const SOURCE = "/data/nascar/cup/latest/projections.json";
 const SITE_IDS_SOURCE = "/data/nascar/cup/latest/site_ids.json";
+
+/* ---- last-updated for optimizer page (take newest of projections/site_ids) ---- */
+const projMetaUrl = SOURCE.replace(/projections\.json$/, "meta.json");
+const idsMetaUrl  = SITE_IDS_SOURCE.replace(/site_ids\.json$/, "meta.json");
 
 /* ------------------------------ data ------------------------------- */
 function useJson(url) {
@@ -268,7 +307,6 @@ async function solveStream(payload, onItem, onDone) {
     res = await fetch(`${API_BASE}/cup/solve_stream`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      // harmless hint if backend ignores it
       body: JSON.stringify({ ...payload, series: "cup" }),
     });
   } catch (_) {
@@ -313,7 +351,6 @@ async function solveStream(payload, onItem, onDone) {
         sawAny = true;
 
         if (msg.done) {
-          // ✅ Important: stop here so we DON'T run the batch fallback after success
           onDone && onDone(msg);
           return;
         } else {
@@ -338,7 +375,6 @@ async function solveStream(payload, onItem, onDone) {
     (j.lineups || []).forEach((L) => onItem && onItem(L));
     onDone && onDone({ produced: (j.lineups || []).length, reason: "fallback-complete" });
   } else {
-    // We got some items but never saw an explicit done; still finish cleanly.
     onDone && onDone({ produced: undefined, reason: "stream-ended-no-done" });
   }
 }
@@ -439,6 +475,14 @@ export default function CupOptimizer() {
   const { data, err, loading } = useJson(SOURCE);
   const { data: siteIds } = useJson(SITE_IDS_SOURCE);
 
+  // last updated (prefer freshest between projections and site_ids)
+  const projUpdated = useLastUpdated(SOURCE, projMetaUrl);
+  const idsUpdated  = useLastUpdated(SITE_IDS_SOURCE, idsMetaUrl);
+  const updatedAt = useMemo(() => {
+    if (projUpdated && idsUpdated) return new Date(Math.max(+projUpdated, +idsUpdated));
+    return projUpdated || idsUpdated || null;
+  }, [projUpdated, idsUpdated]);
+
   const [site, setSite] = useStickyState("cupOpt.site", "dk");
   const cfg = SITES[site];
 
@@ -491,7 +535,7 @@ export default function CupOptimizer() {
     tickRef.current = setInterval(() => {
       setProgressUI((p) => {
         const N = Math.max(1, Number(numLineups) || 1);
-        const target = progressActual; // never look stuck at 0
+        const target = progressActual;
         const ceiling = N;
         const next = Math.min(Math.max(p + 1, target), ceiling);
         return next;
@@ -622,110 +666,107 @@ export default function CupOptimizer() {
   };
 
   /* --------------------------- optimize (SSE) ------------------------ */
-async function optimize() {
-  if (!rows.length) return;
+  async function optimize() {
+    if (!rows.length) return;
 
-  setLineups([]);
-  setStopInfo(null);
-  setProgressActual(0);
-  setProgressUI(0);
-  setIsOptimizing(true);
+    setLineups([]);
+    setStopInfo(null);
+    setProgressActual(0);
+    setProgressUI(0);
+    setIsOptimizing(true);
 
-  const N = Math.max(1, Number(numLineups) || 1);
-  const payload = {
-    players: rows.map((r) => ({
-      driver: r.driver,
-      salary: Math.round(r.salary || 0),
-      proj: r.proj || 0,
-      floor: r.floor || 0,
-      ceil: r.ceil || 0,
-      pown: r.pown || 0,
-      opt: r.opt || 0,
-    })),
-    roster: cfg.roster,
-    cap: Math.min(cfg.cap, Number(maxSalary) || cfg.cap),
-    n: N,
-    objective: optBy,
-    locks: Array.from(locks),
-    excludes: Array.from(excls),
-    boosts: boost,
-    randomness: clamp(Number(randomness) || 0, 0, 100),
-    global_max_pct: clamp(Number(globalMax) || 100, 0, 100),
-    min_pct: Object.fromEntries(
-      Object.entries(minPct).map(([k, v]) => [k, clamp(Number(v) || 0, 0, 100)])
-    ),
-    max_pct: Object.fromEntries(
-      Object.entries(maxPct).map(([k, v]) => [k, clamp(Number(v) || 100, 0, 100)])
-    ),
-    min_diff: 1,
-    time_limit_ms: 1500,
-    groups: groups.map((g) => ({
-      mode: g.mode || "at_most",
-      count: Math.max(0, Number(g.count) || 0),
-      players: Array.isArray(g.players) ? g.players : [],
-    })),
-  };
+    const N = Math.max(1, Number(numLineups) || 1);
+    const payload = {
+      players: rows.map((r) => ({
+        driver: r.driver,
+        salary: Math.round(r.salary || 0),
+        proj: r.proj || 0,
+        floor: r.floor || 0,
+        ceil: r.ceil || 0,
+        pown: r.pown || 0,
+        opt: r.opt || 0,
+      })),
+      roster: cfg.roster,
+      cap: Math.min(cfg.cap, Number(maxSalary) || cfg.cap),
+      n: N,
+      objective: optBy,
+      locks: Array.from(locks),
+      excludes: Array.from(excls),
+      boosts: boost,
+      randomness: clamp(Number(randomness) || 0, 0, 100),
+      global_max_pct: clamp(Number(globalMax) || 100, 0, 100),
+      min_pct: Object.fromEntries(
+        Object.entries(minPct).map(([k, v]) => [k, clamp(Number(v) || 0, 0, 100)])
+      ),
+      max_pct: Object.fromEntries(
+        Object.entries(maxPct).map(([k, v]) => [k, clamp(Number(v) || 100, 0, 100)])
+      ),
+      min_diff: 1,
+      time_limit_ms: 1500,
+      groups: groups.map((g) => ({
+        mode: g.mode || "at_most",
+        count: Math.max(0, Number(g.count) || 0),
+        players: Array.isArray(g.players) ? g.players : [],
+      })),
+    };
 
-  const out = [];
-  try {
-    // 1) Try the streaming Cup endpoint first
-    await solveStream(
-      payload,
-      (evt) => {
-        const chosen = evt.drivers
-          .map((name) => rows.find((r) => r.driver === name))
-          .filter(Boolean);
-        const L = { drivers: evt.drivers, salary: evt.salary, total: evt.total, chosen };
-        out.push(L);
-        setLineups((prev) => [...prev, L]);
-        setProgressActual(out.length);
-      },
-      (done) => {
-        if (done?.reason) setStopInfo(done);
-        setProgressActual(out.length || payload.n);
-        setProgressUI(out.length || payload.n);
+    const out = [];
+    try {
+      await solveStream(
+        payload,
+        (evt) => {
+          const chosen = evt.drivers
+            .map((name) => rows.find((r) => r.driver === name))
+            .filter(Boolean);
+          const L = { drivers: evt.drivers, salary: evt.salary, total: evt.total, chosen };
+          out.push(L);
+          setLineups((prev) => [...prev, L]);
+          setProgressActual(out.length);
+        },
+        (done) => {
+          if (done?.reason) setStopInfo(done);
+          setProgressActual(out.length || payload.n);
+          setProgressUI(out.length || payload.n);
+          setIsOptimizing(false);
+          clearInterval(tickRef.current);
+          saveBuild(nextBuildNameForSite(site), out);
+        }
+      );
+    } catch (e) {
+      const attempt = await fetchFirstOk([...CUP_POST_PATHS, "solve"], {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload, series: "cup" }),
+      });
+
+      if (!attempt) {
+        alert("Solve failed: No working Cup endpoint found.");
         setIsOptimizing(false);
         clearInterval(tickRef.current);
-        saveBuild(nextBuildNameForSite(site), out);
+        return;
       }
-    );
-  } catch (e) {
-    // 2) Fallback to non-streaming: try several POST endpoints
-    const attempt = await fetchFirstOk([...CUP_POST_PATHS, "solve"], {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      // include series hint so generic /solve can route it
-      body: JSON.stringify({ ...payload, series: "cup" }),
-    });
 
-    if (!attempt) {
-      alert("Solve failed: No working Cup endpoint found.");
+      const j = await attempt.res.json();
+      const out2 =
+        (j.lineups || []).map((L) => ({
+          drivers: L.drivers,
+          salary: L.salary,
+          total: L.total,
+          chosen: L.drivers.map((n) => rows.find((r) => r.driver === n)).filter(Boolean),
+        })) || [];
+
+      setLineups(out2);
+      setProgressActual(out2.length);
+      setProgressUI(out2.length);
       setIsOptimizing(false);
       clearInterval(tickRef.current);
-      return;
+
+      if ((j.produced || 0) < payload.n) {
+        setStopInfo({ produced: j.produced || 0, requested: payload.n, reason: "stopped_early" });
+      }
+      saveBuild(nextBuildNameForSite(site), out2);
     }
-
-    const j = await attempt.res.json();
-    const out2 =
-      (j.lineups || []).map((L) => ({
-        drivers: L.drivers,
-        salary: L.salary,
-        total: L.total,
-        chosen: L.drivers.map((n) => rows.find((r) => r.driver === n)).filter(Boolean),
-      })) || [];
-
-    setLineups(out2);
-    setProgressActual(out2.length);
-    setProgressUI(out2.length);
-    setIsOptimizing(false);
-    clearInterval(tickRef.current);
-
-    if ((j.produced || 0) < payload.n) {
-      setStopInfo({ produced: j.produced || 0, requested: payload.n, reason: "stopped_early" });
-    }
-    saveBuild(nextBuildNameForSite(site), out2);
   }
-}
 
 
   /* -------------------------- builds (per site) ---------------------- */
@@ -802,7 +843,7 @@ async function optimize() {
     { key: "driver", label: "Driver", sortable: false },
     { key: "salary", label: "Salary", sortable: true },
     { key: "proj", label: "Proj", sortable: true },
-    { key: "val",  label: "Val",  sortable: true },       // NEW
+    { key: "val",  label: "Val",  sortable: true },
     { key: "floor", label: "Floor", sortable: true },
     { key: "ceil", label: "Ceiling", sortable: true },
     { key: "pown", label: "pOWN%", sortable: true },
@@ -816,7 +857,14 @@ async function optimize() {
 
   return (
     <div className="px-4 md:px-6 py-5">
-      <h1 className="text-2xl md:text-3xl font-extrabold mb-1">NASCAR Cup — Optimizer</h1>
+      <div className="mb-1 flex items-end gap-3 flex-wrap">
+        <h1 className="text-2xl md:text-3xl font-extrabold">NASCAR Cup — Optimizer</h1>
+        {updatedAt && (
+          <div className="text-sm text-gray-500">
+            Updated: {fmtUpdated(updatedAt)}
+          </div>
+        )}
+      </div>
 
       {/* site toggle & reset */}
       <div className="mb-3 flex gap-2 items-center">

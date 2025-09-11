@@ -1,6 +1,42 @@
 // src/pages/nascar/CupGFS.jsx
 import React, { useEffect, useMemo, useState } from "react";
 
+/* ------------ last updated helper ------------ */
+function useLastUpdated(mainUrl, metaUrl) {
+  const [updatedAt, setUpdatedAt] = React.useState(null);
+
+  React.useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const h = await fetch(mainUrl, { method: "HEAD", cache: "no-store" });
+        const lm = h.headers.get("last-modified");
+        if (alive && lm) { setUpdatedAt(new Date(lm)); return; }
+      } catch (_) {}
+
+      try {
+        const r = await fetch(mainUrl, { cache: "no-store" });
+        const lm2 = r.headers.get("last-modified");
+        if (alive && lm2) { setUpdatedAt(new Date(lm2)); return; }
+      } catch (_) {}
+
+      try {
+        if (!metaUrl) return;
+        const m = await fetch(`${metaUrl}?_=${Date.now()}`, { cache: "no-store" }).then(x => x.json());
+        const iso = m?.updated_iso || m?.updated_utc || m?.updated || m?.lastUpdated || m?.timestamp;
+        const ep  = m?.updated_epoch;
+        const d   = iso ? new Date(iso) : (Number.isFinite(ep) ? new Date(ep * 1000) : null);
+        if (alive && d && !isNaN(d)) setUpdatedAt(d);
+      } catch (_) {}
+    })();
+    return () => { alive = false; };
+  }, [mainUrl, metaUrl]);
+
+  return updatedAt;
+}
+const fmtUpdated = (d) =>
+  d ? d.toLocaleString(undefined, { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" }) : null;
+
 /* ------------ small fetch hook ------------ */
 function useJson(url) {
   const [data, setData] = useState(null);
@@ -113,7 +149,11 @@ function heatColor(min, max, v, dir = "lower", palette = "rdylgn") {
 
 /* ------------ page ------------ */
 export default function CupGFS() {
-  const SOURCE = "/data/nascar/cup/latest/gfs.json";
+  const BASE = import.meta?.env?.BASE_URL ?? "/";
+  const SOURCE = `${BASE}data/nascar/cup/latest/gfs.json`;
+  const META   = SOURCE.replace(/gfs\.json$/, "meta.json"); // optional
+
+  const updatedAt = useLastUpdated(SOURCE, META);
   const SHOW_SOURCE = false;
 
   const { data, err, loading } = useJson(SOURCE);
@@ -251,7 +291,10 @@ export default function CupGFS() {
   return (
     <div className="px-5 py-6">
       <div className="flex items-center gap-3 mb-1 flex-wrap">
-        <h1 className="text-2xl sm:text-3xl font-extrabold">NASCAR Cup — GFS Data</h1>
+        <div className="flex items-end gap-3">
+          <h1 className="text-2xl sm:text-3xl font-extrabold">NASCAR Cup — GFS Data</h1>
+          {updatedAt && <div className="text-sm text-gray-500">Updated: {fmtUpdated(updatedAt)}</div>}
+        </div>
         {SHOW_SOURCE && (
           <div className="text-sm text-gray-500">
             <code>{SOURCE}</code>

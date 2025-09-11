@@ -138,8 +138,9 @@ const lowerIsBetter = (c) => {
 
 /* ----------------------------- page ----------------------------- */
 export default function CupPractice() {
-  const SUMMARY_SRC = "/data/nascar/cup/latest/practice_cons.json";
-  const LAPS_SRC = "/data/nascar/cup/latest/practice_laps.json";
+  const BASE = import.meta?.env?.BASE_URL ?? "/";
+  const SUMMARY_SRC = `${BASE}data/nascar/cup/latest/practice_cons.json`;
+  const LAPS_SRC    = `${BASE}data/nascar/cup/latest/practice_laps.json`;
   const SHOW_SOURCES = false;
 
   // last updated: compute for each and show the most recent
