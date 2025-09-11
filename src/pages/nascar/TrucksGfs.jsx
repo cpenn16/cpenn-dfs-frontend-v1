@@ -1,6 +1,42 @@
 // src/pages/nascar/TrucksGFS.jsx
 import React, { useEffect, useMemo, useState } from "react";
 
+/* ------------ last updated helper ------------ */
+function useLastUpdated(mainUrl, metaUrl) {
+  const [updatedAt, setUpdatedAt] = React.useState(null);
+
+  React.useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const h = await fetch(mainUrl, { method: "HEAD", cache: "no-store" });
+        const lm = h.headers.get("last-modified");
+        if (alive && lm) { setUpdatedAt(new Date(lm)); return; }
+      } catch (_) {}
+
+      try {
+        const r = await fetch(mainUrl, { cache: "no-store" });
+        const lm2 = r.headers.get("last-modified");
+        if (alive && lm2) { setUpdatedAt(new Date(lm2)); return; }
+      } catch (_) {}
+
+      try {
+        if (!metaUrl) return;
+        const m = await fetch(`${metaUrl}?_=${Date.now()}`, { cache: "no-store" }).then(x => x.json());
+        const iso = m?.updated_iso || m?.updated_utc || m?.updated || m?.lastUpdated || m?.timestamp;
+        const ep  = m?.updated_epoch;
+        const d   = iso ? new Date(iso) : (Number.isFinite(ep) ? new Date(ep * 1000) : null);
+        if (alive && d && !isNaN(d)) setUpdatedAt(d);
+      } catch (_) {}
+    })();
+    return () => { alive = false; };
+  }, [mainUrl, metaUrl]);
+
+  return updatedAt;
+}
+const fmtUpdated = (d) =>
+  d ? d.toLocaleString(undefined, { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" }) : null;
+
 /* ------------ small fetch hook ------------ */
 function useJson(url) {
   const [data, setData] = useState(null);
@@ -15,22 +51,10 @@ function useJson(url) {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then((j) => {
-        if (alive) {
-          setData(j);
-          setErr(null);
-        }
-      })
-      .catch((e) => {
-        if (alive) {
-          setErr(e);
-          setData(null);
-        }
-      })
+      .then((j) => { if (alive) { setData(j); setErr(null); } })
+      .catch((e) => { if (alive) { setErr(e); setData(null); } })
       .finally(() => alive && setLoading(false));
-    return () => {
-      alive = false;
-    };
+    return () => { alive = false; };
   }, [url]);
 
   return { data, err, loading };
@@ -69,14 +93,68 @@ const cmp = (a, b, dir = "asc") => {
 };
 
 const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
-
 const findDriverKey = (row) =>
   Object.keys(row || {}).find((k) => /^driver\b/i.test(k)) || "Driver";
 
+/* ---- LOWER-IS-BETTER flags ---- */
+const LOWER_SET = [
+  "intermediate",
+  "short/flat",
+  "road course",
+  "this track",
+  "similar tracks",
+  "high tire wear",
+  "tire codes",
+  "overall",
+];
+function isLowerBetter(col) {
+  const s = String(col || "").toLowerCase().replace(/\s+/g, " ").trim();
+  if (/^20\d{2}$/.test(s)) return true;             // years like 2022..2026
+  return LOWER_SET.includes(s);
+}
+
+/* ---- heatmap palettes ---- */
+function heatColor(min, max, v, dir = "lower", palette = "rdylgn") {
+  if (palette === "none") return null;
+  const n = num(v);
+  if (!Number.isFinite(min) || !Number.isFinite(max) || !Number.isFinite(n) || min === max) return null;
+
+  let t = (n - min) / (max - min);
+  t = clamp(t, 0, 1);
+  if (dir === "lower") t = 1 - t; // greener for lower numbers
+
+  if (palette === "blueorange") {
+    // light blue -> white -> light orange (subtle, readable)
+    if (t < 0.5) {
+      const u = t / 0.5;  // 0..1
+      const h = 220, s = 60 - u * 55, l = 90 + u * 7;
+      return `hsl(${h} ${s}% ${l}%)`;
+    } else {
+      const u = (t - 0.5) / 0.5;
+      const h = 30, s = 5 + u * 80, l = 97 - u * 7;
+      return `hsl(${h} ${s}% ${l}%)`;
+    }
+  }
+  // default Rd–Yl–Gn (light)
+  if (t < 0.5) {
+    const u = t / 0.5;
+    const h = 0 + u * 60, s = 78 + u * 10, l = 94 - u * 2; // red -> yellow
+    return `hsl(${h} ${s}% ${l}%)`;
+  } else {
+    const u = (t - 0.5) / 0.5;
+    const h = 60 + u * 60, s = 88 - u * 18, l = 92 + u * 2; // yellow -> green
+    return `hsl(${h} ${s}% ${l}%)`;
+  }
+}
+
 /* ------------ page ------------ */
 export default function CupGFS() {
-  const SOURCE = "/data/nascar/trucks/latest/gfs.json";
-  const SHOW_SOURCE = false; // set true if you want to display the JSON path
+  const BASE = import.meta?.env?.BASE_URL ?? "/";
+  const SOURCE = `${BASE}data/nascar/trucks/latest/gfs.json`;
+  const META   = SOURCE.replace(/gfs\.json$/, "meta.json"); // optional
+
+  const updatedAt = useLastUpdated(SOURCE, META);
+  const SHOW_SOURCE = false;
 
   const { data, err, loading } = useJson(SOURCE);
 
@@ -89,10 +167,7 @@ export default function CupGFS() {
   }, [data]);
 
   // columns (in the order they appear in the JSON)
-  const allCols = useMemo(() => {
-    if (!rows.length) return [];
-    return Object.keys(rows[0]);
-  }, [rows]);
+  const allCols = useMemo(() => (rows.length ? Object.keys(rows[0]) : []), [rows]);
 
   // detect driver column (if any) so we can freeze it & left-align
   const driverKey = useMemo(() => findDriverKey(rows[0] || {}), [rows]);
@@ -152,10 +227,8 @@ export default function CupGFS() {
         if (s.length > maxLen) maxLen = s.length;
       }
       if (c === driverKey) {
-        // wider for names
         w[c] = clamp(Math.max(maxLen, 12), 12, 22);
       } else if (looksNumericCol(c)) {
-        // narrow numeric columns
         w[c] = clamp(Math.max(maxLen + 2, 6), 6, 12);
       } else {
         w[c] = clamp(Math.max(maxLen, Math.min(headerLen, 12)), 10, 16);
@@ -164,7 +237,33 @@ export default function CupGFS() {
     return w;
   }, [rows, allCols, driverKey]);
 
-  // export CSV for current view (sortedRows, visible columns)
+  // 🔥 heat stats (only for lower-is-better columns) on the *current* dataset (filtered, visible)
+  const heatStats = useMemo(() => {
+    const stats = {};
+    const cols = visibleColNames.length ? visibleColNames : allCols;
+    if (!sortedRows.length) return stats;
+
+    for (const c of cols) {
+      if (!isLowerBetter(c)) continue;
+      let min = Infinity, max = -Infinity;
+      for (const r of sortedRows) {
+        const n = num(r?.[c]);
+        if (Number.isFinite(n)) {
+          if (n < min) min = n;
+          if (n > max) max = n;
+        }
+      }
+      if (min !== Infinity && max !== -Infinity && max > min) {
+        stats[c] = { min, max, dir: "lower" };
+      }
+    }
+    return stats;
+  }, [sortedRows, visibleColNames, allCols]);
+
+  // palette toggle
+  const [palette, setPalette] = useState("none"); // "none" | "rdylgn" | "blueorange"
+
+  // export CSV for current view
   const exportCSV = () => {
     const cols = visibleColNames.length ? visibleColNames : allCols;
     const lines = [];
@@ -173,12 +272,8 @@ export default function CupGFS() {
       return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
     };
     lines.push(cols.map(escapeCSV).join(","));
-    for (const r of sortedRows) {
-      lines.push(cols.map((c) => escapeCSV(r?.[c] ?? "")).join(","));
-    }
-    const blob = new Blob(["\ufeff" + lines.join("\r\n")], {
-      type: "text/csv;charset=utf-8;",
-    });
+    for (const r of sortedRows) lines.push(cols.map((c) => escapeCSV(r?.[c] ?? "")).join(","));
+    const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `gfs_${new Date().toISOString().slice(0, 10)}.csv`;
@@ -187,7 +282,7 @@ export default function CupGFS() {
     a.remove();
   };
 
-  /* ---- styling helpers (compact, wrapped, centered; driver left) ---- */
+  /* ---- styling helpers ---- */
   const padCell = "px-2 py-1";
   const textSz = "text-xs";
   const headerWrap = "whitespace-normal break-words leading-tight";
@@ -195,13 +290,29 @@ export default function CupGFS() {
 
   return (
     <div className="px-5 py-6">
-      <div className="flex items-center gap-3 mb-1">
-        <h1 className="text-3xl font-extrabold">NASCAR Trucks — GFS Data</h1>
+      <div className="flex items-center gap-3 mb-1 flex-wrap">
+        <div className="flex items-end gap-3">
+          <h1 className="text-2xl sm:text-3xl font-extrabold">NASCAR Trucks — GFS Data</h1>
+          {updatedAt && <div className="text-sm text-gray-500">Updated: {fmtUpdated(updatedAt)}</div>}
+        </div>
         {SHOW_SOURCE && (
           <div className="text-sm text-gray-500">
             <code>{SOURCE}</code>
           </div>
         )}
+        <div className="ml-auto flex items-center gap-2">
+          <label className="text-sm text-gray-600 hidden sm:block">Palette</label>
+          <select
+            value={palette}
+            onChange={(e) => setPalette(e.target.value)}
+            className="h-8 rounded-lg border px-2 text-sm"
+            title="Conditional formatting palette"
+          >
+            <option value="none">None</option>
+            <option value="rdylgn">Rd–Yl–Gn</option>
+            <option value="blueorange">Blue–Orange</option>
+          </select>
+        </div>
       </div>
 
       {/* controls */}
@@ -237,7 +348,9 @@ export default function CupGFS() {
               onClick={() => toggleCol(i)}
               className={[
                 "px-2 py-1 rounded-full text-xs border transition",
-                on ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50",
+                on
+                  ? "bg-blue-50 border-blue-300 text-blue-800"
+                  : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50",
               ].join(" ")}
               title={on ? "Hide column" : "Show column"}
             >
@@ -266,14 +379,19 @@ export default function CupGFS() {
               <tr>
                 {visibleColNames.map((c) => {
                   const active = sort.col === c;
-                  const arrow = active ? (sort.dir === "asc" ? "▲" : "▼") : "▲";
+                  // show default “good” direction (▲ lower-better, ▼ higher-better)
+                  const arrow = active
+                    ? sort.dir === "asc" ? "▲" : "▼"
+                    : isLowerBetter(c) ? "▲" : "▼";
                   const w = widthCh[c] ?? 10;
                   return (
                     <th
                       key={c}
                       onClick={() =>
                         setSort((s) =>
-                          s.col === c ? { col: c, dir: s.dir === "asc" ? "desc" : "asc" } : { col: c, dir: "asc" }
+                          s.col === c
+                            ? { col: c, dir: s.dir === "asc" ? "desc" : "asc" }
+                            : { col: c, dir: isLowerBetter(c) ? "asc" : "desc" }
                         )
                       }
                       title={c}
@@ -287,8 +405,17 @@ export default function CupGFS() {
                       ].join(" ")}
                       style={{ maxWidth: `${w}ch` }}
                     >
-                      <div className={["inline-flex items-center gap-1 justify-center w-full", headerWrap, c === driverKey ? "justify-start" : ""].join(" ")}>
-                        {c} <span className="opacity-60">{arrow}</span>
+                      <div
+                        className={[
+                          "inline-flex items-center gap-1 justify-center w-full",
+                          headerWrap,
+                          c === driverKey ? "justify-start" : "",
+                        ].join(" ")}
+                      >
+                        {c}{" "}
+                        <span className={active ? "opacity-80 text-blue-600" : "opacity-50 text-gray-400"}>
+                          {arrow}
+                        </span>
                       </div>
                     </th>
                   );
@@ -301,23 +428,29 @@ export default function CupGFS() {
                 const zebra = i % 2 ? "bg-gray-50/60" : "bg-white";
                 return (
                   <tr key={i} className={[zebra, "hover:bg-blue-50/60 transition-colors"].join(" ")}>
-                    {visibleColNames.map((c) => (
-                      <td
-                        key={c}
-                        className={[
-                          "border-b border-gray-100",
-                          padCell,
-                          textSz,
-                          c === driverKey ? `text-left` : "text-center",
-                          isNumeric(r?.[c]) ? "tabular-nums" : "",
-                          c === driverKey ? `sticky left-0 z-20 ${zebra} border-r` : "",
-                        ].join(" ")}
-                        style={{ maxWidth: `${widthCh[c] ?? 10}ch` }}
-                        title={String(r?.[c] ?? "")}
-                      >
-                        <div className={["w-full", cellWrap].join(" ")}>{r?.[c] ?? ""}</div>
-                      </td>
-                    ))}
+                    {visibleColNames.map((c) => {
+                      const stat = heatStats[c];
+                      const bg =
+                        stat ? heatColor(stat.min, stat.max, r?.[c], stat.dir, palette) : null;
+
+                      return (
+                        <td
+                          key={c}
+                          className={[
+                            "border-b border-gray-100",
+                            padCell,
+                            textSz,
+                            c === driverKey ? `text-left` : "text-center",
+                            isNumeric(r?.[c]) ? "tabular-nums" : "",
+                            c === driverKey ? `sticky left-0 z-20 ${zebra} border-r` : "",
+                          ].join(" ")}
+                          style={{ maxWidth: `${widthCh[c] ?? 10}ch`, ...(bg ? { backgroundColor: bg } : {}) }}
+                          title={String(r?.[c] ?? "")}
+                        >
+                          <div className={["w-full", cellWrap].join(" ")}>{r?.[c] ?? ""}</div>
+                        </td>
+                      );
+                    })}
                   </tr>
                 );
               })}

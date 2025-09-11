@@ -1,4 +1,4 @@
-// src/pages/nascar/CupProjections.jsx
+// src/pages/nascar/TrucksProjections.jsx
 import React, { useEffect, useMemo, useState } from "react";
 
 /* ------------------------ data fetch hook ------------------------ */
@@ -36,16 +36,48 @@ function useJson(url) {
   return { data, err, loading };
 }
 
+/* ---------------- LAST UPDATED ---------------- */
+function useLastUpdated(mainUrl, metaUrl) {
+  const [updatedAt, setUpdatedAt] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const h = await fetch(mainUrl, { method: "HEAD", cache: "no-store" });
+        const lm = h.headers.get("last-modified");
+        if (alive && lm) { setUpdatedAt(new Date(lm)); return; }
+      } catch (_) {}
+
+      try {
+        const r = await fetch(mainUrl, { cache: "no-store" });
+        const lm2 = r.headers.get("last-modified");
+        if (alive && lm2) { setUpdatedAt(new Date(lm2)); return; }
+      } catch (_) {}
+
+      try {
+        if (!metaUrl) return;
+        const m = await fetch(`${metaUrl}?_=${Date.now()}`, { cache: "no-store" }).then(x => x.json());
+        const iso = m?.updated_iso || m?.updated_utc || m?.updated || m?.lastUpdated || m?.timestamp;
+        const ep  = m?.updated_epoch;
+        const d   = iso ? new Date(iso) : (Number.isFinite(ep) ? new Date(ep * 1000) : null);
+        if (alive && d && !isNaN(d)) setUpdatedAt(d);
+      } catch (_) {}
+    })();
+    return () => { alive = false; };
+  }, [mainUrl, metaUrl]);
+
+  return updatedAt;
+}
+const fmtUpdated = (d) =>
+  d ? d.toLocaleString(undefined, { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" }) : null;
+
 /* ----------------------------- helpers ----------------------------- */
 const num = (v) => {
-  const n = Number(String(v).replace(/[,\s]/g, ""));
+  const n = Number(String(v ?? "").replace(/[,$%\s]/g, ""));
   return Number.isFinite(n) ? n : NaN;
 };
 const isNumeric = (v) => Number.isFinite(num(v));
-const looksNumericCol = (c) =>
-  /(^rank$|avg|average|proj|pp$|rtg|lev|own|sal|ceiling|floor|dom|fin|val|^p?ll$)/i.test(
-    String(c).trim()
-  ) || /^\d+$/.test(String(c));
 const cmp = (a, b, dir = "asc") => {
   const na = isNumeric(a);
   const nb = isNumeric(b);
@@ -60,6 +92,10 @@ const cmp = (a, b, dir = "asc") => {
   if (sa > sb) return dir === "asc" ? 1 : -1;
   return 0;
 };
+const looksNumericCol = (c) =>
+  /(^rank$|avg|average|proj|pp$|rtg|lev|own|pown|sal|ceiling|floor|dom|fin|val|^p?ll$|^p?fl$)/i.test(
+    String(c).trim()
+  ) || /^\d+$/.test(String(c));
 const findDriverKey = (row) =>
   Object.keys(row || {}).find((k) => /^driver\b/i.test(k)) || "Driver";
 const isDriverCol = (c) => /^driver\b/i.test(String(c));
@@ -75,12 +111,58 @@ const escapeCSV = (v) => {
   return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 
+/* ---------------- heatmap palettes + direction rules ---------------- */
+const dirForCol = (colName) => {
+  const k = String(colName || "").toLowerCase().replace(/\s+/g, " ").trim();
+  if (/^proj\s*fin$/i.test(colName)) return "lower";
+  if (/\bsal(ary)?\b/i.test(colName)) return "lower";
+  if (/\b(p?own%?|ownership)\b/i.test(k)) return "lower";
+  if (/\b(pll|pfl)\b/i.test(k) || /\b(pp)\b/.test(k) || /\b(dom)\b/i.test(k) || /\bfloor\b/i.test(k) || /\bceiling\b/i.test(k)) return "higher";
+  if (/\bproj(?!\s*fin)\b/i.test(k) || /\bval(ue)?\b/i.test(k) || /\brtg|rating\b/i.test(k) || /\blev%?\b/i.test(k) || /\bopt%?\b/i.test(k)) return "higher";
+  return null;
+};
+function heatColor(min, max, v, dir, palette) {
+  if (palette === "none") return null;
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
+  const n = num(v);
+  if (!Number.isFinite(n) || min === max) return null;
+
+  let t = (n - min) / (max - min);
+  t = Math.max(0, Math.min(1, t));
+  if (dir === "lower") t = 1 - t;
+
+  if (palette === "blueorange") {
+    if (t < 0.5) {
+      const u = t / 0.5; const h = 220, s = 60 - u * 55, l = 90 + u * 7;
+      return `hsl(${h}, ${s}%, ${l}%)`;
+    } else {
+      const u = (t - 0.5) / 0.5; const h = 30, s = 5 + u * 80, l = 97 - u * 7;
+      return `hsl(${h}, ${s}%, ${l}%)`;
+    }
+  }
+  if (t < 0.5) {
+    const u = t / 0.5; const h = 0 + u * 60, s = 78 + u * 10, l = 94 - u * 2;
+    return `hsl(${h}, ${s}%, ${l}%)`;
+  } else {
+    const u = (t - 0.5) / 0.5; const h = 60 + u * 60, s = 88 - u * 18, l = 92 + u * 2;
+    return `hsl(${h}, ${s}%, ${l}%)`;
+  }
+}
+
 /* ----------------------------- page ----------------------------- */
 export default function CupProjections() {
-  const SOURCE = "/data/nascar/trucks/latest/projections.json";
-  const SHOW_SOURCE = false; // hide the source path under the title
+  const BASE = import.meta?.env?.BASE_URL ?? "/";
+  const SOURCE = `${BASE}data/nascar/trucks/latest/projections.json`;
+  const META   = SOURCE.replace(/projections\.json$/, "meta.json");
+  const LOGO_DK = `${BASE}logos/dk.png`;
+  const LOGO_FD = `${BASE}logos/fd.png`;
+
+  const SHOW_SOURCE = false;
 
   const { data, err, loading } = useJson(SOURCE);
+
+  // last updated
+  const updatedAt = useLastUpdated(SOURCE, META);
 
   const rows = useMemo(() => {
     if (!data) return [];
@@ -89,19 +171,19 @@ export default function CupProjections() {
     return [];
   }, [data]);
 
-  const allColsRaw = useMemo(
-    () => (rows.length ? Object.keys(rows[0]) : []),
-    [rows]
-  );
-  const driverKey = useMemo(() => findDriverKey(rows[0] || {}), [rows]); // for reference if needed
+  const allColsRaw = useMemo(() => (rows.length ? Object.keys(rows[0]) : []), [rows]);
+  const driverKey = useMemo(() => findDriverKey(rows[0] || {}), [rows]);
 
-  /* --------- permanent style: compact + WRAPPED headers & cells -------- */
-  const padCell = "px-2 py-1";   // compact density
-  const textSz = "text-xs";      // compact type
-  const headerWrap = "whitespace-normal break-words leading-tight"; // WRAP headers
-  const cellWrap = "whitespace-normal break-words";                 // WRAP cells
+  /* --------- compact + wrapped -------- */
+  const padCell = "px-2 py-1";
+  const textSz = "text-xs";
+  const headerWrap = "whitespace-normal break-words leading-tight";
+  const cellWrap = "whitespace-normal break-words";
 
-  /* ------------------ Brand filter (DK / FD / Both) ------------------ */
+  /* ---------- palette (default NONE) ---------- */
+  const [palette, setPalette] = useState("none");
+
+  /* ---------- Brand filter (DK / FD / Both) ---------- */
   const [brand, setBrand] = useState("Both");
   const baseCols = useMemo(() => {
     if (!allColsRaw.length) return [];
@@ -137,13 +219,32 @@ export default function CupProjections() {
     );
   }, [rows, allColsRaw, q]);
 
+  /* ---------- heat stats (only visible columns, current rows) ---------- */
+  const heatStats = useMemo(() => {
+    const stats = {};
+    if (!filteredRows.length) return stats;
+
+    for (const c of visibleColNames) {
+      const dir = dirForCol(c);
+      if (!dir) continue;
+
+      let min = Infinity, max = -Infinity;
+      for (const r of filteredRows) {
+        const n = num(r?.[c]);
+        if (!Number.isFinite(n)) continue;
+        if (n < min) min = n;
+        if (n > max) max = n;
+      }
+      if (min !== Infinity && max !== -Infinity) stats[c] = { min, max, dir };
+    }
+    return stats;
+  }, [filteredRows, visibleColNames]);
+
   /* ---------- sorting ---------- */
   const [sort, setSort] = useState({ col: "", dir: "asc" });
   const sortedRows = useMemo(() => {
     if (!sort.col) return filteredRows;
-    return [...filteredRows].sort((a, b) =>
-      cmp(a?.[sort.col], b?.[sort.col], sort.dir)
-    );
+    return [...filteredRows].sort((a, b) => cmp(a?.[sort.col], b?.[sort.col], sort.dir));
   }, [filteredRows, sort]);
 
   /* ---------- reset & export ---------- */
@@ -151,6 +252,7 @@ export default function CupProjections() {
     setQ("");
     setSort({ col: "", dir: "asc" });
     showAll();
+    setPalette("none");
   };
 
   const exportCSV = () => {
@@ -165,9 +267,7 @@ export default function CupProjections() {
     });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `trucks_projections_${brand.toLowerCase()}_${new Date()
-      .toISOString()
-      .slice(0, 10)}.csv`;
+    a.download = `trucks_projections_${brand.toLowerCase()}_${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -177,8 +277,8 @@ export default function CupProjections() {
   const colWidthCh = useMemo(() => {
     const widths = {};
     if (!rows.length) return widths;
-
     const sample = rows.slice(0, 200);
+
     for (const c of baseCols) {
       let maxLen = 0;
       const headerLen = String(c).length;
@@ -202,22 +302,27 @@ export default function CupProjections() {
 
   return (
     <div className="px-4 py-5">
-      <div className="mb-3 flex items-center gap-3 flex-wrap">
-        <h1 className="text-2xl font-extrabold tracking-tight">
-          NASCAR Trucks — DFS Projections
-        </h1>
+      <div className="mb-3 flex items-start md:items-center gap-3 flex-wrap">
+        <div className="flex items-end gap-3">
+          <h1 className="text-2xl font-extrabold tracking-tight">
+            NASCAR Trucks — DFS Projections
+          </h1>
+          {updatedAt && (
+            <div className="text-sm text-gray-500">Updated: {fmtUpdated(updatedAt)}</div>
+          )}
+        </div>
 
-        {/* Brand segmented control with your logos */}
+        {/* Brand segmented control */}
         <div
           role="tablist"
-          className="ml-2 inline-flex items-center rounded-xl bg-gray-100 p-1 border border-gray-200 shadow-inner"
+          className="inline-flex items-center rounded-xl bg-gray-100 p-1 border border-gray-200 shadow-inner"
         >
           {[
             {
               key: "DK",
               label: (
                 <>
-                  <img src="/logos/dk.png" alt="DK" className="h-4 w-4 mr-1 object-contain" />
+                  <img src={LOGO_DK} alt="DK" className="h-4 w-4 mr-1 object-contain" />
                   DK
                 </>
               ),
@@ -226,7 +331,7 @@ export default function CupProjections() {
               key: "FD",
               label: (
                 <>
-                  <img src="/logos/FD.png" alt="FD" className="h-4 w-4 mr-1 object-contain" />
+                  <img src={LOGO_FD} alt="FD" className="h-4 w-4 mr-1 object-contain" />
                   FD
                 </>
               ),
@@ -253,21 +358,31 @@ export default function CupProjections() {
           })}
         </div>
 
-        {/* (Hidden by default) data source path */}
-        {SHOW_SOURCE && (
-          <div className="text-xs text-gray-500">
-            <code>{SOURCE}</code>
-          </div>
-        )}
+        {/* Source path (hidden by default) */}
+        {SHOW_SOURCE && <div className="text-xs text-gray-500"><code>{SOURCE}</code></div>}
 
-        {/* Actions */}
-        <div className="ml-auto flex items-center gap-3">
+        {/* Right-side actions (wrap on mobile) */}
+        <div className="ml-auto flex items-center gap-2 md:gap-3 flex-wrap">
+          {/* Palette (defaults to none) */}
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-slate-600 hidden md:block">Palette</label>
+            <select
+              value={palette}
+              onChange={(e) => setPalette(e.target.value)}
+              className="h-8 rounded-lg border px-2 text-xs"
+            >
+              <option value="none">None</option>
+              <option value="rdylgn">Rd–Yl–Gn</option>
+              <option value="blueorange">Blue–Orange</option>
+            </select>
+          </div>
+
           <input
             type="text"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search…"
-            className="border rounded-lg px-3 py-2 w-56 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border rounded-lg px-3 py-2 w-48 md:w-56 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button className="px-3 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200" onClick={showAll}>
             Show all
@@ -307,8 +422,7 @@ export default function CupProjections() {
                   : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50",
               ].join(" ")}
             >
-              {on ? "✓ " : ""}
-              {c}
+              {on ? "✓ " : ""}{c}
             </button>
           );
         })}
@@ -323,7 +437,7 @@ export default function CupProjections() {
             {/* Enforced widths */}
             <colgroup>
               {visibleColNames.map((c) => (
-                <col key={c} style={{ width: `${colWidthCh[c] ?? 10}ch` }} />
+                <col key={c} style={{ width: `${(colWidthCh[c] ?? 10)}ch` }} />
               ))}
             </colgroup>
 
@@ -338,9 +452,7 @@ export default function CupProjections() {
                       key={c}
                       onClick={() =>
                         setSort((s) =>
-                          s.col === c
-                            ? { col: c, dir: s.dir === "asc" ? "desc" : "asc" }
-                            : { col: c, dir: "asc" }
+                          s.col === c ? { col: c, dir: s.dir === "asc" ? "desc" : "asc" } : { col: c, dir: "asc" }
                         )
                       }
                       title={c}
@@ -368,24 +480,29 @@ export default function CupProjections() {
                 const zebra = i % 2 ? "bg-gray-50/60" : "bg-white";
                 return (
                   <tr key={i} className={[zebra, "hover:bg-blue-50/60 transition-colors"].join(" ")}>
-                    {visibleColNames.map((c) => (
-                      <td
-                        key={c}
-                        className={[
-                          "border-b border-gray-100",
-                          padCell,
-                          textSz,
-                          "text-center tabular-nums",
-                          isDriverCol(c) ? `sticky left-0 z-20 ${zebra} border-r` : "",
-                        ].join(" ")}
-                        style={{ maxWidth: `${colWidthCh[c] ?? 10}ch` }}
-                        title={String(r?.[c] ?? "")}
-                      >
-                        <div className={["w-full", cellWrap].join(" ")}>
-                          {r?.[c] ?? ""}
-                        </div>
-                      </td>
-                    ))}
+                    {visibleColNames.map((c) => {
+                      const stat = heatStats[c];
+                      const bg = stat ? heatColor(stat.min, stat.max, r?.[c], stat.dir, palette) : null;
+
+                      return (
+                        <td
+                          key={c}
+                          className={[
+                            "border-b border-gray-100",
+                            padCell,
+                            textSz,
+                            "text-center tabular-nums",
+                            isDriverCol(c) ? `sticky left-0 z-20 ${zebra} border-r` : "",
+                          ].join(" ")}
+                          style={{ maxWidth: `${(colWidthCh[c] ?? 10)}ch`, ...(bg ? { backgroundColor: bg } : {}) }}
+                          title={String(r?.[c] ?? "")}
+                        >
+                          <div className={["w-full", cellWrap, !isNumeric(r?.[c]) ? "" : ""].join(" ")}>
+                            {r?.[c] ?? ""}
+                          </div>
+                        </td>
+                      );
+                    })}
                   </tr>
                 );
               })}
