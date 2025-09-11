@@ -1,7 +1,7 @@
 // src/pages/nascar/NascarData.jsx
 import React, { useEffect, useMemo, useState } from "react";
 
-/* ============================ DATA SOURCES ============================ */
+/* ----------------------------- paths ----------------------------- */
 const BASE = import.meta?.env?.BASE_URL ?? "/";
 const NASCAR_DATA_SOURCES = {
   cup:     `${BASE}data/nascar/cup/latest/data.json`,
@@ -14,13 +14,10 @@ const TITLES = {
   trucks: "NASCAR — Trucks Data",
 };
 
-/* ============================ LOGO PATHS & SIZES ============================ */
-const NUM_LOGO_BASE  = `${BASE}logos/nascar`;
-const MAKE_LOGO_BASE = `${BASE}logos/nascar`;
-const NUM_IMG_CLS  = "h-6 w-6 md:h-7 md:w-7";
-const MAKE_IMG_CLS = "h-4 w-4 md:h-5 md:w-5";
+const NUM_LOGO_BASE  = `${BASE}logos/nascar`;  // /logos/nascar/24.png
+const MAKE_LOGO_BASE = `${BASE}logos/nascar`;  // /logos/nascar/ford.png
 
-/* ============================ HELPERS ============================ */
+/* ----------------------------- helpers ----------------------------- */
 const norm  = (s) => String(s ?? "").trim();
 const lower = (s) => norm(s).toLowerCase();
 const keynorm = (s) => lower(String(s).replace(/[\s._%]/g, ""));
@@ -44,22 +41,19 @@ function fmtCell(v) {
   return f.endsWith(".0") ? f.slice(0, -2) : f;
 }
 
-/* ============================ JSON FETCH HOOK ============================ */
+/* ----------------------------- fetch ----------------------------- */
 function useJson(url) {
   const [data, setData] = useState([]),
         [loading, setLoading] = useState(true),
         [err, setErr] = useState("");
 
-  React.useEffect(() => {
+  useEffect(() => {
     let alive = true;
     (async () => {
       setLoading(true); setErr("");
       try {
         const r = await fetch(`${url}?_=${Date.now()}`, { cache: "no-store" });
-        if (!r.ok) {
-          const body = await r.text();
-          throw new Error(`HTTP ${r.status} at ${url}${body ? ` — ${body.slice(0,120)}…` : ""}`);
-        }
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const j = await r.json();
         const arr = Array.isArray(j) ? j : j?.rows || j?.data || [];
         if (alive) setData(arr);
@@ -75,7 +69,7 @@ function useJson(url) {
   return { data, loading, err };
 }
 
-/* ============================ ORDER / BANDS ============================ */
+/* ----------------------------- layout model ----------------------------- */
 const ORDER = {
   "Driver Info": [
     ["Driver","Name"], ["DK Salary","DK Sal","DK"], ["FD Salary","FD Sal","FD"],
@@ -92,9 +86,9 @@ const ORDER = {
   "Practice": [
     ["1 Lap","1Lap"], ["5 Lap","5Lap"], ["10 Lap","10Lap"], ["15 Lap","15Lap"],
     ["20 Lap","20Lap"], ["25 Lap","25Lap"], ["30 Lap","30Lap"],
-    ["Overall","Practice Overall","Practice"],
   ],
-  "GFS": [["GFS","GfS","GFS Score"], ["Overall"]], // Overall may exist separately; we’ll dedupe below
+  // Single “Overall” lives under a GFS band (we dedupe below)
+  "GFS": [["Overall","GFS","GFS Score"]],
   "Track History Stats": [
     ["# of Races","Races"], ["Avg DK Pts"], ["Avg FD Pts"], ["Avg Finish"], ["Avg Running Pos","Avg Run Pos"],
     ["Avg Driver Rating","Avg Drv Rtg"], ["Wins"], ["T5","Top5"], ["T10","Top10"], ["T15","Top15"], ["T20","Top20"],
@@ -133,73 +127,91 @@ function buildColumnsAndBands(rawCols) {
     const actual = resolveOne(item, rawCols, used);
     if (actual) { groups.get(band).push(actual); used.add(actual); }
   }
-  let columns = BANDS.flatMap((b) => groups.get(b));
-  let bands = [];
+
+  // Keep ONE “Overall” and place it under GFS
+  const overallRaw = rawCols.find((c) => keynorm(stripDupSuffix(c)) === "overall");
+  if (overallRaw) {
+    groups.set("GFS", [overallRaw]);
+    for (const b of BANDS) {
+      if (b === "GFS") continue;
+      groups.set(
+        b,
+        groups.get(b).filter((c) => {
+          const k = keynorm(stripDupSuffix(c));
+          return k !== "overall" && k !== "gfs";
+        })
+      );
+    }
+  }
+
+  const columns = BANDS.flatMap((b) => groups.get(b));
+  const bands = [];
   let start = 0;
   for (const b of BANDS) {
     const n = groups.get(b).length;
     if (n > 0) { bands.push({ name: b, start, span: n }); start += n; }
   }
-
-  // Deduplicate “Overall” if both Overall and GFS->Overall exist; keep the one under GFS band.
-  const idxOverall = columns.findIndex((c) => keynorm(stripDupSuffix(c)) === "overall");
-  const idxGfs     = columns.findIndex((c) => keynorm(stripDupSuffix(c)) === "gfs");
-  if (idxOverall !== -1 && idxGfs !== -1) {
-    // remove the standalone Overall, keep GFS (we’ll relabel the column header to “Overall”)
-    columns = columns.filter((_, i) => i !== idxOverall);
-
-    let cursor = 0;
-    bands = bands.map((b) => {
-      const start = cursor;
-      const end = start + b.span - 1;
-      const removeInThis = idxOverall >= start && idxOverall <= end;
-      const span = b.span - (removeInThis ? 1 : 0);
-      cursor += span;
-      return span > 0 ? { ...b, span } : null;
-    }).filter(Boolean);
-
-    return { columns, bands, relabelGfsToOverall: true };
-  }
-
-  return { columns, bands, relabelGfsToOverall: false };
+  return { columns, bands };
 }
 
-/* ============================ UI ============================ */
+/* ----------------------------- heatmap ----------------------------- */
+const LOWER_BETTER_KEYS = new Set([
+  "avgfinish", "avgrunningpos",
+  "1lap","5lap","10lap","15lap","20lap","25lap","30lap",
+  "overall",
+]);
+const HIGHER_BETTER_REGEX =
+  /^(#ofraces|avgdkpts|avgfdpts|avgdriverrating|wins|t5|t10|t15|t20|avglapsled|avgfastlaps)$/;
 
+function dirForCol(c) {
+  const k = keynorm(stripDupSuffix(c));
+  if (LOWER_BETTER_KEYS.has(k)) return "lower";
+  if (HIGHER_BETTER_REGEX.test(k)) return "higher";
+  return null;
+}
+
+function heatColor(min, max, v, dir, palette) {
+  if (palette === "none") return null;
+  const n = parseNumericLike(v);
+  if (n == null || !Number.isFinite(min) || !Number.isFinite(max) || min === max) return null;
+  let t = (n - min) / (max - min);
+  t = Math.max(0, Math.min(1, t));
+  if (dir === "lower") t = 1 - t;
+
+  if (palette === "blueorange") {
+    if (t < 0.5) {
+      const u = t / 0.5; // blue → white
+      const h = 220, s = 60 - u * 55, l = 90 + u * 7;
+      return `hsl(${h} ${s}% ${l}%)`;
+    } else {
+      const u = (t - 0.5) / 0.5; // white → orange
+      const h = 30, s = 5 + u * 80, l = 97 - u * 7;
+      return `hsl(${h} ${s}% ${l}%)`;
+    }
+  }
+  // default Rd–Yl–Gn
+  if (t < 0.5) {
+    const u = t / 0.5;
+    const h = 0 + u * 60, s = 78 + u * 10, l = 94 - u * 2;
+    return `hsl(${h} ${s}% ${l}%)`;
+  } else {
+    const u = (t - 0.5) / 0.5;
+    const h = 60 + u * 60, s = 88 - u * 18, l = 92 + u * 2;
+    return `hsl(${h} ${s}% ${l}%)`;
+  }
+}
+
+/* ----------------------------- page ----------------------------- */
 export default function NascarData({ series = "cup" }) {
   const key   = String(series || "cup").toLowerCase();
   const src   = NASCAR_DATA_SOURCES[key] || NASCAR_DATA_SOURCES.cup;
   const title = TITLES[key] || "NASCAR — Data";
   const { data, loading, err } = useJson(src);
-
   const rawCols = useMemo(() => (data.length ? Object.keys(data[0]) : []), [data]);
 
-  const { columns, bands, relabelGfsToOverall } = useMemo(
-    () => buildColumnsAndBands(rawCols),
-    [rawCols]
-  );
+  const { columns, bands } = useMemo(() => buildColumnsAndBands(rawCols), [rawCols]);
 
-  // column indices for special styling (thick borders, overall left+right)
-  const overallIdx = useMemo(() => {
-    let i = columns.findIndex((c) => keynorm(stripDupSuffix(c)) === "overall");
-    if (i === -1) i = columns.findIndex((c) => keynorm(stripDupSuffix(c)) === "gfs"); // relabeled case
-    return i;
-  }, [columns]);
-
-  const thickAfterSet = useMemo(() => {
-    // make right borders after these
-    const wantsAfter = ["Odds", "Crew Chief", "30 Lap", "Avg Fast Laps"].map((n) => keynorm(n));
-    const set = new Set();
-    columns.forEach((c, i) => {
-      const k = keynorm(stripDupSuffix(c));
-      if (wantsAfter.includes(k)) set.add(i);
-      if (/avgfastlaps?/.test(k) || /avgflaps?/.test(k)) set.add(i);
-    });
-    if (overallIdx !== -1) set.add(overallIdx); // right border for Overall
-    return set;
-  }, [columns, overallIdx]);
-
-  // find canonical columns
+  // find car number & make columns (for icons)
   const carNumColName = useMemo(() => {
     for (const c of rawCols) {
       const kn = keynorm(stripDupSuffix(c));
@@ -209,6 +221,23 @@ export default function NascarData({ series = "cup" }) {
   }, [rawCols]);
   const carNumNorm = carNumColName ? keynorm(stripDupSuffix(carNumColName)) : "";
   const carMakeNorms = new Set(["carmake", "make", "manufacturer"]);
+
+  // where to draw vertical borders
+  const bandCuts = useMemo(() => {
+    const want = new Set(["odds","crewchief","30lap","overall","avgfastlaps","avgflaps"]);
+    const cutIdx = new Set();
+    columns.forEach((c, i) => {
+      const k = keynorm(stripDupSuffix(c));
+      if (want.has(k)) cutIdx.add(i);
+    });
+    return cutIdx;
+  }, [columns]);
+
+  // index of Overall (for thick border both sides)
+  const overallIndex = useMemo(() => {
+    const i = columns.findIndex((c) => keynorm(stripDupSuffix(c)) === "overall");
+    return i >= 0 ? i : null;
+  }, [columns]);
 
   // search
   const [q, setQ] = useState("");
@@ -224,48 +253,48 @@ export default function NascarData({ series = "cup" }) {
     });
   }, [data, q, rawCols]);
 
-  // sort (auto DK Salary desc if present)
-  const [sort, setSort] = useState({ key: columns[0] || "DK Salary", dir: "desc" });
+  // sort (auto pick DK Salary if present)
+  const [sort, setSort] = useState({ key: columns[1] || "DK Salary", dir: "desc" });
   useEffect(() => {
-    // when columns resolve, auto-pick DK Salary if available
     const dk = columns.find((c) => keynorm(stripDupSuffix(c)) === "dksalary");
     if (dk) setSort({ key: dk, dir: "desc" });
   }, [columns]);
-
   const onSort = (k) =>
     setSort((p) => (p.key === k ? { key: k, dir: p.dir === "asc" ? "desc" : "asc" } : { key: k, dir: "desc" }));
-
   function compareRows(a, b, k) {
     const av = parseNumericLike(a[k]), bv = parseNumericLike(b[k]);
     if (av != null && bv != null) return av - bv;
     return String(a[k] ?? "").localeCompare(String(b[k] ?? ""), undefined, { sensitivity: "base" });
   }
   const sorted = useMemo(() => {
-    const arr = [...filtered];
-    const sgn = sort.dir === "asc" ? 1 : -1;
-    arr.sort((a, b) => sgn * compareRows(a, b, sort.key));
-    return arr;
+    const arr = [...filtered]; const sgn = sort.dir === "asc" ? 1 : -1;
+    arr.sort((a, b) => sgn * compareRows(a, b, sort.key)); return arr;
   }, [filtered, sort]);
 
-  // sizing + classes (mobile-friendly)
-  const textSz = "text-[12px] md:text-[13px]";
-  const cellCls = "px-2 py-1";
-  const headerCls = "px-2 py-1 font-semibold text-center whitespace-nowrap cursor-pointer select-none";
-
-  // width hints (Driver wider)
-  const widthByColCh = useMemo(() => {
-    const w = {};
-    if (!sorted.length) return w;
-    const sample = sorted.slice(0, 150);
+  // heat stats
+  const [palette, setPalette] = useState("none");
+  const heatStats = useMemo(() => {
+    const stats = {};
+    if (!sorted.length) return stats;
     for (const c of columns) {
-      let maxLen = String(stripDupSuffix(c)).length;
-      for (const r of sample) maxLen = Math.max(maxLen, String(r?.[c] ?? "").length);
-      const kn = keynorm(stripDupSuffix(c));
-      if (kn === "driver" || kn === "name") w[c] = Math.min(Math.max(maxLen, 18), 26);
-      else w[c] = Math.min(Math.max(maxLen + 2, 6), 14);
+      const dir = dirForCol(c);
+      if (!dir) continue;
+      let min = Infinity, max = -Infinity;
+      for (const r of sorted) {
+        const n = parseNumericLike(r?.[c]);
+        if (n == null) continue;
+        if (n < min) min = n;
+        if (n > max) max = n;
+      }
+      if (min < Infinity && max > -Infinity) stats[c] = { min, max, dir };
     }
-    return w;
-  }, [columns, sorted]);
+    return stats;
+  }, [sorted, columns]);
+
+  // classes (compact)
+  const textSz = "text-[12px]";
+  const cellCls = "px-2 py-1";
+  const headerCell = "px-2 py-1 font-semibold text-center whitespace-nowrap cursor-pointer select-none";
 
   return (
     <div className="px-4 md:px-6 py-5">
@@ -276,70 +305,76 @@ export default function NascarData({ series = "cup" }) {
             {loading ? "Loading…" : err ? `Error: ${err}` : `${sorted.length.toLocaleString()} rows`}
           </div>
         </div>
-        <input
-          value={q} onChange={(e) => setQ(e.target.value)}
-          placeholder="Search driver / team / make…"
-          className="h-9 w-64 md:w-72 rounded-lg border border-gray-300 px-3 text-sm focus:ring-2 focus:ring-indigo-500"
-        />
+        <div className="flex items-center gap-2">
+          <select
+            value={palette}
+            onChange={(e) => setPalette(e.target.value)}
+            className="h-9 rounded-lg border px-2 text-sm"
+            title="Cell coloring"
+          >
+            <option value="none">Palette: None</option>
+            <option value="rdylgn">Palette: Rd–Yl–Gn</option>
+            <option value="blueorange">Palette: Blue–Orange</option>
+          </select>
+          <input
+            value={q} onChange={(e) => setQ(e.target.value)}
+            placeholder="Search driver / team / make…"
+            className="h-9 w-64 md:w-72 rounded-lg border border-gray-300 px-3 text-sm focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
       </div>
 
-      <div className="rounded-xl border bg-white shadow-sm overflow-auto">
+      <div className="rounded-xl border bg-white shadow-sm overflow-auto" style={{ maxHeight: "78vh" }}>
         <table className={`w-full border-separate ${textSz}`} style={{ borderSpacing: 0 }}>
           {columns.length > 0 && (
-            <thead className="sticky top-0 z-10">
-              {/* Band row with blue background and vertical dividers */}
-              <tr className="bg-blue-100 text-[11px] font-bold text-gray-700 uppercase">
+            <thead>
+              {/* Band row (sticky) */}
+              <tr
+                className="bg-blue-100 text-[11px] font-bold text-gray-700 uppercase sticky top-0 z-20"
+                style={{ height: 28 }}
+              >
                 {bands.map((g, gi) => (
                   <th
                     key={`${g.name}-${g.start}`}
                     colSpan={g.span}
-                    className={[
-                      "px-2 py-1 text-center border-b border-blue-200",
-                      gi > 0 ? "border-l border-blue-200" : "",
-                    ].join(" ")}
+                    className={`px-2 text-center border-b border-blue-200 ${gi === bands.length - 1 ? "" : "border-r border-blue-200"}`}
                   >
-                    {g.name === "GFS" ? "GFS" : g.name}
+                    {g.name}
                   </th>
                 ))}
               </tr>
 
-              {/* Column headers */}
-              <tr className="bg-blue-50">
-                {columns.map((c, i) => (
-                  <th
-                    key={c}
-                    className={[
-                      headerCls,
-                      // sticky header for first column
-                      i === 0 ? "sticky left-0 z-20 bg-blue-50" : "",
-                      // right border rules (thick or thin)
-                      thickAfterSet.has(i) ? "border-r-2 border-blue-300" : "border-r border-blue-200",
-                      // left thick border for Overall
-                      i === overallIdx ? "border-l-2 border-blue-300" : "",
-                      keynorm(c) === "driver" ? "text-left" : "",
-                    ].join(" ")}
-                    onClick={() => onSort(c)}
-                    title="Click to sort"
-                    style={{ minWidth: i === 0 ? "16ch" : undefined }}
-                  >
-                    <span className="inline-flex items-center gap-1">
-                      <span>
-                        {(() => {
-                          const name = stripDupSuffix(c);
-                          const kn = keynorm(name);
-                          // show column label as "Overall" when it's the GFS column kept
-                          if (relabelGfsToOverall && kn === "gfs") return "Overall";
-                          return name;
-                        })()}
+              {/* Column header row (sticky just below band row) */}
+              <tr className="bg-blue-50 sticky top-[28px] z-20">
+                {columns.map((c, i) => {
+                  const k = keynorm(stripDupSuffix(c));
+                  const isDriver = k === "driver";
+                  const thickCut = bandCuts.has(i);
+                  const borderR = thickCut ? "border-r-2 border-blue-300" : "border-r border-blue-200";
+                  const borderL = (overallIndex != null && i === overallIndex) ? "border-l-2 border-blue-300" : "";
+                  return (
+                    <th
+                      key={c}
+                      onClick={() => onSort(c)}
+                      title="Click to sort"
+                      className={[
+                        headerCell,
+                        i === 0 ? "sticky left-0 z-30 bg-blue-50" : "",
+                        isDriver ? "text-left" : "",
+                        borderR, borderL,
+                      ].join(" ")}
+                    >
+                      <span className="inline-flex items-center gap-1">
+                        <span>{stripDupSuffix(k === "overall" ? "Overall" : c)}</span>
+                        {sort.key === c ? (
+                          <span className="text-gray-500">{sort.dir === "desc" ? "▼" : "▲"}</span>
+                        ) : (
+                          <span className="text-gray-300">▲</span>
+                        )}
                       </span>
-                      {sort.key === c ? (
-                        <span className="text-gray-500">{sort.dir === "desc" ? "▼" : "▲"}</span>
-                      ) : (
-                        <span className="text-gray-300">▲</span>
-                      )}
-                    </span>
-                  </th>
-                ))}
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
           )}
@@ -353,44 +388,42 @@ export default function NascarData({ series = "cup" }) {
             )}
 
             {!loading && !err && sorted.map((row, rIdx) => {
-              const zebra = rIdx % 2 ? "bg-gray-50/40" : "bg-white";
+              const rowBg = rIdx % 2 ? "bg-gray-50/40" : "bg-white";
               return (
-                <tr key={rIdx} className={["group", zebra, "hover:bg-blue-50/60 transition-colors"].join(" ")}>
+                <tr key={rIdx} className={`group ${rowBg} hover:bg-blue-50/60 transition-colors`}>
                   {columns.map((c, i) => {
                     const nice = stripDupSuffix(c);
                     const kn   = keynorm(nice);
-                    const isDriver = kn === "driver" || kn === "name";
+                    const isDriver = kn === "driver";
                     const isCarNumCol  = carNumColName && kn === carNumNorm;
                     const isCarMakeCol = carMakeNorms.has(kn);
 
-                    // base borders
-                    const rightBorder = thickAfterSet.has(i) ? "border-r-2 border-blue-300" : "border-r border-blue-50";
-                    const leftBorder  = i === overallIdx ? "border-l-2 border-blue-300" : "";
-                    // sticky behavior + hover-follow for first column
-                    const stickyFirst = i === 0
-                      ? `sticky left-0 z-20 ${zebra} group-hover:bg-blue-50/60`
+                    const thickCut = bandCuts.has(i);
+                    const borders =
+                      (overallIndex != null && i === overallIndex ? "border-l-2 border-blue-300 " : "") +
+                      (thickCut ? "border-r-2 border-blue-300" : "border-r border-blue-50");
+
+                    // sticky + hover-follow for first col
+                    const sticky  = i === 0
+                      ? `sticky left-0 z-10 ${rowBg} group-hover:bg-blue-50/60`
                       : "";
 
-                    // common cell classes
-                    const tdBase = [
-                      cellCls,
-                      isDriver ? "text-left font-medium" : "text-center",
-                      rightBorder,
-                      leftBorder,
-                      stickyFirst,
-                    ].join(" ");
+                    // heat
+                    const stat = heatStats[c];
+                    const bg = stat ? heatColor(stat.min, stat.max, row?.[c], stat.dir, palette) : null;
+                    const style = bg ? { backgroundColor: bg } : undefined;
 
-                    // special renders
+                    // car number icon
                     if (isCarNumCol && key === "cup") {
                       const n = parseNumericLike(row[c]);
                       const src = n != null ? `${NUM_LOGO_BASE}/${Math.round(n)}.png` : "";
                       return (
-                        <td key={`${c}-${rIdx}`} className={tdBase} style={{ maxWidth: `${widthByColCh[c] ?? 10}ch` }}>
+                        <td key={`${c}-${rIdx}`} className={`text-center ${cellCls} ${borders} ${sticky}`} style={style}>
                           <span className="inline-flex items-center justify-center">
                             {/* eslint-disable-next-line jsx-a11y/alt-text */}
                             <img
                               src={src}
-                              className={NUM_IMG_CLS}
+                              className="h-7 w-7"
                               onError={(e) => {
                                 e.currentTarget.style.display = "none";
                                 if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "inline";
@@ -402,17 +435,18 @@ export default function NascarData({ series = "cup" }) {
                       );
                     }
 
+                    // make logo
                     if (isCarMakeCol) {
                       const slug0 = lower(String(row[c] || "")).replace(/[^a-z0-9]+/g, "");
                       const slug = slug0 === "chevy" || slug0 === "chev" ? "chevrolet" : slug0;
                       const src = slug ? `${MAKE_LOGO_BASE}/${slug}.png` : "";
                       return (
-                        <td key={`${c}-${rIdx}`} className={tdBase} style={{ maxWidth: `${widthByColCh[c] ?? 10}ch` }}>
+                        <td key={`${c}-${rIdx}`} className={`text-center ${cellCls} ${borders} ${sticky}`} style={style}>
                           <span className="inline-flex items-center justify-center">
                             {/* eslint-disable-next-line jsx-a11y/alt-text */}
                             <img
                               src={src}
-                              className={MAKE_IMG_CLS}
+                              className="h-5 w-5"
                               onError={(e) => {
                                 e.currentTarget.style.display = "none";
                                 if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "inline";
@@ -424,15 +458,21 @@ export default function NascarData({ series = "cup" }) {
                       );
                     }
 
-                    // default cell (single line + ellipsis so names never wrap)
+                    // default cell (driver = single-line + ellipsis)
                     return (
                       <td
                         key={`${c}-${rIdx}`}
-                        className={tdBase}
-                        style={{ maxWidth: `${widthByColCh[c] ?? 10}ch` }}
+                        className={[
+                          cellCls,
+                          isDriver ? "text-left font-medium" : "text-center",
+                          borders,
+                          sticky,
+                          "tabular-nums",
+                        ].join(" ")}
+                        style={style}
                         title={String(row?.[c] ?? "")}
                       >
-                        <div className="whitespace-nowrap overflow-hidden text-ellipsis">
+                        <div className={isDriver ? "whitespace-nowrap overflow-hidden text-ellipsis min-w-[16ch] md:min-w-[18ch]" : "whitespace-nowrap overflow-hidden text-ellipsis"}>
                           {fmtCell(row[c])}
                         </div>
                       </td>
