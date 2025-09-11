@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 
 /* ============================ CONFIG ============================ */
 const DATA_URL = "/data/mlb/latest/batter_data.json";
+const META_URL = DATA_URL.replace(/[^/]+$/, "meta.json");
 const TITLE = "MLB — Batter Data";
 const LOGO_BASE = "/logos/mlb";
 const LOGO_EXT = "png";
@@ -10,9 +11,7 @@ const LOGO_EXT = "png";
 /* ============================ HELPERS ============================ */
 const norm = (v) => (v == null ? "" : String(v).trim());
 const lower = (s) => norm(s).toLowerCase();
-// normalize weird whitespace (NBSPs) and collapse
-const squish = (s) =>
-  lower(s).replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
+const squish = (s) => lower(s).replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
 
 const num = (v) => {
   if (v == null || v === "") return null;
@@ -61,8 +60,78 @@ function TeamWithLogo({ code }) {
   );
 }
 
+/* ============================ LAST UPDATED ============================ */
+function useLastUpdated(mainUrl, metaUrl) {
+  const [d, setD] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+
+    (async () => {
+      // Try HEAD Last-Modified
+      try {
+        const h = await fetch(mainUrl, { method: "HEAD", cache: "no-store" });
+        const lm = h.headers.get("last-modified");
+        if (alive && lm) { setD(new Date(lm)); return; }
+      } catch {}
+      // Try GET Last-Modified (some CDNs strip on HEAD)
+      try {
+        const r = await fetch(mainUrl, { cache: "no-store" });
+        const lm = r.headers.get("last-modified");
+        if (alive && lm) { setD(new Date(lm)); return; }
+      } catch {}
+      // Fallback meta.json from exporter
+      try {
+        const m = await fetch(`${metaUrl}?_=${Date.now()}`, { cache: "no-store" }).then(x => x.json());
+        const iso = m?.updated_iso || m?.updated_utc;
+        const ep  = m?.updated_epoch;
+        const dt  = iso ? new Date(iso) : Number.isFinite(ep) ? new Date(ep * 1000) : null;
+        if (alive && dt && !isNaN(dt)) setD(dt);
+      } catch {}
+    })();
+
+    return () => { alive = false; };
+  }, [mainUrl, metaUrl]);
+
+  return d;
+}
+const fmtUpdated = (d) =>
+  d ? d.toLocaleString(undefined, { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" }) : null;
+
+/* ============================ DATA FETCH ============================ */
+function useJson(url) {
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      setLoading(true); setErr("");
+      try {
+        const r = await fetch(`${url}?_=${Date.now()}`, { cache: "no-store" });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const ct = (r.headers.get("content-type") || "").toLowerCase();
+        if (!ct.includes("application/json")) {
+          const txt = await r.text();
+          throw new Error(`Expected JSON, got ${ct || "unknown"}: ${txt.slice(0, 40)}`);
+        }
+        const j = await r.json();
+        const data = Array.isArray(j) ? j : j?.data || j?.rows || [];
+        if (alive) setRows(data);
+      } catch (e) {
+        if (alive) setErr(String(e.message || e));
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => { alive = false; };
+  }, [url]);
+
+  return { rows, loading, err };
+}
+
 /* ===================== DISPLAY ORDER & HEADER BANDS ===================== */
-/** Column IDs + label + alias list for fuzzy matching */
 const COLS = [
   // Player Info
   { id: "bo",     label: "BO",     keys: ["BO","Bat Order","Order"] },
@@ -78,7 +147,7 @@ const COLS = [
   { id: "park",   label: "Park",  keys: ["Park","Ballpark"] },
   { id: "time",   label: "Time",  keys: ["Time","Start","Start Time"] },
 
-  // Vegas (we’ll keep Total, Field, Rating here for clean band alignment)
+  // Vegas
   { id: "total",  label: "Total",  keys: ["Total","Team Total","O/U","TT"] },
   { id: "field",  label: "Field",  keys: ["Field","Field%"] },
   { id: "rating", label: "Rating", keys: ["Rating","Rate"] },
@@ -116,7 +185,6 @@ const COLS = [
   { id: "h_bbpct",  label: "H BB%",    keys: ["H BB%","Hand BB%","Split BB%","H BBpct"] }
 ];
 
-/** Header bands (merged headers row) */
 const BANDS = [
   ["PLAYER INFO", ["bo","bh","pos","player","dk","fd"]],
   ["MATCHUP INFO", ["team","opp","park","time"]],
@@ -128,43 +196,26 @@ const BANDS = [
   ["BATTER SPLITS vs P HANDEDNESS", ["h_ab","h_woba","h_iso","h_wrcplus","h_kpct","h_bbpct"]]
 ];
 
-/** Percent columns */
+/* ========== Sort preferences (first click direction per your spec) ========== */
+const LOWER_BETTER = new Set(["dk","fd","k_pct","sws_pct","h_kpct"]);
+const HIGHER_BETTER = new Set([
+  "total","rating","ab","iso","woba","bb_pct","sbg","hr_fb","fb","gb","cnt_pct","bar_pct","hh_pct","ev",
+  "h_ab","h_woba","h_iso","h_wrcplus","h_bbpct"
+]);
+
+/* Percent columns */
 const PCT_IDS = new Set([
   "rating","k_pct","bb_pct","hr_fb","fb","gb","cnt_pct","sws_pct","bar_pct","hh_pct","h_kpct","h_bbpct"
 ]);
 
-/** Thick borders (your request): after FD, Time, Total, Rating, SB/g, SwS%, EV, PH, H BB% */
+/* Thick borders for legibility */
 const THICK_AFTER = new Set(["fd","time","total","rating","sbg","sws_pct","ev","ph","h_ab","h_bbpct"]);
-
-/* ============================== DATA FETCH ============================== */
-function useJson(url) {
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      setLoading(true);
-      setErr("");
-      try {
-        const r = await fetch(`${url}?_=${Date.now()}`, { cache: "no-store" });
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const j = await r.json();
-        if (alive) setRows(Array.isArray(j) ? j : j?.data || []);
-      } catch (e) {
-        if (alive) setErr(String(e.message || e));
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
-    return () => { alive = false; };
-  }, [url]);
-  return { rows, loading, err };
-}
 
 /* ============================== MAIN PAGE ============================== */
 export default function BatterData() {
   const { rows, loading, err } = useJson(DATA_URL);
+  const updatedAt = useLastUpdated(DATA_URL, META_URL);
+
   const rawCols = useMemo(() => (rows[0] ? Object.keys(rows[0]) : []), [rows]);
   const rawLower = useMemo(() => rawCols.map(squish), [rawCols]);
 
@@ -180,14 +231,12 @@ export default function BatterData() {
     return null;
   };
 
-  // map id -> actual key
+  // map id -> actual key (aliases + a few fuzzy matchers)
   const idToKey = useMemo(() => {
     const m = new Map();
     for (const c of COLS) {
       let fuzzy = null;
-
-      // set smart fuzzy matchers for a few tricky ones
-      if (c.id === "sbg")  fuzzy = (lc) => lc.includes("sb") && (lc.includes("/g") || lc.includes("per"));
+      if (c.id === "sbg")     fuzzy = (lc) => lc.includes("sb") && (lc.includes("/g") || lc.includes("per"));
       if (c.id === "cnt_pct") fuzzy = (lc) => lc.includes("cnt") || lc.includes("contact");
       if (c.id === "sws_pct") fuzzy = (lc) => lc.includes("sw") && (lc.includes("swstr") || lc.includes("sws%"));
       if (c.id === "bar_pct") fuzzy = (lc) => lc.includes("bar");
@@ -198,7 +247,6 @@ export default function BatterData() {
         const base = c.id.replace(/^h_/, "");
         fuzzy = (lc) => lc.includes(base) && (lc.includes("hand") || lc.startsWith("h "));
       }
-
       m.set(c.id, findKey(c.keys, fuzzy));
     }
     return m;
@@ -229,11 +277,15 @@ export default function BatterData() {
     setSort({ key: dk || pl || "", dir: dk ? "desc" : "asc" });
   }, [idToKey]);
 
+  const firstClickDirFor = (id) => (LOWER_BETTER.has(id) ? "asc" : "desc");
+
   const onSort = (id) => {
     const k = idToKey.get(id);
     if (!k) return;
     setSort((prev) =>
-      prev.key === k ? { key: k, dir: prev.dir === "asc" ? "desc" : "asc" } : { key: k, dir: "desc" }
+      prev.key === k
+        ? { key: k, dir: prev.dir === "asc" ? "desc" : "asc" }
+        : { key: k, dir: firstClickDirFor(id) }
     );
   };
 
@@ -254,6 +306,7 @@ export default function BatterData() {
   // UI
   const headerCls = "px-2 py-1 font-semibold text-center text-[11px] whitespace-nowrap cursor-pointer select-none";
   const cellCls = "px-2 py-1 text-center text-[12px]";
+  const flatIds = useMemo(() => BANDS.flatMap(([, ids]) => ids), []);
 
   const renderVal = (id, key, row) => {
     const raw = key ? row[key] : "";
@@ -266,15 +319,17 @@ export default function BatterData() {
     return n == null ? String(raw ?? "") : fmt1(n);
   };
 
-  const flatIds = BANDS.flatMap(([, ids]) => ids);
-
   return (
     <div className="px-4 md:px-6 py-5">
       <div className="flex items-center justify-between gap-3 mb-2">
-        <h1 className="text-2xl md:text-3xl font-extrabold">
-          {TITLE}
-          {err ? <span className="ml-3 text-sm text-red-600">Error: {err}</span> : null}
-        </h1>
+        <div className="flex items-baseline gap-3">
+          <h1 className="text-2xl md:text-3xl font-extrabold">{TITLE}</h1>
+          <div className="text-sm text-gray-600">{loading ? "Loading…" : `${sorted.length.toLocaleString()} rows`}</div>
+          {updatedAt && (
+            <div className="text-sm text-gray-500">Updated: {fmtUpdated(updatedAt)}</div>
+          )}
+          {err && <div className="text-sm text-red-600">Error: {err}</div>}
+        </div>
 
         <input
           value={q}
@@ -311,11 +366,9 @@ export default function BatterData() {
                   >
                     <span className="inline-flex items-center gap-1">
                       <span>{col.label}</span>
-                      {isSorted ? (
-                        <span className="text-gray-500">{sort.dir === "desc" ? "▼" : "▲"}</span>
-                      ) : (
-                        <span className="text-gray-300">▲</span>
-                      )}
+                      <span className="text-gray-400">
+                        {isSorted ? (sort.dir === "desc" ? "▼" : "▲") : (firstClickDirFor(id) === "desc" ? "▼" : "▲")}
+                      </span>
                     </span>
                   </th>
                 );

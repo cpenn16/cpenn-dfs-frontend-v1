@@ -130,36 +130,149 @@ function useJson(url) {
   return { rows, loading, err };
 }
 
+/* ---------------------- last-updated via meta.json -------------------- */
+function toMetaUrl(urlLike) {
+  return String(urlLike || "").replace(/[^/]+$/, "meta.json");
+}
+function parseMetaToDate(meta) {
+  const iso =
+    meta?.updated_iso ||
+    meta?.updated_utc ||
+    meta?.source_mtime_iso ||
+    meta?.last_updated ||
+    meta?.timestamp;
+  if (iso) {
+    const d = new Date(iso);
+    if (!isNaN(d)) return d;
+  }
+  const epoch = meta?.updated_epoch ?? meta?.epoch;
+  if (Number.isFinite(epoch)) {
+    const d = new Date(epoch * (epoch > 10_000_000_000 ? 1 : 1000));
+    if (!isNaN(d)) return d;
+  }
+  return null;
+}
+function useLastUpdatedFromSource(sourceUrl) {
+  const metaUrl = useMemo(() => toMetaUrl(sourceUrl), [sourceUrl]);
+  const [text, setText] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const r = await fetch(`${metaUrl}?_=${Date.now()}`, { cache: "no-store" });
+        if (!r.ok) return;
+        const meta = await r.json();
+        const d = parseMetaToDate(meta);
+        if (!d) return;
+        const t = d.toLocaleString(undefined, {
+          month: "numeric",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        });
+        if (alive) setText(t);
+      } catch {}
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [metaUrl]);
+  return text;
+}
+
 /* -------------------------- columns (with fallbacks) ------------------ */
-// Matches your updated headers exactly; also includes a few tolerant aliases.
+/* Give each column a stable `id` so we can color correctly even if `key` is an alias. */
 const COLS_BASE = [
-  { key: ["team", "Team"], label: "Team", type: "text", w: "min-w-[6.5rem]" },
-  { key: ["dk_sal", "DK Sal", "dkSal"], label: "DK Sal", type: "int" },
-  { key: ["fd_sal", "FD Sal", "fdSal"], label: "FD Sal", type: "int" },
-  { key: ["total", "Total", "imp_tot", "Implied Total"], label: "Total", type: "smart1" },
-  { key: ["park", "Park"], label: "Park", type: "text" },
-  { key: ["opp", "Opp"], label: "Opp", type: "text" },
-  { key: ["opp_pitcher", "Opp Pitcher", "oppPitcher"], label: "Opp Pitcher", type: "text", w: "min-w-[9rem]" },
-  { key: ["h", "H", "hand"], label: "H", type: "text" },
+  { id: "team",  key: ["team", "Team"], label: "Team", type: "text", w: "min-w-[6.5rem]" },
+  { id: "dk_sal", key: ["dk_sal", "DK Sal", "dkSal"], label: "DK Sal", type: "int" },
+  { id: "fd_sal", key: ["fd_sal", "FD Sal", "fdSal"], label: "FD Sal", type: "int" },
+  { id: "total",  key: ["total", "Total", "imp_tot", "Implied Total"], label: "Total", type: "smart1" },
+  { id: "park",   key: ["park", "Park"], label: "Park", type: "text" },
+  { id: "opp",    key: ["opp", "Opp"], label: "Opp", type: "text" },
+  { id: "opp_pitcher", key: ["opp_pitcher", "Opp Pitcher", "oppPitcher"], label: "Opp Pitcher", type: "text", w: "min-w-[9rem]" },
+  { id: "h", key: ["h", "H", "hand"], label: "H", type: "text" },
 ];
 
 const COLS_DK = [
-  { key: ["dk_proj", "DK Proj", "dkProj"], label: "DK Proj", type: "num1" },
-  { key: ["dk_val", "DK Val", "dkVal"], label: "DK Val", type: "num1" },
-  { key: ["dk_pown", "DK pOWN%", "dk_pown%", "dkPOWN"], label: "DK pOWN%", type: "pct1" },
-  { key: ["dk_tstack", "DK Tstack%", "tstack_dk"], label: "DK Tstack%", type: "pct1" },
-  { key: ["dk_vstack", "DK vStack%", "vstack_dk"], label: "DK vStack%", type: "pct1" },
-  { key: ["dk_lev", "DK Lev%", "dkLev"], label: "DK Lev%", type: "pct1" },
+  { id: "dk_proj", key: ["dk_proj", "DK Proj", "dkProj"], label: "DK Proj", type: "num1" },
+  { id: "dk_val",  key: ["dk_val", "DK Val", "dkVal"], label: "DK Val", type: "num1" },
+  { id: "dk_pown", key: ["dk_pown", "DK pOWN%", "dk_pown%", "dkPOWN"], label: "DK pOWN%", type: "pct1" },
+  { id: "dk_tstack", key: ["dk_tstack", "DK Tstack%", "tstack_dk"], label: "DK Tstack%", type: "pct1" },
+  { id: "dk_vstack", key: ["dk_vstack", "DK vStack%", "vstack_dk"], label: "DK vStack%", type: "pct1" },
+  { id: "dk_lev", key: ["dk_lev", "DK Lev%", "dkLev"], label: "DK Lev%", type: "pct1" },
 ];
 
 const COLS_FD = [
-  { key: ["fd_proj", "FD Proj", "fdProj"], label: "FD Proj", type: "num1" },
-  { key: ["fd_val", "FD Val", "fdVal"], label: "FD Val", type: "num1" },
-  { key: ["fd_pown", "FD pOWN%", "fd_pown%", "fdPOWN"], label: "FD pOWN%", type: "pct1" },
-  { key: ["fd_tstack", "FD Tstack%", "tstack_fd"], label: "FD Tstack%", type: "pct1" },
-  { key: ["fd_vstack", "FD vStack%", "vstack_fd"], label: "FD vStack%", type: "pct1" },
-  { key: ["fd_lev", "FD Lev%", "fdLev"], label: "FD Lev%", type: "pct1" },
+  { id: "fd_proj", key: ["fd_proj", "FD Proj", "fdProj"], label: "FD Proj", type: "num1" },
+  { id: "fd_val",  key: ["fd_val", "FD Val", "fdVal"], label: "FD Val", type: "num1" },
+  { id: "fd_pown", key: ["fd_pown", "FD pOWN%", "fd_pown%", "fdPOWN"], label: "FD pOWN%", type: "pct1" },
+  { id: "fd_tstack", key: ["fd_tstack", "FD Tstack%", "tstack_fd"], label: "FD Tstack%", type: "pct1" },
+  { id: "fd_vstack", key: ["fd_vstack", "FD vStack%", "vstack_fd"], label: "FD vStack%", type: "pct1" },
+  { id: "fd_lev", key: ["fd_lev", "FD Lev%", "fdLev"], label: "FD Lev%", type: "pct1" },
 ];
+
+/* ------------------------ conditional formatting ---------------------- */
+/* Your rule: HIGHER is better for these ids. */
+const HIGHER_IS_BETTER = new Set([
+  "total",
+  "dk_proj", "dk_val", "dk_tstack", "dk_vstack", "dk_lev",
+  "fd_proj", "fd_val", "fd_tstack", "fd_vstack", "fd_lev",
+]);
+
+function computeStats(rows, columns) {
+  const stats = {};
+  for (const c of columns) {
+    if (!HIGHER_IS_BETTER.has(c.id)) continue;
+    let min = Infinity, max = -Infinity, any = false;
+    for (const r of rows) {
+      const raw = getVal(r, c.key);
+      if (raw === null || raw === undefined || raw === "") continue;
+      let v = num(String(raw).endsWith("%") ? String(raw).slice(0, -1) : raw);
+      if (v === null) continue;
+      if (c.type === "pct1" && Math.abs(v) <= 1) v *= 100;
+      any = true;
+      if (v < min) min = v;
+      if (v > max) max = v;
+    }
+    if (any && min !== max) stats[c.id] = { min, max };
+  }
+  return stats;
+}
+
+function colorFor(value, col, stats, palette) {
+  if (palette === "none" || !HIGHER_IS_BETTER.has(col.id)) return null;
+  if (value == null || value === "") return null;
+  const st = stats[col.id];
+  if (!st) return null;
+
+  let v = num(String(value).endsWith("%") ? String(value).slice(0, -1) : value);
+  if (v == null) return null;
+  if (col.type === "pct1" && Math.abs(v) <= 1) v *= 100;
+
+  let t = (v - st.min) / (st.max - st.min);
+  t = Math.max(0, Math.min(1, t));
+
+  if (palette === "gyr") {
+    const h = 60 + 60 * t;  // yellow->green
+    const s = 85 - t * 15;
+    const l = 92 - t * 6;
+    return `hsl(${h} ${s}% ${l}%)`;
+  }
+  if (palette === "orangeblue") {
+    if (t < 0.5) {
+      const u = t / 0.5;
+      const h = 30 + u * (-200); // orange -> white-ish
+      const s = 70 - u * 60;
+      const l = 96 - u * 4;
+      return `hsl(${h} ${s}% ${l}%)`;
+    } else {
+      const u = (t - 0.5) / 0.5;
+      const h = 220, s = 40 + u * 20, l = 94 - u * 6; // white -> blue
+      return `hsl(${h} ${s}% ${l}%)`;
+    }
+  }
+  return null;
+}
 
 /* ------------------------------ Insights ------------------------------ */
 const asNum = (v) => {
@@ -412,6 +525,8 @@ export default function MlbStacks() {
   const { rows, loading, err } = useJson(SOURCE);
   const [site, setSite] = useState("both");
   const [q, setQ] = useState("");
+  const [palette, setPalette] = useState("none"); // none | gyr | orangeblue
+  const updatedText = useLastUpdatedFromSource(SOURCE);
 
   const columns = useMemo(() => {
     const base = [...COLS_BASE];
@@ -481,6 +596,9 @@ export default function MlbStacks() {
     });
   };
 
+  // compute stats once we know visible columns + rows
+  const stats = useMemo(() => computeStats(sorted, columns), [sorted, columns]);
+
   const cell = "px-2 py-1 text-center";
   const header = "px-2 py-1 font-semibold text-center";
   const textSz = "text-[12px]";
@@ -488,7 +606,13 @@ export default function MlbStacks() {
   return (
     <div className="px-4 md:px-6 py-5">
       <div className="flex items-center justify-between gap-3 mb-2">
-        <h1 className="text-2xl md:text-3xl font-extrabold mb-0.5">MLB — Stacks</h1>
+        <div className="flex items-baseline gap-3">
+          <h1 className="text-2xl md:text-3xl font-extrabold mb-0.5">MLB — Stacks</h1>
+          <div className="text-sm text-gray-600">
+            {loading ? "Loading…" : err ? `Error: ${err}` : `${sorted.length.toLocaleString()} rows`}
+          </div>
+          {updatedText && <div className="text-sm text-gray-500">Updated: {updatedText}</div>}
+        </div>
 
         <div className="flex items-center gap-2">
           <div className="inline-flex items-center gap-2 rounded-xl bg-gray-100 p-1">
@@ -513,6 +637,17 @@ export default function MlbStacks() {
             onChange={(e) => setQ(e.target.value)}
           />
 
+          <select
+            value={palette}
+            onChange={(e) => setPalette(e.target.value)}
+            className="h-9 rounded-lg border px-2 text-sm"
+            title="Cell coloring"
+          >
+            <option value="none">Coloring: None</option>
+            <option value="gyr">Coloring: Green–Yellow–Red</option>
+            <option value="orangeblue">Coloring: Orange–Blue</option>
+          </select>
+
           <button
             className="ml-1 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700"
             onClick={() => downloadCSV(sorted, columns)}
@@ -530,7 +665,7 @@ export default function MlbStacks() {
                 <th
                   key={Array.isArray(c.key) ? c.key.join("|") : c.key}
                   className={`${header} whitespace-nowrap cursor-pointer select-none ${c.w || ""} ${
-                    (Array.isArray(c.key) ? c.key[0] : c.key) === "team" ? "sticky left-0 z-20 bg-gray-50" : ""
+                    c.id === "team" ? "sticky left-0 z-20 bg-gray-50" : ""
                   }`}
                   onClick={() => onSort(c)}
                   title="Click to sort"
@@ -580,7 +715,7 @@ export default function MlbStacks() {
                     {columns.map((c) => {
                       const raw = getVal(r, c.key);
 
-                      if ((Array.isArray(c.key) ? c.key[0] : c.key) === "team") {
+                      if (c.id === "team") {
                         return (
                           <td
                             key={Array.isArray(c.key) ? c.key.join("|") : c.key}
@@ -607,11 +742,13 @@ export default function MlbStacks() {
                       if (c.type === "num1") val = fmt.num1(raw);
                       if (c.type === "pct1") val = fmt.pct1(raw);
 
+                      const bg = colorFor(raw, c, stats, palette);
                       const cls = c.type === "text" ? "px-2 py-1 text-center" : `${cell} tabular-nums`;
                       return (
                         <td
                           key={Array.isArray(c.key) ? c.key.join("|") : c.key}
                           className={`${cls} whitespace-nowrap`}
+                          style={bg ? { backgroundColor: bg } : undefined}
                           title={String(val ?? "")}
                         >
                           {val ?? ""}

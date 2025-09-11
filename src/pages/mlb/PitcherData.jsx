@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 
 /* ============================ CONFIG ============================ */
-const DATA_URL = "/data/mlb/latest/pitcher_data.json"; // matches exporter outfile
+const DATA_URL = "/data/mlb/latest/pitcher_data.json";
 const TITLE = "MLB — Pitcher Data";
 const LOGO_BASE = "/logos/mlb";
 const LOGO_EXT = "png";
@@ -78,7 +78,7 @@ const COLS = [
   { id: "field",  label: "Field",  keys: ["Field","Field%"] },
   { id: "rating", label: "Rating", keys: ["Rating","Rate"] },
 
-  // Opponent Splits vs Handedness  (prefer your new exact headers)
+  // Opponent splits vs hand
   { id: "opp_kpct",  label: "K%",   keys: ["opp K%","Opp K%","K% (Opp)","K% vs Hand","K% (Team)","K% (Opp Team)"] },
   { id: "opp_bbpct", label: "BB%",  keys: ["opp BB%","Opp BB%","BB% (Opp)","BB% vs Hand","BB% (Team)","BB% (Opp Team)"] },
   { id: "woba",      label: "wOBA", keys: ["opp wOBA","wOBA","Opp wOBA"] },
@@ -122,6 +122,79 @@ const PCT_IDS = new Set([
 
 // Thick borders after: FD, Time, K, Rating, wRC+, BB% (P), HH%, EV
 const THICK_AFTER = new Set(["fd","time","kline","rating","wrcplus","p_bbpct","hhpct","ev"]);
+
+/* ----------------- conditional formatting preferences ----------------- */
+/* Higher is better for these ids… */
+const HIGHER_IS_BETTER = new Set([
+  "winpct","kline","rating","opp_kpct","ip","velo","p_kpct","sws","k9","gbpct"
+]);
+/* …and lower is better for these. */
+const LOWER_IS_BETTER = new Set([
+  "dk","fd","total","opp_bbpct","woba","iso","wrcplus","xfip","p_bbpct","bb9","hr9","fbpct","hhpct","barpct","ev"
+]);
+
+/* Build stats for visible numeric columns so we can color 0..1 */
+function numericFromRaw(id, raw) {
+  if (raw == null || raw === "") return null;
+  let v = String(raw);
+  if (v.endsWith("%")) v = v.slice(0, -1);
+  let n = num(v);
+  if (n == null) return null;
+  if (PCT_IDS.has(id) && Math.abs(n) <= 1) n *= 100;
+  return n;
+}
+function computeStats(rows, ids, idToKey) {
+  const out = {};
+  for (const id of ids) {
+    if (!HIGHER_IS_BETTER.has(id) && !LOWER_IS_BETTER.has(id)) continue;
+    const key = idToKey.get(id);
+    if (!key) continue;
+    let min = Infinity, max = -Infinity, any = false;
+    for (const r of rows) {
+      const n = numericFromRaw(id, r[key]);
+      if (n == null || !Number.isFinite(n)) continue;
+      any = true;
+      if (n < min) min = n;
+      if (n > max) max = n;
+    }
+    if (any && min !== max) out[id] = { min, max };
+  }
+  return out;
+}
+function colorFor(palette, id, raw, stats) {
+  if (palette === "none") return null;
+  if (!HIGHER_IS_BETTER.has(id) && !LOWER_IS_BETTER.has(id)) return null;
+  const st = stats[id];
+  if (!st) return null;
+
+  const n = numericFromRaw(id, raw);
+  if (n == null) return null;
+
+  let t = (n - st.min) / (st.max - st.min); // 0..1 is low->high
+  if (LOWER_IS_BETTER.has(id)) t = 1 - t;  // invert for "lower better"
+  t = Math.max(0, Math.min(1, t));
+
+  if (palette === "gyr") {
+    const h = 60 + 60 * t;          // yellow -> green
+    const s = 85 - t * 15;
+    const l = 92 - t * 6;
+    return `hsl(${h} ${s}% ${l}%)`;
+  }
+  if (palette === "orangeblue") {
+    if (t < 0.5) {
+      const u = t / 0.5;
+      const h = 30 + u * (-200);    // orange -> white
+      const s = 70 - u * 60;
+      const l = 96 - u * 4;
+      return `hsl(${h} ${s}% ${l}%)`;
+    } else {
+      const u = (t - 0.5) / 0.5;    // white -> blue
+      const h = 220, s = 40 + u * 20, l = 94 - u * 6;
+      return `hsl(${h} ${s}% ${l}%)`;
+    }
+  }
+  return null;
+}
 
 /* ============================== DATA FETCH ============================== */
 function useJson(url) {
@@ -169,8 +242,10 @@ export default function PitcherData() {
     return m;
   }, [rawCols]);
 
-  // search
+  // search & palette
   const [q, setQ] = useState("");
+  const [palette, setPalette] = useState("none"); // none | gyr | orangeblue
+
   const filtered = useMemo(() => {
     const s = lower(q);
     if (!s) return rows;
@@ -182,7 +257,7 @@ export default function PitcherData() {
     });
   }, [rows, q]);
 
-  // sorting
+  // sorting (default DK desc if present)
   const dkKey = idToKey.get("dk");
   const playerKey = idToKey.get("player");
   const [sort, setSort] = useState({ key: dkKey || playerKey || "", dir: dkKey ? "desc" : "asc" });
@@ -215,6 +290,10 @@ export default function PitcherData() {
     return arr;
   }, [filtered, sort]);
 
+  // coloring stats (based on visible numeric columns)
+  const flatIds = BANDS.flatMap(([, ids]) => ids);
+  const stats = useMemo(() => computeStats(sorted, flatIds, idToKey), [sorted, flatIds, idToKey]);
+
   // UI helpers
   const headerCls = "px-2 py-1 font-semibold text-center text-[11px] whitespace-nowrap cursor-pointer select-none";
   const cellCls = "px-2 py-1 text-center text-[12px]";
@@ -229,9 +308,6 @@ export default function PitcherData() {
     return n == null ? String(raw ?? "") : fmt1(n);
   };
 
-  // flatten ids in band order
-  const flatIds = BANDS.flatMap(([, ids]) => ids);
-
   return (
     <div className="px-4 md:px-6 py-5">
       <div className="flex items-center justify-between gap-3 mb-2">
@@ -240,12 +316,24 @@ export default function PitcherData() {
           {err ? <span className="ml-3 text-sm text-red-600">Error: {err}</span> : null}
         </h1>
 
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search pitcher / team / opp…"
-          className="h-9 w-72 rounded-lg border border-gray-300 px-3 text-sm focus:ring-2 focus:ring-indigo-500"
-        />
+        <div className="flex items-center gap-2">
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search pitcher / team / opp…"
+            className="h-9 w-72 rounded-lg border border-gray-300 px-3 text-sm focus:ring-2 focus:ring-indigo-500"
+          />
+          <select
+            value={palette}
+            onChange={(e) => setPalette(e.target.value)}
+            className="h-9 rounded-lg border px-2 text-sm"
+            title="Cell coloring"
+          >
+            <option value="none">Coloring: None</option>
+            <option value="gyr">Coloring: Green–Yellow–Red</option>
+            <option value="orangeblue">Coloring: Orange–Blue</option>
+          </select>
+        </div>
       </div>
 
       <div className="rounded-xl border bg-white shadow-sm overflow-auto">
@@ -302,12 +390,16 @@ export default function PitcherData() {
                     const key = idToKey.get(id);
                     const thick = THICK_AFTER.has(id);
                     const isPlayer = id === "player";
+                    const raw = key ? row[key] : null;
+                    const bg = colorFor(palette, id, raw, stats);
+
                     return (
                       <td
                         key={id + "-" + rIdx}
                         className={`${cellCls} ${isPlayer ? "text-left font-medium" : ""} ${
                           thick ? "border-r-2 border-blue-300" : "border-r border-blue-200"
                         }`}
+                        style={bg ? { backgroundColor: bg } : undefined}
                       >
                         {renderVal(id, key, row)}
                       </td>
