@@ -35,6 +35,29 @@ const normName = (s) =>
     .replace(/\s+/g, " ")
     .trim();
 
+/* ---------------- time formatting (last updated) ------------------- */
+const toDate = (x) => {
+  if (!x) return null;
+  const d = x instanceof Date ? x : new Date(x);
+  return Number.isFinite(d.getTime()) ? d : null;
+};
+const timeAgo = (d) => {
+  const dt = toDate(d);
+  if (!dt) return null;
+  const secs = Math.max(0, Math.floor((Date.now() - dt.getTime()) / 1000));
+  if (secs < 60) return `${secs}s ago`;
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+};
+const fmtLocalDT = (d) => {
+  const dt = toDate(d);
+  return dt ? dt.toLocaleString() : "—";
+};
+
 /* ------------------------------ data ------------------------------- */
 const SOURCE = "/data/mlb/latest/projections.json";
 const SITE_IDS_SOURCE = "/data/mlb/latest/site_ids.json";
@@ -117,6 +140,10 @@ function useJson(url) {
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [updatedAt, setUpdatedAt] = useState(null); // Date or null
+  const [version, setVersion] = useState(0); // to allow manual refetch
+
+  const refetch = () => setVersion((v) => v + 1);
 
   useEffect(() => {
     let alive = true;
@@ -125,6 +152,14 @@ function useJson(url) {
         setLoading(true);
         const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+
+        // Capture update timestamp from headers first
+        const hdrLM =
+          res.headers.get("x-generated-at") ||
+          res.headers.get("last-modified") ||
+          res.headers.get("date");
+        let headerTs = hdrLM ? new Date(hdrLM) : null;
+        if (headerTs && !Number.isFinite(headerTs.getTime())) headerTs = null;
 
         const ct = (res.headers.get("content-type") || "").toLowerCase();
         const raw = await res.text();
@@ -137,17 +172,33 @@ function useJson(url) {
           throw new Error(`Could not parse JSON. CT=${ct}. Preview: ${cleaned.slice(0, 200)}`);
         }
 
-        if (alive) { setData(j); setErr(null); }
+        // Also try JSON-embedded timestamps (several common keys)
+        const metaTs =
+          j?.meta?.updated ||
+          j?.meta?.lastUpdated ||
+          j?.updated ||
+          j?.last_updated ||
+          j?.generated_at ||
+          j?.timestamp ||
+          null;
+        const jsonTs = metaTs ? new Date(metaTs) : null;
+        const best = toDate(jsonTs) || toDate(headerTs);
+
+        if (alive) {
+          setData(j);
+          setErr(null);
+          setUpdatedAt(best || null);
+        }
       } catch (e) {
-        if (alive) { setData(null); setErr(e); }
+        if (alive) { setData(null); setErr(e); setUpdatedAt(null); }
       } finally {
         if (alive) setLoading(false);
       }
     })();
     return () => { alive = false; };
-  }, [url]);
+  }, [url, version]);
 
-  return { data, err, loading };
+  return { data, err, loading, updatedAt, refetch };
 }
 
 /* --------------------------- sticky state -------------------------- */
@@ -305,8 +356,9 @@ function exportSiteTemplateCSV({ lineups, site, rows, siteIds, fname = "mlb_site
 
 /* ---------------------------- page -------------------------------- */
 export default function MLBOptimizer() {
-  const { data, err, loading } = useJson(SOURCE);
-  const { data: siteIds } = useJson(SITE_IDS_SOURCE);
+  // Projections + Site IDs (with last-updated + refetch)
+  const { data, err, loading, updatedAt: projUpdatedAt, refetch: refetchProj } = useJson(SOURCE);
+  const { data: siteIds, updatedAt: idsUpdatedAt, refetch: refetchIds } = useJson(SITE_IDS_SOURCE);
 
   const [site, setSite] = useStickyState("mlbOpt.site", "dk");
   const cfg = SITES[site];
@@ -787,7 +839,27 @@ export default function MLBOptimizer() {
 
   return (
     <div className="px-4 md:px-6 py-5">
-      <h1 className="text-2xl md:text-3xl font-extrabold mb-1">MLB — Optimizer</h1>
+      <div className="flex items-center gap-3 mb-1">
+        <h1 className="text-2xl md:text-3xl font-extrabold">MLB — Optimizer</h1>
+        {/* Last updated pill(s) */}
+        <div className="ml-auto flex flex-wrap items-center gap-2 text-xs text-gray-600">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 border">
+            <strong className="font-semibold">Projections:</strong>
+            <span title={fmtLocalDT(projUpdatedAt)}>{projUpdatedAt ? timeAgo(projUpdatedAt) : "—"}</span>
+          </span>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 border">
+            <strong className="font-semibold">Site IDs:</strong>
+            <span title={fmtLocalDT(idsUpdatedAt)}>{idsUpdatedAt ? timeAgo(idsUpdatedAt) : "—"}</span>
+          </span>
+          <button
+            className="px-2 py-0.5 rounded-md border bg-white hover:bg-gray-50"
+            title="Refresh data"
+            onClick={() => { refetchProj(); refetchIds(); }}
+          >
+            ↻ Refresh
+          </button>
+        </div>
+      </div>
 
       {/* site toggle & reset */}
       <div className="mb-3 flex gap-2 items-center">
@@ -795,9 +867,10 @@ export default function MLBOptimizer() {
           <button
             key={s}
             onClick={() => setSite(s)}
-            className={`px-3 py-1.5 rounded-full border text-sm inline-flex items-center gap-2 ${
-              site === s ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300 text-gray-700"
-            }`}
+            className={`px-3 py-1.5 rounded-full border text-sm inline-flex items-center gap-2 ${{
+              true: "bg-blue-50 border-blue-300 text-blue-800",
+              false: "bg-white border-gray-300 text-gray-700",
+            }[String(site === s)]}`}
           >
             <img src={SITES[s].logo} alt="" className="w-4 h-4" />
             <span>{SITES[s].label}</span>
