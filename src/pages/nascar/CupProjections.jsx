@@ -36,6 +36,42 @@ function useJson(url) {
   return { data, err, loading };
 }
 
+/* ---------------- LAST UPDATED (NEW) ---------------- */
+function useLastUpdated(mainUrl, metaUrl) {
+  const [updatedAt, setUpdatedAt] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const h = await fetch(mainUrl, { method: "HEAD", cache: "no-store" });
+        const lm = h.headers.get("last-modified");
+        if (alive && lm) { setUpdatedAt(new Date(lm)); return; }
+      } catch (_) {}
+
+      try {
+        const r = await fetch(mainUrl, { cache: "no-store" });
+        const lm2 = r.headers.get("last-modified");
+        if (alive && lm2) { setUpdatedAt(new Date(lm2)); return; }
+      } catch (_) {}
+
+      try {
+        if (!metaUrl) return;
+        const m = await fetch(`${metaUrl}?_=${Date.now()}`, { cache: "no-store" }).then(x => x.json());
+        const iso = m?.updated_iso || m?.updated_utc || m?.updated || m?.lastUpdated || m?.timestamp;
+        const ep  = m?.updated_epoch;
+        const d   = iso ? new Date(iso) : (Number.isFinite(ep) ? new Date(ep * 1000) : null);
+        if (alive && d && !isNaN(d)) setUpdatedAt(d);
+      } catch (_) {}
+    })();
+    return () => { alive = false; };
+  }, [mainUrl, metaUrl]);
+
+  return updatedAt;
+}
+const fmtUpdated = (d) =>
+  d ? d.toLocaleString(undefined, { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" }) : null;
+
 /* ----------------------------- helpers ----------------------------- */
 const num = (v) => {
   const n = Number(String(v ?? "").replace(/[,$%\s]/g, ""));
@@ -76,42 +112,15 @@ const escapeCSV = (v) => {
 };
 
 /* ---------------- heatmap palettes + direction rules ---------------- */
-
-// Direction: return "higher" | "lower" | null
 const dirForCol = (colName) => {
   const k = String(colName || "").toLowerCase().replace(/\s+/g, " ").trim();
-
-  // Always lower (NASCAR specific)
   if (/^proj\s*fin$/i.test(colName)) return "lower";
-
-  // Salaries lower
   if (/\bsal(ary)?\b/i.test(colName)) return "lower";
-
-  // Ownership lower
   if (/\b(p?own%?|ownership)\b/i.test(k)) return "lower";
-
-  // Higher metrics (additions you requested)
-  if (
-    /\b(pll|pfl)\b/i.test(k) ||                  // pLL / pFL
-    /\b(pp)\b/.test(k) ||                        // DK PP / FD PP
-    /\b(dom)\b/i.test(k) ||                      // DK Dom / FD Dom
-    /\bfloor\b/i.test(k) ||                      // DK/FD Floor
-    /\bceiling\b/i.test(k)                       // DK/FD Ceiling
-  ) return "higher";
-
-  // Usual higher metrics
-  if (
-    /\bproj(?!\s*fin)\b/i.test(k) ||             // projections (not proj fin)
-    /\bval(ue)?\b/i.test(k) ||                   // value
-    /\brtg|rating\b/i.test(k) ||                 // rating
-    /\blev%?\b/i.test(k) ||                      // leverage
-    /\bopt%?\b/i.test(k)                         // opt%
-  ) return "higher";
-
+  if (/\b(pll|pfl)\b/i.test(k) || /\b(pp)\b/.test(k) || /\b(dom)\b/i.test(k) || /\bfloor\b/i.test(k) || /\bceiling\b/i.test(k)) return "higher";
+  if (/\bproj(?!\s*fin)\b/i.test(k) || /\bval(ue)?\b/i.test(k) || /\brtg|rating\b/i.test(k) || /\blev%?\b/i.test(k) || /\bopt%?\b/i.test(k)) return "higher";
   return null;
 };
-
-// Palette helper
 function heatColor(min, max, v, dir, palette) {
   if (palette === "none") return null;
   if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
@@ -123,25 +132,19 @@ function heatColor(min, max, v, dir, palette) {
   if (dir === "lower") t = 1 - t;
 
   if (palette === "blueorange") {
-    // blue → white → orange
     if (t < 0.5) {
-      const u = t / 0.5; // blue → white
-      const h = 220, s = 60 - u * 55, l = 90 + u * 7;
+      const u = t / 0.5; const h = 220, s = 60 - u * 55, l = 90 + u * 7;
       return `hsl(${h}, ${s}%, ${l}%)`;
     } else {
-      const u = (t - 0.5) / 0.5; // white → orange
-      const h = 30, s = 5 + u * 80, l = 97 - u * 7;
+      const u = (t - 0.5) / 0.5; const h = 30, s = 5 + u * 80, l = 97 - u * 7;
       return `hsl(${h}, ${s}%, ${l}%)`;
     }
   }
-  // default red → yellow → green
   if (t < 0.5) {
-    const u = t / 0.5;
-    const h = 0 + u * 60, s = 78 + u * 10, l = 94 - u * 2;
+    const u = t / 0.5; const h = 0 + u * 60, s = 78 + u * 10, l = 94 - u * 2;
     return `hsl(${h}, ${s}%, ${l}%)`;
   } else {
-    const u = (t - 0.5) / 0.5;
-    const h = 60 + u * 60, s = 88 - u * 18, l = 92 + u * 2;
+    const u = (t - 0.5) / 0.5; const h = 60 + u * 60, s = 88 - u * 18, l = 92 + u * 2;
     return `hsl(${h}, ${s}%, ${l}%)`;
   }
 }
@@ -152,6 +155,10 @@ export default function CupProjections() {
   const SHOW_SOURCE = false;
 
   const { data, err, loading } = useJson(SOURCE);
+
+  // NEW: last updated (meta.json sits next to projections.json)
+  const metaUrl = SOURCE.replace(/projections\.json$/, "meta.json");
+  const updatedAt = useLastUpdated(SOURCE, metaUrl);
 
   const rows = useMemo(() => {
     if (!data) return [];
@@ -295,6 +302,11 @@ export default function CupProjections() {
         <h1 className="text-2xl font-extrabold tracking-tight">
           NASCAR Cup — DFS Projections
         </h1>
+
+        {/* NEW: Updated stamp */}
+        {updatedAt && (
+          <div className="text-sm text-gray-500">Updated: {fmtUpdated(updatedAt)}</div>
+        )}
 
         {/* Brand segmented control */}
         <div

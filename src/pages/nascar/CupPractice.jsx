@@ -25,6 +25,42 @@ function useJson(url) {
   return { data, err, loading };
 }
 
+/* ---------------- LAST UPDATED (shared) ---------------- */
+function useLastUpdated(mainUrl, metaUrl) {
+  const [updatedAt, setUpdatedAt] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const h = await fetch(mainUrl, { method: "HEAD", cache: "no-store" });
+        const lm = h.headers.get("last-modified");
+        if (alive && lm) { setUpdatedAt(new Date(lm)); return; }
+      } catch (_) {}
+
+      try {
+        const r = await fetch(mainUrl, { cache: "no-store" });
+        const lm2 = r.headers.get("last-modified");
+        if (alive && lm2) { setUpdatedAt(new Date(lm2)); return; }
+      } catch (_) {}
+
+      try {
+        if (!metaUrl) return;
+        const m = await fetch(`${metaUrl}?_=${Date.now()}`, { cache: "no-store" }).then(x => x.json());
+        const iso = m?.updated_iso || m?.updated_utc || m?.updated || m?.lastUpdated || m?.timestamp;
+        const ep  = m?.updated_epoch;
+        const d   = iso ? new Date(iso) : (Number.isFinite(ep) ? new Date(ep * 1000) : null);
+        if (alive && d && !isNaN(d)) setUpdatedAt(d);
+      } catch (_) {}
+    })();
+    return () => { alive = false; };
+  }, [mainUrl, metaUrl]);
+
+  return updatedAt;
+}
+const fmtUpdated = (d) =>
+  d ? d.toLocaleString(undefined, { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" }) : null;
+
 /* ----------------------------- helpers ----------------------------- */
 const num = (v) => {
   if (v === null || v === undefined) return NaN;
@@ -105,6 +141,16 @@ export default function CupPractice() {
   const SUMMARY_SRC = "/data/nascar/cup/latest/practice_cons.json";
   const LAPS_SRC = "/data/nascar/cup/latest/practice_laps.json";
   const SHOW_SOURCES = false;
+
+  // last updated: compute for each and show the most recent
+  const consMetaUrl = SUMMARY_SRC.replace(/practice_cons\.json$/, "meta.json");
+  const lapsMetaUrl = LAPS_SRC.replace(/practice_laps\.json$/, "meta.json");
+  const consUpdated = useLastUpdated(SUMMARY_SRC, consMetaUrl);
+  const lapsUpdated = useLastUpdated(LAPS_SRC, lapsMetaUrl);
+  const updatedAt = useMemo(() => {
+    if (consUpdated && lapsUpdated) return new Date(Math.max(+consUpdated, +lapsUpdated));
+    return consUpdated || lapsUpdated || null;
+  }, [consUpdated, lapsUpdated]);
 
   // UI layout
   const [active, setActive] = useState("summary"); // "summary" | "laps"
@@ -358,6 +404,13 @@ export default function CupPractice() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end gap-3 mb-4">
           <h1 className="text-2xl sm:text-3xl font-extrabold">Cup Lap-by-Lap Data</h1>
+
+          {/* Updated stamp */}
+          {updatedAt && (
+            <div className="text-sm text-gray-500 sm:ml-2">Updated: {fmtUpdated(updatedAt)}</div>
+          )}
+
+          {/* (optional) debug sources */}
           {SHOW_SOURCES && (
             <div className="text-xs sm:text-sm text-gray-500 sm:ml-4">
               Summary: <code>{SUMMARY_SRC}</code> | Laps: <code>{LAPS_SRC}</code>
@@ -676,7 +729,7 @@ export default function CupPractice() {
                             const isLap = numericColName(c);
                             const isBest = isLap && isClose(valNum, minPerCol[c]);
 
-                            // Heat color (lower = greener) using capped stats if available.
+                            // Heat color (lower = greener).
                             let heatStyle = {};
                             if (lowerIsBetter(c) && Number.isFinite(valNum) && heatStats[c]) {
                               const { min, max } = heatStats[c];
