@@ -1,5 +1,49 @@
 // src/pages/nascar/TrucksOptimizer.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import API_BASE from "../../utils/api";
+
+/* ---------------- LAST UPDATED (shared) ---------------- */
+function useLastUpdated(mainUrl, metaUrl) {
+  const [updatedAt, setUpdatedAt] = React.useState(null);
+
+  React.useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const h = await fetch(mainUrl, { method: "HEAD", cache: "no-store" });
+        const lm = h.headers.get("last-modified");
+        if (alive && lm) { setUpdatedAt(new Date(lm)); return; }
+      } catch (_) {}
+
+      try {
+        const r = await fetch(mainUrl, { cache: "no-store" });
+        const lm2 = r.headers.get("last-modified");
+        if (alive && lm2) { setUpdatedAt(new Date(lm2)); return; }
+      } catch (_) {}
+
+      try {
+        if (!metaUrl) return;
+        const m = await fetch(`${metaUrl}?_=${Date.now()}`, { cache: "no-store" }).then(x => x.json());
+        const iso = m?.updated_iso || m?.updated_utc || m?.updated || m?.lastUpdated || m?.timestamp;
+        const ep  = m?.updated_epoch;
+        const d   = iso ? new Date(iso) : (Number.isFinite(ep) ? new Date(ep * 1000) : null);
+        if (alive && d && !isNaN(d)) setUpdatedAt(d);
+      } catch (_) {}
+    })();
+    return () => { alive = false; };
+  }, [mainUrl, metaUrl]);
+
+  return updatedAt;
+}
+const fmtUpdated = (d) =>
+  d
+    ? d.toLocaleString(undefined, {
+        month: "numeric",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : null;
 
 /* ----------------------------- helpers ----------------------------- */
 const clamp = (v, lo = 0, hi = 1e9) => Math.max(lo, Math.min(hi, v));
@@ -20,7 +64,7 @@ const useStickyState = (key, init) => {
     } catch {
       setV(init);
     }
-  }, [key]); // ← important
+  }, [key]);
   useEffect(() => {
     try {
       localStorage.setItem(key, JSON.stringify(v));
@@ -38,19 +82,22 @@ const escapeCSV = (s) => {
 const normName = (s) =>
   String(s || "")
     .toLowerCase()
-    .replace(/\u2019/g, "'")      // smart apostrophe → '
-    .replace(/\./g, "")           // remove dots
-    .replace(/,\s*(jr|sr)\b/g, "")// remove ", Jr"/", Sr"
-    .replace(/\b(jr|sr)\b/g, "")  // remove trailing Jr/Sr
-    .replace(/[^a-z' -]/g, "")    // letters/'/-/space only
-    .replace(/\s+/g, " ")         // squeeze spaces
+    .replace(/\u2019/g, "'")
+    .replace(/\./g, "")
+    .replace(/,\s*(jr|sr)\b/g, "")
+    .replace(/\b(jr|sr)\b/g, "")
+    .replace(/[^a-z' -]/g, "")
+    .replace(/\s+/g, " ")
     .trim();
 
 // Build a name→record index from site_ids
 function buildSiteIdIndex(siteIdsList) {
   const idx = new Map();
   for (const r of siteIdsList || []) {
-    const id  = String(r.id ?? r.ID ?? r.playerId ?? "").trim();
+    const id =
+      String(
+        r.id ?? r.ID ?? r.playerId ?? r.player_id ?? r.fd_id ?? r.dk_id ?? ""
+      ).trim();
     const nm0 = r.name ?? r.player ?? r.Player ?? r.displayName ?? r.Name;
     if (!id || !nm0) continue;
     const key = normName(nm0);
@@ -66,19 +113,23 @@ function detectFdPrefix(siteIdsList) {
   const counts = new Map();
   for (const r of siteIdsList || []) {
     const px =
-      r.slateId ?? r.slate_id ??
-      r.groupId ?? r.group_id ??
-      r.lid ?? r.prefix ?? null;
+      r.slateId ??
+      r.slate_id ??
+      r.groupId ??
+      r.group_id ??
+      r.lid ??
+      r.prefix ??
+      r.fd_prefix ??
+      null;
     if (px != null && px !== "") {
       const key = String(px);
       counts.set(key, (counts.get(key) || 0) + 1);
     }
   }
   if (counts.size === 1) return [...counts.keys()][0];
-  if (counts.size > 1) return [...counts.entries()].sort((a,b)=>b[1]-a[1])[0][0];
+  if (counts.size > 1) return [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0];
   return null; // no prefix found (ok)
 }
-
 
 /* ------------------------- sites & columns ------------------------- */
 const SITES = {
@@ -112,6 +163,10 @@ const SITES = {
 
 const SOURCE = "/data/nascar/trucks/latest/projections.json";
 const SITE_IDS_SOURCE = "/data/nascar/trucks/latest/site_ids.json";
+
+/* ---- last-updated for optimizer page (take newest of projections/site_ids) ---- */
+const projMetaUrl = SOURCE.replace(/projections\.json$/, "meta.json");
+const idsMetaUrl  = SITE_IDS_SOURCE.replace(/site_ids\.json$/, "meta.json");
 
 /* ------------------------------ data ------------------------------- */
 function useJson(url) {
@@ -162,12 +217,10 @@ function downloadSiteLineupsCSV({
   fname = "lineups_site_ids.csv",
 }) {
   const siteKey = site === "fd" ? "fd" : "dk";
-  const list =
-    Array.isArray(siteIds?.[siteKey])
-      ? siteIds[siteKey]
-      : (siteIds?.sites?.[siteKey] ?? []); // support { sites: { dk:[], fd:[] } } too
+  const list = Array.isArray(siteIds?.[siteKey])
+    ? siteIds[siteKey]
+    : siteIds?.sites?.[siteKey] ?? [];
 
-  // Build index + detect FD prefix
   const idIndex = buildSiteIdIndex(list);
   const fdPrefix = siteKey === "fd" ? detectFdPrefix(list) : null;
 
@@ -175,27 +228,21 @@ function downloadSiteLineupsCSV({
     "#",
     "Salary",
     "Total",
-    ...Array.from({ length: rosterSize }, (_, i) => `D${i + 1}`),
+    ...Array.from({ length: rosterSize }, (_, i) => (siteKey === "fd" ? "Driver" : "D")),
   ].join(",");
 
   const lines = (lineups || []).map((L, idx) => {
     const names = Array.isArray(L.drivers) ? L.drivers : [];
     const cells = names.slice(0, rosterSize).map((name) => {
       const rec = idIndex.get(normName(name));
-      if (!rec) {
-        // not found -> export raw name so DK templates still accept it
-        return escapeCSV(name);
-      }
+      if (!rec) return escapeCSV(name); // fallback to raw name
       if (siteKey === "fd") {
-        // FD wants prefix-id:DisplayName
         const outId = fdPrefix ? `${fdPrefix}-${rec.id}` : rec.id;
         const display = rec.nameFromSite || name;
         return escapeCSV(`${outId}:${display}`);
       }
-      // DK format
       return escapeCSV(`${name} (${rec.id})`);
     });
-
     while (cells.length < rosterSize) cells.push("");
 
     return [
@@ -234,22 +281,23 @@ function downloadExposuresCSV(lineups, fname = "exposures.csv") {
   URL.revokeObjectURL(url);
 }
 
-import API_BASE from "../../utils/api";
-
-
 /* ----------------------------- server calls ----------------------------- */
 async function solveStream(payload, onItem, onDone) {
-  const res = await fetch(`${API_BASE}/trucks/solve_stream`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok || !res.body) throw new Error("Stream failed to start");
+  let res;
+  try {
+    res = await fetch(`${API_BASE}/trucks/solve_stream`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...payload, series: "trucks" }),
+    });
+  } catch {
+    res = null;
+  }
+  if (!res || !res.ok || !res.body) throw new Error("Stream failed to start");
 
   const reader = res.body.getReader();
   const decoder = new TextDecoder("utf-8");
   let buf = "";
-
   while (true) {
     const { value, done } = await reader.read();
     if (done) break;
@@ -257,17 +305,13 @@ async function solveStream(payload, onItem, onDone) {
     const parts = buf.split("\n\n");
     buf = parts.pop();
     for (const part of parts) {
-      if (!part.trim()) continue;
+      const trimmed = part.trim();
+      if (!trimmed) continue;
       try {
-        const msg = JSON.parse(part);
-        if (msg.done) {
-          if (onDone) onDone(msg);
-        } else if (onItem) {
-          onItem(msg);
-        }
-      } catch (err) {
-        console.error("Stream parse error", err, part);
-      }
+        const msg = JSON.parse(trimmed);
+        if (msg.done) onDone && onDone(msg);
+        else onItem && onItem(msg);
+      } catch {}
     }
   }
 }
@@ -275,7 +319,7 @@ async function solveStream(payload, onItem, onDone) {
 /* --------- robust per-site build naming to avoid stale length ------- */
 function nextBuildNameForSite(site) {
   try {
-    const raw = localStorage.getItem(`cupOpt.${site}.builds`);
+    const raw = localStorage.getItem(`trkOpt.${site}.builds`);
     const arr = raw ? JSON.parse(raw) : [];
     const nums = arr
       .map((b) => (b?.name ? String(b.name).match(/^Build\s+(\d+)$/i) : null))
@@ -361,18 +405,26 @@ function DriverMultiPicker({ allDrivers, value, onChange, placeholder = "Add dri
 }
 
 /* ============================== page =============================== */
-export default function CupOptimizer() {
+export default function TrucksOptimizer() {
   const { data, err, loading } = useJson(SOURCE);
   const { data: siteIds } = useJson(SITE_IDS_SOURCE);
 
-  const [site, setSite] = useStickyState("cupOpt.site", "dk");
+  // last updated (prefer freshest between projections and site_ids)
+  const projUpdated = useLastUpdated(SOURCE, projMetaUrl);
+  const idsUpdated  = useLastUpdated(SITE_IDS_SOURCE, idsMetaUrl);
+  const updatedAt = useMemo(() => {
+    if (projUpdated && idsUpdated) return new Date(Math.max(+projUpdated, +idsUpdated));
+    return projUpdated || idsUpdated || null;
+  }, [projUpdated, idsUpdated]);
+
+  const [site, setSite] = useStickyState("trkOpt.site", "dk");
   const cfg = SITES[site];
 
-  const [optBy, setOptBy] = useStickyState("cupOpt.optBy", "proj");
-  const [numLineups, setNumLineups] = useStickyState("cupOpt.N", 20);
-  const [maxSalary, setMaxSalary] = useStickyState("cupOpt.cap", 50000);
-  const [globalMax, setGlobalMax] = useStickyState("cupOpt.gmax", 100);
-  const [randomness, setRandomness] = useStickyState("cupOpt.rand", 0);
+  const [optBy, setOptBy] = useStickyState("trkOpt.optBy", "proj");
+  const [numLineups, setNumLineups] = useStickyState("trkOpt.N", 20);
+  const [maxSalary, setMaxSalary] = useStickyState("trkOpt.cap", 50000);
+  const [globalMax, setGlobalMax] = useStickyState("trkOpt.gmax", 100);
+  const [randomness, setRandomness] = useStickyState("trkOpt.rand", 0);
 
   const [q, setQ] = useState("");
 
@@ -382,11 +434,11 @@ export default function CupOptimizer() {
   const [maxPct, setMaxPct] = useState(() => ({}));
   const [boost, setBoost] = useState(() => ({}));
 
-  // NEW: player groups (persisted per site)
-  const [groups, setGroups] = useStickyState(`cupOpt.${site}.groups`, []);
+  // player groups (persisted per site)
+  const [groups, setGroups] = useStickyState(`trkOpt.${site}.groups`, []);
 
   // Per-site builds (so DK builds don't appear on FD)
-  const buildsKey = (k) => `cupOpt.${site}.${k}`;
+  const buildsKey = (k) => `trkOpt.${site}.${k}`;
   const [builds, setBuilds] = useStickyState(buildsKey("builds"), []);
   const [activeBuildId, setActiveBuildId] = useStickyState(buildsKey("active"), null);
 
@@ -398,7 +450,7 @@ export default function CupOptimizer() {
     if (!lineups.length) return {};
     const m = new Map();
     for (const L of lineups) for (const d of L.drivers) m.set(d, (m.get(d) || 0) + 1);
-    const total = Math.max(1, lineups.length); // ← the "1" goes here
+    const total = Math.max(1, lineups.length);
     const out = {};
     for (const [driver, cnt] of m.entries()) out[driver] = (cnt / total) * 100;
     return out;
@@ -411,7 +463,6 @@ export default function CupOptimizer() {
   const tickRef = useRef(null);
 
   useEffect(() => {
-    // smooth UI ticks while optimizing
     if (!isOptimizing) return;
     clearInterval(tickRef.current);
     tickRef.current = setInterval(() => {
@@ -453,7 +504,6 @@ export default function CupOptimizer() {
         ceil: num(r[cfg.ceil]),
         pown: getPct(r, cfg.pown),
         opt: getPct(r, cfg.opt),
-        // val is computed dynamically using boosted proj; placeholder here is optional
         val: 0,
       }))
       .filter((r) => r.driver && r.salary > 0);
@@ -468,7 +518,7 @@ export default function CupOptimizer() {
     setOrder(initial.map((r) => r.driver));
   }, [site, rows.length]); // eslint-disable-line
 
-  // boosted projection for display/sorting (respects +/-3% Boosts)
+  // boosted projection for display/sorting
   const boostedProj = (r) => r.proj * (1 + 0.03 * (boost[r.driver] || 0));
 
   const displayRows = useMemo(() => {
@@ -480,16 +530,27 @@ export default function CupOptimizer() {
     const needle = q.trim().toLowerCase();
     if (!needle) return base;
 
-    return base.filter((r) =>
-      r.driver.toLowerCase().includes(needle) ||
-      String(r.qual).includes(needle) ||
-      String(r.salary).includes(needle) ||
-      `${usagePct[r.driver] ?? ""}`.includes(needle)
+    return base.filter(
+      (r) =>
+        r.driver.toLowerCase().includes(needle) ||
+        String(r.qual).includes(needle) ||
+        String(r.salary).includes(needle) ||
+        `${usagePct[r.driver] ?? ""}`.includes(needle)
     );
   }, [rows, order, q, usagePct, boost]);
 
   // Make columns sortable (now includes Usage% and Val)
-  const sortable = new Set(["qual", "salary", "proj", "val", "floor", "ceil", "pown", "opt", "usage"]);
+  const sortable = new Set([
+    "qual",
+    "salary",
+    "proj",
+    "val",
+    "floor",
+    "ceil",
+    "pown",
+    "opt",
+    "usage",
+  ]);
 
   const setSort = (col) => {
     if (!sortable.has(col)) return;
@@ -501,8 +562,8 @@ export default function CupOptimizer() {
 
     const sorted = [...displayRows].sort((a, b) => {
       const getVal = (r) => {
-        if (col === "usage") return usagePct[r.driver] ?? -Infinity; // computed Usage%
-        if (col === "pown" || col === "opt") return ((r[col] || 0) * 100); // convert 0..1 → %
+        if (col === "usage") return usagePct[r.driver] ?? -Infinity;
+        if (col === "pown" || col === "opt") return (r[col] || 0) * 100;
         if (col === "proj") return boostedProj(r);
         if (col === "val") {
           const salK = (r.salary || 0) / 1000;
@@ -525,7 +586,8 @@ export default function CupOptimizer() {
     sortRef.current.col === key ? (sortRef.current.dir === "asc" ? " ▲" : " ▼") : "";
 
   /* ----------------------------- actions ---------------------------- */
-  const bumpBoost = (d, step) => setBoost((m) => ({ ...m, [d]: clamp((m[d] || 0) + step, -6, 6) }));
+  const bumpBoost = (d, step) =>
+    setBoost((m) => ({ ...m, [d]: clamp((m[d] || 0) + step, -6, 6) }));
   const toggleLock = (d) =>
     setLocks((s) => {
       const n = new Set(s);
@@ -587,7 +649,7 @@ export default function CupOptimizer() {
       min_diff: 1,
       time_limit_ms: 1500,
 
-      // NEW: player groups (backend you added will honor them)
+      // player groups
       groups: groups.map((g) => ({
         mode: g.mode || "at_most", // at_most | at_least | exactly
         count: Math.max(0, Number(g.count) || 0),
@@ -597,18 +659,14 @@ export default function CupOptimizer() {
 
     const out = [];
     try {
+      // Streaming first
       await solveStream(
         payload,
         (evt) => {
           const chosen = evt.drivers
             .map((name) => rows.find((r) => r.driver === name))
             .filter(Boolean);
-          const L = {
-            drivers: evt.drivers,
-            salary: evt.salary,
-            total: evt.total,
-            chosen,
-          };
+          const L = { drivers: evt.drivers, salary: evt.salary, total: evt.total, chosen };
           out.push(L);
           setLineups((prev) => [...prev, L]);
           setProgressActual(out.length);
@@ -616,25 +674,34 @@ export default function CupOptimizer() {
         (done) => {
           if (done?.reason) setStopInfo(done);
           setProgressActual(out.length || payload.n);
-          setProgressUI(out.length || payload.n); // snap full
+          setProgressUI(out.length || payload.n);
           setIsOptimizing(false);
           clearInterval(tickRef.current);
           saveBuild(nextBuildNameForSite(site), out);
         }
       );
     } catch (e) {
-      // non-streaming fallback
-        const res = await fetch(`${API_BASE}/solve`, {
+      // Non-streaming fallback: try /trucks/solve then generic /solve
+      let res = await fetch(`${API_BASE}/trucks/solve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload, series: "trucks" }),
+      });
+      if (!res.ok) {
+        const res2 = await fetch(`${API_BASE}/solve`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ ...payload, series: "trucks" }),
         });
-      if (!res.ok) {
-        alert(`Solve failed: ${await res.text()}`);
-        setIsOptimizing(false);
-        clearInterval(tickRef.current);
-        return;
+        if (!res2.ok) {
+          alert(`Solve failed: ${await res2.text()}`);
+          setIsOptimizing(false);
+          clearInterval(tickRef.current);
+          return;
+        }
+        res = res2;
       }
+
       const j = await res.json();
       const out2 =
         (j.lineups || []).map((L) => ({
@@ -729,7 +796,7 @@ export default function CupOptimizer() {
     { key: "driver", label: "Driver", sortable: false },
     { key: "salary", label: "Salary", sortable: true },
     { key: "proj", label: "Proj", sortable: true },
-    { key: "val",  label: "Val",  sortable: true },       // NEW
+    { key: "val",  label: "Val",  sortable: true },
     { key: "floor", label: "Floor", sortable: true },
     { key: "ceil", label: "Ceiling", sortable: true },
     { key: "pown", label: "pOWN%", sortable: true },
@@ -743,7 +810,14 @@ export default function CupOptimizer() {
 
   return (
     <div className="px-4 md:px-6 py-5">
-      <h1 className="text-2xl md:text-3xl font-extrabold mb-1">NASCAR Trucks — Optimizer</h1>
+      <div className="mb-1 flex items-end gap-3 flex-wrap">
+        <h1 className="text-2xl md:text-3xl font-extrabold">NASCAR Trucks — Optimizer</h1>
+        {updatedAt && (
+          <div className="text-sm text-gray-500">
+            Updated: {fmtUpdated(updatedAt)}
+          </div>
+        )}
+      </div>
 
       {/* site toggle & reset */}
       <div className="mb-3 flex gap-2 items-center">
@@ -763,7 +837,10 @@ export default function CupOptimizer() {
             <span>{SITES[s].label}</span>
           </button>
         ))}
-        <button className="ml-auto px-2.5 py-1.5 text-sm rounded-lg bg-white border hover:bg-gray-50" onClick={resetConstraints}>
+        <button
+          className="ml-auto px-2.5 py-1.5 text-sm rounded-lg bg-white border hover:bg-gray-50"
+          onClick={resetConstraints}
+        >
           Reset constraints
         </button>
       </div>
@@ -772,7 +849,11 @@ export default function CupOptimizer() {
       <div className="grid grid-cols-1 md:grid-cols-8 gap-2 items-end mb-2">
         <div className="md:col-span-2">
           <label className="block text-[11px] text-gray-600 mb-1">Optimize by</label>
-          <select className="w-full border rounded-md px-2 py-1.5 text-sm" value={optBy} onChange={(e) => setOptBy(e.target.value)}>
+          <select
+            className="w-full border rounded-md px-2 py-1.5 text-sm"
+            value={optBy}
+            onChange={(e) => setOptBy(e.target.value)}
+          >
             <option value="proj">Projection</option>
             <option value="floor">Floor</option>
             <option value="ceil">Ceiling</option>
@@ -782,15 +863,27 @@ export default function CupOptimizer() {
         </div>
         <div>
           <label className="block text-[11px] text-gray-600 mb-1">Lineups</label>
-          <input className="w-full border rounded-md px-2 py-1.5 text-sm" value={numLineups} onChange={(e) => setNumLineups(e.target.value)} />
+          <input
+            className="w-full border rounded-md px-2 py-1.5 text-sm"
+            value={numLineups}
+            onChange={(e) => setNumLineups(e.target.value)}
+          />
         </div>
         <div>
           <label className="block text-[11px] text-gray-600 mb-1">Max salary</label>
-          <input className="w-full border rounded-md px-2 py-1.5 text-sm" value={maxSalary} onChange={(e) => setMaxSalary(e.target.value)} />
+          <input
+            className="w-full border rounded-md px-2 py-1.5 text-sm"
+            value={maxSalary}
+            onChange={(e) => setMaxSalary(e.target.value)}
+          />
         </div>
         <div>
           <label className="block text-[11px] text-gray-600 mb-1">Global Max %</label>
-          <input className="w-full border rounded-md px-2 py-1.5 text-sm" value={globalMax} onChange={(e) => setGlobalMax(e.target.value)} />
+          <input
+            className="w-full border rounded-md px-2 py-1.5 text-sm"
+            value={globalMax}
+            onChange={(e) => setGlobalMax(e.target.value)}
+          />
         </div>
         <div>
           <label className="block text-[11px] text-gray-600 mb-1">Randomness %</label>
@@ -803,17 +896,21 @@ export default function CupOptimizer() {
 
         {/* progress + button */}
         <div className="md:col-span-2 flex items-end gap-3">
-          <button className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700" onClick={optimize}>
+          <button
+            className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+            onClick={optimize}
+          >
             {`Optimize ${numLineups}`}
           </button>
           <div className="flex-1 max-w-xs h-2 bg-gray-200 rounded overflow-hidden">
             <div
               className="h-2 bg-blue-500 rounded transition-all duration-300"
               style={{
-                width: `${(Math.min(progressUI, Math.max(1, Number(numLineups) || 1)) / Math.max(
-                  1,
-                  Number(numLineups) || 1
-                )) * 100}%`,
+                width: `${
+                  (Math.min(progressUI, Math.max(1, Number(numLineups) || 1)) /
+                    Math.max(1, Number(numLineups) || 1)) *
+                  100
+                }%`,
               }}
             />
           </div>
@@ -845,7 +942,11 @@ export default function CupOptimizer() {
                 >
                   {b.name}
                 </button>
-                <button className="ml-1 text-gray-400 hover:text-red-600" title="Delete build" onClick={() => deleteBuild(b.id)}>
+                <button
+                  className="ml-1 text-gray-400 hover:text-red-600"
+                  title="Delete build"
+                  onClick={() => deleteBuild(b.id)}
+                >
                   ×
                 </button>
               </div>
@@ -854,7 +955,7 @@ export default function CupOptimizer() {
         </div>
       )}
 
-      {/* Player Groups (new searchable picker) */}
+      {/* Player Groups */}
       <section className="rounded-lg border bg-white p-3 mb-4">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-base font-semibold">Player Groups</h3>
@@ -971,24 +1072,43 @@ export default function CupOptimizer() {
               !err &&
               displayRows.map((r) => {
                 const projBoosted = boostedProj(r);
-                const val = (r.salary > 0) ? projBoosted / (r.salary / 1000) : NaN;
+                const val = r.salary > 0 ? projBoosted / (r.salary / 1000) : NaN;
 
                 return (
-                  <tr key={r.driver} className="odd:bg-white even:bg-gray-50 hover:bg-blue-50/60 transition-colors">
+                  <tr
+                    key={r.driver}
+                    className="odd:bg-white even:bg-gray-50 hover:bg-blue-50/60 transition-colors"
+                  >
                     <td className={cell}>
-                      <input type="checkbox" checked={locks.has(r.driver)} onChange={() => toggleLock(r.driver)} />
+                      <input
+                        type="checkbox"
+                        checked={locks.has(r.driver)}
+                        onChange={() => toggleLock(r.driver)}
+                      />
                     </td>
                     <td className={cell}>
-                      <input type="checkbox" checked={excls.has(r.driver)} onChange={() => toggleExcl(r.driver)} />
+                      <input
+                        type="checkbox"
+                        checked={excls.has(r.driver)}
+                        onChange={() => toggleExcl(r.driver)}
+                      />
                     </td>
                     <td className={`${cell} tabular-nums`}>{r.qual || "—"}</td>
                     <td className={cell}>
                       <div className="inline-flex items-center gap-1">
-                        <button className="px-1.5 py-0.5 border rounded" title="+3%" onClick={() => bumpBoost(r.driver, +1)}>
+                        <button
+                          className="px-1.5 py-0.5 border rounded"
+                          title="+3%"
+                          onClick={() => bumpBoost(r.driver, +1)}
+                        >
                           ▲
                         </button>
                         <span className="w-5 text-center">{boost[r.driver] || 0}</span>
-                        <button className="px-1.5 py-0.5 border rounded" title="-3%" onClick={() => bumpBoost(r.driver, -1)}>
+                        <button
+                          className="px-1.5 py-0.5 border rounded"
+                          title="-3%"
+                          onClick={() => bumpBoost(r.driver, -1)}
+                        >
                           ▼
                         </button>
                       </div>
@@ -996,7 +1116,7 @@ export default function CupOptimizer() {
                     <td className={`${cell} whitespace-nowrap`}>{r.driver}</td>
                     <td className={`${cell} tabular-nums`}>{fmt0(r.salary)}</td>
                     <td className={`${cell} tabular-nums`}>{fmt1(projBoosted)}</td>
-                    <td className={`${cell} tabular-nums`}>{fmt1(val)}</td> {/* NEW Val */}
+                    <td className={`${cell} tabular-nums`}>{fmt1(val)}</td>
                     <td className={`${cell} tabular-nums`}>{fmt1(r.floor)}</td>
                     <td className={`${cell} tabular-nums`}>{fmt1(r.ceil)}</td>
                     <td className={`${cell} tabular-nums`}>{fmt1(r.pown * 100)}</td>
@@ -1007,7 +1127,12 @@ export default function CupOptimizer() {
                       <div className="inline-flex items-center gap-1">
                         <button
                           className="px-1.5 py-0.5 border rounded"
-                          onClick={() => setMinPct((m) => ({ ...m, [r.driver]: clamp((num(m[r.driver]) || 0) - 5, 0, 100) }))}
+                          onClick={() =>
+                            setMinPct((m) => ({
+                              ...m,
+                              [r.driver]: clamp((num(m[r.driver]) || 0) - 5, 0, 100),
+                            }))
+                          }
                           title="-5%"
                         >
                           –
@@ -1015,12 +1140,19 @@ export default function CupOptimizer() {
                         <input
                           className="w-12 border rounded px-1.5 py-0.5 text-center"
                           value={String(minPct[r.driver] ?? "")}
-                          onChange={(e) => setMinPct((m) => ({ ...m, [r.driver]: e.target.value }))}
+                          onChange={(e) =>
+                            setMinPct((m) => ({ ...m, [r.driver]: e.target.value }))
+                          }
                           placeholder="—"
                         />
                         <button
                           className="px-1.5 py-0.5 border rounded"
-                          onClick={() => setMinPct((m) => ({ ...m, [r.driver]: clamp((num(m[r.driver]) || 0) + 5, 0, 100) }))}
+                          onClick={() =>
+                            setMinPct((m) => ({
+                              ...m,
+                              [r.driver]: clamp((num(m[r.driver]) || 0) + 5, 0, 100),
+                            }))
+                          }
                           title="+5%"
                         >
                           +
@@ -1033,7 +1165,12 @@ export default function CupOptimizer() {
                       <div className="inline-flex items-center gap-1">
                         <button
                           className="px-1.5 py-0.5 border rounded"
-                          onClick={() => setMaxPct((m) => ({ ...m, [r.driver]: clamp((num(m[r.driver]) || 100) - 5, 0, 100) }))}
+                          onClick={() =>
+                            setMaxPct((m) => ({
+                              ...m,
+                              [r.driver]: clamp((num(m[r.driver]) || 100) - 5, 0, 100),
+                            }))
+                          }
                           title="-5%"
                         >
                           –
@@ -1041,12 +1178,19 @@ export default function CupOptimizer() {
                         <input
                           className="w-12 border rounded px-1.5 py-0.5 text-center"
                           value={String(maxPct[r.driver] ?? "")}
-                          onChange={(e) => setMaxPct((m) => ({ ...m, [r.driver]: e.target.value }))}
+                          onChange={(e) =>
+                            setMaxPct((m) => ({ ...m, [r.driver]: e.target.value }))
+                          }
                           placeholder="—"
                         />
                         <button
                           className="px-1.5 py-0.5 border rounded"
-                          onClick={() => setMaxPct((m) => ({ ...m, [r.driver]: clamp((num(m[r.driver]) || 100) + 5, 0, 100) }))}
+                          onClick={() =>
+                            setMaxPct((m) => ({
+                              ...m,
+                              [r.driver]: clamp((num(m[r.driver]) || 100) + 5, 0, 100),
+                            }))
+                          }
                           title="+5%"
                         >
                           +
@@ -1054,7 +1198,7 @@ export default function CupOptimizer() {
                       </div>
                     </td>
 
-                    {/* Usage% (new column) */}
+                    {/* Usage% */}
                     <td className={cell}>
                       {usagePct[r.driver] != null ? fmt1(usagePct[r.driver]) : "—"}
                     </td>
@@ -1081,7 +1225,10 @@ export default function CupOptimizer() {
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-base font-bold">Lineups ({lineups.length})</h2>
               <div className="flex items-center gap-2">
-                <button className="px-3 py-1.5 border rounded text-sm" onClick={() => downloadPlainCSV(lineups)}>
+                <button
+                  className="px-3 py-1.5 border rounded text-sm"
+                  onClick={() => downloadPlainCSV(lineups)}
+                >
                   Export CSV
                 </button>
                 <button
@@ -1106,7 +1253,9 @@ export default function CupOptimizer() {
                   <tr>
                     <th className={header}>#</th>
                     <th className={header}>Salary</th>
-                    <th className={header}>Total {optBy === "pown" || optBy === "opt" ? "Projection" : metricLabel}</th>
+                    <th className={header}>
+                      Total {optBy === "pown" || optBy === "opt" ? "Projection" : metricLabel}
+                    </th>
                     <th className={header}>Drivers</th>
                   </tr>
                 </thead>
@@ -1130,7 +1279,10 @@ export default function CupOptimizer() {
           <section className="lg:col-span-4 rounded-lg border bg-white p-3">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-base font-semibold">Exposure</h3>
-              <button className="px-3 py-1.5 border rounded text-sm" onClick={() => downloadExposuresCSV(lineups)}>
+              <button
+                className="px-3 py-1.5 border rounded text-sm"
+                onClick={() => downloadExposuresCSV(lineups)}
+              >
                 Export Exposures
               </button>
             </div>
@@ -1143,7 +1295,10 @@ export default function CupOptimizer() {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
               {lineups.map((L, idx) => {
                 const chosenSorted = [...L.chosen].sort((a, b) => b.salary - a.salary);
-                const totalPownPct = chosenSorted.reduce((acc, r) => acc + (r.pown || 0) * 100, 0); // NEW total pOWN%
+                const totalPownPct = chosenSorted.reduce(
+                  (acc, r) => acc + (r.pown || 0) * 100,
+                  0
+                );
 
                 return (
                   <div key={idx} className="rounded-lg border p-3 bg-white">
@@ -1176,7 +1331,7 @@ export default function CupOptimizer() {
                         <tr className="border-t">
                           <td className={`${cell} font-semibold`}>Totals</td>
                           <td className={cell} />
-                          <td className={`${cell} tabular-nums font-semibold`}>{fmt1(totalPownPct)}</td> {/* NEW total pOWN% */}
+                          <td className={`${cell} tabular-nums font-semibold`}>{fmt1(totalPownPct)}</td>
                           <td className={`${cell} tabular-nums font-semibold`}>{fmt1(L.total)}</td>
                           <td className={`${cell} tabular-nums font-semibold`}>{fmt0(L.salary)}</td>
                         </tr>
