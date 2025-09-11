@@ -12,63 +12,63 @@
       "rows": [
         {
           "Driver": "Corey Heim",
-          "Qual": 3,
-          "DK Sal": "13.0k",
-          "Value": 69.58
+          "Qual": 2,
+          "DK Sal": "14.0k",
+          "Value": 75.95
         },
         {
           "Driver": "Layne Riggs",
-          "Qual": 1,
-          "DK Sal": "11.5k",
-          "Value": 61.73
-        },
-        {
-          "Driver": "Ty Majeski",
-          "Qual": 8,
-          "DK Sal": "11.0k",
-          "Value": 45.66
+          "Qual": 7,
+          "DK Sal": "12.0k",
+          "Value": 60.06
         },
         {
           "Driver": "Chandler Smith",
-          "Qual": 2,
-          "DK Sal": "9.5k",
-          "Value": 42.86
+          "Qual": 8,
+          "DK Sal": "10.5k",
+          "Value": 42.55
         },
         {
-          "Driver": "Grant Enfinger",
-          "Qual": 4,
-          "DK Sal": "9.0k",
-          "Value": 38.69
-        },
-        {
-          "Driver": "Ben Rhodes",
-          "Qual": 21,
-          "DK Sal": "8.0k",
-          "Value": 36.34
-        },
-        {
-          "Driver": "Daniel Hemric",
-          "Qual": 7,
-          "DK Sal": "9.2k",
-          "Value": 35.04
+          "Driver": "Ty Majeski",
+          "Qual": 6,
+          "DK Sal": "10.0k",
+          "Value": 41.78
         },
         {
           "Driver": "Kaden Honeycutt",
-          "Qual": 5,
-          "DK Sal": "8.2k",
-          "Value": 34.41
-        },
-        {
-          "Driver": "Corey LaJoie",
-          "Qual": 9,
-          "DK Sal": "8.7k",
-          "Value": 33.2
+          "Qual": 4,
+          "DK Sal": "9.2k",
+          "Value": 36.49
         },
         {
           "Driver": "Tyler Ankrum",
-          "Qual": 10,
-          "DK Sal": "8.5k",
-          "Value": 32.95
+          "Qual": 3,
+          "DK Sal": "9.5k",
+          "Value": 36.2
+        },
+        {
+          "Driver": "Jake Garcia",
+          "Qual": 1,
+          "DK Sal": "7.8k",
+          "Value": 34.96
+        },
+        {
+          "Driver": "Matt Crafton",
+          "Qual": 20,
+          "DK Sal": "7.1k",
+          "Value": 34.65
+        },
+        {
+          "Driver": "Grant Enfinger",
+          "Qual": 9,
+          "DK Sal": "9.0k",
+          "Value": 34.33
+        },
+        {
+          "Driver": "Ben Rhodes",
+          "Qual": 19,
+          "DK Sal": "8.0k",
+          "Value": 33.52
         }
       ]
     },
@@ -84,63 +84,63 @@
       "rows": [
         {
           "Driver": "Corey Heim",
-          "Qual": 3,
+          "Qual": 2,
           "FD Sal": "10.0k",
-          "Value": 58.62
+          "Value": 65.18
         },
         {
           "Driver": "Layne Riggs",
-          "Qual": 1,
+          "Qual": 7,
           "FD Sal": "10.0k",
-          "Value": 56.13
-        },
-        {
-          "Driver": "Ty Majeski",
-          "Qual": 8,
-          "FD Sal": "10.0k",
-          "Value": 53.77
+          "Value": 63.57
         },
         {
           "Driver": "Chandler Smith",
-          "Qual": 2,
+          "Qual": 8,
           "FD Sal": "10.0k",
-          "Value": 51.08
+          "Value": 58.38
         },
         {
-          "Driver": "Grant Enfinger",
-          "Qual": 4,
+          "Driver": "Ty Majeski",
+          "Qual": 6,
           "FD Sal": "10.0k",
-          "Value": 49.74
-        },
-        {
-          "Driver": "Daniel Hemric",
-          "Qual": 7,
-          "FD Sal": "10.0k",
-          "Value": 47.64
-        },
-        {
-          "Driver": "Kaden Honeycutt",
-          "Qual": 5,
-          "FD Sal": "10.0k",
-          "Value": 46.83
-        },
-        {
-          "Driver": "Corey LaJoie",
-          "Qual": 9,
-          "FD Sal": "10.0k",
-          "Value": 46.51
+          "Value": 57.99
         },
         {
           "Driver": "Tyler Ankrum",
-          "Qual": 10,
+          "Qual": 3,
           "FD Sal": "10.0k",
-          "Value": 45.85
+          "Value": 56.87
+        },
+        {
+          "Driver": "Kaden Honeycutt",
+          "Qual": 4,
+          "FD Sal": "10.0k",
+          "Value": 56.21
+        },
+        {
+          "Driver": "Grant Enfinger",
+          "Qual": 9,
+          "FD Sal": "10.0k",
+          "Value": 55.77
+        },
+        {
+          "Driver": "Matt Crafton",
+          "Qual": 20,
+          "FD Sal": "10.0k",
+          "Value": 54.89
+        },
+        {
+          "Driver": "Daniel Hemric",
+          "Qual": 11,
+          "FD Sal": "10.0k",
+          "Value": 54.63
         },
         {
           "Driver": "Ben Rhodes",
-          "Qual": 21,
+          "Qual": 19,
           "FD Sal": "10.0k",
-          "Value": 45.76
+          "Value": 54.27
         }
       ]
     },
@@ -155,53 +155,53 @@
       "rows": [
         {
           "Driver": "Corey Heim",
-          "Qual": 3,
-          "Value": "28.2%"
+          "Qual": 2,
+          "Value": "13.9%"
         },
         {
           "Driver": "Layne Riggs",
-          "Qual": 1,
-          "Value": "23.8%"
+          "Qual": 7,
+          "Value": "13.1%"
+        },
+        {
+          "Driver": "Tyler Ankrum",
+          "Qual": 3,
+          "Value": "10.0%"
         },
         {
           "Driver": "Ty Majeski",
-          "Qual": 8,
-          "Value": "12.6%"
+          "Qual": 6,
+          "Value": "8.5%"
         },
         {
-          "Driver": "Chandler Smith",
-          "Qual": 2,
-          "Value": "11.9%"
-        },
-        {
-          "Driver": "Grant Enfinger",
+          "Driver": "Kaden Honeycutt",
           "Qual": 4,
           "Value": "7.7%"
         },
         {
-          "Driver": "Daniel Hemric",
-          "Qual": 7,
-          "Value": "3.5%"
+          "Driver": "Chandler Smith",
+          "Qual": 8,
+          "Value": "7.6%"
         },
         {
-          "Driver": "Kaden Honeycutt",
-          "Qual": 5,
-          "Value": "3.4%"
-        },
-        {
-          "Driver": "Corey LaJoie",
+          "Driver": "Grant Enfinger",
           "Qual": 9,
-          "Value": "2.3%"
+          "Value": "5.3%"
         },
         {
-          "Driver": "Tyler Ankrum",
-          "Qual": 10,
-          "Value": "1.6%"
+          "Driver": "Jake Garcia",
+          "Qual": 1,
+          "Value": "4.7%"
         },
         {
-          "Driver": "Giovanni Ruggiero",
-          "Qual": 6,
-          "Value": "1.5%"
+          "Driver": "Daniel Hemric",
+          "Qual": 11,
+          "Value": "4.2%"
+        },
+        {
+          "Driver": "Corey Day",
+          "Qual": 5,
+          "Value": "3.3%"
         }
       ]
     },
@@ -216,64 +216,64 @@
       ],
       "rows": [
         {
-          "Driver": "Layne Riggs",
-          "Qual": 1,
-          "DK Sal": "11.5k",
-          "Value": 5.37
-        },
-        {
           "Driver": "Corey Heim",
-          "Qual": 3,
-          "DK Sal": "13.0k",
-          "Value": 5.35
-        },
-        {
-          "Driver": "Toni Breidinger",
-          "Qual": 29,
-          "DK Sal": "5.5k",
-          "Value": 4.77
-        },
-        {
-          "Driver": "Ben Rhodes",
-          "Qual": 21,
-          "DK Sal": "8.0k",
-          "Value": 4.54
-        },
-        {
-          "Driver": "Chandler Smith",
           "Qual": 2,
-          "DK Sal": "9.5k",
-          "Value": 4.51
+          "DK Sal": "14.0k",
+          "Value": 5.42
+        },
+        {
+          "Driver": "Caleb Costner",
+          "Qual": 36,
+          "DK Sal": "4.6k",
+          "Value": 5.26
+        },
+        {
+          "Driver": "Layne Riggs",
+          "Qual": 7,
+          "DK Sal": "12.0k",
+          "Value": 5
+        },
+        {
+          "Driver": "Spencer Boyd",
+          "Qual": 33,
+          "DK Sal": "5.1k",
+          "Value": 5
         },
         {
           "Driver": "Jack Wood",
-          "Qual": 25,
-          "DK Sal": "6.1k",
-          "Value": 4.5
+          "Qual": 22,
+          "DK Sal": "6.0k",
+          "Value": 4.97
         },
         {
-          "Driver": "Bayley Currey",
-          "Qual": 17,
-          "DK Sal": "6.7k",
-          "Value": 4.49
+          "Driver": "Stefan Parsons",
+          "Qual": 26,
+          "DK Sal": "5.8k",
+          "Value": 4.96
         },
         {
           "Driver": "Matt Crafton",
-          "Qual": 22,
-          "DK Sal": "7.0k",
-          "Value": 4.43
-        },
-        {
-          "Driver": "Andres Perez De Lara",
           "Qual": 20,
-          "DK Sal": "6.4k",
-          "Value": 4.33
+          "DK Sal": "7.1k",
+          "Value": 4.88
         },
         {
-          "Driver": "Grant Enfinger",
-          "Qual": 4,
-          "DK Sal": "9.0k",
-          "Value": 4.3
+          "Driver": "Clayton Green",
+          "Qual": 35,
+          "DK Sal": "4.8k",
+          "Value": 4.87
+        },
+        {
+          "Driver": "Toni Breidinger",
+          "Qual": 31,
+          "DK Sal": "5.2k",
+          "Value": 4.86
+        },
+        {
+          "Driver": "Josh Reaume",
+          "Qual": 32,
+          "DK Sal": "4.9k",
+          "Value": 4.72
         }
       ]
     },
@@ -289,63 +289,63 @@
       "rows": [
         {
           "Driver": "Corey Heim",
-          "Qual": 3,
+          "Qual": 2,
           "FD Sal": "10.0k",
-          "Value": 5.86
+          "Value": 6.52
         },
         {
           "Driver": "Layne Riggs",
-          "Qual": 1,
+          "Qual": 7,
           "FD Sal": "10.0k",
-          "Value": 5.61
-        },
-        {
-          "Driver": "Ty Majeski",
-          "Qual": 8,
-          "FD Sal": "10.0k",
-          "Value": 5.38
+          "Value": 6.36
         },
         {
           "Driver": "Chandler Smith",
-          "Qual": 2,
+          "Qual": 8,
           "FD Sal": "10.0k",
-          "Value": 5.11
+          "Value": 5.84
         },
         {
-          "Driver": "Grant Enfinger",
-          "Qual": 4,
+          "Driver": "Ty Majeski",
+          "Qual": 6,
           "FD Sal": "10.0k",
-          "Value": 4.97
-        },
-        {
-          "Driver": "Daniel Hemric",
-          "Qual": 7,
-          "FD Sal": "10.0k",
-          "Value": 4.76
-        },
-        {
-          "Driver": "Kaden Honeycutt",
-          "Qual": 5,
-          "FD Sal": "10.0k",
-          "Value": 4.68
-        },
-        {
-          "Driver": "Corey LaJoie",
-          "Qual": 9,
-          "FD Sal": "10.0k",
-          "Value": 4.65
+          "Value": 5.8
         },
         {
           "Driver": "Tyler Ankrum",
-          "Qual": 10,
+          "Qual": 3,
           "FD Sal": "10.0k",
-          "Value": 4.58
+          "Value": 5.69
+        },
+        {
+          "Driver": "Kaden Honeycutt",
+          "Qual": 4,
+          "FD Sal": "10.0k",
+          "Value": 5.62
+        },
+        {
+          "Driver": "Grant Enfinger",
+          "Qual": 9,
+          "FD Sal": "10.0k",
+          "Value": 5.58
+        },
+        {
+          "Driver": "Matt Crafton",
+          "Qual": 20,
+          "FD Sal": "10.0k",
+          "Value": 5.49
+        },
+        {
+          "Driver": "Daniel Hemric",
+          "Qual": 11,
+          "FD Sal": "10.0k",
+          "Value": 5.46
         },
         {
           "Driver": "Ben Rhodes",
-          "Qual": 21,
+          "Qual": 19,
           "FD Sal": "10.0k",
-          "Value": 4.58
+          "Value": 5.43
         }
       ]
     },
@@ -360,53 +360,53 @@
       "rows": [
         {
           "Driver": "Corey Heim",
-          "Qual": 3,
-          "Value": "60.3%"
+          "Qual": 2,
+          "Value": "33.9%"
         },
         {
           "Driver": "Layne Riggs",
-          "Qual": 1,
-          "Value": "55.3%"
-        },
-        {
-          "Driver": "Ty Majeski",
-          "Qual": 8,
-          "Value": "38.4%"
-        },
-        {
-          "Driver": "Chandler Smith",
-          "Qual": 2,
-          "Value": "36.0%"
-        },
-        {
-          "Driver": "Grant Enfinger",
-          "Qual": 4,
-          "Value": "27.3%"
-        },
-        {
-          "Driver": "Kaden Honeycutt",
-          "Qual": 5,
-          "Value": "15.4%"
-        },
-        {
-          "Driver": "Daniel Hemric",
           "Qual": 7,
-          "Value": "15.3%"
-        },
-        {
-          "Driver": "Corey LaJoie",
-          "Qual": 9,
-          "Value": "10.6%"
+          "Value": "32.4%"
         },
         {
           "Driver": "Tyler Ankrum",
-          "Qual": 10,
-          "Value": "8.4%"
+          "Qual": 3,
+          "Value": "26.5%"
         },
         {
-          "Driver": "Giovanni Ruggiero",
+          "Driver": "Ty Majeski",
           "Qual": 6,
-          "Value": "7.4%"
+          "Value": "23.0%"
+        },
+        {
+          "Driver": "Kaden Honeycutt",
+          "Qual": 4,
+          "Value": "22.1%"
+        },
+        {
+          "Driver": "Chandler Smith",
+          "Qual": 8,
+          "Value": "21.7%"
+        },
+        {
+          "Driver": "Grant Enfinger",
+          "Qual": 9,
+          "Value": "16.3%"
+        },
+        {
+          "Driver": "Jake Garcia",
+          "Qual": 1,
+          "Value": "14.6%"
+        },
+        {
+          "Driver": "Daniel Hemric",
+          "Qual": 11,
+          "Value": "13.4%"
+        },
+        {
+          "Driver": "Corey Day",
+          "Qual": 5,
+          "Value": "11.3%"
         }
       ]
     },
@@ -421,64 +421,64 @@
       ],
       "rows": [
         {
-          "Driver": "Corey Heim",
-          "Qual": 3,
-          "DK Sal": "13.0k",
-          "Value": 33.98
-        },
-        {
-          "Driver": "Layne Riggs",
-          "Qual": 1,
-          "DK Sal": "11.5k",
-          "Value": 26.23
-        },
-        {
-          "Driver": "Ty Majeski",
-          "Qual": 8,
-          "DK Sal": "11.0k",
-          "Value": 15.43
-        },
-        {
-          "Driver": "Stephen Mallozzi",
-          "Qual": 32,
-          "DK Sal": "5.2k",
-          "Value": 13
-        },
-        {
-          "Driver": "Clayton Green",
-          "Qual": 31,
-          "DK Sal": "5.1k",
-          "Value": 12
-        },
-        {
-          "Driver": "Chandler Smith",
-          "Qual": 2,
-          "DK Sal": "9.5k",
-          "Value": 11.97
-        },
-        {
           "Driver": "Caleb Costner",
-          "Qual": 30,
-          "DK Sal": "5.0k",
+          "Qual": 36,
+          "DK Sal": "4.6k",
           "Value": 11
         },
         {
-          "Driver": "Toni Breidinger",
-          "Qual": 29,
-          "DK Sal": "5.5k",
+          "Driver": "Corey Heim",
+          "Qual": 2,
+          "DK Sal": "14.0k",
+          "Value": 10.13
+        },
+        {
+          "Driver": "Clayton Green",
+          "Qual": 35,
+          "DK Sal": "4.8k",
           "Value": 10
         },
         {
-          "Driver": "Ben Rhodes",
-          "Qual": 21,
-          "DK Sal": "8.0k",
-          "Value": 9.94
+          "Driver": "Norm Benning",
+          "Qual": 34,
+          "DK Sal": "4.5k",
+          "Value": 9
         },
         {
-          "Driver": "Grant Enfinger",
-          "Qual": 4,
-          "DK Sal": "9.0k",
-          "Value": 9.33
+          "Driver": "Spencer Boyd",
+          "Qual": 33,
+          "DK Sal": "5.1k",
+          "Value": 8
+        },
+        {
+          "Driver": "Josh Reaume",
+          "Qual": 32,
+          "DK Sal": "4.9k",
+          "Value": 7
+        },
+        {
+          "Driver": "Toni Breidinger",
+          "Qual": 31,
+          "DK Sal": "5.2k",
+          "Value": 6
+        },
+        {
+          "Driver": "Greg Van Alst",
+          "Qual": 30,
+          "DK Sal": "4.7k",
+          "Value": 5
+        },
+        {
+          "Driver": "Mason Maggio",
+          "Qual": 29,
+          "DK Sal": "5.5k",
+          "Value": 4
+        },
+        {
+          "Driver": "Conner Jones",
+          "Qual": 27,
+          "DK Sal": "6.7k",
+          "Value": 2
         }
       ]
     },
@@ -493,64 +493,64 @@
       ],
       "rows": [
         {
-          "Driver": "Corey Heim",
-          "Qual": 3,
+          "Driver": "Caleb Costner",
+          "Qual": 36,
           "FD Sal": "10.0k",
-          "Value": 39.7
+          "Value": 33.5
         },
         {
-          "Driver": "Layne Riggs",
-          "Qual": 1,
+          "Driver": "Clayton Green",
+          "Qual": 35,
           "FD Sal": "10.0k",
-          "Value": 36.54
+          "Value": 33
         },
         {
-          "Driver": "Ty Majeski",
-          "Qual": 8,
+          "Driver": "Norm Benning",
+          "Qual": 34,
           "FD Sal": "10.0k",
-          "Value": 33.52
+          "Value": 32.5
         },
         {
-          "Driver": "Chandler Smith",
-          "Qual": 2,
+          "Driver": "Spencer Boyd",
+          "Qual": 33,
           "FD Sal": "10.0k",
-          "Value": 31.28
+          "Value": 32
         },
         {
-          "Driver": "Grant Enfinger",
-          "Qual": 4,
+          "Driver": "Josh Reaume",
+          "Qual": 32,
           "FD Sal": "10.0k",
-          "Value": 29.69
+          "Value": 31.5
         },
         {
-          "Driver": "Daniel Hemric",
-          "Qual": 7,
+          "Driver": "Toni Breidinger",
+          "Qual": 31,
           "FD Sal": "10.0k",
-          "Value": 27.5
+          "Value": 31
         },
         {
-          "Driver": "Corey LaJoie",
-          "Qual": 9,
+          "Driver": "Greg Van Alst",
+          "Qual": 30,
           "FD Sal": "10.0k",
-          "Value": 26.82
+          "Value": 30.5
         },
         {
-          "Driver": "Kaden Honeycutt",
-          "Qual": 5,
+          "Driver": "Mason Maggio",
+          "Qual": 29,
           "FD Sal": "10.0k",
-          "Value": 26.54
+          "Value": 30
         },
         {
-          "Driver": "Ben Rhodes",
-          "Qual": 21,
+          "Driver": "Conner Jones",
+          "Qual": 27,
           "FD Sal": "10.0k",
-          "Value": 26.16
+          "Value": 29
         },
         {
-          "Driver": "Tyler Ankrum",
-          "Qual": 10,
+          "Driver": "Stefan Parsons",
+          "Qual": 26,
           "FD Sal": "10.0k",
-          "Value": 25.94
+          "Value": 28.5
         }
       ]
     },
@@ -565,53 +565,53 @@
       "rows": [
         {
           "Driver": "Corey Heim",
-          "Qual": 3,
-          "Value": "77.5%"
+          "Qual": 2,
+          "Value": "48.1%"
         },
         {
           "Driver": "Layne Riggs",
-          "Qual": 1,
-          "Value": "73.7%"
-        },
-        {
-          "Driver": "Ty Majeski",
-          "Qual": 8,
-          "Value": "58.2%"
-        },
-        {
-          "Driver": "Chandler Smith",
-          "Qual": 2,
-          "Value": "56.2%"
-        },
-        {
-          "Driver": "Grant Enfinger",
-          "Qual": 4,
-          "Value": "46.0%"
-        },
-        {
-          "Driver": "Daniel Hemric",
           "Qual": 7,
-          "Value": "30.2%"
-        },
-        {
-          "Driver": "Kaden Honeycutt",
-          "Qual": 5,
-          "Value": "29.9%"
-        },
-        {
-          "Driver": "Corey LaJoie",
-          "Qual": 9,
-          "Value": "23.0%"
+          "Value": "46.3%"
         },
         {
           "Driver": "Tyler Ankrum",
-          "Qual": 10,
-          "Value": "18.5%"
+          "Qual": 3,
+          "Value": "39.7%"
         },
         {
-          "Driver": "Giovanni Ruggiero",
+          "Driver": "Ty Majeski",
           "Qual": 6,
-          "Value": "17.1%"
+          "Value": "35.5%"
+        },
+        {
+          "Driver": "Kaden Honeycutt",
+          "Qual": 4,
+          "Value": "34.6%"
+        },
+        {
+          "Driver": "Chandler Smith",
+          "Qual": 8,
+          "Value": "33.8%"
+        },
+        {
+          "Driver": "Grant Enfinger",
+          "Qual": 9,
+          "Value": "27.0%"
+        },
+        {
+          "Driver": "Jake Garcia",
+          "Qual": 1,
+          "Value": "24.8%"
+        },
+        {
+          "Driver": "Daniel Hemric",
+          "Qual": 11,
+          "Value": "22.5%"
+        },
+        {
+          "Driver": "Corey Day",
+          "Qual": 5,
+          "Value": "20.3%"
         }
       ]
     },
@@ -627,63 +627,63 @@
       "rows": [
         {
           "Driver": "Corey Heim",
-          "Qual": 3,
-          "DK Sal": "13.0k",
-          "Value": 87.15
+          "Qual": 2,
+          "DK Sal": "14.0k",
+          "Value": 93.9
         },
         {
           "Driver": "Layne Riggs",
-          "Qual": 1,
-          "DK Sal": "11.5k",
-          "Value": 83.2
-        },
-        {
-          "Driver": "Ben Rhodes",
-          "Qual": 21,
-          "DK Sal": "8.0k",
-          "Value": 63.89
-        },
-        {
-          "Driver": "Matt Crafton",
-          "Qual": 22,
-          "DK Sal": "7.0k",
-          "Value": 59.52
+          "Qual": 7,
+          "DK Sal": "12.0k",
+          "Value": 74.58
         },
         {
           "Driver": "Chandler Smith",
-          "Qual": 2,
-          "DK Sal": "9.5k",
-          "Value": 59.41
-        },
-        {
-          "Driver": "Trevor Bayne",
-          "Qual": 16,
-          "DK Sal": "7.4k",
-          "Value": 59.26
+          "Qual": 8,
+          "DK Sal": "10.5k",
+          "Value": 53.72
         },
         {
           "Driver": "Ty Majeski",
-          "Qual": 8,
-          "DK Sal": "11.0k",
-          "Value": 59.07
+          "Qual": 6,
+          "DK Sal": "10.0k",
+          "Value": 52.24
         },
         {
-          "Driver": "Corey Day",
-          "Qual": 15,
+          "Driver": "Jake Garcia",
+          "Qual": 1,
+          "DK Sal": "7.8k",
+          "Value": 48.56
+        },
+        {
+          "Driver": "Kaden Honeycutt",
+          "Qual": 4,
+          "DK Sal": "9.2k",
+          "Value": 46.67
+        },
+        {
+          "Driver": "Tyler Ankrum",
+          "Qual": 3,
+          "DK Sal": "9.5k",
+          "Value": 45.17
+        },
+        {
+          "Driver": "Matt Crafton",
+          "Qual": 20,
           "DK Sal": "7.1k",
-          "Value": 58.93
+          "Value": 44.65
         },
         {
-          "Driver": "Bayley Currey",
-          "Qual": 17,
-          "DK Sal": "6.7k",
-          "Value": 58.49
+          "Driver": "Ben Rhodes",
+          "Qual": 19,
+          "DK Sal": "8.0k",
+          "Value": 43.26
         },
         {
-          "Driver": "Rajah Caruth",
-          "Qual": 11,
-          "DK Sal": "7.7k",
-          "Value": 57.31
+          "Driver": "Grant Enfinger",
+          "Qual": 9,
+          "DK Sal": "9.0k",
+          "Value": 43.14
         }
       ]
     },
@@ -698,64 +698,64 @@
       ],
       "rows": [
         {
-          "Driver": "Ben Rhodes",
-          "Qual": 21,
-          "FD Sal": "10.0k",
-          "Value": 65.29
-        },
-        {
           "Driver": "Corey Heim",
-          "Qual": 3,
+          "Qual": 2,
           "FD Sal": "10.0k",
-          "Value": 64.98
+          "Value": 71.06
         },
         {
           "Driver": "Layne Riggs",
-          "Qual": 1,
+          "Qual": 7,
           "FD Sal": "10.0k",
-          "Value": 63.64
+          "Value": 69.18
         },
         {
-          "Driver": "Trevor Bayne",
-          "Qual": 16,
+          "Driver": "Chandler Smith",
+          "Qual": 8,
           "FD Sal": "10.0k",
-          "Value": 63.31
+          "Value": 63.47
         },
         {
-          "Driver": "Corey Day",
-          "Qual": 15,
+          "Driver": "Ty Majeski",
+          "Qual": 6,
           "FD Sal": "10.0k",
-          "Value": 62.72
-        },
-        {
-          "Driver": "Bayley Currey",
-          "Qual": 17,
-          "FD Sal": "10.0k",
-          "Value": 62.35
-        },
-        {
-          "Driver": "Tanner Gray",
-          "Qual": 12,
-          "FD Sal": "10.0k",
-          "Value": 62.3
-        },
-        {
-          "Driver": "Rajah Caruth",
-          "Qual": 11,
-          "FD Sal": "10.0k",
-          "Value": 62.29
+          "Value": 62.74
         },
         {
           "Driver": "Matt Crafton",
-          "Qual": 22,
+          "Qual": 20,
           "FD Sal": "10.0k",
-          "Value": 62.02
+          "Value": 61.33
         },
         {
-          "Driver": "Jake Garcia",
-          "Qual": 13,
+          "Driver": "Kaden Honeycutt",
+          "Qual": 4,
           "FD Sal": "10.0k",
-          "Value": 62
+          "Value": 61.24
+        },
+        {
+          "Driver": "Tyler Ankrum",
+          "Qual": 3,
+          "FD Sal": "10.0k",
+          "Value": 61.11
+        },
+        {
+          "Driver": "Grant Enfinger",
+          "Qual": 9,
+          "FD Sal": "10.0k",
+          "Value": 60.65
+        },
+        {
+          "Driver": "Ben Rhodes",
+          "Qual": 19,
+          "FD Sal": "10.0k",
+          "Value": 60.48
+        },
+        {
+          "Driver": "Daniel Hemric",
+          "Qual": 11,
+          "FD Sal": "10.0k",
+          "Value": 60.15
         }
       ]
     },
@@ -770,53 +770,53 @@
       "rows": [
         {
           "Driver": "Corey Heim",
-          "Qual": 3,
-          "Value": "94.5%"
+          "Qual": 2,
+          "Value": "72.2%"
         },
         {
           "Driver": "Layne Riggs",
-          "Qual": 1,
-          "Value": "92.9%"
-        },
-        {
-          "Driver": "Ty Majeski",
-          "Qual": 8,
-          "Value": "85.9%"
-        },
-        {
-          "Driver": "Chandler Smith",
-          "Qual": 2,
-          "Value": "84.6%"
-        },
-        {
-          "Driver": "Grant Enfinger",
-          "Qual": 4,
-          "Value": "78.0%"
-        },
-        {
-          "Driver": "Daniel Hemric",
           "Qual": 7,
-          "Value": "63.8%"
-        },
-        {
-          "Driver": "Kaden Honeycutt",
-          "Qual": 5,
-          "Value": "63.5%"
-        },
-        {
-          "Driver": "Corey LaJoie",
-          "Qual": 9,
-          "Value": "55.1%"
+          "Value": "70.0%"
         },
         {
           "Driver": "Tyler Ankrum",
-          "Qual": 10,
-          "Value": "49.8%"
+          "Qual": 3,
+          "Value": "64.4%"
         },
         {
-          "Driver": "Giovanni Ruggiero",
+          "Driver": "Ty Majeski",
           "Qual": 6,
-          "Value": "47.5%"
+          "Value": "60.1%"
+        },
+        {
+          "Driver": "Kaden Honeycutt",
+          "Qual": 4,
+          "Value": "59.6%"
+        },
+        {
+          "Driver": "Chandler Smith",
+          "Qual": 8,
+          "Value": "58.6%"
+        },
+        {
+          "Driver": "Grant Enfinger",
+          "Qual": 9,
+          "Value": "51.3%"
+        },
+        {
+          "Driver": "Jake Garcia",
+          "Qual": 1,
+          "Value": "48.2%"
+        },
+        {
+          "Driver": "Daniel Hemric",
+          "Qual": 11,
+          "Value": "45.4%"
+        },
+        {
+          "Driver": "Corey Day",
+          "Qual": 5,
+          "Value": "41.8%"
         }
       ]
     },
@@ -832,63 +832,63 @@
       "rows": [
         {
           "Driver": "Corey Heim",
-          "Qual": 3,
-          "DK Sal": "13.0k",
-          "Value": 53.08
+          "Qual": 2,
+          "DK Sal": "14.0k",
+          "Value": 51.68
         },
         {
           "Driver": "Layne Riggs",
-          "Qual": 1,
-          "DK Sal": "11.5k",
-          "Value": 46.67
-        },
-        {
-          "Driver": "Ty Majeski",
-          "Qual": 8,
-          "DK Sal": "11.0k",
-          "Value": 30.17
-        },
-        {
-          "Driver": "Ben Rhodes",
-          "Qual": 21,
-          "DK Sal": "8.0k",
-          "Value": 30.07
-        },
-        {
-          "Driver": "Chandler Smith",
-          "Qual": 2,
-          "DK Sal": "9.5k",
-          "Value": 29.04
-        },
-        {
-          "Driver": "Toni Breidinger",
-          "Qual": 29,
-          "DK Sal": "5.5k",
-          "Value": 26.06
-        },
-        {
-          "Driver": "Grant Enfinger",
-          "Qual": 4,
-          "DK Sal": "9.0k",
-          "Value": 24.73
-        },
-        {
-          "Driver": "Bayley Currey",
-          "Qual": 17,
-          "DK Sal": "6.7k",
-          "Value": 23.76
+          "Qual": 7,
+          "DK Sal": "12.0k",
+          "Value": 41.45
         },
         {
           "Driver": "Matt Crafton",
-          "Qual": 22,
-          "DK Sal": "7.0k",
-          "Value": 23.19
+          "Qual": 20,
+          "DK Sal": "7.1k",
+          "Value": 27.5
         },
         {
-          "Driver": "Trevor Bayne",
-          "Qual": 16,
-          "DK Sal": "7.4k",
-          "Value": 21.43
+          "Driver": "Chandler Smith",
+          "Qual": 8,
+          "DK Sal": "10.5k",
+          "Value": 23.89
+        },
+        {
+          "Driver": "Ty Majeski",
+          "Qual": 6,
+          "DK Sal": "10.0k",
+          "Value": 23.87
+        },
+        {
+          "Driver": "Jack Wood",
+          "Qual": 22,
+          "DK Sal": "6.0k",
+          "Value": 22.62
+        },
+        {
+          "Driver": "Ben Rhodes",
+          "Qual": 19,
+          "DK Sal": "8.0k",
+          "Value": 21.49
+        },
+        {
+          "Driver": "Stefan Parsons",
+          "Qual": 26,
+          "DK Sal": "5.8k",
+          "Value": 21.41
+        },
+        {
+          "Driver": "Connor Mosack",
+          "Qual": 23,
+          "DK Sal": "6.9k",
+          "Value": 21.03
+        },
+        {
+          "Driver": "Caleb Costner",
+          "Qual": 36,
+          "DK Sal": "4.6k",
+          "Value": 20.39
         }
       ]
     },
@@ -904,63 +904,63 @@
       "rows": [
         {
           "Driver": "Corey Heim",
-          "Qual": 3,
+          "Qual": 2,
           "FD Sal": "10.0k",
-          "Value": 54.08
+          "Value": 44.82
         },
         {
           "Driver": "Layne Riggs",
-          "Qual": 1,
+          "Qual": 7,
           "FD Sal": "10.0k",
-          "Value": 46.42
-        },
-        {
-          "Driver": "Ty Majeski",
-          "Qual": 8,
-          "FD Sal": "10.0k",
-          "Value": 41.87
+          "Value": 42.46
         },
         {
           "Driver": "Chandler Smith",
-          "Qual": 2,
+          "Qual": 8,
           "FD Sal": "10.0k",
-          "Value": 33.62
+          "Value": 28.83
         },
         {
-          "Driver": "Grant Enfinger",
-          "Qual": 4,
+          "Driver": "Ty Majeski",
+          "Qual": 6,
           "FD Sal": "10.0k",
-          "Value": 30.52
-        },
-        {
-          "Driver": "Daniel Hemric",
-          "Qual": 7,
-          "FD Sal": "10.0k",
-          "Value": 25.58
-        },
-        {
-          "Driver": "Kaden Honeycutt",
-          "Qual": 5,
-          "FD Sal": "10.0k",
-          "Value": 23.55
-        },
-        {
-          "Driver": "Corey LaJoie",
-          "Qual": 9,
-          "FD Sal": "10.0k",
-          "Value": 23.1
+          "Value": 27.75
         },
         {
           "Driver": "Tyler Ankrum",
-          "Qual": 10,
+          "Qual": 3,
           "FD Sal": "10.0k",
-          "Value": 21.58
+          "Value": 25.31
+        },
+        {
+          "Driver": "Kaden Honeycutt",
+          "Qual": 4,
+          "FD Sal": "10.0k",
+          "Value": 23.57
+        },
+        {
+          "Driver": "Grant Enfinger",
+          "Qual": 9,
+          "FD Sal": "10.0k",
+          "Value": 22.96
+        },
+        {
+          "Driver": "Matt Crafton",
+          "Qual": 20,
+          "FD Sal": "10.0k",
+          "Value": 21.21
+        },
+        {
+          "Driver": "Daniel Hemric",
+          "Qual": 11,
+          "FD Sal": "10.0k",
+          "Value": 20.52
         },
         {
           "Driver": "Ben Rhodes",
-          "Qual": 21,
+          "Qual": 19,
           "FD Sal": "10.0k",
-          "Value": 21.39
+          "Value": 19.77
         }
       ]
     },
@@ -974,54 +974,54 @@
       ],
       "rows": [
         {
-          "Driver": "Chandler Smith",
-          "Qual": 2,
-          "Value": 0.0015
+          "Driver": "Tyler Ankrum",
+          "Qual": 3,
+          "Value": 0.0329
         },
         {
-          "Driver": "Stephen Mallozzi",
-          "Qual": 32,
-          "Value": -0.0007
+          "Driver": "Tanner Gray",
+          "Qual": 17,
+          "Value": 0.0079
         },
         {
-          "Driver": "Clayton Green",
-          "Qual": 31,
-          "Value": -0.002
-        },
-        {
-          "Driver": "Stefan Parsons",
-          "Qual": 24,
-          "Value": -0.0032
-        },
-        {
-          "Driver": "Timmy Hill",
-          "Qual": 23,
-          "Value": -0.0033
-        },
-        {
-          "Driver": "Caleb Costner",
-          "Qual": 30,
-          "Value": -0.0033
-        },
-        {
-          "Driver": "Spencer Boyd",
-          "Qual": 26,
-          "Value": -0.004
-        },
-        {
-          "Driver": "Nathan Byrd",
-          "Qual": 28,
-          "Value": -0.004
-        },
-        {
-          "Driver": "Mason Maggio",
-          "Qual": 27,
-          "Value": -0.004
+          "Driver": "Grant Enfinger",
+          "Qual": 9,
+          "Value": 0.0056
         },
         {
           "Driver": "Jack Wood",
-          "Qual": 25,
-          "Value": -0.005
+          "Qual": 22,
+          "Value": 0.0043
+        },
+        {
+          "Driver": "Stefan Parsons",
+          "Qual": 26,
+          "Value": 0.0029
+        },
+        {
+          "Driver": "Giovanni Ruggiero",
+          "Qual": 14,
+          "Value": 0.0026
+        },
+        {
+          "Driver": "Cole Butcher",
+          "Qual": 21,
+          "Value": 0.0021
+        },
+        {
+          "Driver": "Andres Perez De Lara",
+          "Qual": 16,
+          "Value": 0.0018
+        },
+        {
+          "Driver": "Connor Mosack",
+          "Qual": 23,
+          "Value": 0.0013
+        },
+        {
+          "Driver": "Dawson Sutton",
+          "Qual": 12,
+          "Value": 0.0003
         }
       ]
     },
@@ -1037,63 +1037,63 @@
       "rows": [
         {
           "Driver": "Corey Heim",
-          "Qual": 3,
-          "DK Sal": "13.0k",
-          "Value": 53.51
+          "Qual": 2,
+          "DK Sal": "14.0k",
+          "Value": 60.92
         },
         {
           "Driver": "Layne Riggs",
-          "Qual": 1,
-          "DK Sal": "11.5k",
-          "Value": 51.06
-        },
-        {
-          "Driver": "Chandler Smith",
-          "Qual": 2,
-          "DK Sal": "9.5k",
-          "Value": 31.45
-        },
-        {
-          "Driver": "Ben Rhodes",
-          "Qual": 21,
-          "DK Sal": "8.0k",
-          "Value": 28.26
-        },
-        {
-          "Driver": "Toni Breidinger",
-          "Qual": 29,
-          "DK Sal": "5.5k",
-          "Value": 24.95
-        },
-        {
-          "Driver": "Grant Enfinger",
-          "Qual": 4,
-          "DK Sal": "9.0k",
-          "Value": 24.85
-        },
-        {
-          "Driver": "Bayley Currey",
-          "Qual": 17,
-          "DK Sal": "6.7k",
-          "Value": 23.85
+          "Qual": 7,
+          "DK Sal": "12.0k",
+          "Value": 46.29
         },
         {
           "Driver": "Matt Crafton",
+          "Qual": 20,
+          "DK Sal": "7.1k",
+          "Value": 30.43
+        },
+        {
+          "Driver": "Jack Wood",
           "Qual": 22,
-          "DK Sal": "7.0k",
-          "Value": 23.55
+          "DK Sal": "6.0k",
+          "Value": 25.62
         },
         {
           "Driver": "Ty Majeski",
-          "Qual": 8,
-          "DK Sal": "11.0k",
-          "Value": 23.42
+          "Qual": 6,
+          "DK Sal": "10.0k",
+          "Value": 25.05
         },
         {
-          "Driver": "Kaden Honeycutt",
-          "Qual": 5,
-          "DK Sal": "8.2k",
-          "Value": 21.75
+          "Driver": "Jake Garcia",
+          "Qual": 1,
+          "DK Sal": "7.8k",
+          "Value": 24.33
+        },
+        {
+          "Driver": "Stefan Parsons",
+          "Qual": 26,
+          "DK Sal": "5.8k",
+          "Value": 24.05
+        },
+        {
+          "Driver": "Chandler Smith",
+          "Qual": 8,
+          "DK Sal": "10.5k",
+          "Value": 22.13
+        },
+        {
+          "Driver": "Connor Mosack",
+          "Qual": 23,
+          "DK Sal": "6.9k",
+          "Value": 21.19
+        },
+        {
+          "Driver": "Caleb Costner",
+          "Qual": 36,
+          "DK Sal": "4.6k",
+          "Value": 21.04
         }
       ]
     },
@@ -1109,63 +1109,63 @@
       "rows": [
         {
           "Driver": "Corey Heim",
-          "Qual": 3,
+          "Qual": 2,
           "FD Sal": "10.0k",
-          "Value": 69.14
+          "Value": 55.65
         },
         {
           "Driver": "Layne Riggs",
-          "Qual": 1,
+          "Qual": 7,
           "FD Sal": "10.0k",
-          "Value": 61.88
-        },
-        {
-          "Driver": "Ty Majeski",
-          "Qual": 8,
-          "FD Sal": "10.0k",
-          "Value": 53.31
+          "Value": 51.09
         },
         {
           "Driver": "Chandler Smith",
-          "Qual": 2,
+          "Qual": 8,
           "FD Sal": "10.0k",
-          "Value": 42.41
+          "Value": 31.96
         },
         {
-          "Driver": "Grant Enfinger",
-          "Qual": 4,
+          "Driver": "Ty Majeski",
+          "Qual": 6,
           "FD Sal": "10.0k",
-          "Value": 36.95
-        },
-        {
-          "Driver": "Daniel Hemric",
-          "Qual": 7,
-          "FD Sal": "10.0k",
-          "Value": 28.79
-        },
-        {
-          "Driver": "Kaden Honeycutt",
-          "Qual": 5,
-          "FD Sal": "10.0k",
-          "Value": 24.92
-        },
-        {
-          "Driver": "Corey LaJoie",
-          "Qual": 9,
-          "FD Sal": "10.0k",
-          "Value": 24.7
+          "Value": 31.56
         },
         {
           "Driver": "Tyler Ankrum",
-          "Qual": 10,
+          "Qual": 3,
           "FD Sal": "10.0k",
-          "Value": 22.09
+          "Value": 27.18
+        },
+        {
+          "Driver": "Kaden Honeycutt",
+          "Qual": 4,
+          "FD Sal": "10.0k",
+          "Value": 25.21
+        },
+        {
+          "Driver": "Grant Enfinger",
+          "Qual": 9,
+          "FD Sal": "10.0k",
+          "Value": 24.4
+        },
+        {
+          "Driver": "Matt Crafton",
+          "Qual": 20,
+          "FD Sal": "10.0k",
+          "Value": 21.91
         },
         {
           "Driver": "Ben Rhodes",
-          "Qual": 21,
+          "Qual": 19,
           "FD Sal": "10.0k",
-          "Value": 21.12
+          "Value": 20.55
+        },
+        {
+          "Driver": "Daniel Hemric",
+          "Qual": 11,
+          "FD Sal": "10.0k",
+          "Value": 20.35
         }
       ]
     },
@@ -1179,54 +1179,54 @@
       ],
       "rows": [
         {
-          "Driver": "Clayton Green",
-          "Qual": 31,
-          "Value": -0.0116
-        },
-        {
-          "Driver": "Stefan Parsons",
-          "Qual": 24,
-          "Value": -0.0118
-        },
-        {
-          "Driver": "Timmy Hill",
-          "Qual": 23,
-          "Value": -0.019
+          "Driver": "Corey Heim",
+          "Qual": 2,
+          "Value": 0.3387
         },
         {
           "Driver": "Layne Riggs",
-          "Qual": 1,
-          "Value": -0.0305
+          "Qual": 7,
+          "Value": 0.324
+        },
+        {
+          "Driver": "Tyler Ankrum",
+          "Qual": 3,
+          "Value": 0.2645
         },
         {
           "Driver": "Ty Majeski",
+          "Qual": 6,
+          "Value": 0.2298
+        },
+        {
+          "Driver": "Kaden Honeycutt",
+          "Qual": 4,
+          "Value": 0.2208
+        },
+        {
+          "Driver": "Chandler Smith",
           "Qual": 8,
-          "Value": -0.0328
+          "Value": 0.2173
         },
         {
-          "Driver": "Corey LaJoie",
+          "Driver": "Grant Enfinger",
           "Qual": 9,
-          "Value": -0.0366
+          "Value": 0.1632
         },
         {
-          "Driver": "Jack Wood",
-          "Qual": 25,
-          "Value": -0.0367
+          "Driver": "Jake Garcia",
+          "Qual": 1,
+          "Value": 0.1465
         },
         {
-          "Driver": "Andres Perez De Lara",
-          "Qual": 20,
-          "Value": -0.0377
+          "Driver": "Daniel Hemric",
+          "Qual": 11,
+          "Value": 0.1341
         },
         {
-          "Driver": "Matt Mills",
-          "Qual": 18,
-          "Value": -0.0379
-        },
-        {
-          "Driver": "Spencer Boyd",
-          "Qual": 26,
-          "Value": -0.0383
+          "Driver": "Corey Day",
+          "Qual": 5,
+          "Value": 0.1133
         }
       ]
     },
@@ -1241,64 +1241,64 @@
       ],
       "rows": [
         {
-          "Driver": "Layne Riggs",
-          "Qual": 1,
-          "DK Sal": "11.5k",
-          "Value": 4.39
-        },
-        {
-          "Driver": "Mason Maggio",
-          "Qual": 27,
-          "DK Sal": "5.4k",
-          "Value": 3.75
-        },
-        {
-          "Driver": "Nathan Byrd",
-          "Qual": 28,
-          "DK Sal": "5.8k",
-          "Value": 3.62
+          "Driver": "Corey Heim",
+          "Qual": 2,
+          "DK Sal": "14.0k",
+          "Value": 9.24
         },
         {
           "Driver": "Jake Garcia",
-          "Qual": 13,
-          "DK Sal": "7.5k",
-          "Value": 2.59
+          "Qual": 1,
+          "DK Sal": "7.8k",
+          "Value": 4.91
         },
         {
-          "Driver": "Chandler Smith",
-          "Qual": 2,
-          "DK Sal": "9.5k",
-          "Value": 2.41
+          "Driver": "Layne Riggs",
+          "Qual": 7,
+          "DK Sal": "12.0k",
+          "Value": 4.84
         },
         {
-          "Driver": "Kaden Honeycutt",
-          "Qual": 5,
-          "DK Sal": "8.2k",
-          "Value": 1.66
-        },
-        {
-          "Driver": "Giovanni Ruggiero",
-          "Qual": 6,
-          "DK Sal": "6.9k",
-          "Value": 0.72
-        },
-        {
-          "Driver": "Tanner Gray",
-          "Qual": 12,
-          "DK Sal": "7.3k",
-          "Value": 0.56
-        },
-        {
-          "Driver": "Caleb Costner",
+          "Driver": "Greg Van Alst",
           "Qual": 30,
-          "DK Sal": "5.0k",
-          "Value": 0.53
+          "DK Sal": "4.7k",
+          "Value": 3.39
         },
         {
-          "Driver": "Spencer Boyd",
+          "Driver": "Jack Wood",
+          "Qual": 22,
+          "DK Sal": "6.0k",
+          "Value": 3
+        },
+        {
+          "Driver": "Matt Crafton",
+          "Qual": 20,
+          "DK Sal": "7.1k",
+          "Value": 2.93
+        },
+        {
+          "Driver": "Stefan Parsons",
           "Qual": 26,
-          "DK Sal": "5.6k",
-          "Value": 0.48
+          "DK Sal": "5.8k",
+          "Value": 2.64
+        },
+        {
+          "Driver": "Dawson Sutton",
+          "Qual": 12,
+          "DK Sal": "6.3k",
+          "Value": 1.51
+        },
+        {
+          "Driver": "Ty Majeski",
+          "Qual": 6,
+          "DK Sal": "10.0k",
+          "Value": 1.18
+        },
+        {
+          "Driver": "Brent Crews",
+          "Qual": 15,
+          "DK Sal": "7.2k",
+          "Value": 0.71
         }
       ]
     },
@@ -1313,64 +1313,64 @@
       ],
       "rows": [
         {
-          "Driver": "Layne Riggs",
-          "Qual": 1,
+          "Driver": "Corey Heim",
+          "Qual": 2,
           "FD Sal": "10.0k",
-          "Value": 15.46
+          "Value": 10.83
         },
         {
-          "Driver": "Corey Heim",
-          "Qual": 3,
+          "Driver": "Layne Riggs",
+          "Qual": 7,
           "FD Sal": "10.0k",
-          "Value": 15.06
+          "Value": 8.63
         },
         {
           "Driver": "Ty Majeski",
-          "Qual": 8,
+          "Qual": 6,
           "FD Sal": "10.0k",
-          "Value": 11.44
+          "Value": 3.81
         },
         {
           "Driver": "Chandler Smith",
-          "Qual": 2,
+          "Qual": 8,
           "FD Sal": "10.0k",
-          "Value": 8.79
-        },
-        {
-          "Driver": "Grant Enfinger",
-          "Qual": 4,
-          "FD Sal": "10.0k",
-          "Value": 6.43
-        },
-        {
-          "Driver": "Daniel Hemric",
-          "Qual": 7,
-          "FD Sal": "10.0k",
-          "Value": 3.21
-        },
-        {
-          "Driver": "Corey LaJoie",
-          "Qual": 9,
-          "FD Sal": "10.0k",
-          "Value": 1.6
-        },
-        {
-          "Driver": "Kaden Honeycutt",
-          "Qual": 5,
-          "FD Sal": "10.0k",
-          "Value": 1.37
+          "Value": 3.13
         },
         {
           "Driver": "Tyler Ankrum",
-          "Qual": 10,
+          "Qual": 3,
           "FD Sal": "10.0k",
-          "Value": 0.51
+          "Value": 1.87
         },
         {
-          "Driver": "Caleb Costner",
-          "Qual": 30,
+          "Driver": "Kaden Honeycutt",
+          "Qual": 4,
           "FD Sal": "10.0k",
-          "Value": -0.25
+          "Value": 1.64
+        },
+        {
+          "Driver": "Grant Enfinger",
+          "Qual": 9,
+          "FD Sal": "10.0k",
+          "Value": 1.44
+        },
+        {
+          "Driver": "Ben Rhodes",
+          "Qual": 19,
+          "FD Sal": "10.0k",
+          "Value": 0.78
+        },
+        {
+          "Driver": "Matt Crafton",
+          "Qual": 20,
+          "FD Sal": "10.0k",
+          "Value": 0.7
+        },
+        {
+          "Driver": "Corey LaJoie",
+          "Qual": 18,
+          "FD Sal": "10.0k",
+          "Value": 0.12
         }
       ]
     },
@@ -1385,53 +1385,53 @@
       "rows": [
         {
           "Driver": "Corey Heim",
-          "Qual": 3,
-          "Value": 0.7754
+          "Qual": 2,
+          "Value": 0.481
         },
         {
           "Driver": "Layne Riggs",
-          "Qual": 1,
-          "Value": 0.7368
-        },
-        {
-          "Driver": "Ty Majeski",
-          "Qual": 8,
-          "Value": 0.5824
-        },
-        {
-          "Driver": "Chandler Smith",
-          "Qual": 2,
-          "Value": 0.5616
-        },
-        {
-          "Driver": "Grant Enfinger",
-          "Qual": 4,
-          "Value": 0.4601
-        },
-        {
-          "Driver": "Daniel Hemric",
           "Qual": 7,
-          "Value": 0.3022
-        },
-        {
-          "Driver": "Kaden Honeycutt",
-          "Qual": 5,
-          "Value": 0.2989
-        },
-        {
-          "Driver": "Corey LaJoie",
-          "Qual": 9,
-          "Value": 0.2297
+          "Value": 0.4632
         },
         {
           "Driver": "Tyler Ankrum",
-          "Qual": 10,
-          "Value": 0.1851
+          "Qual": 3,
+          "Value": 0.397
         },
         {
-          "Driver": "Giovanni Ruggiero",
+          "Driver": "Ty Majeski",
           "Qual": 6,
-          "Value": 0.1709
+          "Value": 0.3553
+        },
+        {
+          "Driver": "Kaden Honeycutt",
+          "Qual": 4,
+          "Value": 0.3461
+        },
+        {
+          "Driver": "Chandler Smith",
+          "Qual": 8,
+          "Value": 0.3377
+        },
+        {
+          "Driver": "Grant Enfinger",
+          "Qual": 9,
+          "Value": 0.27
+        },
+        {
+          "Driver": "Jake Garcia",
+          "Qual": 1,
+          "Value": 0.2482
+        },
+        {
+          "Driver": "Daniel Hemric",
+          "Qual": 11,
+          "Value": 0.2254
+        },
+        {
+          "Driver": "Corey Day",
+          "Qual": 5,
+          "Value": 0.2033
         }
       ]
     },
@@ -1447,63 +1447,63 @@
       "rows": [
         {
           "Driver": "Corey Heim",
-          "Qual": 3,
-          "DK Sal": "13.0k",
+          "Qual": 2,
+          "DK Sal": "14.0k",
           "Value": 100
         },
         {
           "Driver": "Layne Riggs",
-          "Qual": 1,
-          "DK Sal": "11.5k",
-          "Value": 86.08
-        },
-        {
-          "Driver": "Ty Majeski",
-          "Qual": 8,
-          "DK Sal": "11.0k",
-          "Value": 46.36
+          "Qual": 7,
+          "DK Sal": "12.0k",
+          "Value": 70.73
         },
         {
           "Driver": "Chandler Smith",
-          "Qual": 2,
-          "DK Sal": "9.5k",
-          "Value": 44.71
+          "Qual": 8,
+          "DK Sal": "10.5k",
+          "Value": 35.77
         },
         {
-          "Driver": "Ben Rhodes",
-          "Qual": 21,
-          "DK Sal": "8.0k",
-          "Value": 36.53
-        },
-        {
-          "Driver": "Grant Enfinger",
-          "Qual": 4,
-          "DK Sal": "9.0k",
-          "Value": 35.28
-        },
-        {
-          "Driver": "Kaden Honeycutt",
-          "Qual": 5,
-          "DK Sal": "8.2k",
-          "Value": 27.64
-        },
-        {
-          "Driver": "Daniel Hemric",
-          "Qual": 7,
-          "DK Sal": "9.2k",
-          "Value": 26.73
+          "Driver": "Ty Majeski",
+          "Qual": 6,
+          "DK Sal": "10.0k",
+          "Value": 35.13
         },
         {
           "Driver": "Matt Crafton",
-          "Qual": 22,
-          "DK Sal": "7.0k",
-          "Value": 25.82
+          "Qual": 20,
+          "DK Sal": "7.1k",
+          "Value": 28.87
         },
         {
-          "Driver": "Trevor Bayne",
-          "Qual": 16,
-          "DK Sal": "7.4k",
-          "Value": 25.1
+          "Driver": "Jake Garcia",
+          "Qual": 1,
+          "DK Sal": "7.8k",
+          "Value": 24.97
+        },
+        {
+          "Driver": "Kaden Honeycutt",
+          "Qual": 4,
+          "DK Sal": "9.2k",
+          "Value": 24.53
+        },
+        {
+          "Driver": "Ben Rhodes",
+          "Qual": 19,
+          "DK Sal": "8.0k",
+          "Value": 23.66
+        },
+        {
+          "Driver": "Tyler Ankrum",
+          "Qual": 3,
+          "DK Sal": "9.5k",
+          "Value": 23.17
+        },
+        {
+          "Driver": "Connor Mosack",
+          "Qual": 23,
+          "DK Sal": "6.9k",
+          "Value": 22.53
         }
       ]
     },
@@ -1519,63 +1519,63 @@
       "rows": [
         {
           "Driver": "Corey Heim",
-          "Qual": 3,
+          "Qual": 2,
           "FD Sal": "10.0k",
           "Value": 100
         },
         {
           "Driver": "Layne Riggs",
-          "Qual": 1,
+          "Qual": 7,
           "FD Sal": "10.0k",
-          "Value": 89.82
-        },
-        {
-          "Driver": "Ty Majeski",
-          "Qual": 8,
-          "FD Sal": "10.0k",
-          "Value": 79.07
+          "Value": 92.48
         },
         {
           "Driver": "Chandler Smith",
-          "Qual": 2,
+          "Qual": 8,
           "FD Sal": "10.0k",
-          "Value": 67.02
+          "Value": 63.79
         },
         {
-          "Driver": "Grant Enfinger",
-          "Qual": 4,
+          "Driver": "Ty Majeski",
+          "Qual": 6,
           "FD Sal": "10.0k",
-          "Value": 61.13
-        },
-        {
-          "Driver": "Daniel Hemric",
-          "Qual": 7,
-          "FD Sal": "10.0k",
-          "Value": 52.71
-        },
-        {
-          "Driver": "Kaden Honeycutt",
-          "Qual": 5,
-          "FD Sal": "10.0k",
-          "Value": 48.73
-        },
-        {
-          "Driver": "Corey LaJoie",
-          "Qual": 9,
-          "FD Sal": "10.0k",
-          "Value": 48.63
-        },
-        {
-          "Driver": "Ben Rhodes",
-          "Qual": 21,
-          "FD Sal": "10.0k",
-          "Value": 47.2
+          "Value": 61.74
         },
         {
           "Driver": "Tyler Ankrum",
-          "Qual": 10,
+          "Qual": 3,
           "FD Sal": "10.0k",
-          "Value": 46.04
+          "Value": 55.21
+        },
+        {
+          "Driver": "Kaden Honeycutt",
+          "Qual": 4,
+          "FD Sal": "10.0k",
+          "Value": 52.08
+        },
+        {
+          "Driver": "Grant Enfinger",
+          "Qual": 9,
+          "FD Sal": "10.0k",
+          "Value": 50.64
+        },
+        {
+          "Driver": "Matt Crafton",
+          "Qual": 20,
+          "FD Sal": "10.0k",
+          "Value": 50.32
+        },
+        {
+          "Driver": "Ben Rhodes",
+          "Qual": 19,
+          "FD Sal": "10.0k",
+          "Value": 47.27
+        },
+        {
+          "Driver": "Corey LaJoie",
+          "Qual": 18,
+          "FD Sal": "10.0k",
+          "Value": 46.21
         }
       ]
     },
@@ -1590,53 +1590,53 @@
       "rows": [
         {
           "Driver": "Corey Heim",
-          "Qual": 3,
-          "Value": 0.9453
+          "Qual": 2,
+          "Value": 0.7215
         },
         {
           "Driver": "Layne Riggs",
-          "Qual": 1,
-          "Value": 0.9291
-        },
-        {
-          "Driver": "Ty Majeski",
-          "Qual": 8,
-          "Value": 0.859
-        },
-        {
-          "Driver": "Chandler Smith",
-          "Qual": 2,
-          "Value": 0.8459
-        },
-        {
-          "Driver": "Grant Enfinger",
-          "Qual": 4,
-          "Value": 0.78
-        },
-        {
-          "Driver": "Daniel Hemric",
           "Qual": 7,
-          "Value": 0.6384
-        },
-        {
-          "Driver": "Kaden Honeycutt",
-          "Qual": 5,
-          "Value": 0.6347
-        },
-        {
-          "Driver": "Corey LaJoie",
-          "Qual": 9,
-          "Value": 0.551
+          "Value": 0.6997
         },
         {
           "Driver": "Tyler Ankrum",
-          "Qual": 10,
-          "Value": 0.4982
+          "Qual": 3,
+          "Value": 0.6442
         },
         {
-          "Driver": "Giovanni Ruggiero",
+          "Driver": "Ty Majeski",
           "Qual": 6,
-          "Value": 0.4746
+          "Value": 0.6012
+        },
+        {
+          "Driver": "Kaden Honeycutt",
+          "Qual": 4,
+          "Value": 0.596
+        },
+        {
+          "Driver": "Chandler Smith",
+          "Qual": 8,
+          "Value": 0.5855
+        },
+        {
+          "Driver": "Grant Enfinger",
+          "Qual": 9,
+          "Value": 0.5128
+        },
+        {
+          "Driver": "Jake Garcia",
+          "Qual": 1,
+          "Value": 0.4823
+        },
+        {
+          "Driver": "Daniel Hemric",
+          "Qual": 11,
+          "Value": 0.4542
+        },
+        {
+          "Driver": "Corey Day",
+          "Qual": 5,
+          "Value": 0.4182
         }
       ]
     }
