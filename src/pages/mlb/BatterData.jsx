@@ -63,24 +63,19 @@ function TeamWithLogo({ code }) {
 /* ============================ LAST UPDATED ============================ */
 function useLastUpdated(mainUrl, metaUrl) {
   const [d, setD] = useState(null);
-
   useEffect(() => {
     let alive = true;
-
     (async () => {
-      // Try HEAD Last-Modified
       try {
         const h = await fetch(mainUrl, { method: "HEAD", cache: "no-store" });
         const lm = h.headers.get("last-modified");
         if (alive && lm) { setD(new Date(lm)); return; }
       } catch {}
-      // Try GET Last-Modified (some CDNs strip on HEAD)
       try {
         const r = await fetch(mainUrl, { cache: "no-store" });
         const lm = r.headers.get("last-modified");
         if (alive && lm) { setD(new Date(lm)); return; }
       } catch {}
-      // Fallback meta.json from exporter
       try {
         const m = await fetch(`${metaUrl}?_=${Date.now()}`, { cache: "no-store" }).then(x => x.json());
         const iso = m?.updated_iso || m?.updated_utc;
@@ -89,10 +84,8 @@ function useLastUpdated(mainUrl, metaUrl) {
         if (alive && dt && !isNaN(dt)) setD(dt);
       } catch {}
     })();
-
     return () => { alive = false; };
   }, [mainUrl, metaUrl]);
-
   return d;
 }
 const fmtUpdated = (d) =>
@@ -103,7 +96,6 @@ function useJson(url) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
-
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -127,7 +119,6 @@ function useJson(url) {
     })();
     return () => { alive = false; };
   }, [url]);
-
   return { rows, loading, err };
 }
 
@@ -196,7 +187,7 @@ const BANDS = [
   ["BATTER SPLITS vs P HANDEDNESS", ["h_ab","h_woba","h_iso","h_wrcplus","h_kpct","h_bbpct"]]
 ];
 
-/* ========== Sort preferences (first click direction per your spec) ========== */
+/* Sort intent (for first-click direction) */
 const LOWER_BETTER = new Set(["dk","fd","k_pct","sws_pct","h_kpct"]);
 const HIGHER_BETTER = new Set([
   "total","rating","ab","iso","woba","bb_pct","sbg","hr_fb","fb","gb","cnt_pct","bar_pct","hh_pct","ev",
@@ -231,7 +222,7 @@ export default function BatterData() {
     return null;
   };
 
-  // map id -> actual key (aliases + a few fuzzy matchers)
+  // map id -> actual key
   const idToKey = useMemo(() => {
     const m = new Map();
     for (const c of COLS) {
@@ -266,7 +257,7 @@ export default function BatterData() {
     });
   }, [rows, q]);
 
-  // sorting (default DK desc, else Player asc)
+  // sorting
   const dkKey = idToKey.get("dk");
   const playerKey = idToKey.get("player");
   const [sort, setSort] = useState({ key: dkKey || playerKey || "", dir: dkKey ? "desc" : "asc" });
@@ -303,6 +294,61 @@ export default function BatterData() {
     return arr;
   }, [filtered, sort]);
 
+  /* ---------------------- Conditional formatting ---------------------- */
+  const heatThresholds = useMemo(() => {
+    // Build { id -> [q20,q40,q60,q80] } for heat columns over *current* sorted rows
+    const ids = [...HIGHER_BETTER, ...LOWER_BETTER];
+    const map = new Map();
+    for (const id of ids) {
+      const key = idToKey.get(id);
+      if (!key) continue;
+      const values = sorted
+        .map((r) => num(r[key]))
+        .filter((v) => v != null && Number.isFinite(v))
+        .sort((a, b) => a - b);
+      if (values.length < 5) continue; // not enough to compute quantiles
+      const q = (p) => {
+        const idx = (values.length - 1) * p;
+        const lo = Math.floor(idx), hi = Math.ceil(idx);
+        return lo === hi ? values[lo] : values[lo] + (values[hi] - values[lo]) * (idx - lo);
+      };
+      map.set(id, [q(0.2), q(0.4), q(0.6), q(0.8)]);
+    }
+    return map;
+  }, [sorted, idToKey]);
+
+  const heatClass = (id, rawVal) => {
+    const key = idToKey.get(id);
+    if (!key) return "";
+    const v = num(rawVal);
+    if (v == null) return "";
+    const qs = heatThresholds.get(id);
+    if (!qs) return "";
+
+    // tier 0..4
+    let tier = 0;
+    if (v >= qs[3]) tier = 4;
+    else if (v >= qs[2]) tier = 3;
+    else if (v >= qs[1]) tier = 2;
+    else if (v >= qs[0]) tier = 1;
+    else tier = 0;
+
+    // map to classes depending on direction
+    if (HIGHER_BETTER.has(id)) {
+      // more green as tier increases
+      return ["bg-red-50", "bg-green-50", "bg-green-100", "bg-green-150", "bg-green-200"][tier] || "";
+    }
+    if (LOWER_BETTER.has(id)) {
+      // better when smaller ⇒ invert (lower tiers = good)
+      const inv = 4 - tier;
+      return ["bg-blue-200", "bg-blue-150", "bg-blue-100", "bg-blue-50", "bg-green-50"][inv] || "";
+    }
+    return "";
+  };
+
+  // Some Tailwind palettes (bg-green-150 isn't real; tailwind will treat unknowns as no-op.
+  // If you want exact shades, switch the 150s to 100 or 200 as you prefer.)
+
   // UI
   const headerCls = "px-2 py-1 font-semibold text-center text-[11px] whitespace-nowrap cursor-pointer select-none";
   const cellCls = "px-2 py-1 text-center text-[12px]";
@@ -325,9 +371,7 @@ export default function BatterData() {
         <div className="flex items-baseline gap-3">
           <h1 className="text-2xl md:text-3xl font-extrabold">{TITLE}</h1>
           <div className="text-sm text-gray-600">{loading ? "Loading…" : `${sorted.length.toLocaleString()} rows`}</div>
-          {updatedAt && (
-            <div className="text-sm text-gray-500">Updated: {fmtUpdated(updatedAt)}</div>
-          )}
+          {updatedAt && <div className="text-sm text-gray-500">Updated: {fmtUpdated(updatedAt)}</div>}
           {err && <div className="text-sm text-red-600">Error: {err}</div>}
         </div>
 
@@ -390,12 +434,14 @@ export default function BatterData() {
                     const key = idToKey.get(id);
                     const thick = THICK_AFTER.has(id);
                     const isPlayer = id === "player";
+                    const raw = key ? row[key] : "";
+                    const heat = heatClass(id, raw);
                     return (
                       <td
                         key={id + "-" + rIdx}
                         className={`${cellCls} ${isPlayer ? "text-left font-medium" : ""} ${
                           thick ? "border-r-2 border-blue-300" : "border-r border-blue-200"
-                        }`}
+                        } ${heat} tabular-nums`}
                       >
                         {renderVal(id, key, row)}
                       </td>

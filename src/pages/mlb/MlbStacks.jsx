@@ -28,8 +28,6 @@ const num = (v) => {
   const n = Number(String(v ?? "").replace(/[,%\s]/g, ""));
   return Number.isFinite(n) ? n : null;
 };
-
-/* get value by key or array of fallback keys */
 function getVal(row, key) {
   if (Array.isArray(key)) {
     for (const k of key) {
@@ -181,21 +179,26 @@ function useLastUpdatedFromSource(sourceUrl) {
 }
 
 /* -------------------------- columns (with fallbacks) ------------------ */
-/* Give each column a stable `id` so we can color correctly even if `key` is an alias. */
 const COLS_BASE = [
-  { id: "team",  key: ["team", "Team"], label: "Team", type: "text", w: "min-w-[6.5rem]" },
+  { id: "team", key: ["team", "Team"], label: "Team", type: "text", w: "min-w-[6.5rem]" },
   { id: "dk_sal", key: ["dk_sal", "DK Sal", "dkSal"], label: "DK Sal", type: "int" },
   { id: "fd_sal", key: ["fd_sal", "FD Sal", "fdSal"], label: "FD Sal", type: "int" },
-  { id: "total",  key: ["total", "Total", "imp_tot", "Implied Total"], label: "Total", type: "smart1" },
-  { id: "park",   key: ["park", "Park"], label: "Park", type: "text" },
-  { id: "opp",    key: ["opp", "Opp"], label: "Opp", type: "text" },
-  { id: "opp_pitcher", key: ["opp_pitcher", "Opp Pitcher", "oppPitcher"], label: "Opp Pitcher", type: "text", w: "min-w-[9rem]" },
+  { id: "total", key: ["total", "Total", "imp_tot", "Implied Total"], label: "Total", type: "smart1" },
+  { id: "park", key: ["park", "Park"], label: "Park", type: "text" },
+  { id: "opp", key: ["opp", "Opp"], label: "Opp", type: "text" },
+  {
+    id: "opp_pitcher",
+    key: ["opp_pitcher", "Opp Pitcher", "oppPitcher"],
+    label: "Opp Pitcher",
+    type: "text",
+    w: "min-w-[9rem]",
+  },
   { id: "h", key: ["h", "H", "hand"], label: "H", type: "text" },
 ];
 
 const COLS_DK = [
   { id: "dk_proj", key: ["dk_proj", "DK Proj", "dkProj"], label: "DK Proj", type: "num1" },
-  { id: "dk_val",  key: ["dk_val", "DK Val", "dkVal"], label: "DK Val", type: "num1" },
+  { id: "dk_val", key: ["dk_val", "DK Val", "dkVal"], label: "DK Val", type: "num1" },
   { id: "dk_pown", key: ["dk_pown", "DK pOWN%", "dk_pown%", "dkPOWN"], label: "DK pOWN%", type: "pct1" },
   { id: "dk_tstack", key: ["dk_tstack", "DK Tstack%", "tstack_dk"], label: "DK Tstack%", type: "pct1" },
   { id: "dk_vstack", key: ["dk_vstack", "DK vStack%", "vstack_dk"], label: "DK vStack%", type: "pct1" },
@@ -204,7 +207,7 @@ const COLS_DK = [
 
 const COLS_FD = [
   { id: "fd_proj", key: ["fd_proj", "FD Proj", "fdProj"], label: "FD Proj", type: "num1" },
-  { id: "fd_val",  key: ["fd_val", "FD Val", "fdVal"], label: "FD Val", type: "num1" },
+  { id: "fd_val", key: ["fd_val", "FD Val", "fdVal"], label: "FD Val", type: "num1" },
   { id: "fd_pown", key: ["fd_pown", "FD pOWN%", "fd_pown%", "fdPOWN"], label: "FD pOWN%", type: "pct1" },
   { id: "fd_tstack", key: ["fd_tstack", "FD Tstack%", "tstack_fd"], label: "FD Tstack%", type: "pct1" },
   { id: "fd_vstack", key: ["fd_vstack", "FD vStack%", "vstack_fd"], label: "FD vStack%", type: "pct1" },
@@ -212,18 +215,31 @@ const COLS_FD = [
 ];
 
 /* ------------------------ conditional formatting ---------------------- */
-/* Your rule: HIGHER is better for these ids. */
+// higher is better
 const HIGHER_IS_BETTER = new Set([
   "total",
-  "dk_proj", "dk_val", "dk_tstack", "dk_vstack", "dk_lev",
-  "fd_proj", "fd_val", "fd_tstack", "fd_vstack", "fd_lev",
+  "dk_proj",
+  "dk_val",
+  "dk_tstack",
+  "dk_vstack",
+  "dk_lev",
+  "fd_proj",
+  "fd_val",
+  "fd_tstack",
+  "fd_vstack",
+  "fd_lev",
 ]);
+// lower is better (ownership)
+const LOWER_IS_BETTER = new Set(["dk_pown", "fd_pown"]);
 
 function computeStats(rows, columns) {
   const stats = {};
+  const scoredIds = new Set([...HIGHER_IS_BETTER, ...LOWER_IS_BETTER]);
   for (const c of columns) {
-    if (!HIGHER_IS_BETTER.has(c.id)) continue;
-    let min = Infinity, max = -Infinity, any = false;
+    if (!scoredIds.has(c.id)) continue;
+    let min = Infinity,
+      max = -Infinity,
+      any = false;
     for (const r of rows) {
       const raw = getVal(r, c.key);
       if (raw === null || raw === undefined || raw === "") continue;
@@ -240,7 +256,8 @@ function computeStats(rows, columns) {
 }
 
 function colorFor(value, col, stats, palette) {
-  if (palette === "none" || !HIGHER_IS_BETTER.has(col.id)) return null;
+  const scored = HIGHER_IS_BETTER.has(col.id) || LOWER_IS_BETTER.has(col.id);
+  if (palette === "none" || !scored) return null;
   if (value == null || value === "") return null;
   const st = stats[col.id];
   if (!st) return null;
@@ -251,24 +268,29 @@ function colorFor(value, col, stats, palette) {
 
   let t = (v - st.min) / (st.max - st.min);
   t = Math.max(0, Math.min(1, t));
+  if (LOWER_IS_BETTER.has(col.id)) t = 1 - t; // invert
 
   if (palette === "gyr") {
-    const h = 60 + 60 * t;  // yellow->green
-    const s = 85 - t * 15;
-    const l = 92 - t * 6;
-    return `hsl(${h} ${s}% ${l}%)`;
+    // real Red (bad) -> Yellow (mid) -> Green (good)
+    const hue = 0 + 120 * t; // 0=red, 120=green
+    const sat = 85;
+    const light = 96 - 14 * t;
+    return `hsl(${hue} ${sat}% ${light}%)`;
   }
   if (palette === "orangeblue") {
+    // orange (bad) -> white (mid) -> blue (good)
     if (t < 0.5) {
       const u = t / 0.5;
-      const h = 30 + u * (-200); // orange -> white-ish
-      const s = 70 - u * 60;
-      const l = 96 - u * 4;
-      return `hsl(${h} ${s}% ${l}%)`;
+      const hue = 30;
+      const sat = 70 - 40 * u;
+      const light = 96 - 4 * u;
+      return `hsl(${hue} ${sat}% ${light}%)`;
     } else {
       const u = (t - 0.5) / 0.5;
-      const h = 220, s = 40 + u * 20, l = 94 - u * 6; // white -> blue
-      return `hsl(${h} ${s}% ${l}%)`;
+      const hue = 220;
+      const sat = 30 + 40 * u;
+      const light = 94 - 8 * u;
+      return `hsl(${hue} ${sat}% ${light}%)`;
     }
   }
   return null;
@@ -287,7 +309,6 @@ const asNum = (v) => {
   const m = s.match(/-?\d+(?:\.\d+)?/);
   return m ? parseFloat(m[0]) : null;
 };
-
 const asPct = (v) => {
   if (v === null || v === undefined || v === "") return null;
   let s = String(v).trim();
@@ -295,7 +316,7 @@ const asPct = (v) => {
   if (hadPercent) s = s.slice(0, -1);
   const n = asNum(s);
   if (n === null) return null;
-  return hadPercent ? n : (Math.abs(n) > 0 && Math.abs(n) < 1 ? n * 100 : n);
+  return hadPercent ? n : Math.abs(n) > 0 && Math.abs(n) < 1 ? n * 100 : n;
 };
 
 const METRICS = {
@@ -307,7 +328,6 @@ const METRICS = {
   dk_sal: { label: "DK Sal", key: "dk_sal", site: "dk" },
   fd_sal: { label: "FD Sal", key: "fd_sal", site: "fd" },
 };
-
 const PRESETS = [
   { id: "sal_vs_total", label: "Team Sal vs Total", x_dk: "dk_sal", x_fd: "fd_sal", y: "total" },
   { id: "proj_vs_own", label: "Team Proj vs pOWN%", x_dk: "dk_proj", x_fd: "fd_proj", y_dk: "dk_pown", y_fd: "fd_pown" },
@@ -330,7 +350,6 @@ function LogoDot({ cx, cy, payload }) {
     />
   );
 }
-
 function domainFor(points, axis = "x", isPct = false) {
   if (!points.length) return [0, 1];
   const vals = points.map((p) => (axis === "x" ? p.x : p.y)).filter((v) => v != null && Number.isFinite(v));
@@ -351,7 +370,6 @@ function domainFor(points, axis = "x", isPct = false) {
   }
   return [Math.floor(min), Math.ceil(max)];
 }
-
 function StacksInsights({ rows }) {
   const [presetId, setPresetId] = useState("proj_vs_own");
   const [site, setSite] = useState("both");
@@ -411,8 +429,7 @@ function StacksInsights({ rows }) {
     "";
 
   const ptsForDomain = site === "both" ? series.flatMap((s) => s.points) : active?.points || [];
-  const xIsPct =
-    !!(active && METRICS[active.xKey]?.pct) || (!!preset.x && METRICS[preset.x]?.pct);
+  const xIsPct = !!(active && METRICS[active.xKey]?.pct) || (!!preset.x && METRICS[preset.x]?.pct);
   const yIsPct =
     !!(active && METRICS[active.yKey]?.pct) ||
     (!!preset.y && METRICS[preset.y]?.pct) ||
@@ -435,9 +452,7 @@ function StacksInsights({ rows }) {
             {PRESETS.map((p) => (
               <button
                 key={p.id}
-                className={`px-3 py-1.5 text-sm rounded-lg ${
-                  presetId === p.id ? "bg-white shadow font-semibold" : "text-gray-700"
-                }`}
+                className={`px-3 py-1.5 text-sm rounded-lg ${presetId === p.id ? "bg-white shadow font-semibold" : "text-gray-700"}`}
                 onClick={() => setPresetId(p.id)}
               >
                 {p.label}
@@ -448,9 +463,7 @@ function StacksInsights({ rows }) {
             {["dk", "fd", "both"].map((k) => (
               <button
                 key={k}
-                className={`px-3 py-1.5 text-sm rounded-lg inline-flex items-center gap-2 ${
-                  site === k ? "bg-white shadow font-semibold" : "text-gray-700"
-                }`}
+                className={`px-3 py-1.5 text-sm rounded-lg inline-flex items-center gap-2 ${site === k ? "bg-white shadow font-semibold" : "text-gray-700"}`}
                 onClick={() => setSite(k)}
               >
                 {k !== "both" ? <img src={SITES[k].logo} className="w-4 h-4" alt="" /> : null}
@@ -487,8 +500,6 @@ function StacksInsights({ rows }) {
               contentStyle={{ fontSize: 12 }}
               cursor={{ strokeDasharray: "3 3" }}
             />
-
-            {/* Average guide lines (blue) */}
             {xAvg != null && (
               <ReferenceLine
                 x={xAvg}
@@ -507,7 +518,6 @@ function StacksInsights({ rows }) {
                 label={{ value: "AVG", position: "right", fill: "blue", offset: 10 }}
               />
             )}
-
             {series.map((s) => (
               <Scatter key={s.id} name={s.label} data={s.points} shape={<LogoDot />}>
                 <ZAxis type="number" dataKey="z" range={[60, 60]} />
@@ -525,7 +535,7 @@ export default function MlbStacks() {
   const { rows, loading, err } = useJson(SOURCE);
   const [site, setSite] = useState("both");
   const [q, setQ] = useState("");
-  const [palette, setPalette] = useState("none"); // none | gyr | orangeblue
+  const [palette, setPalette] = useState("gyr"); // default to visible coloring
   const updatedText = useLastUpdatedFromSource(SOURCE);
 
   const columns = useMemo(() => {
@@ -539,11 +549,11 @@ export default function MlbStacks() {
     const needle = q.trim().toLowerCase();
     if (!needle) return rows;
     return rows.filter((r) =>
-      `${getVal(r, ["team", "Team"]) ?? ""} ${getVal(r, ["opp", "Opp"]) ?? ""} ${getVal(r, [
-        "opp_pitcher",
-        "Opp Pitcher",
-        "oppPitcher",
-      ]) ?? ""}`.toLowerCase().includes(needle)
+      `${getVal(r, ["team", "Team"]) ?? ""} ${getVal(r, ["opp", "Opp"]) ?? ""} ${
+        getVal(r, ["opp_pitcher", "Opp Pitcher", "oppPitcher"]) ?? ""
+      }`
+        .toLowerCase()
+        .includes(needle)
     );
   }, [rows, q]);
 
@@ -553,7 +563,6 @@ export default function MlbStacks() {
   const sorted = useMemo(() => {
     const { key, dir } = sort;
     const sgn = dir === "asc" ? 1 : -1;
-
     const col =
       columns.find((c) =>
         Array.isArray(c.key)
@@ -596,7 +605,6 @@ export default function MlbStacks() {
     });
   };
 
-  // compute stats once we know visible columns + rows
   const stats = useMemo(() => computeStats(sorted, columns), [sorted, columns]);
 
   const cell = "px-2 py-1 text-center";
