@@ -35,28 +35,53 @@ const normName = (s) =>
     .replace(/\s+/g, " ")
     .trim();
 
-/* ---------------- time formatting (last updated) ------------------- */
-const toDate = (x) => {
-  if (!x) return null;
-  const d = x instanceof Date ? x : new Date(x);
-  return Number.isFinite(d.getTime()) ? d : null;
-};
-const timeAgo = (d) => {
-  const dt = toDate(d);
-  if (!dt) return null;
-  const secs = Math.max(0, Math.floor((Date.now() - dt.getTime()) / 1000));
-  if (secs < 60) return `${secs}s ago`;
-  const mins = Math.floor(secs / 60);
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
-};
-const fmtLocalDT = (d) => {
-  const dt = toDate(d);
-  return dt ? dt.toLocaleString() : "—";
-};
+/* ------------------ NEW last-updated helpers (via meta.json) ------------------ */
+function toMetaUrl(urlLike) {
+  return String(urlLike || "").replace(/[^/]+$/, "meta.json");
+}
+function parseMetaToDate(meta) {
+  const iso =
+    meta?.updated_iso ||
+    meta?.updated_utc ||
+    meta?.source_mtime_iso ||
+    meta?.last_updated ||
+    meta?.timestamp;
+  if (iso) {
+    const d = new Date(iso);
+    if (!isNaN(d)) return d;
+  }
+  const epoch = meta?.updated_epoch ?? meta?.epoch;
+  if (Number.isFinite(epoch)) {
+    const d = new Date(epoch * (epoch > 10_000_000_000 ? 1 : 1000));
+    if (!isNaN(d)) return d;
+  }
+  return null;
+}
+function useLastUpdatedFromSource(sourceUrl) {
+  const metaUrl = useMemo(() => toMetaUrl(sourceUrl), [sourceUrl]);
+  const [text, setText] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const r = await fetch(`${metaUrl}?_=${Date.now()}`, { cache: "no-store" });
+        if (!r.ok) return;
+        const meta = await r.json();
+        const d = parseMetaToDate(meta);
+        if (!d) return;
+        const t = d.toLocaleString(undefined, {
+          month: "numeric",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        });
+        if (alive) setText(t);
+      } catch {}
+    })();
+    return () => { alive = false; };
+  }, [metaUrl]);
+  return text;
+}
 
 /* ------------------------------ data ------------------------------- */
 const SOURCE = "/data/mlb/latest/projections.json";
@@ -140,7 +165,6 @@ function useJson(url) {
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [updatedAt, setUpdatedAt] = useState(null); // Date or null
   const [version, setVersion] = useState(0); // to allow manual refetch
 
   const refetch = () => setVersion((v) => v + 1);
@@ -153,15 +177,6 @@ function useJson(url) {
         const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
 
-        // Capture update timestamp from headers first
-        const hdrLM =
-          res.headers.get("x-generated-at") ||
-          res.headers.get("last-modified") ||
-          res.headers.get("date");
-        let headerTs = hdrLM ? new Date(hdrLM) : null;
-        if (headerTs && !Number.isFinite(headerTs.getTime())) headerTs = null;
-
-        const ct = (res.headers.get("content-type") || "").toLowerCase();
         const raw = await res.text();
         const cleaned = raw.replace(/^\uFEFF/, "").trim();
 
@@ -169,28 +184,15 @@ function useJson(url) {
         try {
           j = cleaned ? JSON.parse(cleaned) : null;
         } catch (e) {
-          throw new Error(`Could not parse JSON. CT=${ct}. Preview: ${cleaned.slice(0, 200)}`);
+          throw new Error(`Could not parse JSON. Preview: ${cleaned.slice(0, 200)}`);
         }
-
-        // Also try JSON-embedded timestamps (several common keys)
-        const metaTs =
-          j?.meta?.updated ||
-          j?.meta?.lastUpdated ||
-          j?.updated ||
-          j?.last_updated ||
-          j?.generated_at ||
-          j?.timestamp ||
-          null;
-        const jsonTs = metaTs ? new Date(metaTs) : null;
-        const best = toDate(jsonTs) || toDate(headerTs);
 
         if (alive) {
           setData(j);
           setErr(null);
-          setUpdatedAt(best || null);
         }
       } catch (e) {
-        if (alive) { setData(null); setErr(e); setUpdatedAt(null); }
+        if (alive) { setData(null); setErr(e); }
       } finally {
         if (alive) setLoading(false);
       }
@@ -198,7 +200,7 @@ function useJson(url) {
     return () => { alive = false; };
   }, [url, version]);
 
-  return { data, err, loading, updatedAt, refetch };
+  return { data, err, loading, refetch };
 }
 
 /* --------------------------- sticky state -------------------------- */
@@ -356,9 +358,13 @@ function exportSiteTemplateCSV({ lineups, site, rows, siteIds, fname = "mlb_site
 
 /* ---------------------------- page -------------------------------- */
 export default function MLBOptimizer() {
-  // Projections + Site IDs (with last-updated + refetch)
-  const { data, err, loading, updatedAt: projUpdatedAt, refetch: refetchProj } = useJson(SOURCE);
-  const { data: siteIds, updatedAt: idsUpdatedAt, refetch: refetchIds } = useJson(SITE_IDS_SOURCE);
+  // Projections + Site IDs (data loaders)
+  const { data, err, loading, refetch: refetchProj } = useJson(SOURCE);
+  const { data: siteIds, refetch: refetchIds } = useJson(SITE_IDS_SOURCE);
+
+  // NEW: last-updated strings from meta.json siblings
+  const projUpdatedText = useLastUpdatedFromSource(SOURCE);
+  const idsUpdatedText  = useLastUpdatedFromSource(SITE_IDS_SOURCE);
 
   const [site, setSite] = useStickyState("mlbOpt.site", "dk");
   const cfg = SITES[site];
@@ -845,11 +851,11 @@ export default function MLBOptimizer() {
         <div className="ml-auto flex flex-wrap items-center gap-2 text-xs text-gray-600">
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 border">
             <strong className="font-semibold">Projections:</strong>
-            <span title={fmtLocalDT(projUpdatedAt)}>{projUpdatedAt ? timeAgo(projUpdatedAt) : "—"}</span>
+            <span>{projUpdatedText || "—"}</span>
           </span>
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 border">
             <strong className="font-semibold">Site IDs:</strong>
-            <span title={fmtLocalDT(idsUpdatedAt)}>{idsUpdatedAt ? timeAgo(idsUpdatedAt) : "—"}</span>
+            <span>{idsUpdatedText || "—"}</span>
           </span>
           <button
             className="px-2 py-0.5 rounded-md border bg-white hover:bg-gray-50"
@@ -880,37 +886,6 @@ export default function MLBOptimizer() {
           Reset constraints
         </button>
       </div>
-
-      {/* ===== Builds ===== */}
-      {builds.length > 0 && (
-        <div className="mb-2">
-          <div className="mb-1 text-xs text-gray-600">Builds</div>
-          <div className="flex flex-wrap gap-2 items-center">
-            {builds.map((b) => (
-              <div
-                key={b.id}
-                className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border text-sm ${
-                  activeBuildId === b.id ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300"
-                }`}
-              >
-                <button
-                  onClick={() => loadBuild(b.id)}
-                  onDoubleClick={() => {
-                    const nm = prompt("Rename build:", b.name);
-                    if (nm && nm.trim()) renameBuild(b.id, nm.trim());
-                  }}
-                  title={new Date(b.ts).toLocaleString()}
-                >
-                  {b.name}
-                </button>
-                <button className="ml-1 text-gray-400 hover:text-red-600" title="Delete build" onClick={() => deleteBuild(b.id)}>
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* controls */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end mb-2">
@@ -1136,7 +1111,7 @@ export default function MLBOptimizer() {
       </div>
 
       {/* Player table */}
-      <div className="rounded-xl border bg-white shadow-sm overflow-auto mb-6 max-h-[700px]">
+      <div className="rounded-xl border bg-white shadow-sm overflow-auto mb-6 max-h={[700]}">
         <table className={`w-full border-separate ${textSz}`} style={{ borderSpacing: 0 }}>
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
