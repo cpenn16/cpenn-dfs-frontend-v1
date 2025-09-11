@@ -77,23 +77,31 @@ function useLastUpdated(mainUrl, metaUrl) {
     let alive = true;
 
     (async () => {
+      // 1) Try HEAD Last-Modified (works on many hosts)
       try {
         const h = await fetch(mainUrl, { method: "HEAD", cache: "no-store" });
         const lm = h.headers.get("last-modified");
         if (alive && lm) { setUpdatedAt(new Date(lm)); return; }
       } catch (_) {}
 
+      // 2) Try a normal GET Last-Modified (some CDNs strip on HEAD)
       try {
         const r = await fetch(mainUrl, { cache: "no-store" });
         const lm2 = r.headers.get("last-modified");
         if (alive && lm2) { setUpdatedAt(new Date(lm2)); return; }
       } catch (_) {}
 
+      // 3) Fallback to meta.json written by the exporter
       try {
         if (!metaUrl) return;
-        const m = await fetch(metaUrl, { cache: "no-store" }).then((x) => x.json());
-        const iso = m?.updated || m?.lastUpdated || m?.timestamp;
-        if (alive && iso) setUpdatedAt(new Date(iso));
+        const m = await fetch(`${metaUrl}?_=${Date.now()}`, { cache: "no-store" }).then(x => x.json());
+
+        // Exporter fields: updated_iso / updated_utc / updated_epoch
+        const iso  = m?.updated_iso || m?.updated_utc;
+        const ep   = m?.updated_epoch;
+        const date = iso ? new Date(iso) : (Number.isFinite(ep) ? new Date(ep * 1000) : null);
+
+        if (alive && date && !isNaN(date)) setUpdatedAt(date);
       } catch (_) {}
     })();
 
@@ -102,11 +110,10 @@ function useLastUpdated(mainUrl, metaUrl) {
 
   return updatedAt;
 }
+
 const fmtUpdated = (d) =>
   d
-    ? d.toLocaleString(undefined, {
-        month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit",
-      })
+    ? d.toLocaleString(undefined, { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" })
     : null;
 
 /* ----------------------------- layout model ----------------------------- */
