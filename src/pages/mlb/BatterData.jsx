@@ -3,7 +3,6 @@ import React, { useEffect, useMemo, useState } from "react";
 
 /* ============================ CONFIG ============================ */
 const DATA_URL = "/data/mlb/latest/batter_data.json";
-const META_URL = DATA_URL.replace(/[^/]+$/, "meta.json");
 const TITLE = "MLB — Batter Data";
 const LOGO_BASE = "/logos/mlb";
 const LOGO_EXT = "png";
@@ -32,7 +31,7 @@ function fmtPct1(v) {
   return `${n.toFixed(1)}%`;
 }
 const fmt1 = (v) => { const n = num(v); return n == null ? "" : n.toFixed(1).replace(/\.0$/, ""); };
-const fmt2 = (v) => { const n = num(v); return n == null ? "" : n.toFixed(2).replace(/0$/, "").replace(/\.$/,""); };
+const fmt2 = (v) => { const n = num(v); return n == null ? "" : n.toFixed(2).replace(/0$/, "").replace(/\.$/, ""); };
 const fmt3 = (v) => { const n = num(v); return n == null ? "" : n.toFixed(3); };
 
 function time12(s) {
@@ -60,66 +59,52 @@ function TeamWithLogo({ code }) {
   );
 }
 
-/* ============================ LAST UPDATED ============================ */
-function useLastUpdated(mainUrl, metaUrl) {
-  const [d, setD] = useState(null);
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const h = await fetch(mainUrl, { method: "HEAD", cache: "no-store" });
-        const lm = h.headers.get("last-modified");
-        if (alive && lm) { setD(new Date(lm)); return; }
-      } catch {}
-      try {
-        const r = await fetch(mainUrl, { cache: "no-store" });
-        const lm = r.headers.get("last-modified");
-        if (alive && lm) { setD(new Date(lm)); return; }
-      } catch {}
-      try {
-        const m = await fetch(`${metaUrl}?_=${Date.now()}`, { cache: "no-store" }).then(x => x.json());
-        const iso = m?.updated_iso || m?.updated_utc;
-        const ep  = m?.updated_epoch;
-        const dt  = iso ? new Date(iso) : Number.isFinite(ep) ? new Date(ep * 1000) : null;
-        if (alive && dt && !isNaN(dt)) setD(dt);
-      } catch {}
-    })();
-    return () => { alive = false; };
-  }, [mainUrl, metaUrl]);
-  return d;
+/* ---------------------- last-updated via meta.json -------------------- */
+function toMetaUrl(urlLike) {
+  return String(urlLike || "").replace(/[^/]+$/, "meta.json");
 }
-const fmtUpdated = (d) =>
-  d ? d.toLocaleString(undefined, { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" }) : null;
-
-/* ============================ DATA FETCH ============================ */
-function useJson(url) {
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
+function parseMetaToDate(meta) {
+  const iso =
+    meta?.updated_iso ||
+    meta?.updated_utc ||
+    meta?.source_mtime_iso ||
+    meta?.last_updated ||
+    meta?.timestamp;
+  if (iso) {
+    const d = new Date(iso);
+    if (!isNaN(d)) return d;
+  }
+  const epoch = meta?.updated_epoch ?? meta?.epoch;
+  if (Number.isFinite(epoch)) {
+    const d = new Date(epoch * (epoch > 10_000_000_000 ? 1 : 1000));
+    if (!isNaN(d)) return d;
+  }
+  return null;
+}
+function useLastUpdatedFromSource(sourceUrl) {
+  const metaUrl = useMemo(() => toMetaUrl(sourceUrl), [sourceUrl]);
+  const [text, setText] = useState(null);
   useEffect(() => {
     let alive = true;
     (async () => {
-      setLoading(true); setErr("");
       try {
-        const r = await fetch(`${url}?_=${Date.now()}`, { cache: "no-store" });
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const ct = (r.headers.get("content-type") || "").toLowerCase();
-        if (!ct.includes("application/json")) {
-          const txt = await r.text();
-          throw new Error(`Expected JSON, got ${ct || "unknown"}: ${txt.slice(0, 40)}`);
-        }
-        const j = await r.json();
-        const data = Array.isArray(j) ? j : j?.data || j?.rows || [];
-        if (alive) setRows(data);
-      } catch (e) {
-        if (alive) setErr(String(e.message || e));
-      } finally {
-        if (alive) setLoading(false);
-      }
+        const r = await fetch(`${metaUrl}?_=${Date.now()}`, { cache: "no-store" });
+        if (!r.ok) return;
+        const meta = await r.json();
+        const d = parseMetaToDate(meta);
+        if (!d) return;
+        const t = d.toLocaleString(undefined, {
+          month: "numeric",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        });
+        if (alive) setText(t);
+      } catch {}
     })();
     return () => { alive = false; };
-  }, [url]);
-  return { rows, loading, err };
+  }, [metaUrl]);
+  return text;
 }
 
 /* ===================== DISPLAY ORDER & HEADER BANDS ===================== */
@@ -187,14 +172,13 @@ const BANDS = [
   ["BATTER SPLITS vs P HANDEDNESS", ["h_ab","h_woba","h_iso","h_wrcplus","h_kpct","h_bbpct"]]
 ];
 
-/* Sort intent (for first-click direction) */
-const LOWER_BETTER = new Set(["dk","fd","k_pct","sws_pct","h_kpct"]);
-const HIGHER_BETTER = new Set([
+/* Which direction is “better” */
+const HIGHER_IS_BETTER = new Set([
   "total","rating","ab","iso","woba","bb_pct","sbg","hr_fb","fb","gb","cnt_pct","bar_pct","hh_pct","ev",
   "h_ab","h_woba","h_iso","h_wrcplus","h_bbpct"
 ]);
+const LOWER_IS_BETTER = new Set(["dk","fd","k_pct","sws_pct","h_kpct"]);
 
-/* Percent columns */
 const PCT_IDS = new Set([
   "rating","k_pct","bb_pct","hr_fb","fb","gb","cnt_pct","sws_pct","bar_pct","hh_pct","h_kpct","h_bbpct"
 ]);
@@ -202,10 +186,99 @@ const PCT_IDS = new Set([
 /* Thick borders for legibility */
 const THICK_AFTER = new Set(["fd","time","total","rating","sbg","sws_pct","ev","ph","h_ab","h_bbpct"]);
 
+/* ------------------------ conditional formatting ---------------------- */
+function numericFromRaw(id, raw) {
+  if (raw == null || raw === "") return null;
+  let v = String(raw);
+  if (v.endsWith("%")) v = v.slice(0, -1);
+  let n = num(v);
+  if (n == null) return null;
+  if (PCT_IDS.has(id) && Math.abs(n) <= 1) n *= 100;
+  return n;
+}
+function computeStats(rows, ids, idToKey) {
+  const out = {};
+  for (const id of ids) {
+    const key = idToKey.get(id);
+    if (!key) continue;
+    if (!HIGHER_IS_BETTER.has(id) && !LOWER_IS_BETTER.has(id)) continue;
+    let min = Infinity, max = -Infinity, any = false;
+    for (const r of rows) {
+      const n = numericFromRaw(id, r[key]);
+      if (n == null || !Number.isFinite(n)) continue;
+      any = true;
+      if (n < min) min = n;
+      if (n > max) max = n;
+    }
+    if (any && min !== max) out[id] = { min, max };
+  }
+  return out;
+}
+function colorFor(palette, id, raw, stats) {
+  if (palette === "none") return null;
+  const st = stats[id];
+  if (!st) return null;
+  const n = numericFromRaw(id, raw);
+  if (n == null) return null;
+
+  // t: 0 = column-min (bad if HIGHER_IS_BETTER), 1 = column-max
+  let t = (n - st.min) / (st.max - st.min);
+  t = Math.max(0, Math.min(1, t));
+  if (LOWER_IS_BETTER.has(id)) t = 1 - t; // flip so higher 't' always better
+
+  if (palette === "gyr") {
+    // real red -> yellow -> green
+    const hue = 0 + 120 * t;      // 0=red, 60=yellow, 120=green
+    const sat = 85;
+    const light = 96 - 14 * t;
+    return `hsl(${hue} ${sat}% ${light}%)`;
+  }
+  if (palette === "orangeblue") {
+    // orange = GOOD, blue = BAD (so invert again)
+    const tt = 1 - t;
+    if (tt < 0.5) {
+      const u = tt / 0.5;         // orange -> white
+      const h = 30, s = 70 - 40 * u, l = 96 - 4 * u;
+      return `hsl(${h} ${s}% ${l}%)`;
+    } else {
+      const u = (tt - 0.5) / 0.5; // white -> blue
+      const h = 220, s = 30 + 40 * u, l = 94 - 8 * u;
+      return `hsl(${h} ${s}% ${l}%)`;
+    }
+  }
+  return null;
+}
+
+/* ============================== DATA FETCH ============================== */
+function useJson(url) {
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      setLoading(true);
+      setErr("");
+      try {
+        const r = await fetch(`${url}?_=${Date.now()}`, { cache: "no-store" });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = await r.json();
+        if (alive) setRows(Array.isArray(j) ? j : j?.data || j?.rows || []);
+      } catch (e) {
+        if (alive) setErr(String(e.message || e));
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => { alive = false; };
+  }, [url]);
+  return { rows, loading, err };
+}
+
 /* ============================== MAIN PAGE ============================== */
 export default function BatterData() {
   const { rows, loading, err } = useJson(DATA_URL);
-  const updatedAt = useLastUpdated(DATA_URL, META_URL);
+  const updatedText = useLastUpdatedFromSource(DATA_URL);
 
   const rawCols = useMemo(() => (rows[0] ? Object.keys(rows[0]) : []), [rows]);
   const rawLower = useMemo(() => rawCols.map(squish), [rawCols]);
@@ -257,7 +330,7 @@ export default function BatterData() {
     });
   }, [rows, q]);
 
-  // sorting
+  // sorting (default DK desc)
   const dkKey = idToKey.get("dk");
   const playerKey = idToKey.get("player");
   const [sort, setSort] = useState({ key: dkKey || playerKey || "", dir: dkKey ? "desc" : "asc" });
@@ -268,15 +341,11 @@ export default function BatterData() {
     setSort({ key: dk || pl || "", dir: dk ? "desc" : "asc" });
   }, [idToKey]);
 
-  const firstClickDirFor = (id) => (LOWER_BETTER.has(id) ? "asc" : "desc");
-
   const onSort = (id) => {
     const k = idToKey.get(id);
     if (!k) return;
     setSort((prev) =>
-      prev.key === k
-        ? { key: k, dir: prev.dir === "asc" ? "desc" : "asc" }
-        : { key: k, dir: firstClickDirFor(id) }
+      prev.key === k ? { key: k, dir: prev.dir === "asc" ? "desc" : "asc" } : { key: k, dir: "desc" }
     );
   };
 
@@ -294,72 +363,23 @@ export default function BatterData() {
     return arr;
   }, [filtered, sort]);
 
-  /* ---------------------- Conditional formatting ---------------------- */
-  const heatThresholds = useMemo(() => {
-    // Build { id -> [q20,q40,q60,q80] } for heat columns over *current* sorted rows
-    const ids = [...HIGHER_BETTER, ...LOWER_BETTER];
-    const map = new Map();
-    for (const id of ids) {
-      const key = idToKey.get(id);
-      if (!key) continue;
-      const values = sorted
-        .map((r) => num(r[key]))
-        .filter((v) => v != null && Number.isFinite(v))
-        .sort((a, b) => a - b);
-      if (values.length < 5) continue; // not enough to compute quantiles
-      const q = (p) => {
-        const idx = (values.length - 1) * p;
-        const lo = Math.floor(idx), hi = Math.ceil(idx);
-        return lo === hi ? values[lo] : values[lo] + (values[hi] - values[lo]) * (idx - lo);
-      };
-      map.set(id, [q(0.2), q(0.4), q(0.6), q(0.8)]);
-    }
-    return map;
-  }, [sorted, idToKey]);
+  // palette
+  const [palette, setPalette] = useState("none"); // none | gyr | orangeblue
 
-  const heatClass = (id, rawVal) => {
-    const key = idToKey.get(id);
-    if (!key) return "";
-    const v = num(rawVal);
-    if (v == null) return "";
-    const qs = heatThresholds.get(id);
-    if (!qs) return "";
-
-    // tier 0..4
-    let tier = 0;
-    if (v >= qs[3]) tier = 4;
-    else if (v >= qs[2]) tier = 3;
-    else if (v >= qs[1]) tier = 2;
-    else if (v >= qs[0]) tier = 1;
-    else tier = 0;
-
-    // map to classes depending on direction
-    if (HIGHER_BETTER.has(id)) {
-      // more green as tier increases
-      return ["bg-red-50", "bg-green-50", "bg-green-100", "bg-green-150", "bg-green-200"][tier] || "";
-    }
-    if (LOWER_BETTER.has(id)) {
-      // better when smaller ⇒ invert (lower tiers = good)
-      const inv = 4 - tier;
-      return ["bg-blue-200", "bg-blue-150", "bg-blue-100", "bg-blue-50", "bg-green-50"][inv] || "";
-    }
-    return "";
-  };
-
-  // Some Tailwind palettes (bg-green-150 isn't real; tailwind will treat unknowns as no-op.
-  // If you want exact shades, switch the 150s to 100 or 200 as you prefer.)
+  // coloring stats per visible columns
+  const flatIds = useMemo(() => BANDS.flatMap(([, ids]) => ids), []);
+  const stats = useMemo(() => computeStats(sorted, flatIds, idToKey), [sorted, flatIds, idToKey]);
 
   // UI
   const headerCls = "px-2 py-1 font-semibold text-center text-[11px] whitespace-nowrap cursor-pointer select-none";
   const cellCls = "px-2 py-1 text-center text-[12px]";
-  const flatIds = useMemo(() => BANDS.flatMap(([, ids]) => ids), []);
 
   const renderVal = (id, key, row) => {
     const raw = key ? row[key] : "";
     if (id === "time") return time12(raw);
     if (id === "team" || id === "opp") return <TeamWithLogo code={raw} />;
     if (id === "woba" || id === "iso" || id === "h_woba" || id === "h_iso") return fmt3(raw);
-    if (id === "sbg") return fmt2(raw); // SB/g
+    if (id === "sbg") return fmt2(raw);
     if (PCT_IDS.has(id)) return fmtPct1(raw);
     const n = num(raw);
     return n == null ? String(raw ?? "") : fmt1(n);
@@ -370,17 +390,30 @@ export default function BatterData() {
       <div className="flex items-center justify-between gap-3 mb-2">
         <div className="flex items-baseline gap-3">
           <h1 className="text-2xl md:text-3xl font-extrabold">{TITLE}</h1>
-          <div className="text-sm text-gray-600">{loading ? "Loading…" : `${sorted.length.toLocaleString()} rows`}</div>
-          {updatedAt && <div className="text-sm text-gray-500">Updated: {fmtUpdated(updatedAt)}</div>}
-          {err && <div className="text-sm text-red-600">Error: {err}</div>}
+          <div className="text-sm text-gray-600">
+            {loading ? "Loading…" : err ? `Error: ${err}` : `${sorted.length.toLocaleString()} rows`}
+          </div>
+          {useLastUpdatedFromSource && <div className="text-sm text-gray-500">Updated: {updatedText}</div>}
         </div>
 
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search batter / team / opp / pitcher…"
-          className="h-9 w-80 rounded-lg border border-gray-300 px-3 text-sm focus:ring-2 focus:ring-indigo-500"
-        />
+        <div className="flex items-center gap-2">
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search batter / team / opp / pitcher…"
+            className="h-9 w-80 rounded-lg border border-gray-300 px-3 text-sm focus:ring-2 focus:ring-indigo-500"
+          />
+          <select
+            value={palette}
+            onChange={(e) => setPalette(e.target.value)}
+            className="h-9 rounded-lg border px-2 text-sm"
+            title="Cell coloring"
+          >
+            <option value="none">Coloring: None</option>
+            <option value="gyr">Coloring: Green–Yellow–Red</option>
+            <option value="orangeblue">Coloring: Orange–Blue</option>
+          </select>
+        </div>
       </div>
 
       <div className="rounded-xl border bg-white shadow-sm overflow-auto">
@@ -410,9 +443,11 @@ export default function BatterData() {
                   >
                     <span className="inline-flex items-center gap-1">
                       <span>{col.label}</span>
-                      <span className="text-gray-400">
-                        {isSorted ? (sort.dir === "desc" ? "▼" : "▲") : (firstClickDirFor(id) === "desc" ? "▼" : "▲")}
-                      </span>
+                      {isSorted ? (
+                        <span className="text-gray-500">{sort.dir === "desc" ? "▼" : "▲"}</span>
+                      ) : (
+                        <span className="text-gray-300">▲</span>
+                      )}
                     </span>
                   </th>
                 );
@@ -434,14 +469,15 @@ export default function BatterData() {
                     const key = idToKey.get(id);
                     const thick = THICK_AFTER.has(id);
                     const isPlayer = id === "player";
-                    const raw = key ? row[key] : "";
-                    const heat = heatClass(id, raw);
+                    const raw = key ? row[key] : null;
+                    const bg = colorFor(palette, id, raw, stats);
                     return (
                       <td
                         key={id + "-" + rIdx}
                         className={`${cellCls} ${isPlayer ? "text-left font-medium" : ""} ${
                           thick ? "border-r-2 border-blue-300" : "border-r border-blue-200"
-                        } ${heat} tabular-nums`}
+                        } tabular-nums`}
+                        style={bg ? { backgroundColor: bg } : undefined}
                       >
                         {renderVal(id, key, row)}
                       </td>
