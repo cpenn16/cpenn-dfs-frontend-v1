@@ -278,18 +278,21 @@ function colorFor(value, col, stats, palette) {
     return `hsl(${hue} ${sat}% ${light}%)`;
   }
   if (palette === "orangeblue") {
-    // orange (bad) -> white (mid) -> blue (good)
+    // blue (bad) -> white (mid) -> orange (good)
+    // t is already inverted for LOWER_IS_BETTER above
     if (t < 0.5) {
+      // lower -> bluer (bad)
       const u = t / 0.5;
-      const hue = 30;
-      const sat = 70 - 40 * u;
-      const light = 96 - 4 * u;
-      return `hsl(${hue} ${sat}% ${light}%)`;
-    } else {
-      const u = (t - 0.5) / 0.5;
-      const hue = 220;
+      const hue = 220;                // blue
       const sat = 30 + 40 * u;
       const light = 94 - 8 * u;
+      return `hsl(${hue} ${sat}% ${light}%)`;
+    } else {
+      // higher -> more orange (good)
+      const u = (t - 0.5) / 0.5;
+      const hue = 30;                 // orange
+      const sat = 70 - 40 * (1 - u);  // grow saturation a bit as it gets better
+      const light = 92 - 6 * u;
       return `hsl(${hue} ${sat}% ${light}%)`;
     }
   }
@@ -535,7 +538,7 @@ export default function MlbStacks() {
   const { rows, loading, err } = useJson(SOURCE);
   const [site, setSite] = useState("both");
   const [q, setQ] = useState("");
-  const [palette, setPalette] = useState("gyr"); // default to visible coloring
+  const [palette, setPalette] = useState("none"); // default to visible coloring
   const updatedText = useLastUpdatedFromSource(SOURCE);
 
   const columns = useMemo(() => {

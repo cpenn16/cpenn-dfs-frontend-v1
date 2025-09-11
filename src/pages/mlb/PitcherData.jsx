@@ -23,14 +23,23 @@ function fmtPct1(v) {
   if (v == null || v === "") return "";
   let s = String(v).trim();
   let hadPercent = false;
-  if (s.endsWith("%")) { hadPercent = true; s = s.slice(0, -1); }
+  if (s.endsWith("%")) {
+    hadPercent = true;
+    s = s.slice(0, -1);
+  }
   let n = num(s);
   if (n == null) return "";
   if (!hadPercent && Math.abs(n) <= 1) n *= 100;
   return `${n.toFixed(1)}%`;
 }
-const fmt1 = (v) => { const n = num(v); return n == null ? "" : n.toFixed(1).replace(/\.0$/, ""); };
-const fmt3 = (v) => { const n = num(v); return n == null ? "" : n.toFixed(3); };
+const fmt1 = (v) => {
+  const n = num(v);
+  return n == null ? "" : n.toFixed(1).replace(/\.0$/, "");
+};
+const fmt3 = (v) => {
+  const n = num(v);
+  return n == null ? "" : n.toFixed(3);
+};
 
 function time12(s) {
   const v = norm(s);
@@ -38,7 +47,8 @@ function time12(s) {
   if (/\d{1,2}:\d{2}(:\d{2})?\s?[AP]M/i.test(v)) return v.toUpperCase().replace(/\s+/g, " ");
   const m = v.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
   if (!m) return v;
-  let hh = Number(m[1]); const mm = m[2];
+  let hh = Number(m[1]);
+  const mm = m[2];
   const ampm = hh >= 12 ? "PM" : "AM";
   hh = ((hh + 11) % 12) + 1;
   return `${hh}:${mm} ${ampm}`;
@@ -51,96 +61,179 @@ function TeamWithLogo({ code }) {
   return (
     <span className="inline-flex items-center gap-1">
       {/* eslint-disable-next-line jsx-a11y/alt-text */}
-      <img src={src} className="h-4 w-4 shrink-0" onError={(e) => (e.currentTarget.style.display = "none")} />
+      <img
+        src={src}
+        className="h-4 w-4 shrink-0"
+        onError={(e) => (e.currentTarget.style.display = "none")}
+      />
       <span>{abv}</span>
     </span>
   );
 }
 
+/* ---------------------- last-updated via meta.json -------------------- */
+function toMetaUrl(urlLike) {
+  return String(urlLike || "").replace(/[^/]+$/, "meta.json");
+}
+function parseMetaToDate(meta) {
+  const iso =
+    meta?.updated_iso ||
+    meta?.updated_utc ||
+    meta?.source_mtime_iso ||
+    meta?.last_updated ||
+    meta?.timestamp;
+  if (iso) {
+    const d = new Date(iso);
+    if (!isNaN(d)) return d;
+  }
+  const epoch = meta?.updated_epoch ?? meta?.epoch;
+  if (Number.isFinite(epoch)) {
+    const d = new Date(epoch * (epoch > 10_000_000_000 ? 1 : 1000));
+    if (!isNaN(d)) return d;
+  }
+  return null;
+}
+function useLastUpdatedFromSource(sourceUrl) {
+  const metaUrl = useMemo(() => toMetaUrl(sourceUrl), [sourceUrl]);
+  const [text, setText] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const r = await fetch(`${metaUrl}?_=${Date.now()}`, { cache: "no-store" });
+        if (!r.ok) return;
+        const meta = await r.json();
+        const d = parseMetaToDate(meta);
+        if (!d) return;
+        const t = d.toLocaleString(undefined, {
+          month: "numeric",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        });
+        if (alive) setText(t);
+      } catch {}
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [metaUrl]);
+  return text;
+}
+
 /* ===================== DISPLAY ORDER & HEADER BANDS ===================== */
 const COLS = [
   // Player Info
-  { id: "hand",   label: "Hand",  keys: ["Hand","Throws","Handedness"] },
-  { id: "player", label: "player", keys: ["player","Player","Name"] },
-  { id: "dk",     label: "DK",    keys: ["DK","DK Sal","DK Salary"] },
-  { id: "fd",     label: "FD",    keys: ["FD","FD Sal","FD Salary"] },
+  { id: "hand", label: "Hand", keys: ["Hand", "Throws", "Handedness"] },
+  { id: "player", label: "player", keys: ["player", "Player", "Name"] },
+  { id: "dk", label: "DK", keys: ["DK", "DK Sal", "DK Salary"] },
+  { id: "fd", label: "FD", keys: ["FD", "FD Sal", "FD Salary"] },
 
   // Matchup Info
-  { id: "team",   label: "Team",  keys: ["Team","Tm"] },
-  { id: "opp",    label: "Opp",   keys: ["Opp","OPP","Opponent"] },
-  { id: "park",   label: "Park",  keys: ["Park","Ballpark"] },
-  { id: "time",   label: "Time",  keys: ["Time","Start","Start Time"] },
+  { id: "team", label: "Team", keys: ["Team", "Tm"] },
+  { id: "opp", label: "Opp", keys: ["Opp", "OPP", "Opponent"] },
+  { id: "park", label: "Park", keys: ["Park", "Ballpark"] },
+  { id: "time", label: "Time", keys: ["Time", "Start", "Start Time"] },
 
   // Vegas
-  { id: "total",  label: "Total",  keys: ["Total","O/U","Team Total","TT"] },
-  { id: "winpct", label: "W%",     keys: ["W%","Win%"] },
-  { id: "kline",  label: "K",      keys: ["K","Kline","Ks"] },
-  { id: "field",  label: "Field",  keys: ["Field","Field%"] },
-  { id: "rating", label: "Rating", keys: ["Rating","Rate"] },
+  { id: "total", label: "Total", keys: ["Total", "O/U", "Team Total", "TT"] },
+  { id: "winpct", label: "W%", keys: ["W%", "Win%"] },
+  { id: "kline", label: "K", keys: ["K", "Kline", "Ks"] },
+  { id: "field", label: "Field", keys: ["Field", "Field%"] },
+  { id: "rating", label: "Rating", keys: ["Rating", "Rate"] },
 
   // Opponent splits vs hand
-  { id: "opp_kpct",  label: "K%",   keys: ["opp K%","Opp K%","K% (Opp)","K% vs Hand","K% (Team)","K% (Opp Team)"] },
-  { id: "opp_bbpct", label: "BB%",  keys: ["opp BB%","Opp BB%","BB% (Opp)","BB% vs Hand","BB% (Team)","BB% (Opp Team)"] },
-  { id: "woba",      label: "wOBA", keys: ["opp wOBA","wOBA","Opp wOBA"] },
-  { id: "iso",       label: "ISO",  keys: ["opp ISO","ISO","Opp ISO"] },
-  { id: "wrcplus",   label: "wRC+", keys: ["opp wRC+","wRC+","Opp wRC+"] },
+  {
+    id: "opp_kpct",
+    label: "K%",
+    keys: ["opp K%", "Opp K%", "K% (Opp)", "K% vs Hand", "K% (Team)", "K% (Opp Team)"],
+  },
+  {
+    id: "opp_bbpct",
+    label: "BB%",
+    keys: ["opp BB%", "Opp BB%", "BB% (Opp)", "BB% vs Hand", "BB% (Team)", "BB% (Opp Team)"],
+  },
+  { id: "woba", label: "wOBA", keys: ["opp wOBA", "wOBA", "Opp wOBA"] },
+  { id: "iso", label: "ISO", keys: ["opp ISO", "ISO", "Opp ISO"] },
+  { id: "wrcplus", label: "wRC+", keys: ["opp wRC+", "wRC+", "Opp wRC+"] },
 
   // Advanced (pitcher)
-  { id: "ip",     label: "IP",    keys: ["IP","IP/G"] },
-  { id: "velo",   label: "Velo",  keys: ["Velo","FB Velo","Velocity"] },
-  { id: "xfip",   label: "xFIP",  keys: ["xFIP","xfip"] },
-  { id: "p_kpct", label: "K%",    keys: ["K% (P)","Pitch K%","K%_P","K%"] },
-  { id: "sws",    label: "SwS%",  keys: ["SwS%","SwStr%"] },
-  { id: "p_bbpct",label: "BB%",   keys: ["BB% (P)","Pitch BB%","BB%_P","BB%"] },
+  { id: "ip", label: "IP", keys: ["IP", "IP/G"] },
+  { id: "velo", label: "Velo", keys: ["Velo", "FB Velo", "Velocity"] },
+  { id: "xfip", label: "xFIP", keys: ["xFIP", "xfip"] },
+  { id: "p_kpct", label: "K%", keys: ["K% (P)", "Pitch K%", "K%_P", "K%"] },
+  { id: "sws", label: "SwS%", keys: ["SwS%", "SwStr%"] },
+  { id: "p_bbpct", label: "BB%", keys: ["BB% (P)", "Pitch BB%", "BB%_P", "BB%"] },
 
   // Ratios
-  { id: "k9",   label: "K/9",  keys: ["K/9","K9"] },
-  { id: "bb9",  label: "BB/9", keys: ["BB/9","BB9"] },
-  { id: "hr9",  label: "HR/9", keys: ["HR/9","HR9"] },
+  { id: "k9", label: "K/9", keys: ["K/9", "K9"] },
+  { id: "bb9", label: "BB/9", keys: ["BB/9", "BB9"] },
+  { id: "hr9", label: "HR/9", keys: ["HR/9", "HR9"] },
 
   // Statcast
-  { id: "gbpct", label: "GB%",  keys: ["GB%","GB% (P)"] },
-  { id: "fbpct", label: "FB%",  keys: ["FB%","FB% (P)"] },
-  { id: "hhpct", label: "HH%",  keys: ["HH%","HardHit%","Hard%"] },
-  { id: "barpct",label: "Bar%", keys: ["Bar%","Barrel%"] },
-  { id: "ev",    label: "EV",   keys: ["EV","Avg EV","Exit Velo"] }
+  { id: "gbpct", label: "GB%", keys: ["GB%", "GB% (P)"] },
+  { id: "fbpct", label: "FB%", keys: ["FB%", "FB% (P)"] },
+  { id: "hhpct", label: "HH%", keys: ["HH%", "HardHit%", "Hard%"] },
+  { id: "barpct", label: "Bar%", keys: ["Bar%", "Barrel%"] },
+  { id: "ev", label: "EV", keys: ["EV", "Avg EV", "Exit Velo"] },
 ];
 
 const BANDS = [
-  ["PLAYER INFO", ["hand","player","dk","fd"]],
-  ["MATCHUP INFO", ["team","opp","park","time"]],
-  ["VEGAS", ["total","winpct","kline","field","rating"]],
-  ["OPPONENT SPLITS VS HANDEDNESS", ["opp_kpct","opp_bbpct","woba","iso","wrcplus"]],
-  ["ADVANCED STATS", ["ip","velo","xfip","p_kpct","sws","p_bbpct"]],
-  ["RATIOS", ["k9","bb9","hr9"]],
-  ["STATCAST", ["gbpct","fbpct","hhpct","barpct","ev"]]
+  ["PLAYER INFO", ["hand", "player", "dk", "fd"]],
+  ["MATCHUP INFO", ["team", "opp", "park", "time"]],
+  ["VEGAS", ["total", "winpct", "kline", "field", "rating"]],
+  ["OPPONENT SPLITS VS HANDEDNESS", ["opp_kpct", "opp_bbpct", "woba", "iso", "wrcplus"]],
+  ["ADVANCED STATS", ["ip", "velo", "xfip", "p_kpct", "sws", "p_bbpct"]],
+  ["RATIOS", ["k9", "bb9", "hr9"]],
+  ["STATCAST", ["gbpct", "fbpct", "hhpct", "barpct", "ev"]],
 ];
 
 const PCT_IDS = new Set([
-  "winpct","rating","opp_kpct","opp_bbpct","p_kpct","sws","p_bbpct","gbpct","fbpct","hhpct","barpct"
+  "winpct",
+  "rating",
+  "opp_kpct",
+  "opp_bbpct",
+  "p_kpct",
+  "sws",
+  "p_bbpct",
+  "gbpct",
+  "fbpct",
+  "hhpct",
+  "barpct",
 ]);
 
 // Thick borders after: FD, Time, K, Rating, wRC+, BB% (P), HH%, EV
-const THICK_AFTER = new Set(["fd","time","kline","rating","wrcplus","p_bbpct","hhpct","ev"]);
+const THICK_AFTER = new Set(["fd", "time", "kline", "rating", "wrcplus", "p_bbpct", "hhpct", "ev"]);
 
 /* ----------------- conditional formatting preferences ----------------- */
-/* Higher is better for these ids… */
-const HIGHER_IS_BETTER = new Set([
-  "winpct","kline","rating","opp_kpct","ip","velo","p_kpct","sws","k9","gbpct"
-]);
-/* …and lower is better for these. */
+// Higher is better for these:
+const HIGHER_IS_BETTER = new Set(["winpct", "kline", "rating", "opp_kpct", "ip", "velo", "p_kpct", "sws", "k9", "gbpct"]);
+// Lower is better for these:
 const LOWER_IS_BETTER = new Set([
-  "dk","fd","total","opp_bbpct","woba","iso","wrcplus","xfip","p_bbpct","bb9","hr9","fbpct","hhpct","barpct","ev"
+  "dk",
+  "fd",
+  "total",
+  "opp_bbpct",
+  "woba",
+  "iso",
+  "wrcplus",
+  "xfip",
+  "p_bbpct",
+  "bb9",
+  "hr9",
+  "fbpct",
+  "hhpct",
+  "barpct",
+  "ev",
 ]);
 
-/* Build stats for visible numeric columns so we can color 0..1 */
 function numericFromRaw(id, raw) {
   if (raw == null || raw === "") return null;
   let v = String(raw);
   if (v.endsWith("%")) v = v.slice(0, -1);
   let n = num(v);
   if (n == null) return null;
-  if (PCT_IDS.has(id) && Math.abs(n) <= 1) n *= 100;
+  if (PCT_IDS.has(id) && Math.abs(n) <= 1) n *= 100; // treat 0..1 as fraction
   return n;
 }
 function computeStats(rows, ids, idToKey) {
@@ -149,7 +242,9 @@ function computeStats(rows, ids, idToKey) {
     if (!HIGHER_IS_BETTER.has(id) && !LOWER_IS_BETTER.has(id)) continue;
     const key = idToKey.get(id);
     if (!key) continue;
-    let min = Infinity, max = -Infinity, any = false;
+    let min = Infinity,
+      max = -Infinity,
+      any = false;
     for (const r of rows) {
       const n = numericFromRaw(id, r[key]);
       if (n == null || !Number.isFinite(n)) continue;
@@ -170,26 +265,31 @@ function colorFor(palette, id, raw, stats) {
   const n = numericFromRaw(id, raw);
   if (n == null) return null;
 
-  let t = (n - st.min) / (st.max - st.min); // 0..1 is low->high
-  if (LOWER_IS_BETTER.has(id)) t = 1 - t;  // invert for "lower better"
+  let t = (n - st.min) / (st.max - st.min); // 0..1 low->high
+  if (LOWER_IS_BETTER.has(id)) t = 1 - t; // invert so 1 = good everywhere
   t = Math.max(0, Math.min(1, t));
 
   if (palette === "gyr") {
-    const h = 60 + 60 * t;          // yellow -> green
-    const s = 85 - t * 15;
-    const l = 92 - t * 6;
-    return `hsl(${h} ${s}% ${l}%)`;
+    // **Real** red -> yellow -> green
+    const hue = 0 + 120 * t; // 0=red, 60=yellow, 120=green
+    const sat = 85;
+    const light = 96 - 14 * t;
+    return `hsl(${hue} ${sat}% ${light}%)`;
   }
   if (palette === "orangeblue") {
-    if (t < 0.5) {
-      const u = t / 0.5;
-      const h = 30 + u * (-200);    // orange -> white
-      const s = 70 - u * 60;
-      const l = 96 - u * 4;
+    // ORANGE = GOOD, BLUE = BAD (flip orientation)
+    const tt = 1 - t;
+    if (tt < 0.5) {
+      const u = tt / 0.5; // orange -> white
+      const h = 30; // orange hue
+      const s = 70 - 40 * u;
+      const l = 96 - 4 * u;
       return `hsl(${h} ${s}% ${l}%)`;
     } else {
-      const u = (t - 0.5) / 0.5;    // white -> blue
-      const h = 220, s = 40 + u * 20, l = 94 - u * 6;
+      const u = (tt - 0.5) / 0.5; // white -> blue
+      const h = 220; // blue hue
+      const s = 30 + 40 * u;
+      const l = 94 - 8 * u;
       return `hsl(${h} ${s}% ${l}%)`;
     }
   }
@@ -218,7 +318,9 @@ function useJson(url) {
         if (alive) setLoading(false);
       }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [url]);
 
   return { rows, loading, err };
@@ -227,6 +329,8 @@ function useJson(url) {
 /* ============================== MAIN PAGE ============================== */
 export default function PitcherData() {
   const { rows, loading, err } = useJson(DATA_URL);
+  const updatedText = useLastUpdatedFromSource(DATA_URL);
+
   const rawCols = useMemo(() => (rows[0] ? Object.keys(rows[0]) : []), [rows]);
 
   // map id -> actual key (first alias match wins; case-insensitive)
@@ -234,9 +338,7 @@ export default function PitcherData() {
     const m = new Map();
     const rawLower = rawCols.map((c) => lower(c));
     for (const c of COLS) {
-      const idx = c.keys
-        .map((k) => rawLower.findIndex((rc) => rc === lower(k)))
-        .find((i) => i !== -1);
+      const idx = c.keys.map((k) => rawLower.findIndex((rc) => rc === lower(k))).find((i) => i !== -1);
       m.set(c.id, idx !== -1 && idx != null ? rawCols[idx] : null);
     }
     return m;
@@ -282,8 +384,10 @@ export default function PitcherData() {
     const dir = sort.dir === "asc" ? 1 : -1;
     if (!k) return arr;
     arr.sort((a, b) => {
-      const av = a[k], bv = b[k];
-      const an = num(av), bn = num(bv);
+      const av = a[k],
+        bv = b[k];
+      const an = num(av),
+        bn = num(bv);
       if (an != null && bn != null) return dir * (an - bn);
       return dir * String(av ?? "").localeCompare(String(bv ?? ""), undefined, { sensitivity: "base" });
     });
@@ -295,7 +399,8 @@ export default function PitcherData() {
   const stats = useMemo(() => computeStats(sorted, flatIds, idToKey), [sorted, flatIds, idToKey]);
 
   // UI helpers
-  const headerCls = "px-2 py-1 font-semibold text-center text-[11px] whitespace-nowrap cursor-pointer select-none";
+  const headerCls =
+    "px-2 py-1 font-semibold text-center text-[11px] whitespace-nowrap cursor-pointer select-none";
   const cellCls = "px-2 py-1 text-center text-[12px]";
 
   const renderVal = (id, key, row) => {
@@ -311,10 +416,13 @@ export default function PitcherData() {
   return (
     <div className="px-4 md:px-6 py-5">
       <div className="flex items-center justify-between gap-3 mb-2">
-        <h1 className="text-2xl md:text-3xl font-extrabold">
-          {TITLE}
-          {err ? <span className="ml-3 text-sm text-red-600">Error: {err}</span> : null}
-        </h1>
+        <div className="flex items-baseline gap-3">
+          <h1 className="text-2xl md:text-3xl font-extrabold">{TITLE}</h1>
+          <div className="text-sm text-gray-600">
+            {loading ? "Loading…" : err ? `Error: ${err}` : `${sorted.length.toLocaleString()} rows`}
+          </div>
+          {updatedText && <div className="text-sm text-gray-500">Updated: {updatedText}</div>}
+        </div>
 
         <div className="flex items-center gap-2">
           <input
@@ -339,7 +447,7 @@ export default function PitcherData() {
       <div className="rounded-xl border bg-white shadow-sm overflow-auto">
         <table className="w-full border-separate" style={{ borderSpacing: 0 }}>
           <thead className="sticky top-0 z-10">
-            {/* merged band headers */}
+            {/* band headers */}
             <tr className="bg-blue-100 text-[11px] font-bold text-gray-700 uppercase">
               {BANDS.map(([name, ids]) => (
                 <th key={name} colSpan={ids.length} className="px-2 py-1 text-center border-b border-blue-200">
@@ -348,7 +456,7 @@ export default function PitcherData() {
               ))}
             </tr>
 
-            {/* column header row */}
+            {/* column headers */}
             <tr className="bg-blue-50">
               {flatIds.map((id) => {
                 const col = COLS.find((c) => c.id === id);
@@ -378,11 +486,23 @@ export default function PitcherData() {
 
           <tbody>
             {loading ? (
-              <tr><td className={`${cellCls} text-gray-500`} colSpan={flatIds.length}>Loading…</td></tr>
+              <tr>
+                <td className={`${cellCls} text-gray-500`} colSpan={flatIds.length}>
+                  Loading…
+                </td>
+              </tr>
             ) : err ? (
-              <tr><td className={`${cellCls} text-red-600`} colSpan={flatIds.length}>Failed to load: {err}</td></tr>
+              <tr>
+                <td className={`${cellCls} text-red-600`} colSpan={flatIds.length}>
+                  Failed to load: {err}
+                </td>
+              </tr>
             ) : sorted.length === 0 ? (
-              <tr><td className={`${cellCls} text-gray-500`} colSpan={flatIds.length}>No rows match your filters.</td></tr>
+              <tr>
+                <td className={`${cellCls} text-gray-500`} colSpan={flatIds.length}>
+                  No rows match your filters.
+                </td>
+              </tr>
             ) : (
               sorted.map((row, rIdx) => (
                 <tr key={rIdx} className={rIdx % 2 ? "bg-gray-50/40" : "bg-white"}>
