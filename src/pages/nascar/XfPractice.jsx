@@ -25,8 +25,43 @@ function useJson(url) {
   return { data, err, loading };
 }
 
+/* ---------------- LAST UPDATED (shared) ---------------- */
+function useLastUpdated(mainUrl, metaUrl) {
+  const [updatedAt, setUpdatedAt] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const h = await fetch(mainUrl, { method: "HEAD", cache: "no-store" });
+        const lm = h.headers.get("last-modified");
+        if (alive && lm) { setUpdatedAt(new Date(lm)); return; }
+      } catch (_) {}
+
+      try {
+        const r = await fetch(mainUrl, { cache: "no-store" });
+        const lm2 = r.headers.get("last-modified");
+        if (alive && lm2) { setUpdatedAt(new Date(lm2)); return; }
+      } catch (_) {}
+
+      try {
+        if (!metaUrl) return;
+        const m = await fetch(`${metaUrl}?_=${Date.now()}`, { cache: "no-store" }).then(x => x.json());
+        const iso = m?.updated_iso || m?.updated_utc || m?.updated || m?.lastUpdated || m?.timestamp;
+        const ep  = m?.updated_epoch;
+        const d   = iso ? new Date(iso) : (Number.isFinite(ep) ? new Date(ep * 1000) : null);
+        if (alive && d && !isNaN(d)) setUpdatedAt(d);
+      } catch (_) {}
+    })();
+    return () => { alive = false; };
+  }, [mainUrl, metaUrl]);
+
+  return updatedAt;
+}
+const fmtUpdated = (d) =>
+  d ? d.toLocaleString(undefined, { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" }) : null;
+
 /* ----------------------------- helpers ----------------------------- */
-// Treat blanks/dashes/NA as non-numeric so they won't be considered mins
 const num = (v) => {
   if (v === null || v === undefined) return NaN;
   let s = String(v).trim();
@@ -103,9 +138,20 @@ const lowerIsBetter = (c) => {
 
 /* ----------------------------- page ----------------------------- */
 export default function CupPractice() {
-  const SUMMARY_SRC = "/data/nascar/xfinity/latest/practice_cons.json";
-  const LAPS_SRC = "/data/nascar/xfinity/latest/practice_laps.json";
+  const BASE = import.meta?.env?.BASE_URL ?? "/";
+  const SUMMARY_SRC = `${BASE}data/nascar/xfinity/latest/practice_cons.json`;
+  const LAPS_SRC    = `${BASE}data/nascar/xfinity/latest/practice_laps.json`;
   const SHOW_SOURCES = false;
+
+  // last updated: compute for each and show the most recent
+  const consMetaUrl = SUMMARY_SRC.replace(/practice_cons\.json$/, "meta.json");
+  const lapsMetaUrl = LAPS_SRC.replace(/practice_laps\.json$/, "meta.json");
+  const consUpdated = useLastUpdated(SUMMARY_SRC, consMetaUrl);
+  const lapsUpdated = useLastUpdated(LAPS_SRC, lapsMetaUrl);
+  const updatedAt = useMemo(() => {
+    if (consUpdated && lapsUpdated) return new Date(Math.max(+consUpdated, +lapsUpdated));
+    return consUpdated || lapsUpdated || null;
+  }, [consUpdated, lapsUpdated]);
 
   // UI layout
   const [active, setActive] = useState("summary"); // "summary" | "laps"
@@ -190,7 +236,6 @@ export default function CupPractice() {
         }
       }
       if (min < Infinity && max > -Infinity) {
-        // For columns that look like lap times, cap upper bound at 40s to keep useful contrast
         const isLapish =
           /^(?:\d+\s*lap(?:_1)?|lap\s*avg|average|sh\.\s*run|short\s*run|lo\.\s*run|long\s*run)$/i.test(String(c).trim());
         const cappedMax = isLapish ? Math.min(max, 40) : max;
@@ -218,12 +263,11 @@ export default function CupPractice() {
   const [q, setQ] = useState("");
   const [visibleCols, setVisibleCols] = useState([]);
 
-  // default: show columns through lap 100, hide numeric > 100 (can be toggled on)
   useEffect(() => {
     if (!lapColsRaw.length) return;
     setVisibleCols(
       lapColsRaw.map((c) => {
-        if (numericColName(c)) return Number(c) <= 100;
+        if (numericColName(c)) return Number(c) <= 100; // show up to 100 by default
         return true;
       })
     );
@@ -232,7 +276,7 @@ export default function CupPractice() {
   const toggleCol = (i) => setVisibleCols((v) => { const n = [...v]; n[i] = !n[i]; return n; });
   const showAll = () => setVisibleCols(lapColsRaw.map(() => true));
   const hideAll = () =>
-    setVisibleCols(lapColsRaw.map((c) => (numericColName(c) ? Number(c) <= 100 : false))); // keep <=100 visible
+    setVisibleCols(lapColsRaw.map((c) => (numericColName(c) ? Number(c) <= 100 : false)));
   const visibleColNames = lapColsRaw.filter((_, i) => visibleCols[i]);
 
   const filteredRows = useMemo(() => {
@@ -264,7 +308,7 @@ export default function CupPractice() {
     return w;
   }, [rows, lapColsRaw]);
 
-  // 🔦 best (lowest) value per numeric lap column among the visible, filtered rows
+  // best (lowest) lap per numeric column among visible, filtered rows
   const minPerCol = useMemo(() => {
     const mins = {};
     for (const c of visibleColNames) {
@@ -279,7 +323,7 @@ export default function CupPractice() {
     return mins;
   }, [sortedRows, visibleColNames]);
 
-  // 🔥 heatmap stats (lower = better); cap numeric lap columns at 40.0s for color scaling
+  // heatmap stats (lower = better); cap numeric lap columns at 40.0s
   const heatStats = useMemo(() => {
     const stats = {};
     for (const c of visibleColNames) {
@@ -293,7 +337,7 @@ export default function CupPractice() {
         }
       }
       if (min < Infinity && max > -Infinity) {
-        const cappedMax = numericColName(c) ? Math.min(max, 40) : max; // ✅ cap at 40 sec
+        const cappedMax = numericColName(c) ? Math.min(max, 40) : max;
         if (cappedMax > min) stats[c] = { min, max: cappedMax };
       }
     }
@@ -358,41 +402,65 @@ export default function CupPractice() {
   return (
     <div className="px-5 py-6">
       <div className="max-w-[1200px] mx-auto">
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end gap-3 mb-4">
           <h1 className="text-2xl sm:text-3xl font-extrabold">Xfinity Lap-by-Lap Data</h1>
+
+          {/* Updated stamp */}
+          {updatedAt && (
+            <div className="text-sm text-gray-500 sm:ml-2">Updated: {fmtUpdated(updatedAt)}</div>
+          )}
+
+          {/* (optional) debug sources */}
           {SHOW_SOURCES && (
-            <div className="text-sm text-gray-500 sm:ml-4">
+            <div className="text-xs sm:text-sm text-gray-500 sm:ml-4">
               Summary: <code>{SUMMARY_SRC}</code> | Laps: <code>{LAPS_SRC}</code>
             </div>
           )}
           <div className="sm:ml-auto flex items-center gap-3">
-            <label className="inline-flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={compact} onChange={() => setCompact((v) => !v)} />
-              Compact
-            </label>
+            {/* Compact switch (prettier) */}
+            <div className="inline-flex items-center gap-2">
+              <span className="text-sm text-gray-600">Compact</span>
+              <button
+                onClick={() => setCompact((v) => !v)}
+                className={[
+                  "relative h-6 w-11 rounded-full transition",
+                  compact ? "bg-blue-600" : "bg-gray-300",
+                ].join(" ")}
+                aria-pressed={compact}
+              >
+                <span
+                  className={[
+                    "absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transform transition",
+                    compact ? "translate-x-5" : "translate-x-0",
+                  ].join(" ")}
+                />
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex flex-wrap gap-2 mb-5">
-          <button
-            onClick={() => setActive("summary")}
-            className={[
-              "px-3 py-2 rounded-lg text-sm border transition",
-              active === "summary" ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-800 border-gray-300 hover:bg-gray-50",
-            ].join(" ")}
-          >
-            Practice Summary
-          </button>
-          <button
-            onClick={() => setActive("laps")}
-            className={[
-              "px-3 py-2 rounded-lg text-sm border transition",
-              active === "laps" ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-800 border-gray-300 hover:bg-gray-50",
-            ].join(" ")}
-          >
-            Lap-by-Lap
-          </button>
+        {/* Tabs (segmented) */}
+        <div className="inline-flex rounded-xl border bg-gray-100 p-1 shadow-inner mb-5">
+          {[
+            { id: "summary", label: "Practice Summary" },
+            { id: "laps",    label: "Lap-by-Lap" },
+          ].map((t) => {
+            const on = active === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setActive(t.id)}
+                className={[
+                  "px-3 py-2 text-sm rounded-lg transition min-w-[8rem]",
+                  on ? "bg-white shadow font-semibold" : "text-gray-700 hover:text-gray-900",
+                ].join(" ")}
+                aria-pressed={on}
+              >
+                {t.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -402,33 +470,47 @@ export default function CupPractice() {
         {/* -------- Practice Summary -------- */}
         {active === "summary" && (
           <>
-            <div className="flex items-center gap-3 mb-2">
-              <h2 className="text-xl font-bold">Practice Summary</h2>
-              <div className="ml-auto flex items-center gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
+              <h2 className="text-lg sm:text-xl font-bold">Practice Summary</h2>
+
+              {/* Actions – collapse into a details on mobile */}
+              <details className="sm:hidden ml-auto">
+                <summary className="text-sm cursor-pointer select-none py-1 px-2 rounded border bg-white">Controls</summary>
+                <div className="mt-2 flex flex-col gap-2">
+                  <button className="h-9 px-3 text-sm rounded-lg bg-gray-100 hover:bg-gray-200" onClick={sumShowAll}>Show all</button>
+                  <button className="h-9 px-3 text-sm rounded-lg bg-gray-100 hover:bg-gray-200" onClick={sumHideAll}>Hide all</button>
+                  <button className="h-9 px-3 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700" onClick={exportSummaryCSV}>Export CSV</button>
+                </div>
+              </details>
+
+              <div className="hidden sm:flex items-center gap-2 ml-auto">
                 <button className="px-3 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200" onClick={sumShowAll}>Show all</button>
                 <button className="px-3 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200" onClick={sumHideAll}>Hide all</button>
                 <button className="px-3 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700" onClick={exportSummaryCSV}>Export CSV</button>
               </div>
             </div>
 
-            {/* chips */}
-            <div className="mb-3 flex items-center gap-2 flex-wrap">
-              {summaryColsRaw.map((c, i) => {
-                const on = !!sumVisible[i];
-                return (
-                  <button
-                    key={c}
-                    onClick={() => sumToggleCol(i)}
-                    className={[
-                      "px-2 py-1 rounded-full text-xs border transition",
-                      on ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50",
-                    ].join(" ")}
-                  >
-                    {on ? "✓ " : ""}{c}
-                  </button>
-                );
-              })}
-            </div>
+            {/* chips (mobile collapsible) */}
+            <details className="mb-3 sm:open">
+              <summary className="cursor-pointer text-xs text-gray-600 select-none sm:hidden">Columns</summary>
+              <div className="mt-2 sm:mt-0 flex items-center gap-2 flex-wrap">
+                {summaryColsRaw.map((c, i) => {
+                  const on = !!sumVisible[i];
+                  return (
+                    <button
+                      key={c}
+                      onClick={() => sumToggleCol(i)}
+                      className={[
+                        "px-2 py-1 rounded-full text-xs border transition",
+                        on ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50",
+                      ].join(" ")}
+                    >
+                      {on ? "✓ " : ""}{c}
+                    </button>
+                  );
+                })}
+              </div>
+            </details>
 
             {consLoading && <div className="text-sm text-gray-600 mb-6">Loading…</div>}
             {consErr && <div className="text-sm text-red-600 mb-6">Failed to load: {String(consErr)}</div>}
@@ -478,7 +560,7 @@ export default function CupPractice() {
                             let heatStyle = {};
                             if (summaryHeat[c] && Number.isFinite(v)) {
                               const { min, max } = summaryHeat[c];
-                              const t = clamp((v - min) / (max - min), 0, 1); // 0 best → 1 worst
+                              const t = clamp((v - min) / (max - min), 0, 1);
                               const hue = 120 * (1 - t); // 120=green, 0=red
                               heatStyle = { backgroundColor: `hsl(${hue} 80% 92%)`, color: `hsl(${hue} 30% 20%)` };
                             }
@@ -515,9 +597,33 @@ export default function CupPractice() {
         {/* -------- Lap-by-Lap -------- */}
         {active === "laps" && (
           <>
-            <div className="flex items-center gap-3 mb-2">
-              <h2 className="text-xl font-bold">Lap-by-Lap</h2>
-              <div className="ml-auto flex items-center gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
+              <h2 className="text-lg sm:text-xl font-bold">Lap-by-Lap</h2>
+
+              {/* Controls collapse on mobile */}
+              <details className="sm:hidden ml-auto w-full">
+                <summary className="text-sm cursor-pointer select-none py-1 px-2 rounded border bg-white">Controls</summary>
+                <div className="mt-2 grid grid-cols-1 gap-2">
+                  <input
+                    type="text"
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder="Search…"
+                    className="border rounded-lg px-3 py-2 w-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <button className="h-9 px-3 text-sm rounded-lg bg-gray-100 hover:bg-gray-200" onClick={() => selectGroup("A")}>Group A</button>
+                    <button className="h-9 px-3 text-sm rounded-lg bg-gray-100 hover:bg-gray-200" onClick={() => selectGroup("B")}>Group B</button>
+                    <button className="h-9 px-3 text-sm rounded-lg bg-gray-100 hover:bg-gray-200" onClick={showAll}>Show all</button>
+                    <button className="h-9 px-3 text-sm rounded-lg bg-gray-100 hover:bg-gray-200" onClick={hideAll}>Hide all</button>
+                    <button className="h-9 px-3 text-sm rounded-lg bg-white border hover:bg-gray-50" onClick={resetLapUI}>Reset</button>
+                    <button className="h-9 px-3 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700" onClick={exportLapCSV}>Export CSV</button>
+                  </div>
+                </div>
+              </details>
+
+              {/* Desktop controls */}
+              <div className="hidden sm:flex items-center gap-2 ml-auto">
                 <input
                   type="text"
                   value={q}
@@ -534,24 +640,27 @@ export default function CupPractice() {
               </div>
             </div>
 
-            {/* chips */}
-            <div className="mb-3 flex items-center gap-2 flex-wrap">
-              {lapColsRaw.map((c, i) => {
-                const on = !!visibleCols[i];
-                return (
-                  <button
-                    key={c}
-                    onClick={() => toggleCol(i)}
-                    className={[
-                      "px-2 py-1 rounded-full text-xs border transition",
-                      on ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50",
-                    ].join(" ")}
-                  >
-                    {on ? "✓ " : ""}{c}
-                  </button>
-                );
-              })}
-            </div>
+            {/* chips (mobile collapsible) */}
+            <details className="mb-3 sm:open">
+              <summary className="cursor-pointer text-xs text-gray-600 select-none sm:hidden">Columns</summary>
+              <div className="mt-2 sm:mt-0 flex items-center gap-2 flex-wrap">
+                {lapColsRaw.map((c, i) => {
+                  const on = !!visibleCols[i];
+                  return (
+                    <button
+                      key={c}
+                      onClick={() => toggleCol(i)}
+                      className={[
+                        "px-2 py-1 rounded-full text-xs border transition",
+                        on ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50",
+                      ].join(" ")}
+                    >
+                      {on ? "✓ " : ""}{c}
+                    </button>
+                  );
+                })}
+              </div>
+            </details>
 
             {lapsLoading && <div className="text-sm text-gray-600">Loading…</div>}
             {lapsErr && <div className="text-sm text-red-600">Failed to load: {String(lapsErr)}</div>}
@@ -621,11 +730,11 @@ export default function CupPractice() {
                             const isLap = numericColName(c);
                             const isBest = isLap && isClose(valNum, minPerCol[c]);
 
-                            // Heat color (lower = greener) using capped stats if available.
+                            // Heat color (lower = greener).
                             let heatStyle = {};
                             if (lowerIsBetter(c) && Number.isFinite(valNum) && heatStats[c]) {
                               const { min, max } = heatStats[c];
-                              const t = clamp((valNum - min) / (max - min), 0, 1); // 0 best → 1 worst
+                              const t = clamp((valNum - min) / (max - min), 0, 1);
                               const hue = 120 * (1 - t); // 120=green, 0=red
                               heatStyle = { backgroundColor: `hsl(${hue} 80% 92%)`, color: `hsl(${hue} 30% 20%)` };
                             }
@@ -675,7 +784,6 @@ export default function CupPractice() {
 
             {/* overlay chart */}
             <div className="mt-8">
-              {/* maxLap / maxLapTime are safe extras; the component can ignore them if not implemented */}
               <PracticeOverlayChart rows={selectedRows} driverKey={driverKey} maxLap={100} maxLapTime={40} />
             </div>
           </>
