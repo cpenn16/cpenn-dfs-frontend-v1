@@ -15,17 +15,15 @@
     "DK Dom":29.3,
     "FD PP":" ",
     "FD Dom":30.2,
-    "DK pOWN%":53.1,
-    "FD pOWN%":54.1,
     "DK Opt%":53.5,
     "FD Opt%":69.1,
-    "DK Lev%":0.4,
-    "FD Lev%":15.1,
+    "DK Lev%":53.5,
+    "FD Lev%":69.1,
     "DK Rtg":100.0,
     "FD Rtg":100.0,
     "Driver_1":"Corey Heim",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.5
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Layne Riggs",
@@ -43,17 +41,15 @@
     "DK Dom":24.2,
     "FD PP":" ",
     "FD Dom":29.3,
-    "DK pOWN%":46.7,
-    "FD pOWN%":46.4,
     "DK Opt%":51.1,
     "FD Opt%":61.9,
-    "DK Lev%":4.4,
-    "FD Lev%":15.5,
+    "DK Lev%":51.1,
+    "FD Lev%":61.9,
     "DK Rtg":86.1,
     "FD Rtg":89.8,
     "Driver_1":"Layne Riggs",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.5
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Chandler Smith",
@@ -71,17 +67,15 @@
     "DK Dom":7.9,
     "FD PP":" ",
     "FD Dom":26.4,
-    "DK pOWN%":30.2,
-    "FD pOWN%":41.9,
     "DK Opt%":31.4,
     "FD Opt%":42.4,
-    "DK Lev%":1.3,
-    "FD Lev%":0.5,
+    "DK Lev%":31.4,
+    "FD Lev%":42.4,
     "DK Rtg":46.4,
     "FD Rtg":79.1,
     "Driver_1":"Chandler Smith",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.3
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Ty Majeski",
@@ -99,17 +93,15 @@
     "DK Dom":4.2,
     "FD PP":" ",
     "FD Dom":25.7,
-    "DK pOWN%":29.0,
-    "FD pOWN%":33.6,
     "DK Opt%":23.4,
     "FD Opt%":53.3,
-    "DK Lev%":-5.6,
-    "FD Lev%":19.7,
+    "DK Lev%":23.4,
+    "FD Lev%":53.3,
     "DK Rtg":44.7,
     "FD Rtg":67.0,
     "Driver_1":"Ty Majeski",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.3
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Daniel Hemric",
@@ -127,17 +119,15 @@
     "DK Dom":1.5,
     "FD PP":" ",
     "FD Dom":25.3,
-    "DK pOWN%":24.7,
-    "FD pOWN%":30.5,
     "DK Opt%":16.1,
     "FD Opt%":28.8,
-    "DK Lev%":-8.7,
-    "FD Lev%":-1.7,
+    "DK Lev%":16.1,
+    "FD Lev%":28.8,
     "DK Rtg":26.7,
     "FD Rtg":52.7,
     "Driver_1":"Daniel Hemric",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.2
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Tyler Ankrum",
@@ -155,17 +145,15 @@
     "DK Dom":0.5,
     "FD PP":" ",
     "FD Dom":25.1,
-    "DK pOWN%":30.1,
-    "FD pOWN%":21.4,
     "DK Opt%":15.0,
     "FD Opt%":22.1,
-    "DK Lev%":-15.1,
-    "FD Lev%":0.7,
+    "DK Lev%":15.0,
+    "FD Lev%":22.1,
     "DK Rtg":35.3,
     "FD Rtg":61.1,
     "Driver_1":"Tyler Ankrum",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.3
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Kaden Honeycutt",
@@ -183,17 +171,15 @@
     "DK Dom":2.9,
     "FD PP":" ",
     "FD Dom":25.5,
-    "DK pOWN%":17.6,
-    "FD pOWN%":25.6,
     "DK Opt%":21.8,
     "FD Opt%":24.9,
-    "DK Lev%":4.2,
-    "FD Lev%":-0.7,
+    "DK Lev%":21.8,
+    "FD Lev%":24.9,
     "DK Rtg":23.7,
     "FD Rtg":48.6,
     "Driver_1":"Kaden Honeycutt",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.2
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Grant Enfinger",
@@ -211,17 +197,15 @@
     "DK Dom":3.9,
     "FD PP":" ",
     "FD Dom":25.7,
-    "DK pOWN%":20.1,
-    "FD pOWN%":23.5,
     "DK Opt%":24.8,
     "FD Opt%":37.0,
-    "DK Lev%":4.8,
-    "FD Lev%":13.4,
+    "DK Lev%":24.8,
+    "FD Lev%":37.0,
     "DK Rtg":24.0,
     "FD Rtg":46.0,
     "Driver_1":"Grant Enfinger",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.2
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Rajah Caruth",
@@ -239,17 +223,15 @@
     "DK Dom":1.1,
     "FD PP":" ",
     "FD Dom":25.2,
-    "DK pOWN%":14.3,
-    "FD pOWN%":23.1,
     "DK Opt%":18.4,
     "FD Opt%":15.9,
-    "DK Lev%":4.1,
-    "FD Lev%":-7.2,
+    "DK Lev%":18.4,
+    "FD Lev%":15.9,
     "DK Rtg":27.6,
     "FD Rtg":48.7,
     "Driver_1":"Rajah Caruth",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.1
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Corey LaJoie",
@@ -267,17 +249,15 @@
     "DK Dom":0.1,
     "FD PP":" ",
     "FD Dom":25.0,
-    "DK pOWN%":15.6,
-    "FD pOWN%":21.6,
     "DK Opt%":14.2,
     "FD Opt%":24.7,
-    "DK Lev%":-1.3,
-    "FD Lev%":3.1,
+    "DK Lev%":14.2,
+    "FD Lev%":24.7,
     "DK Rtg":36.5,
     "FD Rtg":47.2,
     "Driver_1":"Corey LaJoie",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.2
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Parker Kligerman",
@@ -295,8 +275,6 @@
     "DK Dom":"",
     "FD PP":" ",
     "FD Dom":"",
-    "DK pOWN%":19.5,
-    "FD pOWN%":18.1,
     "DK Opt%":"",
     "FD Opt%":"",
     "DK Lev%":"",
@@ -305,7 +283,7 @@
     "FD Rtg":39.5,
     "Driver_1":"Parker Kligerman",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.2
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Ben Rhodes",
@@ -323,17 +301,15 @@
     "DK Dom":0.3,
     "FD PP":" ",
     "FD Dom":25.1,
-    "DK pOWN%":21.4,
-    "FD pOWN%":16.5,
     "DK Opt%":28.3,
     "FD Opt%":21.1,
-    "DK Lev%":6.8,
-    "FD Lev%":4.6,
+    "DK Lev%":28.3,
+    "FD Lev%":21.1,
     "DK Rtg":18.1,
     "FD Rtg":32.0,
     "Driver_1":"Ben Rhodes",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.2
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Jake Garcia",
@@ -351,17 +327,15 @@
     "DK Dom":0.6,
     "FD PP":" ",
     "FD Dom":25.1,
-    "DK pOWN%":23.2,
-    "FD pOWN%":13.1,
     "DK Opt%":13.4,
     "FD Opt%":10.0,
-    "DK Lev%":-9.8,
-    "FD Lev%":-3.1,
+    "DK Lev%":13.4,
+    "FD Lev%":10.0,
     "DK Rtg":25.1,
     "FD Rtg":37.0,
     "Driver_1":"Jake Garcia",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.2
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Corey Day",
@@ -379,17 +353,15 @@
     "DK Dom":0.7,
     "FD PP":" ",
     "FD Dom":25.1,
-    "DK pOWN%":20.6,
-    "FD pOWN%":15.0,
     "DK Opt%":20.4,
     "FD Opt%":11.1,
-    "DK Lev%":-0.1,
-    "FD Lev%":-4.0,
+    "DK Lev%":20.4,
+    "FD Lev%":11.1,
     "DK Rtg":18.4,
     "FD Rtg":33.0,
     "Driver_1":"Corey Day",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.2
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Tanner Gray",
@@ -407,17 +379,15 @@
     "DK Dom":0.5,
     "FD PP":" ",
     "FD Dom":25.1,
-    "DK pOWN%":23.8,
-    "FD pOWN%":13.8,
     "DK Opt%":14.9,
     "FD Opt%":11.0,
-    "DK Lev%":-8.9,
-    "FD Lev%":-2.8,
+    "DK Lev%":14.9,
+    "FD Lev%":11.0,
     "DK Rtg":23.4,
     "FD Rtg":34.1,
     "Driver_1":"Tanner Gray",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.2
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Giovanni Ruggiero",
@@ -435,17 +405,15 @@
     "DK Dom":1.8,
     "FD PP":" ",
     "FD Dom":25.3,
-    "DK pOWN%":18.8,
-    "FD pOWN%":16.7,
     "DK Opt%":19.5,
     "FD Opt%":14.1,
-    "DK Lev%":0.7,
-    "FD Lev%":-2.7,
+    "DK Lev%":19.5,
+    "FD Lev%":14.1,
     "DK Rtg":25.8,
     "FD Rtg":30.3,
     "Driver_1":"Giovanni Ruggiero",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.2
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Brent Crews",
@@ -463,8 +431,6 @@
     "DK Dom":"",
     "FD PP":" ",
     "FD Dom":"",
-    "DK pOWN%":10.8,
-    "FD pOWN%":14.3,
     "DK Opt%":"",
     "FD Opt%":"",
     "DK Lev%":"",
@@ -473,7 +439,7 @@
     "FD Rtg":36.1,
     "Driver_1":"Brent Crews",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.1
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Matt Crafton",
@@ -491,17 +457,15 @@
     "DK Dom":0.2,
     "FD PP":" ",
     "FD Dom":25.0,
-    "DK pOWN%":14.3,
-    "FD pOWN%":14.6,
     "DK Opt%":23.5,
     "FD Opt%":8.5,
-    "DK Lev%":9.2,
-    "FD Lev%":-6.0,
+    "DK Lev%":23.5,
+    "FD Lev%":8.5,
     "DK Rtg":23.9,
     "FD Rtg":31.8,
     "Driver_1":"Matt Crafton",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.1
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Bayley Currey",
@@ -519,17 +483,15 @@
     "DK Dom":0.4,
     "FD PP":" ",
     "FD Dom":25.1,
-    "DK pOWN%":20.1,
-    "FD pOWN%":9.8,
     "DK Opt%":23.8,
     "FD Opt%":10.0,
-    "DK Lev%":3.8,
-    "FD Lev%":0.3,
+    "DK Lev%":23.8,
+    "FD Lev%":10.0,
     "DK Rtg":13.1,
     "FD Rtg":23.9,
     "Driver_1":"Bayley Currey",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.2
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Connor Mosack",
@@ -547,17 +509,15 @@
     "DK Dom":0.3,
     "FD PP":" ",
     "FD Dom":25.1,
-    "DK pOWN%":20.9,
-    "FD pOWN%":7.5,
     "DK Opt%":12.8,
     "FD Opt%":5.5,
-    "DK Lev%":-8.1,
-    "FD Lev%":-2.0,
+    "DK Lev%":12.8,
+    "FD Lev%":5.5,
     "DK Rtg":7.4,
     "FD Rtg":14.3,
     "Driver_1":"Connor Mosack",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.2
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Conner Jones",
@@ -575,8 +535,6 @@
     "DK Dom":"",
     "FD PP":" ",
     "FD Dom":"",
-    "DK pOWN%":26.1,
-    "FD pOWN%":5.0,
     "DK Opt%":"",
     "FD Opt%":"",
     "DK Lev%":"",
@@ -585,7 +543,7 @@
     "FD Rtg":22.4,
     "Driver_1":"Conner Jones",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.3
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Andres Perez De Lara",
@@ -603,17 +561,15 @@
     "DK Dom":0.2,
     "FD PP":" ",
     "FD Dom":25.0,
-    "DK pOWN%":14.7,
-    "FD pOWN%":10.3,
     "DK Opt%":19.9,
     "FD Opt%":4.8,
-    "DK Lev%":5.2,
-    "FD Lev%":-5.5,
+    "DK Lev%":19.9,
+    "FD Lev%":4.8,
     "DK Rtg":10.7,
     "FD Rtg":17.4,
     "Driver_1":"Andres Perez De Lara",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.1
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Dawson Sutton",
@@ -631,17 +587,15 @@
     "DK Dom":0.2,
     "FD PP":" ",
     "FD Dom":25.0,
-    "DK pOWN%":14.8,
-    "FD pOWN%":5.3,
     "DK Opt%":7.5,
     "FD Opt%":1.6,
-    "DK Lev%":-7.3,
-    "FD Lev%":-3.6,
+    "DK Lev%":7.5,
+    "FD Lev%":1.6,
     "DK Rtg":20.0,
     "FD Rtg":19.5,
     "Driver_1":"Dawson Sutton",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.1
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Matt Mills",
@@ -659,17 +613,15 @@
     "DK Dom":0.2,
     "FD PP":" ",
     "FD Dom":25.0,
-    "DK pOWN%":13.4,
-    "FD pOWN%":7.2,
     "DK Opt%":12.3,
     "FD Opt%":2.8,
-    "DK Lev%":-1.1,
-    "FD Lev%":-4.4,
+    "DK Lev%":12.3,
+    "FD Lev%":2.8,
     "DK Rtg":13.0,
     "FD Rtg":14.4,
     "Driver_1":"Matt Mills",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.1
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Jack Wood",
@@ -687,17 +639,15 @@
     "DK Dom":0.2,
     "FD PP":" ",
     "FD Dom":25.0,
-    "DK pOWN%":7.7,
-    "FD pOWN%":5.8,
     "DK Opt%":21.4,
     "FD Opt%":2.8,
-    "DK Lev%":13.7,
-    "FD Lev%":-3.0,
+    "DK Lev%":21.4,
+    "FD Lev%":2.8,
     "DK Rtg":5.5,
     "FD Rtg":5.3,
     "Driver_1":"Jack Wood",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.1
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Stefan Parsons",
@@ -715,17 +665,15 @@
     "DK Dom":0.2,
     "FD PP":" ",
     "FD Dom":25.0,
-    "DK pOWN%":13.8,
-    "FD pOWN%":0.6,
     "DK Opt%":14.0,
     "FD Opt%":1.4,
-    "DK Lev%":0.3,
-    "FD Lev%":0.7,
+    "DK Lev%":14.0,
+    "FD Lev%":1.4,
     "DK Rtg":4.3,
     "FD Rtg":7.5,
     "Driver_1":"Stefan Parsons",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.1
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Cole Butcher",
@@ -743,8 +691,6 @@
     "DK Dom":"",
     "FD PP":" ",
     "FD Dom":"",
-    "DK pOWN%":3.1,
-    "FD pOWN%":1.2,
     "DK Opt%":"",
     "FD Opt%":"",
     "DK Lev%":"",
@@ -753,7 +699,7 @@
     "FD Rtg":4.0,
     "Driver_1":"Cole Butcher",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.0
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Mason Maggio",
@@ -771,17 +717,15 @@
     "DK Dom":0.2,
     "FD PP":" ",
     "FD Dom":25.0,
-    "DK pOWN%":8.5,
-    "FD pOWN%":2.3,
     "DK Opt%":4.2,
     "FD Opt%":0.0,
-    "DK Lev%":-4.2,
-    "FD Lev%":-2.3,
+    "DK Lev%":4.2,
+    "FD Lev%":0.0,
     "DK Rtg":20.6,
     "FD Rtg":15.1,
     "Driver_1":"Mason Maggio",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.1
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Clay Greenfield",
@@ -799,8 +743,6 @@
     "DK Dom":"",
     "FD PP":" ",
     "FD Dom":"",
-    "DK pOWN%":11.5,
-    "FD pOWN%":0.3,
     "DK Opt%":"",
     "FD Opt%":"",
     "DK Lev%":"",
@@ -809,7 +751,7 @@
     "FD Rtg":0.5,
     "Driver_1":"Clay Greenfield",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.1
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Toni Breidinger",
@@ -827,17 +769,15 @@
     "DK Dom":0.2,
     "FD PP":" ",
     "FD Dom":25.0,
-    "DK pOWN%":4.7,
-    "FD pOWN%":0.9,
     "DK Opt%":25.0,
     "FD Opt%":1.3,
-    "DK Lev%":20.2,
-    "FD Lev%":0.4,
+    "DK Lev%":25.0,
+    "FD Lev%":1.3,
     "DK Rtg":6.4,
     "FD Rtg":1.9,
     "Driver_1":"Toni Breidinger",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.0
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Spencer Boyd",
@@ -855,17 +795,15 @@
     "DK Dom":0.2,
     "FD PP":" ",
     "FD Dom":25.0,
-    "DK pOWN%":6.8,
-    "FD pOWN%":0.3,
     "DK Opt%":5.2,
     "FD Opt%":0.2,
-    "DK Lev%":-1.7,
-    "FD Lev%":-0.1,
+    "DK Lev%":5.2,
+    "FD Lev%":0.2,
     "DK Rtg":8.5,
     "FD Rtg":4.0,
     "Driver_1":"Spencer Boyd",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.1
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Josh Reaume",
@@ -883,8 +821,6 @@
     "DK Dom":"",
     "FD PP":" ",
     "FD Dom":"",
-    "DK pOWN%":6.8,
-    "FD pOWN%":0.3,
     "DK Opt%":"",
     "FD Opt%":"",
     "DK Lev%":"",
@@ -893,7 +829,7 @@
     "FD Rtg":0.0,
     "Driver_1":"Josh Reaume",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.1
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Clayton Green",
@@ -911,17 +847,15 @@
     "DK Dom":0.2,
     "FD PP":" ",
     "FD Dom":25.0,
-    "DK pOWN%":6.8,
-    "FD pOWN%":0.3,
     "DK Opt%":12.7,
     "FD Opt%":0.1,
-    "DK Lev%":5.8,
-    "FD Lev%":-0.2,
+    "DK Lev%":12.7,
+    "FD Lev%":0.1,
     "DK Rtg":2.7,
     "FD Rtg":0.0,
     "Driver_1":"Clayton Green",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.1
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Greg Van Alst",
@@ -939,8 +873,6 @@
     "DK Dom":"",
     "FD PP":" ",
     "FD Dom":"",
-    "DK pOWN%":6.8,
-    "FD pOWN%":0.3,
     "DK Opt%":"",
     "FD Opt%":"",
     "DK Lev%":"",
@@ -949,7 +881,7 @@
     "FD Rtg":0.0,
     "Driver_1":"Greg Van Alst",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.1
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Caleb Costner",
@@ -967,17 +899,15 @@
     "DK Dom":0.2,
     "FD PP":" ",
     "FD Dom":25.0,
-    "DK pOWN%":6.8,
-    "FD pOWN%":0.3,
     "DK Opt%":7.4,
     "FD Opt%":0.0,
-    "DK Lev%":0.5,
-    "FD Lev%":-0.2,
+    "DK Lev%":7.4,
+    "FD Lev%":0.0,
     "DK Rtg":2.7,
     "FD Rtg":0.0,
     "Driver_1":"Caleb Costner",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.1
+    "DK pOWN%_1":0
   },
   {
     "Driver":"Norm Benning",
@@ -995,8 +925,6 @@
     "DK Dom":"",
     "FD PP":" ",
     "FD Dom":"",
-    "DK pOWN%":6.8,
-    "FD pOWN%":0.3,
     "DK Opt%":"",
     "FD Opt%":"",
     "DK Lev%":"",
@@ -1005,6 +933,6 @@
     "FD Rtg":0.0,
     "Driver_1":"Norm Benning",
     "DK Proj_1":" ",
-    "DK pOWN%_1":0.1
+    "DK pOWN%_1":0
   }
 ]
