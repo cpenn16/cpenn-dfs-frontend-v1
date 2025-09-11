@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
 /* ============================ DATA SOURCES ============================ */
-// Use BASE so paths work on Netlify/GitHub Pages subpaths too
 const BASE = import.meta?.env?.BASE_URL ?? "/";
 const NASCAR_DATA_SOURCES = {
   cup:     `${BASE}data/nascar/cup/latest/data.json`,
@@ -15,11 +14,10 @@ const TITLES = {
 };
 
 /* ============================ LOGO PATHS & SIZES ============================ */
-// files live in public/logos/nascar
-const NUM_LOGO_BASE  = `${BASE}logos/nascar`;  // e.g. /logos/nascar/24.png
-const MAKE_LOGO_BASE = `${BASE}logos/nascar`;  // e.g. /logos/nascar/ford.png
-const NUM_IMG_CLS  = "h-7 w-7"; // car number size (28x28)
-const MAKE_IMG_CLS = "h-5 w-5"; // make logo size  (20x20)
+const NUM_LOGO_BASE  = `${BASE}logos/nascar`;
+const MAKE_LOGO_BASE = `${BASE}logos/nascar`;
+const NUM_IMG_CLS  = "h-6 w-6 md:h-7 md:w-7";
+const MAKE_IMG_CLS = "h-4 w-4 md:h-5 md:w-5";
 
 /* ============================ HELPERS ============================ */
 const norm  = (s) => String(s ?? "").trim();
@@ -51,17 +49,13 @@ function useJson(url) {
         [loading, setLoading] = useState(true),
         [err, setErr] = useState("");
 
-  React.useEffect(() => {
+  useEffect(() => {
     let alive = true;
     (async () => {
       setLoading(true); setErr("");
       try {
         const r = await fetch(`${url}?_=${Date.now()}`, { cache: "no-store" });
-        if (!r.ok) {
-          const ct = r.headers.get("content-type") || "";
-          const body = ct.includes("application/json") ? await r.text() : "";
-          throw new Error(`HTTP ${r.status} at ${url}${body ? ` — ${body.slice(0,120)}…` : ""}`);
-        }
+        if (!r.ok) throw new Error(`HTTP ${r.status} at ${url}`);
         const j = await r.json();
         const arr = Array.isArray(j) ? j : j?.rows || j?.data || [];
         if (alive) setData(arr);
@@ -87,7 +81,6 @@ const ORDER = {
     ["Car #","Car#","Number","#"],
     ["Car Make","Make","Manufacturer"],
     ["Team","Race Team"],
-    // widen aliases so missing fields show up
     ["Engine","Engine Supplier","Engine Make","Power Unit"],
     ["Sponsor","Primary Sponsor"],
     ["Crew Chief","CrewChief","Crew Chief Name"],
@@ -97,7 +90,7 @@ const ORDER = {
     ["20 Lap","20Lap"], ["25 Lap","25Lap"], ["30 Lap","30Lap"],
     ["Overall","Practice Overall","Practice"],
   ],
-  "GFS": [["GFS","GfS","GFS Score"]],
+  "GFS": [["GFS","GfS","GFS Score"], ["Overall"]], // keep “Overall” near GFS if present
   "Track History Stats": [
     ["# of Races","Races"], ["Avg DK Pts"], ["Avg FD Pts"], ["Avg Finish"], ["Avg Running Pos","Avg Run Pos"],
     ["Avg Driver Rating","Avg Drv Rtg"], ["Wins"], ["T5","Top5"], ["T10","Top10"], ["T15","Top15"], ["T20","Top20"],
@@ -122,7 +115,9 @@ function resolveOne(aliases, rawCols, used) {
   const cands = Array.isArray(aliases) ? aliases : [aliases];
   for (const cand of cands) {
     const want = keynorm(cand);
-    const hit = rawCols.find((rc) => !used.has(rc) && keynorm(stripDupSuffix(rc)) === want);
+    const hit = rawCols.find(
+      (rc) => !used.has(rc) && keynorm(stripDupSuffix(rc)) === want
+    );
     if (hit) return hit;
   }
   return null;
@@ -144,6 +139,31 @@ function buildColumnsAndBands(rawCols) {
   return { columns, bands };
 }
 
+/* ============ Conditional-formatting directions (higher vs lower) ============ */
+const HIGHER_BETTER = new Set([
+  "#ofraces","#ofracesraces","races",
+  "avgdkpts","avgfdpts","avgdriverrating","wins","t5","t10","t15","t20",
+  "avglapsled","avgfastlaps","avgflaps"
+]);
+const LOWER_BETTER = new Set(["avgfinish","avgrunningpos","avgrunpos"]);
+
+function dirForCol(name) {
+  const k = keynorm(stripDupSuffix(name));
+  if (LOWER_BETTER.has(k)) return "lower";
+  if (HIGHER_BETTER.has(k)) return "higher";
+  return null;
+}
+function heat(min, max, v, dir) {
+  const n = parseNumericLike(v);
+  if (n == null || !Number.isFinite(min) || !Number.isFinite(max) || min === max) return null;
+  let t = (n - min) / (max - min);
+  t = Math.max(0, Math.min(1, t));
+  if (dir === "lower") t = 1 - t; // green when lower is better
+  // soft pastel green→red
+  const hue = 120 * t; // 0=green, 120=red (we inverted already for lower-better)
+  return { backgroundColor: `hsl(${120 - hue} 75% 92%)`, color: `hsl(${120 - hue} 35% 18%)` };
+}
+
 /* ============================ UI ============================ */
 
 export default function NascarData({ series = "cup" }) {
@@ -154,37 +174,84 @@ export default function NascarData({ series = "cup" }) {
 
   const rawCols = useMemo(() => (data.length ? Object.keys(data[0]) : []), [data]);
 
-  // Build columns, then hide duplicate "Overall" and relabel "GFS" → "Overall" if both exist
-  const { columns, bands, relabelGfsToOverall } = useMemo(() => {
+  // Build columns; if “Overall” + “GFS” both exist, keep the GFS *band* but relabel the column to “Overall”
+  const { columns, bands, idxOverall, idxGfs } = useMemo(() => {
     const res = buildColumnsAndBands(rawCols);
-    let cols = [...res.columns];
-    let bnds = [...res.bands];
-
-    const idxOverall = cols.findIndex((c) => keynorm(stripDupSuffix(c)) === "overall");
-    const idxGfs     = cols.findIndex((c) => keynorm(stripDupSuffix(c)) === "gfs");
-
-    let needRelabel = false;
-    if (idxOverall !== -1 && idxGfs !== -1) {
-      cols = cols.filter((_, i) => i !== idxOverall);
-
-      // adjust band spans for removed column
-      let cursor = 0;
-      bnds = bnds.map((b) => {
-        const start = cursor;
-        const end = start + b.span - 1;
-        const removeInThis = idxOverall >= start && idxOverall <= end;
-        const span = b.span - (removeInThis ? 1 : 0);
-        cursor += span;
-        return span > 0 ? { ...b, span } : null;
-      }).filter(Boolean);
-
-      needRelabel = true;
-    }
-
-    return { columns: cols, bands: bnds, relabelGfsToOverall: needRelabel };
+    const cols = [...res.columns];
+    const iOverall = cols.findIndex((c) => keynorm(stripDupSuffix(c)) === "overall");
+    const iGfs     = cols.findIndex((c) => keynorm(stripDupSuffix(c)) === "gfs");
+    // if both present, remove the dup Overall (keep the GFS column but display header text “Overall”)
+    if (iOverall !== -1 && iGfs !== -1) cols.splice(iOverall, 1);
+    return { columns: cols, bands: res.bands, idxOverall: cols.findIndex((c) => keynorm(stripDupSuffix(c)) === "overall"), idxGfs: cols.findIndex((c) => keynorm(stripDupSuffix(c)) === "gfs") };
   }, [rawCols]);
 
-  // find canonical col names present in this file
+  // search
+  const [q, setQ] = useState("");
+  const filtered = useMemo(() => {
+    const s = lower(q); if (!s) return data;
+    return data.filter((r) => {
+      const driver = lower(r.Driver || r.Name || "");
+      const team   = lower(r.Team || "");
+      // make/manufacturer
+      let makeVal = "";
+      for (const c of rawCols) {
+        const kn = keynorm(stripDupSuffix(c));
+        if (kn === "carmake" || kn === "make" || kn === "manufacturer") { makeVal = r[c]; break; }
+      }
+      const make = lower(makeVal || "");
+      return driver.includes(s) || team.includes(s) || make.includes(s);
+    });
+  }, [data, q, rawCols]);
+
+  // sort
+  const [sort, setSort] = useState({ key: columns[0] || "", dir: "desc" });
+  const onSort = (k) => setSort((p) => (p.key === k ? { key: k, dir: p.dir === "asc" ? "desc" : "asc" } : { key: k, dir: dirForCol(k) === "lower" ? "asc" : "desc" }));
+  function compareRows(a, b, k) {
+    const av = parseNumericLike(a[k]), bv = parseNumericLike(b[k]);
+    if (av != null && bv != null) return av - bv;
+    return String(a[k] ?? "").localeCompare(String(b[k] ?? ""), undefined, { sensitivity: "base" });
+  }
+  const sorted = useMemo(() => {
+    const arr = [...filtered]; const sgn = sort.dir === "asc" ? 1 : -1;
+    if (sort.key) arr.sort((a, b) => sgn * compareRows(a, b, sort.key));
+    return arr;
+  }, [filtered, sort]);
+
+  // heat stats per column (based on the current filtered set)
+  const heatStats = useMemo(() => {
+    const stats = {};
+    if (!sorted.length) return stats;
+    columns.forEach((c) => {
+      const dir = dirForCol(c);
+      if (!dir) return;
+      let min = Infinity, max = -Infinity;
+      for (const r of sorted) {
+        const n = parseNumericLike(r?.[c]);
+        if (n != null) { if (n < min) min = n; if (n > max) max = n; }
+      }
+      if (min !== Infinity && max !== -Infinity) stats[c] = { min, max, dir };
+    });
+    return stats;
+  }, [sorted, columns]);
+
+  // thick borders AFTER these columns + LEFT border before Overall
+  const thickAfterSet = useMemo(() => {
+    const wants = ["Odds","Crew Chief"].map((n) => keynorm(n));
+    const set = new Set();
+    columns.forEach((c, i) => {
+      const k = keynorm(stripDupSuffix(c));
+      if (wants.includes(k)) set.add(i);
+      if (/avgfastlaps?/.test(k) || /avgflaps?/.test(k)) set.add(i);
+    });
+    return set;
+  }, [columns]);
+
+  // classes (compact on mobile)
+  const textSz = "text-[11px] md:text-[12px]";
+  const cellCls = "px-2 py-1";
+  const headerCls = "px-2 py-1 font-semibold text-center whitespace-nowrap cursor-pointer select-none";
+
+  // find “driver” and car # / make cols for logos
   const carNumColName = useMemo(() => {
     for (const c of rawCols) {
       const kn = keynorm(stripDupSuffix(c));
@@ -195,104 +262,73 @@ export default function NascarData({ series = "cup" }) {
   const carNumNorm = carNumColName ? keynorm(stripDupSuffix(carNumColName)) : "";
   const carMakeNorms = new Set(["carmake", "make", "manufacturer"]);
 
-  // search
-  const [q, setQ] = useState("");
-  const filtered = useMemo(() => {
-    const s = lower(q); if (!s) return data;
-    return data.filter((r) => {
-      const driver = lower(r.Driver || r.Name || "");
-      const team   = lower(r.Team || "");
-      // try any make-like column
-      let makeVal = "";
-      for (const c of rawCols) if (carMakeNorms.has(keynorm(stripDupSuffix(c)))) { makeVal = r[c]; break; }
-      const make = lower(makeVal || "");
-      return driver.includes(s) || team.includes(s) || make.includes(s);
-    });
-  }, [data, q, rawCols]);
-
-  // sort
-  const [sort, setSort] = useState({ key: columns[0] || "DK Salary", dir: "desc" });
-  const onSort = (k) => setSort((p) => (p.key === k ? { key: k, dir: p.dir === "asc" ? "desc" : "asc" } : { key: k, dir: "desc" }));
-  function compareRows(a, b, k) {
-    const av = parseNumericLike(a[k]), bv = parseNumericLike(b[k]);
-    if (av != null && bv != null) return av - bv;
-    return String(a[k] ?? "").localeCompare(String(b[k] ?? ""), undefined, { sensitivity: "base" });
-  }
-  const sorted = useMemo(() => {
-    const arr = [...filtered]; const sgn = sort.dir === "asc" ? 1 : -1;
-    arr.sort((a, b) => sgn * compareRows(a, b, sort.key)); return arr;
-  }, [filtered, sort]);
-
-  // thick borders AFTER these columns (display index)
-  const thickAfterSet = useMemo(() => {
-    const wants = ["Odds", "Crew Chief", "Overall","GFS"].map((n) => keynorm(n));
-    const set = new Set();
-    columns.forEach((c, i) => {
-      const k = keynorm(stripDupSuffix(c));
-      if (wants.includes(k)) set.add(i);
-      if (/avgfastlaps?/.test(k) || /avgflaps?/.test(k)) set.add(i);
-    });
-    return set;
-  }, [columns]);
-
-  // classes
-  const textSz = "text-[12px]";
-  const cellCls = "px-2 py-1";
-  const headerCls = "px-2 py-1 font-semibold text-center whitespace-nowrap cursor-pointer select-none";
-
   return (
-    <div className="px-4 md:px-6 py-5">
-      <div className="flex items-center justify-between gap-3 mb-2">
-        <div className="flex items-baseline gap-3">
-          <h1 className="text-2xl md:text-3xl font-extrabold">{title}</h1>
-          <div className="text-sm text-gray-600">
+    <div className="px-3 md:px-6 py-5">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between mb-2">
+        <div className="flex items-baseline gap-2">
+          <h1 className="text-xl md:text-3xl font-extrabold">{title}</h1>
+          <div className="text-xs md:text-sm text-gray-600">
             {loading ? "Loading…" : err ? `Error: ${err}` : `${sorted.length.toLocaleString()} rows`}
           </div>
         </div>
         <input
           value={q} onChange={(e) => setQ(e.target.value)}
           placeholder="Search driver / team / make…"
-          className="h-9 w-72 rounded-lg border border-gray-300 px-3 text-sm focus:ring-2 focus:ring-indigo-500"
+          className="h-9 w-full sm:w-80 rounded-lg border border-gray-300 px-3 text-sm focus:ring-2 focus:ring-indigo-500"
         />
       </div>
 
       <div className="rounded-xl border bg-white shadow-sm overflow-auto">
         <table className={`w-full border-separate ${textSz}`} style={{ borderSpacing: 0 }}>
           {columns.length > 0 && (
-            <thead className="sticky top-0 z-10">
-              <tr className="bg-blue-100 text-[11px] font-bold text-gray-700 uppercase">
+            <thead className="sticky top-0 z-20">
+              {/* Band header row (frozen) */}
+              <tr className="bg-blue-100 text-[10px] md:text-[11px] font-bold text-gray-700 uppercase">
                 {bands.map((g) => (
-                  <th key={`${g.name}-${g.start}`} colSpan={g.span} className="px-2 py-1 text-center border-b border-blue-200">
-                    {g.name}
+                  <th
+                    key={`${g.name}-${g.start}`}
+                    colSpan={g.span}
+                    className="px-2 py-1 text-center border-b border-blue-200"
+                  >
+                    {/* special case: if GFS band contains the Overall column, show “GFS” label */}
+                    {g.name === "GFS" && idxGfs !== -1 ? "GFS" : g.name}
                   </th>
                 ))}
               </tr>
+              {/* Column header row (frozen) */}
               <tr className="bg-blue-50">
-                {columns.map((c, i) => (
-                  <th
-                    key={c}
-                    className={[
-                      headerCls,
-                      i === 0 ? "sticky left-0 z-20 bg-blue-50" : "",
-                      thickAfterSet.has(i) ? "border-r-2 border-blue-300" : "border-r border-blue-200",
-                      keynorm(c) === "driver" ? "text-left" : "",
-                    ].join(" ")}
-                    onClick={() => onSort(c)}
-                    title="Click to sort"
-                  >
-                    <span className="inline-flex items-center gap-1">
-                      <span>
-                        {(() => {
-                          const name = stripDupSuffix(c);
-                          const kn = keynorm(name);
-                          if (relabelGfsToOverall && kn === "gfs") return "Overall";
-                          return name;
-                        })()}
+                {columns.map((c, i) => {
+                  const dir = dirForCol(c);
+                  const arrow = sort.key === c ? (sort.dir === "desc" ? "▼" : "▲") : (dir === "lower" ? "▲" : "▼");
+                  const leftBorderForOverall = i === idxOverall ? "border-l-2 border-blue-300" : "";
+                  return (
+                    <th
+                      key={c}
+                      className={[
+                        headerCls,
+                        i === 0 ? "sticky left-0 z-30 bg-blue-50" : "",
+                        leftBorderForOverall,
+                        thickAfterSet.has(i) ? "border-r-2 border-blue-300" : "border-r border-blue-200",
+                        keynorm(c) === "driver" ? "text-left" : "",
+                      ].join(" ")}
+                      onClick={() => onSort(c)}
+                      title="Click to sort"
+                    >
+                      <span className="inline-flex items-center gap-1">
+                        <span>
+                          {(() => {
+                            const name = stripDupSuffix(c);
+                            const kn = keynorm(name);
+                            // If this *column* is the GFS data, display header as “Overall”
+                            if (kn === "gfs") return "Overall";
+                            return name;
+                          })()}
+                        </span>
+                        <span className={sort.key === c ? "text-gray-600" : "text-gray-300"}>{arrow}</span>
                       </span>
-                      {sort.key === c ? <span className="text-gray-500">{sort.dir === "desc" ? "▼" : "▲"}</span> : <span className="text-gray-300">▲</span>}
-                    </span>
-                  </th>
-                ))}
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
           )}
@@ -316,15 +352,20 @@ export default function NascarData({ series = "cup" }) {
                     const isCarNumCol  = carNumColName && kn === carNumNorm;
                     const isCarMakeCol = carMakeNorms.has(kn);
 
-                    const borders = thickAfterSet.has(i) ? "border-r-2 border-blue-300" : "border-r border-blue-50";
+                    const bordersR = thickAfterSet.has(i) ? "border-r-2 border-blue-300" : "border-r border-blue-50";
+                    const borderLOverall = i === idxOverall ? "border-l-2 border-blue-300" : "";
                     const sticky  = i === 0 ? `sticky left-0 z-10 ${rIdx % 2 ? "bg-gray-50/40" : "bg-white"}` : "";
 
-                    // Replacement cells:
+                    // heat
+                    const hs = heatStats[c];
+                    const style = hs ? heat(hs.min, hs.max, row?.[c], hs.dir) : null;
+
+                    // number logo
                     if (isCarNumCol && key === "cup") {
                       const n = parseNumericLike(row[c]);
                       const src = n != null ? `${NUM_LOGO_BASE}/${Math.round(n)}.png` : "";
                       return (
-                        <td key={`${c}-${rIdx}`} className={`text-center ${cellCls} ${borders} ${sticky}`}>
+                        <td key={`${c}-${rIdx}`} className={`text-center ${cellCls} ${bordersR} ${borderLOverall} ${sticky}`} style={style || undefined}>
                           <span className="inline-flex items-center justify-center">
                             {/* eslint-disable-next-line jsx-a11y/alt-text */}
                             <img
@@ -341,12 +382,13 @@ export default function NascarData({ series = "cup" }) {
                       );
                     }
 
+                    // make logo
                     if (isCarMakeCol) {
                       const slug0 = lower(String(row[c] || "")).replace(/[^a-z0-9]+/g, "");
                       const slug = slug0 === "chevy" || slug0 === "chev" ? "chevrolet" : slug0;
                       const src = slug ? `${MAKE_LOGO_BASE}/${slug}.png` : "";
                       return (
-                        <td key={`${c}-${rIdx}`} className={`text-center ${cellCls} ${borders} ${sticky}`}>
+                        <td key={`${c}-${rIdx}`} className={`text-center ${cellCls} ${bordersR} ${borderLOverall} ${sticky}`} style={style || undefined}>
                           <span className="inline-flex items-center justify-center">
                             {/* eslint-disable-next-line jsx-a11y/alt-text */}
                             <img
@@ -369,10 +411,13 @@ export default function NascarData({ series = "cup" }) {
                         key={`${c}-${rIdx}`}
                         className={[
                           cellCls,
-                          isDriver ? "text-left font-medium" : "text-center",
-                          borders,
+                          isDriver ? "text-left font-medium whitespace-nowrap overflow-hidden text-ellipsis" : "text-center",
+                          bordersR,
+                          borderLOverall,
                           sticky,
                         ].join(" ")}
+                        style={style || undefined}
+                        title={String(row?.[c] ?? "")}
                       >
                         {fmtCell(row[c])}
                       </td>
