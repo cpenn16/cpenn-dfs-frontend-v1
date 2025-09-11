@@ -7,6 +7,7 @@ Exports:
 - Generic "tasks" (sheet → out_rel) using literal Excel display values
 - Cheat Sheet (table extraction by title cells, column-scoped so side-by-side tables don’t merge)
 - MLB Matchups "gameboard" from the MLB Dashboard (panel windows like NFL)
+- META: writes meta.json alongside any exported path (updated_iso/utc/epoch, source file & mtime)
 
 Usage:
   python scripts/MLB_Exporter.py --xlsm "C:\\path\\to\\MLB.xlsm" ^
@@ -16,7 +17,7 @@ Usage:
 
 from __future__ import annotations
 
-import argparse, json, re, sys, shutil, tempfile, datetime
+import argparse, json, re, sys, shutil, tempfile, datetime, time
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Union
 
@@ -31,7 +32,7 @@ from openpyxl.worksheet.worksheet import Worksheet
 THIS = Path(__file__).resolve()
 ROOT = THIS.parents[1]  # repo root (expected to include /public)
 
-DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\MLB\MLB September 11th.xlsm"
+DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\MLB\MLB September 10th.xlsm"
 DEFAULT_PROJ   = str(ROOT)
 DEFAULT_CONFIG = str(ROOT / "scripts" / "configs" / "mlb_classic.json")
 
@@ -70,6 +71,46 @@ def _stage_copy_for_read(src: Path) -> tuple[Path, Path]:
     dst = tmpdir / src.name
     shutil.copy2(src, dst)
     return dst, tmpdir
+
+
+# --------------------------- META (like NASCAR) ---------------------------
+
+_META_DIRS: set[Path] = set()
+
+def _mark_meta_dir(path_like: Optional[Path]) -> None:
+    if not path_like:
+        return
+    p = Path(path_like).resolve()
+    _META_DIRS.add(p.parent if p.is_file() else p)
+
+def _write_meta_files(xlsm_path: Path) -> None:
+    """Write meta.json into every directory in _META_DIRS."""
+    if not _META_DIRS:
+        return
+    now_local = datetime.datetime.now().astimezone()
+    now_utc   = now_local.astimezone(datetime.timezone.utc)
+    src_name  = xlsm_path.name
+    try:
+        mtime = datetime.datetime.fromtimestamp(xlsm_path.stat().st_mtime).astimezone()
+        mtime_iso = mtime.isoformat(timespec="seconds")
+    except Exception:
+        mtime_iso = None
+
+    meta = {
+        "updated_iso": now_local.isoformat(timespec="seconds"),
+        "updated_utc": now_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "updated_epoch": int(time.time()),
+        "source_file": src_name,
+        "source_mtime_iso": mtime_iso,
+    }
+
+    for d in sorted(_META_DIRS):
+        try:
+            ensure_parent(d / "meta.json")
+            (d / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+            print(f"🕒 meta  → {d / 'meta.json'}")
+        except Exception as e:
+            print(f"⚠️  meta write failed for {d}: {e}")
 
 
 # --------------------- openpyxl “display text” formatting --------------------
@@ -115,7 +156,6 @@ _HEADER_ALIASES = {
     "dk sal": "DK Sal",
     "fd sal": "FD Sal",
     "teamabbrev": "Team",
-    "opp": "Matchup",
     "matchup": "Opp",
     "opp": "Opp",
 }
@@ -202,10 +242,12 @@ def export_one(df: pd.DataFrame, out_csv: Optional[Path], out_json: Optional[Pat
         ensure_parent(out_csv)
         df.astype(object).where(pd.notna(df), "").to_csv(out_csv, index=False, encoding="utf-8-sig")
         print(f"✔️  CSV  → {out_csv}")
+        _mark_meta_dir(out_csv)
     if out_json:
         ensure_parent(out_json)
         out_json.write_text(to_json_records(df), encoding="utf-8")
         print(f"✔️  JSON → {out_json}")
+        _mark_meta_dir(out_json)
 
 def run_task(xlsm_path: Path, project_root: Path, task: Dict[str, Any]) -> None:
     sheet = task.get("sheet")
@@ -385,9 +427,7 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
                 labels = [ _norm_header_label(_format_cell(c)) for c in cells ]
                 labels_l = [l.lower() for l in labels]
                 score = sum(1 for l in labels_l if l in EXPECTED)
-                # prefer rows containing "player"
                 if "player" in labels_l: score += 3
-                # mild preference for more non-empty strings
                 score += sum(1 for l in labels_l if l.strip() != "")
                 if score > best_score:
                     best_r, best_score = r0, score
@@ -400,7 +440,7 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
             width = max(1, int(t.get("width", 8)))
             limit_rows = int(t.get("limit_rows", default_limit))
 
-            # ⬇️ get ALL locations for this title, not just the first
+            # all occurrences of this title
             locs = sorted(index.get(norm(title), []), key=lambda rc: (rc[0], rc[1]))
             if not locs:
                 print(f"⚠️  cheatsheets: title not found: '{title}'")
@@ -480,36 +520,23 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
 
                 recs = sub.astype(object).where(pd.notna(sub), "").to_dict(orient="records")
 
-                # ⬇️ merge multiple occurrences (e.g., all three "OF" blocks)
+                # merge multiple occurrences (e.g., all three "OF" blocks)
                 if title in out_obj and isinstance(out_obj[title], list):
                     out_obj[title].extend(recs)
                 else:
                     out_obj[title] = recs
 
-
-
         out_path = (project_root / "public" / Path(out_rel)).with_suffix(".json")
         ensure_parent(out_path)
         out_path.write_text(json.dumps(out_obj, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"✔️  JSON → {out_path}  (sections: {', '.join(out_obj.keys()) or 'none'})")
+        _mark_meta_dir(out_path)
     finally:
         wb_data.close()
         wb_form.close()
 
 
-# ---------------------- MLB GAMEBOARD (Dashboard) -----------------------
-
-def _cell(ws: Worksheet, r: int, c: int) -> str:
-    v = ws.cell(r, c).value
-    return "" if v is None else str(v).strip()
-
-def _row_any_text(ws: Worksheet, r: int, c0: int = 1, c1: int | None = None) -> bool:
-    if c1 is None:
-        c1 = ws.max_column
-    for c in range(c0, c1 + 1):
-        if _cell(ws, r, c):
-            return True
-    return False
+# ---------------------- MLB GAMEBOARD (Dashboard) — FAST ----------------------
 
 # Flexible parser: pull AAA and BBB anywhere in the string (not anchored)
 _HEADER_PAT = re.compile(r"([A-Z]{2,4})\s*@\s*([A-Z]{2,4})")
@@ -521,25 +548,40 @@ def _parse_header(text: str) -> tuple[str, str] | None:
     if not m:
         return None
     a, b = m.group(1), m.group(2)
-    # MLB oddities we want to allow: SF, TB, CHC, CWS, etc. (2–4 letters)
     if 2 <= len(a) <= 4 and 2 <= len(b) <= 4:
         return a, b
     return None
 
-def _row_text_range(ws: Worksheet, r: int, c0: int, c1: int) -> str:
-    parts = [_cell(ws, r, c) for c in range(max(1, c0), max(1, c1) + 1)]
-    parts = [p for p in parts if p]
+def _build_grid(ws: Worksheet, max_rows: int, max_cols: int) -> list[list[str]]:
+    """One pass streaming read → in-memory grid of strings."""
+    grid = []
+    ncols = min(max_cols, ws.max_column or 1)
+    for row in ws.iter_rows(min_row=1, max_row=min(max_rows, ws.max_row or 1),
+                            min_col=1, max_col=ncols, values_only=True):
+        grid.append([("" if v is None else str(v).strip()) for v in row])
+    return grid
+
+def _row_has_any_text(grid: list[list[str]], r: int, c0: int = 0, c1: int | None = None) -> bool:
+    row = grid[r]
+    if c1 is None: c1 = len(row) - 1
+    c1 = min(c1, len(row) - 1)
+    for c in range(max(0, c0), c1 + 1):
+        if row[c]:
+            return True
+    return False
+
+def _row_text_slice(grid: list[list[str]], r: int, c0: int, c1: int) -> str:
+    row = grid[r]
+    c1 = min(c1, len(row) - 1)
+    parts = [row[c] for c in range(max(0, c0), c1 + 1) if row[c]]
     return " | ".join(parts)
 
-def _find_header_cols_in_row(ws: Worksheet, r: int, max_col: int) -> list[int]:
-    """
-    Return column indices in row r whose cell *text* contains 'AAA @ BBB'.
-    We don't depend on yellow fill; merged cells are fine (value on top-left).
-    """
+def _find_header_cols_in_row_grid(grid: list[list[str]], r: int) -> list[int]:
+    """Find columns in row r whose *cell text* contains 'AAA @ BBB'."""
+    row = grid[r]
     cols = []
-    for c in range(1, max_col + 1):
-        txt = ws.cell(r, c).value
-        if isinstance(txt, str) and _parse_header(txt):
+    for c, txt in enumerate(row):
+        if txt and ("@" in txt) and _parse_header(txt):
             cols.append(c)
     return cols
 
@@ -550,14 +592,14 @@ def run_matchups(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> No
 
     out_rel = (gb.get("out_rel") or "").lstrip(r"\\/") or "data/mlb/latest/matchups"
 
-    # Safe scan limits (tweak via config if needed)
-    max_scan_rows = int(gb.get("max_scan_rows", 400))
-    end_after_blank_rows = int(gb.get("end_after_blank_rows", 15))
+    # Tunables
+    max_scan_rows = int(gb.get("max_scan_rows", 300))
+    end_after_blank_rows = int(gb.get("end_after_blank_rows", 8))
     debug = bool(gb.get("debug", False))
 
     wb = load_workbook(xlsm_path, data_only=True, read_only=True, keep_links=False)
     try:
-        # pick dashboard sheet (case-insensitive, partial ok)
+        # pick dashboard sheet
         want = gb.get("sheet") or ["MLB Game Dashboard", "MLB Dashboard", "Dashboard"]
         want_list = [want] if isinstance(want, str) else list(want)
 
@@ -575,45 +617,56 @@ def run_matchups(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> No
             return None
 
         sheet_name = pick_sheet(want_list) or wb.sheetnames[0]
-        print(f"• MLB Matchups: using sheet '{sheet_name}'")
+        print(f"• MLB Matchups (fast): using sheet '{sheet_name}'")
         ws = wb[sheet_name]
-        max_col = ws.max_column
+
+        # heuristic for max columns across early rows
+        probe_rows = min(40, ws.max_row or 1)
+        probe_max_col = 1
+        for row in ws.iter_rows(min_row=1, max_row=probe_rows, values_only=True):
+            if not row: continue
+            last_non_empty = 0
+            for idx, val in enumerate(row, start=1):
+                if val not in (None, ""):
+                    last_non_empty = idx
+            probe_max_col = max(probe_max_col, last_non_empty)
+
+        grid = _build_grid(ws, max_rows=max_scan_rows, max_cols=probe_max_col)
+        n_rows = len(grid)
+        n_cols = probe_max_col
 
         games: list[dict] = []
         header_hits = 0
 
-        r = 1
+        r = 0
         blank_streak = 0
-        while r <= ws.max_row and r <= max_scan_rows:
-            header_cols = _find_header_cols_in_row(ws, r, max_col)
+        while r < n_rows:
+            header_cols = _find_header_cols_in_row_grid(grid, r)
 
             if not header_cols:
-                if _row_any_text(ws, r, 1, max_col):
+                if _row_has_any_text(grid, r, 0, n_cols - 1):
                     blank_streak = 0
                 else:
                     blank_streak += 1
-                    # If we've already captured some games and now hit a long blank stretch, we're done
                     if blank_streak >= end_after_blank_rows and games:
                         if debug:
-                            print(f"• stop at row {r}: blank streak {blank_streak}")
+                            print(f"• stop at row {r+1}: blank streak {blank_streak}")
                         break
                 r += 1
                 continue
 
             header_hits += len(header_cols)
             if debug:
-                titles = []
-                for c in header_cols:
-                    titles.append(str(ws.cell(r, c).value).strip())
-                print(f"  row {r} headers: {titles}")
+                titles = [grid[r][c] for c in header_cols]
+                print(f"  row {r+1} headers: {titles}")
 
             header_cols_sorted = sorted(header_cols)
             for idx, c_start in enumerate(header_cols_sorted):
-                c_end = (header_cols_sorted[idx + 1] - 1) if idx + 1 < len(header_cols_sorted) else max_col
+                c_end = (header_cols_sorted[idx + 1] - 1) if idx + 1 < len(header_cols_sorted) else (n_cols - 1)
 
                 # Extract and parse "AAA @ BBB"
-                title_line = _row_text_range(ws, r, c_start, c_end)
-                parsed = _parse_header(title_line.split("|", 1)[0])
+                title_line = _row_text_slice(grid, r, c_start, c_end)
+                parsed = _parse_header(title_line.split("|", 1)[0] if title_line else "")
                 if not parsed:
                     continue
                 away, home = parsed
@@ -629,18 +682,17 @@ def run_matchups(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> No
                     },
                 }
 
-                # Walk down inside this panel until we find the team-bar row
+                # Walk down to find the team bar row
                 k = r + 1
                 team_bar_row = None
-                while k <= ws.max_row and k <= max_scan_rows:
-                    vals = [_cell(ws, k, c) for c in range(c_start, c_end + 1)]
-                    left  = next((x for x in vals if x), "")
-                    right = next((x for x in reversed(vals) if x), "")
-                    if not (left or right):
+                while k < n_rows:
+                    row_slice = grid[k][c_start:c_end+1]
+                    if not any(row_slice):
                         k += 1
                         continue
+                    left  = next((x for x in row_slice if x), "")
+                    right = next((x for x in reversed(row_slice) if x), "")
 
-                    # Team bar like "SEA (4.3 Runs)" each side
                     mL = re.match(r"^\s*([A-Z]{2,4})\s*\(([0-9.]+)", left or "")
                     mR = re.match(r"^\s*([A-Z]{2,4})\s*\(([0-9.]+)", right or "")
                     if mL and mR:
@@ -654,9 +706,9 @@ def run_matchups(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> No
                         team_bar_row = k
                         break
 
-                    # Parse optional meta rows (O/U, ML, Spread, Totals, Weather)
-                    whole = " | ".join([x for x in vals if x])
+                    whole = " | ".join([x for x in row_slice if x])
                     U = whole.upper()
+
                     if "O/U" in U:
                         m_ou = re.search(r"O/?U:\s*([0-9.]+)", whole, flags=re.I)
                         if m_ou: g["ou"] = float(m_ou.group(1))
@@ -678,22 +730,21 @@ def run_matchups(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> No
 
                     k += 1
 
-                if not team_bar_row:
-                    # Couldn't find the "AAA (x.x)" row beneath this header; skip panel
+                if team_bar_row is None:
                     continue
 
                 # Collect player lines until next header in this window or double-blank
                 k = team_bar_row + 1
                 local_blanks = 0
-                while k <= ws.max_row and k <= max_scan_rows:
-                    # stop if new panel header appears inside our window
-                    row_hdr_cols = [c for c in _find_header_cols_in_row(ws, k, c_end) if c_start <= c <= c_end]
+                while k < n_rows:
+                    # stop if a new header appears inside our window
+                    row_hdr_cols = [c for c in _find_header_cols_in_row_grid(grid, k) if c_start <= c <= c_end]
                     if row_hdr_cols:
                         break
 
-                    vals = [_cell(ws, k, c) for c in range(c_start, c_end + 1)]
-                    left  = next((x for x in vals if x), "")
-                    right = next((x for x in reversed(vals) if x), "")
+                    row_slice = grid[k][c_start:c_end+1]
+                    left  = next((x for x in row_slice if x), "")
+                    right = next((x for x in reversed(row_slice) if x), "")
 
                     # also stop if team-bar repeats
                     if re.match(r"^\s*[A-Z]{2,4}\s*\([0-9.]+", left or "") and \
@@ -712,7 +763,6 @@ def run_matchups(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> No
                     if right: g["team_blocks"]["home"]["lines"].append(right)
                     k += 1
 
-                # Backfill OU from implied totals if needed
                 if g.get("ou") is None and all(isinstance(g.get(k2), (int, float)) for k2 in ("imp_home","imp_away")):
                     g["ou"] = float(g["imp_home"]) + float(g["imp_away"])
 
@@ -727,8 +777,10 @@ def run_matchups(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> No
         ensure_parent(out_path)
         out_path.write_text(json.dumps(games, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"✔️  JSON → {out_path}  (games: {len(games)})")
+        _mark_meta_dir(out_path)
     finally:
         wb.close()
+
 
 # --------------------------------- config --------------------------------
 
@@ -787,6 +839,10 @@ def main() -> None:
         print("\n=== MATCHUPS (MLB Dashboard) ===")
         try: run_matchups(staged_xlsm, project_root, cfg)
         except Exception as e: print(f"⚠️  SKIP matchups: {e}")
+
+        # finally write meta files for all touched dirs
+        print("\n=== META ===")
+        _write_meta_files(xlsm_path)
 
         print("\nDone.")
     finally:
