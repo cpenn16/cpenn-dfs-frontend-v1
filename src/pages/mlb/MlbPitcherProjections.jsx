@@ -27,10 +27,11 @@ const SITES = {
 const ALIASES = {
   // identity / context
   imp_total: ["imp. total", "imp total", "impliedtotal", "imp_total", "v"],
-  hand: ["h", "hand", "handedness", "throws", "batsthrows"],
+  hand: ["h", "hand", "handedness", "throws", "batsthrows", "bats/throws"],
   player: ["player", "name", "pitcher", "player name"],
   team: ["team", "teamabbrev", "tm"],
   opp: ["opp", "opponent"],
+  pos: ["pos", "position"],
 
   // stats
   ip: ["ip", "innings", "innings pitched", "ip_proj"],
@@ -86,7 +87,7 @@ const num = (v) => {
   return Number.isFinite(n) ? n : null;
 };
 // Treat numbers as already in 0–100. If a % sign is present, just strip it.
-  const pctNum = (v) => {
+const pctNum = (v) => {
   const n = num(v);
   if (n === null) return null;
   return Math.max(0, Math.min(100, n));
@@ -114,6 +115,7 @@ function normalizeRow(row) {
     fd_sal: num(pick(low, ALIASES.fd_sal)),
     team: (pick(low, ALIASES.team) || "").toUpperCase(),
     opp: (pick(low, ALIASES.opp) || "").toUpperCase(),
+    pos: (pick(low, ALIASES.pos) || "").toUpperCase(),
 
     ip: num(pick(low, ALIASES.ip)),
     er: num(pick(low, ALIASES.er)),
@@ -163,13 +165,11 @@ function useJson(url) {
         if (!ct.includes("application/json")) {
           const txt = await r.text();
           throw new Error(
-            `Expected JSON, got ${ct || "unknown"}: ${txt.slice(0, 30)}`
+            `Expected JSON, got ${ct || "unknown"}: ${txt.slice(0, 30)}…`
           );
         }
         const j = await r.json();
-        const raw = Array.isArray(j)
-          ? j
-          : j?.rows || j?.data || j?.items || [];
+        const raw = Array.isArray(j) ? j : j?.rows || j?.data || j?.items || [];
         const data = raw.map(normalizeRow).filter((r) => r.player);
         if (alive) setRows(data);
       } catch (e) {
@@ -184,6 +184,58 @@ function useJson(url) {
   }, [url]);
 
   return { rows, loading, err };
+}
+
+/* ======================================================================
+   LAST-UPDATED (reads meta.json beside SOURCE)
+   ====================================================================== */
+function toMetaUrl(urlLike) {
+  return String(urlLike || "").replace(/[^/]+$/, "meta.json");
+}
+function parseMetaToDate(meta) {
+  const iso =
+    meta?.updated_iso ||
+    meta?.updated_utc ||
+    meta?.source_mtime_iso ||
+    meta?.last_updated ||
+    meta?.timestamp;
+  if (iso) {
+    const d = new Date(iso);
+    if (!isNaN(d)) return d;
+  }
+  const epoch = meta?.updated_epoch ?? meta?.epoch;
+  if (Number.isFinite(epoch)) {
+    const d = new Date(epoch * (epoch > 10_000_000_000 ? 1 : 1000));
+    if (!isNaN(d)) return d;
+  }
+  return null;
+}
+function useLastUpdatedFromSource(sourceUrl) {
+  const url = useMemo(() => toMetaUrl(sourceUrl), [sourceUrl]);
+  const [date, setDate] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const r = await fetch(`${url}?_=${Date.now()}`, { cache: "no-store" });
+        if (!r.ok) return;
+        const meta = await r.json();
+        const d = parseMetaToDate(meta);
+        if (alive) setDate(d);
+      } catch (_) {}
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [url]);
+  return date
+    ? date.toLocaleString(undefined, {
+        month: "numeric",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : null;
 }
 
 /* ======================================================================
@@ -225,7 +277,7 @@ function downloadCSV(rows, cols, fname = "mlb_pitcher_projections.csv") {
    TEAMS DROPDOWN
    ====================================================================== */
 function TeamsDropdown({ allTeams, selected, onChange }) {
-  const allSet = new Set(selected);
+  const allSet = new Set(selected || []);
   const toggle = (tm) => {
     const next = new Set(allSet);
     next.has(tm) ? next.delete(tm) : next.add(tm);
@@ -275,6 +327,99 @@ function TeamsDropdown({ allTeams, selected, onChange }) {
       </div>
     </details>
   );
+}
+
+/* ======================================================================
+   CONDITIONAL FORMATTING
+   ====================================================================== */
+// Which columns are “higher is better” vs “lower is better”
+const HIGHER_IS_BETTER = new Set([
+  "ip",
+  "k",
+  "w_dec",
+  "dk_proj",
+  "dk_val",
+  "fd_proj",
+  "fd_val",
+  "dk_floor",
+  "dk_ceiling",
+  "fd_floor",
+  "fd_ceiling",
+  "dk_rtg",
+  "fd_rtg",
+]);
+const LOWER_IS_BETTER = new Set([
+  "er",
+  "bb",
+  "hr",
+  "dk_pown",
+  "fd_pown",
+]);
+
+function computeStats(rows, cols) {
+  const stats = {};
+  for (const c of cols) {
+    const key = c.key;
+    let min = Infinity,
+      max = -Infinity,
+      any = false;
+    for (const r of rows) {
+      const v = r[key];
+      if (v === null || v === undefined || isNaN(Number(v))) continue;
+      const n = Number(v);
+      if (!isFinite(n)) continue;
+      any = true;
+      if (n < min) min = n;
+      if (n > max) max = n;
+    }
+    if (any && min !== max) stats[key] = { min, max };
+  }
+  return stats;
+}
+
+function colorFor(value, key, stats, palette) {
+  if (!palette || palette === "none") return null;
+  if (value == null || isNaN(Number(value))) return null;
+  const st = stats[key];
+  if (!st) return null;
+
+  const dir = HIGHER_IS_BETTER.has(key)
+    ? "higher"
+    : LOWER_IS_BETTER.has(key)
+    ? "lower"
+    : null;
+  if (!dir) return null;
+
+  let t = (Number(value) - st.min) / (st.max - st.min);
+  t = Math.max(0, Math.min(1, t));
+  if (dir === "lower") t = 1 - t; // make “better” → higher t
+
+  if (palette === "gyr") {
+    // Green–Yellow–Red (good→green)
+    // Use HSL: 120 (green) → 0 (red)
+    const h = 120 * t; // 0..120
+    const s = 75;
+    const l = 96 - t * 8;
+    return `hsl(${h} ${s}% ${l}%)`;
+  }
+  if (palette === "orangeblue") {
+    // Orange good, Blue bad → white midpoint
+    // t=0 => blue-ish; t=1 => orange
+    if (t < 0.5) {
+      const u = t / 0.5; // 0..1
+      const h = 220; // blue
+      const s = 60 - u * 50;
+      const l = 95 + u * 2;
+      return `hsl(${h} ${s}% ${l}%)`;
+    } else {
+      const u = (t - 0.5) / 0.5;
+      const h = 28; // orange
+      const s = 40 + u * 50;
+      const l = 95 - u * 6;
+      return `hsl(${h} ${s}% ${l}%)`;
+    }
+  }
+  return null;
 }
 
 /* ======================================================================
@@ -416,10 +561,18 @@ export default function MlbPitcherProjections() {
     return () => window.removeEventListener("resize", calc);
   }, [columns, sorted]);
 
+  // Conditional formatting
+  const [palette, setPalette] = useState("none"); // none | gyr | orangeblue
+  const stats = useMemo(() => computeStats(sorted, columns), [sorted, columns]);
+
+  // Last-updated text
+  const updatedText = useLastUpdatedFromSource(SOURCE);
+
   // Table cell/header classes
-  const cell = "px-2 py-1 text-center";
-  const header = "px-2 py-1 font-semibold text-center";
-  const textSz = "text-[12px]";
+  const textSz = "text-[12px] md:text-[12px]";
+  const headerCell =
+    "px-2 py-1 font-semibold text-center whitespace-nowrap cursor-pointer select-none";
+  const cellCls = "px-2 py-1 text-center";
 
   // Renderers by column key (match order definitions)
   const renderCell = (key, r) => {
@@ -465,14 +618,22 @@ export default function MlbPitcherProjections() {
   };
 
   return (
-    <div className="px-4 md:px-6 py-5">
+    <div className="px-3 sm:px-4 md:px-6 py-5">
       {/* Top bar: title + controls */}
-      <div className="flex items-center justify-between gap-3 mb-2">
-        <h1 className="text-2xl md:text-3xl font-extrabold mb-0.5">
-          MLB — Pitcher Projections
-        </h1>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-2">
+        <div className="flex items-baseline gap-3">
+          <h1 className="text-2xl md:text-3xl font-extrabold">
+            MLB — Pitcher Projections
+          </h1>
+          <div className="text-sm text-gray-600">
+            {loading ? "Loading…" : err ? `Error: ${err}` : `${sorted.length.toLocaleString()} rows`}
+          </div>
+          {updatedText && (
+            <div className="text-sm text-gray-500">Updated: {updatedText}</div>
+          )}
+        </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* site toggle */}
           <div className="inline-flex items-center gap-2 rounded-xl bg-gray-100 p-1">
             {["dk", "fd", "both"].map((k) => (
@@ -482,6 +643,7 @@ export default function MlbPitcherProjections() {
                 className={`px-3 py-1.5 rounded-lg text-sm inline-flex items-center gap-1 ${
                   site === k ? "bg-white shadow font-semibold" : "text-gray-700"
                 }`}
+                title={`Show ${SITES[k].label}`}
               >
                 {k !== "both" ? (
                   <img
@@ -495,7 +657,7 @@ export default function MlbPitcherProjections() {
             ))}
           </div>
 
-          {/* positions */}
+          {/* positions (hidden on small screens) */}
           <div className="hidden md:flex items-center gap-1 ml-1">
             {posOptions.map((p) => {
               const active = posSel.includes(p);
@@ -533,11 +695,23 @@ export default function MlbPitcherProjections() {
 
           {/* search */}
           <input
-            className="h-9 w-64 rounded-lg border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="h-9 w-[180px] sm:w-64 rounded-lg border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Search pitcher / team / opp…"
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
+
+          {/* palette */}
+          <select
+            value={palette}
+            onChange={(e) => setPalette(e.target.value)}
+            className="h-9 rounded-lg border px-2 text-sm"
+            title="Conditional formatting"
+          >
+            <option value="none">Coloring: None</option>
+            <option value="gyr">Coloring: Green–Yellow–Red</option>
+            <option value="orangeblue">Coloring: Orange–Blue</option>
+          </select>
 
           {/* export */}
           <button
@@ -568,7 +742,7 @@ export default function MlbPitcherProjections() {
                 <th
                   key={c.key}
                   ref={c.sticky ? playerThRef : undefined}
-                  className={`px-2 py-1 font-semibold text-center whitespace-nowrap cursor-pointer select-none ${
+                  className={`${headerCell} ${
                     c.sticky ? "sticky left-0 z-20 bg-gray-50" : ""
                   }`}
                   style={
@@ -595,7 +769,7 @@ export default function MlbPitcherProjections() {
           <tbody>
             {loading && (
               <tr>
-                <td className="px-2 py-1 text-center text-gray-500" colSpan={columns.length}>
+                <td className={`${cellCls} text-center text-gray-500`} colSpan={columns.length}>
                   Loading…
                 </td>
               </tr>
@@ -605,14 +779,25 @@ export default function MlbPitcherProjections() {
               sorted.map((r, i) => (
                 <tr key={`${r.player}-${i}`} className="odd:bg-white even:bg-gray-50">
                   {columns.map((c) => {
-                    const value = renderCell(c.key, r);
+                    const value = r[c.key];
+                    const bg =
+                      palette !== "none"
+                        ? colorFor(value, c.key, stats, palette)
+                        : null;
+
                     const stickyCls = c.sticky
                       ? `px-2 py-1 text-left sticky left-0 z-10 ${
                           i % 2 === 0 ? "bg-white" : "bg-gray-50"
                         } shadow-[inset_-6px_0_6px_-6px_rgba(0,0,0,0.15)]`
-                      : "px-2 py-1 text-center";
+                      : cellCls;
+
                     return (
-                      <td key={c.key} className={stickyCls}>
+                      <td
+                        key={c.key}
+                        className={stickyCls}
+                        style={bg ? { backgroundColor: bg } : undefined}
+                        title={String(value ?? "")}
+                      >
                         {c.key === "player" ? (
                           <div className="flex items-center gap-2">
                             <img
@@ -623,10 +808,12 @@ export default function MlbPitcherProjections() {
                                 (e.currentTarget.style.visibility = "hidden")
                               }
                             />
-                            <span className="whitespace-nowrap">{value}</span>
+                            <span className="whitespace-nowrap">
+                              {renderCell(c.key, r)}
+                            </span>
                           </div>
                         ) : (
-                          value
+                          renderCell(c.key, r)
                         )}
                       </td>
                     );
@@ -636,7 +823,7 @@ export default function MlbPitcherProjections() {
 
             {!loading && !sorted.length && (
               <tr>
-                <td className="px-2 py-1 text-center text-gray-500" colSpan={columns.length}>
+                <td className={`${cellCls} text-center text-gray-500`} colSpan={columns.length}>
                   No data.
                 </td>
               </tr>
@@ -645,8 +832,8 @@ export default function MlbPitcherProjections() {
         </table>
       </div>
 
-      <div className="mt-2 text-[12px] text-gray-500">
-        <span className="mr-3">W = Win Probability (decimal)</span>
+      <div className="mt-2 text-[12px] text-gray-500 flex flex-wrap gap-3">
+        <span>W = Win Probability (decimal)</span>
         <span>pOWN% = Projected Ownership</span>
       </div>
     </div>
