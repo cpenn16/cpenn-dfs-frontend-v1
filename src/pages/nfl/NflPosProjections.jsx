@@ -9,6 +9,7 @@ const POS_TO_SRC = {
 };
 const NAME_XWALK_URL  = "/data/nfl/classic/latest/name_xwalk.json";
 const PROJECTIONS_URL = "/data/nfl/classic/latest/projections.json";
+const META_URL        = "/data/nfl/classic/latest/meta.json";
 const teamLogo = (abbr) => (abbr ? `/logos/nfl/${abbr}.png` : "");
 
 /* ---------------- helpers ---------------- */
@@ -58,6 +59,13 @@ function useJson(url){
   const [rows,setRows]=useState([]); const [loading,setLoading]=useState(true); const [err,setErr]=useState("");
   useEffect(()=>{ let ok=true; (async()=>{ setLoading(true); setErr(""); try{ const data=await fetchJson(url); if(ok) setRows(data);} catch(e){ if(ok) setErr(String(e)); } finally{ if(ok) setLoading(false);} })(); return ()=>{ok=false}; },[url]);
   return { rows,loading,err };
+}
+
+/* meta fetch (for last-updated tag) */
+function useMeta(url){
+  const [meta,setMeta]=useState(null);
+  useEffect(()=>{ let ok=true; (async()=>{ try{ const r=await fetch(`${url}?_=${Date.now()}`,{cache:"no-store"}); if(!r.ok) throw new Error(); const j=await r.json(); if(ok) setMeta(j);} catch{ if(ok) setMeta(null);} })(); return ()=>{ok=false}; },[url]);
+  return meta;
 }
 
 /* ---------------- column sets ---------------- */
@@ -192,6 +200,7 @@ export default function NflPosProjections({ pos="QB" }){
   const src = POS_TO_SRC[pos] || POS_TO_SRC.QB;
 
   const { rows: rawRows, loading, err } = useJson(src);
+  const meta = useMeta(META_URL);
 
   // name→team backfill (xwalk + all-projections)
   const [nameToTeam, setNameToTeam] = useState({});
@@ -334,6 +343,16 @@ export default function NflPosProjections({ pos="QB" }){
     return stats;
   }, [sorted, cols]);
 
+  // updated timestamp from meta.json (prefer artifact matching current src)
+  const updatedStamp = useMemo(()=>{
+    const art = meta?.artifacts?.find(x => String(x.path||"").endsWith(src));
+    const raw = art?.last_updated || art?.tags?.last_updated || meta?.last_updated;
+    if(!raw) return null;
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return null;
+    return d.toLocaleString(undefined,{ month:"numeric", day:"numeric", hour:"numeric", minute:"2-digit" });
+  },[meta, src]);
+
   // COMPACT STYLE
   const cell="px-3 py-1 text-center";
   const header="px-3 py-1 font-semibold text-center";
@@ -342,7 +361,14 @@ export default function NflPosProjections({ pos="QB" }){
   return (
     <div className="px-3 md:px-6 py-4 md:py-5">
       <div className="flex items-start md:items-center justify-between gap-3 mb-3 flex-col md:flex-row">
-        <h1 className="text-lg md:text-2xl font-extrabold mb-0.5">NFL — {pos} Projections</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-lg md:text-2xl font-extrabold mb-0.5">NFL — {pos} Projections</h1>
+          <div className="text-xs md:text-sm text-slate-600 flex items-center gap-3">
+            {!loading && !err ? <span>{rawRows.length.toLocaleString()} rows</span> : null}
+            <span className="hidden md:inline">•</span>
+            <span className="whitespace-nowrap">Updated:&nbsp;{updatedStamp ?? "—"}</span>
+          </div>
+        </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <input

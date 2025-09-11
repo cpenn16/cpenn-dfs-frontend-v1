@@ -14,6 +14,7 @@ import {
 
 /* ------------------------------- config ------------------------------- */
 const SOURCE = "/data/nfl/classic/latest/stacks.json";
+const META   = "/data/nfl/classic/latest/meta.json";
 const SITES = {
   dk: { key: "dk", label: "DK", logo: "/logos/dk.png" },
   fd: { key: "fd", label: "FD", logo: "/logos/fd.png" },
@@ -151,6 +152,28 @@ function useJson(url) {
     };
   }, [url]);
   return { rows, loading, err };
+}
+
+/* meta */
+function useMeta(url) {
+  const [meta, setMeta] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const r = await fetch(`${url}?_=${Date.now()}`, { cache: "no-store" });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = await r.json();
+        if (alive) setMeta(j);
+      } catch {
+        if (alive) setMeta(null);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [url]);
+  return meta;
 }
 
 /* -------------------------- columns (with fallbacks) ------------------ */
@@ -492,6 +515,7 @@ function heatColor(min, max, v, dir, palette) {
 /* -------------------------------- page -------------------------------- */
 export default function NflStacks() {
   const { rows, loading, err } = useJson(SOURCE);
+  const meta = useMeta(META);
 
   const [site, setSite] = useState("both");
   const [q, setQ] = useState("");
@@ -600,10 +624,34 @@ export default function NflStacks() {
     return () => window.removeEventListener("nfl-stacks-site-change", handler);
   }, []);
 
+  const updatedStamp = useMemo(() => {
+    // Prefer artifact-specific stamp if present, else meta.last_updated
+    const art = meta?.artifacts?.find((x) =>
+      String(x.path || "").endsWith("/data/nfl/classic/latest/stacks.json")
+    );
+    const raw = art?.last_updated || art?.tags?.last_updated || meta?.last_updated;
+    if (!raw) return null;
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return null;
+    return d.toLocaleString(undefined, {
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }, [meta]);
+
   return (
     <div className="px-3 md:px-6 py-4 md:py-5">
       <div className="flex items-start md:items-center justify-between gap-3 mb-2 flex-col md:flex-row">
-        <h1 className="text-xl md:text-3xl font-extrabold mb-1 md:mb-0">NFL — Stacks</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl md:text-3xl font-extrabold mb-1 md:mb-0">NFL — Stacks</h1>
+          <div className="text-xs md:text-sm text-slate-600 flex items-center gap-3">
+            {!loading && !err ? <span>{rows.length.toLocaleString()} rows</span> : null}
+            <span className="hidden md:inline">•</span>
+            <span className="whitespace-nowrap">Updated:&nbsp;{updatedStamp ?? "—"}</span>
+          </div>
+        </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {/* site toggle */}

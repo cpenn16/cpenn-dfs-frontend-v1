@@ -10,6 +10,8 @@ const DATA_SOURCES = {
   DST: "/data/nfl/classic/latest/dst_data.json",
 };
 
+const META_URL = "/data/nfl/classic/latest/meta.json";
+
 const TITLES = {
   QB: "NFL — QB Data",
   RB: "NFL — RB Data",
@@ -123,6 +125,26 @@ function useJson(url) {
     return () => { alive = false; };
   }, [url]);
   return { data, loading, err };
+}
+
+/* ----- meta fetch (for Last Updated badge) ----- */
+function useMeta(url) {
+  const [meta, setMeta] = useState(null);
+  useEffect(() => {
+    let ok = true;
+    (async () => {
+      try {
+        const r = await fetch(`${url}?_=${Date.now()}`, { cache: "no-store" });
+        if (!r.ok) throw new Error();
+        const j = await r.json();
+        if (ok) setMeta(j);
+      } catch {
+        if (ok) setMeta(null);
+      }
+    })();
+    return () => { ok = false; };
+  }, [url]);
+  return meta;
 }
 
 /* ============================ LOGOS ============================ */
@@ -317,6 +339,23 @@ export default function NflPosData({ pos = "QB" }) {
   const src = DATA_SOURCES[key] || DATA_SOURCES.QB;
   const title = TITLES[key] || "NFL — Data";
   const { data, loading, err } = useJson(src);
+  const meta = useMeta(META_URL);
+
+  // compute "Updated: M/D, H:MM AM" from meta.json (match current artifact if present)
+  const updatedStamp = useMemo(() => {
+    const art = meta?.artifacts?.find((x) => String(x.path || "").endsWith(src));
+    const raw = art?.last_updated || art?.tags?.last_updated || meta?.last_updated;
+    if (!raw) return null;
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return null;
+    return d.toLocaleString(undefined, {
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meta, src]);
 
   // palette control — DEFAULT: none
   const [palette, setPalette] = useState("none");
@@ -437,8 +476,10 @@ export default function NflPosData({ pos = "QB" }) {
       <div className="flex items-start md:items-center justify-between gap-3 mb-2 flex-col md:flex-row">
         <div className="flex items-baseline gap-3">
           <h1 className="text-xl md:text-3xl font-extrabold">{title}</h1>
-          <div className="text-xs md:text-sm text-gray-600">
-            {loading ? "Loading…" : err ? `Error: ${err}` : `${sorted.length.toLocaleString()} rows`}
+          <div className="text-xs md:text-sm text-gray-600 flex items-center gap-3">
+            {!loading && !err ? <span>{sorted.length.toLocaleString()} rows</span> : null}
+            <span className="hidden md:inline">•</span>
+            <span className="whitespace-nowrap">Updated:&nbsp;{updatedStamp ?? "—"}</span>
           </div>
         </div>
 
