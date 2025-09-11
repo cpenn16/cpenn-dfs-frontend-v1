@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState, useLayoutEffect, useRef } from "re
 
 /* ------------------------------- config ------------------------------- */
 const SOURCE = "/data/nfl/classic/latest/projections.json";
+const META   = "/data/nfl/classic/latest/meta.json";
 
 const SITES = {
   dk: { key: "dk", label: "DK", logo: "/logos/dk.png" },
@@ -82,6 +83,28 @@ function useJson(url) {
     };
   }, [url]);
   return { rows, loading, err };
+}
+
+/* lightweight fetch for meta.json */
+function useMeta(url) {
+  const [meta, setMeta] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const r = await fetch(`${url}?_=${Date.now()}`, { cache: "no-store" });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = await r.json();
+        if (alive) setMeta(j);
+      } catch {
+        if (alive) setMeta(null);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [url]);
+  return meta;
 }
 
 /* CSV export (only visible columns) */
@@ -236,6 +259,7 @@ function heatColor(min, max, v, dir, palette) {
 /* ------------------------------- page -------------------------------- */
 export default function NflProjections() {
   const { rows, loading, err } = useJson(SOURCE);
+  const meta = useMeta(META);
 
   const [site, setSite] = useState("both"); // "dk" | "fd" | "both"
   const [q, setQ] = useState("");
@@ -358,10 +382,42 @@ export default function NflProjections() {
   const header = "px-2 py-1 font-semibold text-center";
   const textSz = "text-[11px] md:text-[12px]";
 
+  // Format timestamp like "9/11, 1:29 AM"
+  const updatedStamp = useMemo(() => {
+    // Prefer artifact-specific timestamp if you add it later; otherwise meta.last_updated
+    let raw = null;
+
+    // If your meta.artifacts carry per-artifact timestamps, grab that first:
+    const projArtifact = meta?.artifacts?.find((x) =>
+      String(x.path || "").endsWith("/data/nfl/classic/latest/projections.json")
+    );
+    raw = projArtifact?.last_updated || projArtifact?.tags?.last_updated || meta?.last_updated;
+
+    if (!raw) return null;
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return null;
+    return d.toLocaleString(undefined, {
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }, [meta]);
+
   return (
     <div className="px-3 md:px-6 py-4 md:py-5">
       <div className="flex items-start md:items-center justify-between gap-3 mb-2 flex-col md:flex-row">
-        <h1 className="text-xl md:text-3xl font-extrabold">NFL — DFS Projections</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl md:text-3xl font-extrabold">NFL — DFS Projections</h1>
+          {/* rows + last updated (from meta.json) */}
+          <div className="text-xs md:text-sm text-slate-600 flex items-center gap-3">
+            {!loading && !err ? <span>{rows.length.toLocaleString()} rows</span> : null}
+            <span className="hidden md:inline">•</span>
+            <span className="whitespace-nowrap">
+              Updated:&nbsp;{updatedStamp ?? "—"}
+            </span>
+          </div>
+        </div>
 
         {/* site toggle + filters + search + export */}
         <div className="flex flex-wrap items-center gap-2">

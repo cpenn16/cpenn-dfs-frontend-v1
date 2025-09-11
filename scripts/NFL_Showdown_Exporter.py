@@ -1,25 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-NFL_Showdown_Exporter.py  (lean version, no Site IDs scraping)
+NFL_Showdown_Exporter.py — Single meta.json version (lean, no Site IDs scraping)
 
 - Exports workbook sheets per JSON config (tasks / cheatsheets / gameboard)
 - (Optional) Merges existing DK/FD IDs + salaries + kickoff time from site_ids.json
   into projections.json (fast JSON-to-JSON pass; no Excel reading)
+- Writes ONE consolidated meta file per run (default):
+    public/data/nfl/showdown/latest/meta.json
+  (Override with --meta_rel)
 
 Run one-time IDs job:
   python NFL_Showdown_SiteIDs.py --xlsm "C:\\path\\NFL.xlsm" --project "." --config "scripts\\configs\\nfl_showdown.json"
 
-Then use this fast exporter for frequent updates:
+Frequent updates:
   python scripts/NFL_Showdown_Exporter.py --xlsm "C:\\path\\NFL.xlsm" --project "." --config "scripts\\configs\\nfl_showdown.json"
-
-Skip merge if you don’t want to touch projections:
-  ... --no-merge
 """
 
 from __future__ import annotations
 
-import argparse, json, re, sys, shutil, tempfile, datetime
+import argparse, json, re, sys, shutil, tempfile, datetime, time
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
@@ -33,6 +33,53 @@ ROOT = THIS.parents[1] if (len(THIS.parents) > 1) else THIS.parent
 DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\NFL\NFL TNF Showdown Commanders vs Packers.xlsm"
 DEFAULT_PROJ   = str(ROOT)
 DEFAULT_CONFIG = str(ROOT / "scripts" / "configs" / "nfl_showdown.json")
+DEFAULT_META_REL = "data/nfl/showdown/latest/meta.json"  # under /public
+
+# ---------------- single meta collector ----------------
+class SingleMeta:
+    """Collects artifact stats and writes one consolidated meta.json at the end."""
+    def __init__(self, project_root: Path, source_workbook: Path, meta_rel: str):
+        self.project_root = project_root
+        self.source = str(source_workbook)
+        self.meta_path = (project_root / "public" / Path(meta_rel)).resolve()
+        self._items: List[Dict[str,Any]] = []
+
+    @staticmethod
+    def _ts_now_ms() -> int:
+        return int(time.time() * 1000)
+
+    @staticmethod
+    def _iso_now() -> str:
+        return datetime.datetime.now().isoformat(timespec="seconds")
+
+    def add(self, artifact_path: Path, *, sheet: Optional[str]=None,
+            record_count: Optional[int]=None, duration_ms: Optional[int]=None,
+            tags: Optional[Dict[str, Any]]=None):
+        try:
+            rel = artifact_path.resolve().relative_to((self.project_root / "public").resolve())
+            path_str = f"public/{rel.as_posix()}"
+        except Exception:
+            path_str = str(artifact_path)
+        item = {
+            "path": path_str,
+            "sheet": sheet,
+            "record_count": int(record_count) if record_count is not None else None,
+            "duration_ms": int(duration_ms) if duration_ms is not None else None,
+        }
+        if tags:
+            item.update(tags)
+        self._items.append(item)
+
+    def flush(self):
+        self.meta_path.parent.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "last_updated": self._iso_now(),
+            "last_updated_ms": self._ts_now_ms(),
+            "source_workbook": self.source,
+            "artifacts": self._items,
+        }
+        self.meta_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"📝  META (single) → {self.meta_path}  (items: {len(self._items)})")
 
 # ---------------- utilities ----------------
 def ensure_parent(p: Path) -> None:
@@ -194,17 +241,22 @@ def _apply_filters(df: pd.DataFrame, filters: Any) -> pd.DataFrame:
         return df[_apply_leaf_filter(df, filters)]
     return df
 
-def export_one(df: pd.DataFrame, out_csv: Optional[Path], out_json: Optional[Path]) -> None:
+def export_one(df: pd.DataFrame, out_csv: Optional[Path], out_json: Optional[Path], meta: SingleMeta, *, sheet: Optional[str]=None, t0: float=0.0) -> None:
+    duration = int((time.time() - t0) * 1000) if t0 else None
+    n = int(len(df)) if df is not None else 0
     if out_csv:
         ensure_parent(out_csv)
         df.astype(object).where(pd.notna(df), "").to_csv(out_csv, index=False, encoding="utf-8-sig")
         print(f"✔ CSV  → {out_csv}")
+        meta.add(out_csv, sheet=sheet, record_count=n, duration_ms=duration, tags={"kind":"task","format":"csv"})
     if out_json:
         ensure_parent(out_json)
         out_json.write_text(to_json_records(df), encoding="utf-8")
         print(f"✔ JSON → {out_json}")
+        meta.add(out_json, sheet=sheet, record_count=n, duration_ms=duration, tags={"kind":"task","format":"json"})
 
-def run_task(xlsm_path: Path, project_root: Path, task: Dict[str, Any]) -> None:
+def run_task(xlsm_path: Path, project_root: Path, task: Dict[str, Any], meta: SingleMeta) -> None:
+    t0 = time.time()
     df = read_literal_table(
         xlsm_path=xlsm_path,
         sheet=task.get("sheet"),
@@ -218,19 +270,18 @@ def run_task(xlsm_path: Path, project_root: Path, task: Dict[str, Any]) -> None:
     df = maybe_apply_column_mapping(df, task.get("column_mapping"))
     df = reorder_columns_if_all_present(df, task.get("column_order"))
     df = _apply_filters(df, task.get("filters"))
-
-    # Light normalization for safety (removes "%%")
-    df = normalize_df(df)
+    df = normalize_df(df)  # safety
 
     out_rel = (task.get("out_rel") or "").lstrip(r"\/")
     fmt = str(task.get("format", "json")).lower()
     base = project_root / "public" / Path(out_rel)
     export_one(df,
                base.with_suffix(".csv") if fmt in ("csv", "both") else None,
-               base.with_suffix(".json") if fmt in ("json", "both") else None)
+               base.with_suffix(".json") if fmt in ("json", "both") else None,
+               meta, sheet=task.get("sheet"), t0=t0)
 
 # --------------- cheatsheets (optional) ---------------
-def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> None:
+def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any], meta: SingleMeta) -> None:
     cs = cfg.get("cheatsheets")
     if not cs: return
     sheet      = cs.get("sheet", "Cheat Sheet")
@@ -239,6 +290,7 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
     limit_rows = int(cs.get("limit_rows", 12))
     if not out_rel: return
 
+    t0_total = time.time()
     wb = load_workbook(xlsm_path, data_only=True, read_only=True, keep_links=False)
     try:
         if sheet not in wb.sheetnames:
@@ -293,11 +345,13 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
         ensure_parent(out_path)
         out_path.write_text(json.dumps({"tables": tables_out}, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"✔ JSON → {out_path} (tables: {len(tables_out)})")
+        meta.add(out_path, sheet=sheet, record_count=sum(len(t['rows']) for t in tables_out),
+                 duration_ms=int((time.time()-t0_total)*1000), tags={"kind":"cheatsheets"})
     finally:
         wb.close()
 
 # --------------- gameboard (optional) ---------------
-def run_gameboard(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> None:
+def run_gameboard(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any], meta: SingleMeta) -> None:
     gb = cfg.get("gameboard")
     if not gb: return
     out_rel = (gb.get("out_rel") or "").lstrip(r"\/")
@@ -305,8 +359,10 @@ def run_gameboard(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> N
     title_re = re.compile(gb.get("title_regex", r"^\s*([A-Z]{2,4})\s*@\s*([A-Z]{2,4})\s*$"))
     yellow_rgbs = {str(x).upper() for x in gb.get("header_yellow_rgb", [])}
 
+    t0_total = time.time()
     wb = load_workbook(xlsm_path, data_only=True, read_only=True, keep_links=False)
     try:
+        # sheet picking (case-insensitive; allows list)
         sheet_name = None
         wants = gb.get("sheet")
         want_list = wants if isinstance(wants, list) else [wants]
@@ -320,7 +376,7 @@ def run_gameboard(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> N
 
         ws = wb[sheet_name]
 
-        def cell(r,c): 
+        def cell(r,c):
             v = ws.cell(r,c).value
             return "" if v is None else str(v).strip()
 
@@ -344,7 +400,6 @@ def run_gameboard(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> N
                     m = title_re.match(txt)
                     if not m: continue
                     away, home = m.group(1), m.group(2)
-                    # naive: grab next lines as blocks (kept minimal)
                     g = {"away": away, "home": home, "lines": []}
                     k = r+1
                     blanks=0
@@ -361,6 +416,8 @@ def run_gameboard(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> N
         out = (project_root / "public" / Path(out_rel)).with_suffix(".json")
         ensure_parent(out); out.write_text(json.dumps(games, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"✔ JSON → {out} (games: {len(games)})")
+        meta.add(out, sheet=sheet_name, record_count=len(games),
+                 duration_ms=int((time.time()-t0_total)*1000), tags={"kind":"gameboard"})
     finally:
         wb.close()
 
@@ -407,16 +464,16 @@ def _int_from_any(v) -> Optional[int]:
     except Exception:
         return None
 
-def merge_showdown_into_projections(project_root: Path, cfg: Dict[str, Any]) -> None:
+def merge_showdown_into_projections(project_root: Path, cfg: Dict[str, Any], meta: Optional[SingleMeta]=None) -> None:
     out_rel = "data/nfl/showdown/latest/projections"
     proj_path = (project_root / "public" / out_rel).with_suffix(".json")
     if not proj_path.exists():
         print(f"⚠ projections not found: {proj_path}"); return
 
+    t0 = time.time()
     raw = _load_json(proj_path)
     rows, shape = _to_rows_shape(raw)
 
-    # read site_ids.json (created by the standalone script)
     si_rel = (cfg.get("site_ids") or {}).get("out_rel") or "data/nfl/showdown/latest/site_ids"
     si_path = (project_root / "public" / Path(si_rel)).with_suffix(".json")
     si = _load_json(si_path) or {}
@@ -466,7 +523,6 @@ def merge_showdown_into_projections(project_root: Path, cfg: Dict[str, Any]) -> 
         team   = r.get("team")   or r.get("Team")   or r.get("TeamAbbrev")
         key    = _key(player, team)
 
-        # IDs
         if key in dk_flex_id and dk_flex_id[key]:
             r["dk_flex_id"] = dk_flex_id[key]; dkf += 1
         if key in dk_cpt_id and dk_cpt_id[key]:
@@ -474,7 +530,6 @@ def merge_showdown_into_projections(project_root: Path, cfg: Dict[str, Any]) -> 
         if key in fd_id_map and fd_id_map[key]:
             r["fd_id"]      = fd_id_map[key];  fdf += 1
 
-        # Salaries (printable strings)
         if key in dk_flex_sal and dk_flex_sal[key] is not None:
             r["DK Flex Sal"] = f"{int(dk_flex_sal[key]):,}"
         if key in dk_cpt_sal and dk_cpt_sal[key] is not None:
@@ -484,18 +539,15 @@ def merge_showdown_into_projections(project_root: Path, cfg: Dict[str, Any]) -> 
         if key in fd_mvp_sal and fd_mvp_sal[key] is not None:
             r["FD MVP Sal"]  = f"{int(fd_mvp_sal[key]):,}"
 
-        # kickoff time
         if not r.get("time") and key in kickoff_map and kickoff_map[key]:
             r["time"] = kickoff_map[key]; t_hits += 1
 
-        # Fallback: compute CPT salary from DK Sal if still missing
         if not r.get("DK CPT Sal"):
             base = r.get("DK Sal") or r.get("dk_sal")
             base_num = _int_from_any(base)
             if base_num:
                 r["DK CPT Sal"] = f"{int(base_num * 1.5):,}"
 
-        # DK "MVP" aliases (display consistency)
         if r.get("dk_cpt_id") and not r.get("dk_mvp_id"):
             r["dk_mvp_id"] = r["dk_cpt_id"]
         if r.get("DK CPT Sal") and not r.get("DK MVP Sal"):
@@ -504,7 +556,16 @@ def merge_showdown_into_projections(project_root: Path, cfg: Dict[str, Any]) -> 
         if (key in dk_flex_id) or (key in dk_cpt_id) or (key in fd_id_map):
             upd += 1
 
-    _write_json(proj_path, rows if shape[0]=="array" else (shape[1] | {"rows": rows}))
+    # Write back in original shape
+    if shape[0] == "array":
+        _write_json(proj_path, rows)
+    elif shape[0] == "rows":
+        container = shape[1]; container["rows"] = rows; _write_json(proj_path, container)
+    elif shape[0] == "players":
+        container = shape[1]; container["players"] = rows; _write_json(proj_path, container)
+    else:
+        _write_json(proj_path, rows)
+
     print("\n=== MERGE SHOWDOWN SALARIES/IDs INTO projections.json ===")
     print(f"• Projections updated: {upd}")
     print(f"• DK FLEX ids:        {dkf}")
@@ -512,6 +573,10 @@ def merge_showdown_into_projections(project_root: Path, cfg: Dict[str, Any]) -> 
     print(f"• FD ids:             {fdf}")
     print(f"• Time hits:          {t_hits}")
     print(f"• Output:             {proj_path}")
+    if meta:
+        meta.add(proj_path, sheet=None, record_count=len(rows),
+                 duration_ms=int((time.time()-t0)*1000),
+                 tags={"kind":"merge","dk_flex_ids":dkf,"dk_cpt_ids":dkc,"fd_ids":fdf,"time_hits":t_hits})
 
 # ---------------- main ----------------
 def _choose_project_root(arg_proj: Optional[str]) -> Path:
@@ -528,6 +593,7 @@ def main():
     ap.add_argument("--xlsm",    default=DEFAULT_XLSM)
     ap.add_argument("--project", default=DEFAULT_PROJ)
     ap.add_argument("--config",  default=DEFAULT_CONFIG)
+    ap.add_argument("--meta_rel", default=DEFAULT_META_REL, help="Relative path (under /public) for consolidated meta.json")
     ap.add_argument("--no-merge", action="store_true", help="Skip merging site_ids.json into projections.json")
     args = ap.parse_args()
 
@@ -541,32 +607,37 @@ def main():
         print(f"ERROR: config not found: {cfg_path}", file=sys.stderr); sys.exit(1)
 
     staged, tmpdir = _stage_copy_for_read(xlsm_path)
+    meta = SingleMeta(project_root=project_root, source_workbook=xlsm_path, meta_rel=args.meta_rel)
+
     try:
         cfg = json.loads(cfg_path.read_text(encoding="utf-8-sig"))
         # tasks
         for t in cfg.get("tasks", []):
             print(f"\n=== TASK: sheet='{t.get('sheet')}' | out='{t.get('out_rel')}' ===")
             try:
-                run_task(staged, project_root, t)
+                run_task(staged, project_root, t, meta)
             except Exception as e:
                 print(f"⚠ task failed: {e}")
 
         # cheatsheets
         print("\n=== CHEAT SHEETS ===")
-        try: run_cheatsheets(staged, project_root, cfg)
+        try: run_cheatsheets(staged, project_root, cfg, meta)
         except Exception as e: print(f"⚠ cheatsheets failed: {e}")
 
         # gameboard
         print("\n=== GAMEBOARD ===")
-        try: run_gameboard(staged, project_root, cfg)
+        try: run_gameboard(staged, project_root, cfg, meta)
         except Exception as e: print(f"⚠ gameboard failed: {e}")
 
         # optional: merge IDs/salaries/time from JSON (no Excel; fast)
         if not args.no_merge:
             try:
-                merge_showdown_into_projections(project_root, cfg)
+                merge_showdown_into_projections(project_root, cfg, meta=meta)
             except Exception as e:
                 print(f"⚠ merge failed: {e}")
+
+        # single write at end
+        meta.flush()
 
         print("\nDone.")
     finally:
