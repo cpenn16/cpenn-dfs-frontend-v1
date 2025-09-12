@@ -4150,8 +4150,12 @@
     "fd_opt": "",
     "dk_lev": "",
     "fd_lev": "",
-    "dk_rtg": "0",
-    "fd_rtg": "0"
+    "dk_rtg": "14.8",
+    "fd_rtg": "0",
+    "dk_sal": 4000.0,
+    "DK Sal": "4,000",
+    "fd_sal": 4100.0,
+    "FD Sal": "4,100"
   },
   {
     "player": "Roschon Johnson",

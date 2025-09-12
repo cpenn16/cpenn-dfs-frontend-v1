@@ -854,10 +854,10 @@
     "rec_td":"0.0",
     "dk_proj":"4.00",
     "dk_val":"1.00",
-    "dk_pown":"0%",
+    "dk_pown":"0.1%",
     "fd_proj":"4.00",
     "fd_val":"0.97",
-    "fd_pown":"0%"
+    "fd_pown":"0.1%"
   },
   {
     "player":"Roschon Johnson",
