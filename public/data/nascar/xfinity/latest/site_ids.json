@@ -1,318 +1,474 @@
 {
   "fd": [
     {
-      "name": "Connor Zilisch",
-      "id": "40011881"
+      "display_name": "Connor Zilisch",
+      "site_name": "Connor Zilisch",
+      "id": "40011881",
+      "salary": 10000
     },
     {
-      "name": "Justin Allgaier",
-      "id": "40011882"
+      "display_name": "Justin Allgaier",
+      "site_name": "Justin Allgaier",
+      "id": "40011882",
+      "salary": 10000
     },
     {
-      "name": "Aric Almirola",
-      "id": "40011883"
+      "display_name": "Aric Almirola",
+      "site_name": "Aric Almirola",
+      "id": "40011883",
+      "salary": 10000
     },
     {
-      "name": "Jesse Love",
-      "id": "40011884"
+      "display_name": "Jesse Love",
+      "site_name": "Jesse Love",
+      "id": "40011884",
+      "salary": 10000
     },
     {
-      "name": "Sam Mayer",
-      "id": "40011885"
+      "display_name": "Sam Mayer",
+      "site_name": "Sam Mayer",
+      "id": "40011885",
+      "salary": 10000
     },
     {
-      "name": "Brandon Jones",
-      "id": "40011886"
+      "display_name": "Brandon Jones",
+      "site_name": "Brandon Jones",
+      "id": "40011886",
+      "salary": 10000
     },
     {
-      "name": "Sheldon Creed",
-      "id": "40011887"
+      "display_name": "Sheldon Creed",
+      "site_name": "Sheldon Creed",
+      "id": "40011887",
+      "salary": 10000
     },
     {
-      "name": "Taylor Gray",
-      "id": "40011888"
+      "display_name": "Taylor Gray",
+      "site_name": "Taylor Gray",
+      "id": "40011888",
+      "salary": 10000
     },
     {
-      "name": "Sammy Smith",
-      "id": "40011889"
+      "display_name": "Sammy Smith",
+      "site_name": "Sammy Smith",
+      "id": "40011889",
+      "salary": 10000
     },
     {
-      "name": "Carson Kvapil",
-      "id": "40011890"
+      "display_name": "Carson Kvapil",
+      "site_name": "Carson Kvapil",
+      "id": "40011890",
+      "salary": 10000
     },
     {
-      "name": "Austin Hill",
-      "id": "40011891"
+      "display_name": "Austin Hill",
+      "site_name": "Austin Hill",
+      "id": "40011891",
+      "salary": 10000
     },
     {
-      "name": "Ryan Sieg",
-      "id": "40011892"
+      "display_name": "Ryan Sieg",
+      "site_name": "Ryan Sieg",
+      "id": "40011892",
+      "salary": 10000
     },
     {
-      "name": "William Sawalich",
-      "id": "40011893"
+      "display_name": "William Sawalich",
+      "site_name": "William Sawalich",
+      "id": "40011893",
+      "salary": 10000
     },
     {
-      "name": "Christian Eckes",
-      "id": "40011894"
+      "display_name": "Christian Eckes",
+      "site_name": "Christian Eckes",
+      "id": "40011894",
+      "salary": 10000
     },
     {
-      "name": "Nicholas Sanchez",
-      "id": "40011895"
+      "display_name": "Nicholas Sanchez",
+      "site_name": "Nicholas Sanchez",
+      "id": "40011895",
+      "salary": 10000
     },
     {
-      "name": "Corey Day",
-      "id": "40011896"
+      "display_name": "Corey Day",
+      "site_name": "Corey Day",
+      "id": "40011896",
+      "salary": 10000
     },
     {
-      "name": "Harrison Burton",
-      "id": "40011897"
+      "display_name": "Harrison Burton",
+      "site_name": "Harrison Burton",
+      "id": "40011897",
+      "salary": 10000
     },
     {
-      "name": "Matt DiBenedetto",
-      "id": "40011898"
+      "display_name": "Matt DiBenedetto",
+      "site_name": "Matt DiBenedetto",
+      "id": "40011898",
+      "salary": 10000
     },
     {
-      "name": "Brenden Queen",
-      "id": "40011899"
+      "display_name": "Brenden Queen",
+      "site_name": "Brenden Queen",
+      "id": "40011899",
+      "salary": 10000
     },
     {
-      "name": "Daniel Dye",
-      "id": "40011900"
+      "display_name": "Daniel Dye",
+      "site_name": "Daniel Dye",
+      "id": "40011900",
+      "salary": 10000
     },
     {
-      "name": "Dean Thompson",
-      "id": "40011901"
+      "display_name": "Dean Thompson",
+      "site_name": "Dean Thompson",
+      "id": "40011901",
+      "salary": 10000
     },
     {
-      "name": "Jeffrey Earnhardt",
-      "id": "40011902"
+      "display_name": "Jeffrey Earnhardt",
+      "site_name": "Jeffrey Earnhardt",
+      "id": "40011902",
+      "salary": 10000
     },
     {
-      "name": "Parker Retzlaff",
-      "id": "40011903"
+      "display_name": "Parker Retzlaff",
+      "site_name": "Parker Retzlaff",
+      "id": "40011903",
+      "salary": 10000
     },
     {
-      "name": "Anthony Alfredo",
-      "id": "40011904"
+      "display_name": "Anthony Alfredo",
+      "site_name": "Anthony Alfredo",
+      "id": "40011904",
+      "salary": 10000
     },
     {
-      "name": "Austin Green",
-      "id": "40011905"
+      "display_name": "Austin Green",
+      "site_name": "Austin Green",
+      "id": "40011905",
+      "salary": 10000
     },
     {
-      "name": "Jeremy Clements",
-      "id": "40011906"
+      "display_name": "Jeremy Clements",
+      "site_name": "Jeremy Clements",
+      "id": "40011906",
+      "salary": 10000
     },
     {
-      "name": "Jeb Burton",
-      "id": "40011907"
+      "display_name": "Jeb Burton",
+      "site_name": "Jeb Burton",
+      "id": "40011907",
+      "salary": 10000
     },
     {
-      "name": "Brennan Poole",
-      "id": "40011908"
+      "display_name": "Brennan Poole",
+      "site_name": "Brennan Poole",
+      "id": "40011908",
+      "salary": 10000
     },
     {
-      "name": "Kyle Sieg",
-      "id": "40011909"
+      "display_name": "Kyle Sieg",
+      "site_name": "Kyle Sieg",
+      "id": "40011909",
+      "salary": 10000
     },
     {
-      "name": "Leland Honeyman Jr",
-      "id": "40011910"
+      "display_name": "Leland Honeyman Jr",
+      "site_name": "Leland Honeyman Jr",
+      "id": "40011910",
+      "salary": 10000
     },
     {
-      "name": "Stefan Parsons",
-      "id": "40011911"
+      "display_name": "Stefan Parsons",
+      "site_name": "Stefan Parsons",
+      "id": "40011911",
+      "salary": 10000
     },
     {
-      "name": "Josh Williams",
-      "id": "40011912"
+      "display_name": "Josh Williams",
+      "site_name": "Josh Williams",
+      "id": "40011912",
+      "salary": 10000
     },
     {
-      "name": "Ryan Ellis",
-      "id": "40011913"
+      "display_name": "Ryan Ellis",
+      "site_name": "Ryan Ellis",
+      "id": "40011913",
+      "salary": 10000
     },
     {
-      "name": "Carson Ware",
-      "id": "40011914"
+      "display_name": "Carson Ware",
+      "site_name": "Carson Ware",
+      "id": "40011914",
+      "salary": 10000
     },
     {
-      "name": "Josh Bilicki",
-      "id": "40011915"
+      "display_name": "Josh Bilicki",
+      "site_name": "Josh Bilicki",
+      "id": "40011915",
+      "salary": 10000
     },
     {
-      "name": "Blaine Perkins",
-      "id": "40011916"
+      "display_name": "Blaine Perkins",
+      "site_name": "Blaine Perkins",
+      "id": "40011916",
+      "salary": 10000
     },
     {
-      "name": "Joey Gase",
-      "id": "40011917"
+      "display_name": "Joey Gase",
+      "site_name": "Joey Gase",
+      "id": "40011917",
+      "salary": 10000
     },
     {
-      "name": "Glen Reen",
-      "id": "40011918"
+      "display_name": "Glen Reen",
+      "site_name": "Glen Reen",
+      "id": "40011918",
+      "salary": 10000
     },
     {
-      "name": "Garrett Smithley",
-      "id": "40011919"
+      "display_name": "Garrett Smithley",
+      "site_name": "Garrett Smithley",
+      "id": "40011919",
+      "salary": 10000
     }
   ],
   "dk": [
     {
-      "name": "Connor Zilisch",
-      "id": "40011881"
+      "display_name": "Connor Zilisch",
+      "site_name": "Connor Zilisch",
+      "id": "40011881",
+      "salary": 12500
     },
     {
-      "name": "Justin Allgaier",
-      "id": "40011882"
+      "display_name": "Justin Allgaier",
+      "site_name": "Justin Allgaier",
+      "id": "40011882",
+      "salary": 11500
     },
     {
-      "name": "Aric Almirola",
-      "id": "40011883"
+      "display_name": "Aric Almirola",
+      "site_name": "Aric Almirola",
+      "id": "40011883",
+      "salary": 11000
     },
     {
-      "name": "Jesse Love",
-      "id": "40011884"
+      "display_name": "Jesse Love",
+      "site_name": "Jesse Love",
+      "id": "40011884",
+      "salary": 10000
     },
     {
-      "name": "Sam Mayer",
-      "id": "40011885"
+      "display_name": "Sam Mayer",
+      "site_name": "Sam Mayer",
+      "id": "40011885",
+      "salary": 9800
     },
     {
-      "name": "Brandon Jones",
-      "id": "40011886"
+      "display_name": "Brandon Jones",
+      "site_name": "Brandon Jones",
+      "id": "40011886",
+      "salary": 9500
     },
     {
-      "name": "Sheldon Creed",
-      "id": "40011887"
+      "display_name": "Sheldon Creed",
+      "site_name": "Sheldon Creed",
+      "id": "40011887",
+      "salary": 9300
     },
     {
-      "name": "Taylor Gray",
-      "id": "40011888"
+      "display_name": "Taylor Gray",
+      "site_name": "Taylor Gray",
+      "id": "40011888",
+      "salary": 9000
     },
     {
-      "name": "Sammy Smith",
-      "id": "40011889"
+      "display_name": "Sammy Smith",
+      "site_name": "Sammy Smith",
+      "id": "40011889",
+      "salary": 8800
     },
     {
-      "name": "Carson Kvapil",
-      "id": "40011890"
+      "display_name": "Carson Kvapil",
+      "site_name": "Carson Kvapil",
+      "id": "40011890",
+      "salary": 8600
     },
     {
-      "name": "Austin Hill",
-      "id": "40011891"
+      "display_name": "Austin Hill",
+      "site_name": "Austin Hill",
+      "id": "40011891",
+      "salary": 8500
     },
     {
-      "name": "Ryan Sieg",
-      "id": "40011892"
+      "display_name": "Ryan Sieg",
+      "site_name": "Ryan Sieg",
+      "id": "40011892",
+      "salary": 8200
     },
     {
-      "name": "William Sawalich",
-      "id": "40011893"
+      "display_name": "William Sawalich",
+      "site_name": "William Sawalich",
+      "id": "40011893",
+      "salary": 8000
     },
     {
-      "name": "Christian Eckes",
-      "id": "40011894"
+      "display_name": "Christian Eckes",
+      "site_name": "Christian Eckes",
+      "id": "40011894",
+      "salary": 7900
     },
     {
-      "name": "Nicholas Sanchez",
-      "id": "40011895"
+      "display_name": "Nicholas Sanchez",
+      "site_name": "Nicholas Sanchez",
+      "id": "40011895",
+      "salary": 7800
     },
     {
-      "name": "Corey Day",
-      "id": "40011896"
+      "display_name": "Corey Day",
+      "site_name": "Corey Day",
+      "id": "40011896",
+      "salary": 7700
     },
     {
-      "name": "Harrison Burton",
-      "id": "40011897"
+      "display_name": "Harrison Burton",
+      "site_name": "Harrison Burton",
+      "id": "40011897",
+      "salary": 7500
     },
     {
-      "name": "Matt DiBenedetto",
-      "id": "40011898"
+      "display_name": "Matt DiBenedetto",
+      "site_name": "Matt DiBenedetto",
+      "id": "40011898",
+      "salary": 7300
     },
     {
-      "name": "Brenden Queen",
-      "id": "40011899"
+      "display_name": "Brenden Queen",
+      "site_name": "Brenden Queen",
+      "id": "40011899",
+      "salary": 7100
     },
     {
-      "name": "Daniel Dye",
-      "id": "40011900"
+      "display_name": "Daniel Dye",
+      "site_name": "Daniel Dye",
+      "id": "40011900",
+      "salary": 7000
     },
     {
-      "name": "Dean Thompson",
-      "id": "40011901"
+      "display_name": "Dean Thompson",
+      "site_name": "Dean Thompson",
+      "id": "40011901",
+      "salary": 6900
     },
     {
-      "name": "Jeffrey Earnhardt",
-      "id": "40011902"
+      "display_name": "Jeffrey Earnhardt",
+      "site_name": "Jeffrey Earnhardt",
+      "id": "40011902",
+      "salary": 6800
     },
     {
-      "name": "Parker Retzlaff",
-      "id": "40011903"
+      "display_name": "Parker Retzlaff",
+      "site_name": "Parker Retzlaff",
+      "id": "40011903",
+      "salary": 6600
     },
     {
-      "name": "Anthony Alfredo",
-      "id": "40011904"
+      "display_name": "Anthony Alfredo",
+      "site_name": "Anthony Alfredo",
+      "id": "40011904",
+      "salary": 6500
     },
     {
-      "name": "Austin Green",
-      "id": "40011905"
+      "display_name": "Austin Green",
+      "site_name": "Austin Green",
+      "id": "40011905",
+      "salary": 6400
     },
     {
-      "name": "Jeremy Clements",
-      "id": "40011906"
+      "display_name": "Jeremy Clements",
+      "site_name": "Jeremy Clements",
+      "id": "40011906",
+      "salary": 6200
     },
     {
-      "name": "Jeb Burton",
-      "id": "40011907"
+      "display_name": "Jeb Burton",
+      "site_name": "Jeb Burton",
+      "id": "40011907",
+      "salary": 6100
     },
     {
-      "name": "Brennan Poole",
-      "id": "40011908"
+      "display_name": "Brennan Poole",
+      "site_name": "Brennan Poole",
+      "id": "40011908",
+      "salary": 6000
     },
     {
-      "name": "Kyle Sieg",
-      "id": "40011909"
+      "display_name": "Kyle Sieg",
+      "site_name": "Kyle Sieg",
+      "id": "40011909",
+      "salary": 5900
     },
     {
-      "name": "Leland Honeyman",
-      "id": "40011910"
+      "display_name": "Leland Honeyman",
+      "site_name": "Leland Honeyman",
+      "id": "40011910",
+      "salary": ""
     },
     {
-      "name": "Stefan Parsons",
-      "id": "40011911"
+      "display_name": "Stefan Parsons",
+      "site_name": "Stefan Parsons",
+      "id": "40011911",
+      "salary": 5600
     },
     {
-      "name": "Josh Williams",
-      "id": "40011912"
+      "display_name": "Josh Williams",
+      "site_name": "Josh Williams",
+      "id": "40011912",
+      "salary": 5400
     },
     {
-      "name": "Ryan Ellis",
-      "id": "40011913"
+      "display_name": "Ryan Ellis",
+      "site_name": "Ryan Ellis",
+      "id": "40011913",
+      "salary": 5300
     },
     {
-      "name": "Carson Ware",
-      "id": "40011914"
+      "display_name": "Carson Ware",
+      "site_name": "Carson Ware",
+      "id": "40011914",
+      "salary": 5200
     },
     {
-      "name": "Josh Bilicki",
-      "id": "40011915"
+      "display_name": "Josh Bilicki",
+      "site_name": "Josh Bilicki",
+      "id": "40011915",
+      "salary": 5100
     },
     {
-      "name": "Blaine Perkins",
-      "id": "40011916"
+      "display_name": "Blaine Perkins",
+      "site_name": "Blaine Perkins",
+      "id": "40011916",
+      "salary": 5000
     },
     {
-      "name": "Joey Gase",
-      "id": "40011917"
+      "display_name": "Joey Gase",
+      "site_name": "Joey Gase",
+      "id": "40011917",
+      "salary": 4800
     },
     {
-      "name": "Glen Reen",
-      "id": "40011918"
+      "display_name": "Glen Reen",
+      "site_name": "Glen Reen",
+      "id": "40011918",
+      "salary": 4700
     },
     {
-      "name": "Garrett Smithley",
-      "id": "40011919"
+      "display_name": "Garrett Smithley",
+      "site_name": "Garrett Smithley",
+      "id": "40011919",
+      "salary": 4500
     }
   ]
 }

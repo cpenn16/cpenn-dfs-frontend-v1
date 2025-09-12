@@ -6,8 +6,8 @@ Export selected sheets from an Excel .xlsm workbook into CSV and/or JSON files.
 - run_cheatsheets finds each cheat-sheet block by its title cell
   and exports one JSON table per yellow header block.
 - run_site_ids scans the Import sheet for "FD IDs" / "DK IDs" blocks
-  and writes a compact JSON mapping used by the app to format exported CSV
-  driver strings as "Name (ID)" for DK/FD.
+  and writes a JSON mapping that now includes BOTH display name and
+  ACTUAL SITE NAME + ID (and optional salary) for precise CSV exports.
 - NEW: Stages a temp copy of the workbook so Excel can stay open while reading.
 - NEW: More verbose logging (paths, sheet list, each task) for easy debugging.
 - NEW: Automatically writes `meta.json` with timestamps next to each exported file.
@@ -604,17 +604,47 @@ def _parse_site_id(val: Any) -> str:
     m2 = re.fullmatch(r"[\d-]+", s)
     return m2.group(0) if m2 else s
 
+# NEW: robust parser for "site name + id" or "id:name" patterns
+def _parse_name_and_id(val: Any) -> tuple[str, str]:
+    """
+    Parse a variety of cells into (site_name, site_id).
+
+    Accepts:
+      "John H. Nemechek (120350-118091)" -> ("John H. Nemechek", "120350-118091")
+      "120350-118091:John Hunter Nemechek" -> ("John Hunter Nemechek", "120350-118091")
+      "39722112" -> ("", "39722112")
+      "John Hunter Nemechek" -> ("John Hunter Nemechek", "")
+    """
+    s = _norm_str(val)
+    if not s:
+        return ("", "")
+
+    m = re.fullmatch(r"\s*(.+?)\s*\(([\d-]+)\)\s*", s)  # Name (123 or 123-456)
+    if m:
+        return (_norm_str(m.group(1)), _norm_str(m.group(2)))
+
+    m = re.fullmatch(r"\s*([\d-]+)\s*:\s*(.+?)\s*", s)  # 123-456:Name
+    if m:
+        return (_norm_str(m.group(2)), _norm_str(m.group(1)))
+
+    if re.fullmatch(r"[\d-]+", s):  # pure id
+        return ("", s)
+
+    return (s, "")  # otherwise treat as name only
+
 def run_site_ids(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> None:
     """
     Reads the 'Import' sheet (or a sheet you specify) and produces:
-      public/<out_rel>.json  => {"dk":[{"name","id"}...], "fd":[...]}
+      public/<out_rel>.json  => {
+        "dk":[{"display_name","site_name","id","salary"}...],
+        "fd":[{"display_name","site_name","id","salary"}...]
+      }
 
-    It expects two blocks:
-      - 'FD IDs' with columns: Driver | ID | Driver (ID)
-      - 'DK IDs' with columns: Driver | ID | Driver (ID)
-
-    The function searches the whole sheet for those titles and
-    stops each block at the first blank row.
+    Expected blocks on the sheet:
+      - 'FD IDs'       : Driver | ID | Driver (ID)
+      - 'DK IDs'       : Driver | ID | Driver (ID)
+      - 'FD Salaries'  : Name   | Salary            (optional but used if present)
+      - 'DK Salaries'  : Name   | Salary            (optional but used if present)
     """
     scfg = cfg.get("site_ids")
     if not scfg:
@@ -634,33 +664,77 @@ def run_site_ids(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> No
 
     fd_block = _scan_title_block(raw, "FD IDs", width=3)
     dk_block = _scan_title_block(raw, "DK IDs", width=3)
+    fd_sal   = _scan_title_block(raw, "FD Salaries", width=2)
+    dk_sal   = _scan_title_block(raw, "DK Salaries", width=2)
 
     if fd_block is None and dk_block is None:
         print("⚠️  SKIP site_ids: couldn't find 'FD IDs' or 'DK IDs' blocks")
         return
 
+    # Build salary maps by display name key (normalized)
+    def _build_salary_map(df: Optional[pd.DataFrame]) -> dict[str, int]:
+        if df is None or df.empty:
+            return {}
+        # Expect columns "Name" and "Salary" (your screenshot matches)
+        cols = {c.lower(): c for c in df.columns}
+        name_col = cols.get("name") or cols.get("driver") or list(df.columns)[0]
+        sal_col  = cols.get("salary") or list(df.columns)[-1]
+        s = {}
+        for _, row in df.iterrows():
+            disp = _norm_str(row.get(name_col, ""))
+            if not disp:
+                continue
+            try:
+                val = int(float(str(row.get(sal_col, "")).replace(",", "")))
+            except Exception:
+                continue
+            s[_keyify(disp)] = val
+        return s
+
+    sal_fd = _build_salary_map(fd_sal)
+    sal_dk = _build_salary_map(dk_sal)
+
     out = {"fd": [], "dk": []}
 
     if fd_block is not None:
         for _, row in fd_block.iterrows():
-            name = _norm_str(row.get("Driver") or "")
-            site_id = _parse_site_id(row.get("ID") or row.get("Driver (ID)") or "")
-            if name and site_id:
-                out["fd"].append({"name": name, "id": site_id})
+            display_name = _norm_str(row.get("Driver") or "")
+            if not display_name:
+                continue
+            # Prefer the right-most "Driver (ID)" if present; else fall back to "ID"
+            site_name, site_id = _parse_name_and_id(row.get("Driver (ID)") or "")
+            if not site_id:
+                site_id = _parse_site_id(row.get("ID") or "")
+            salary = sal_fd.get(_keyify(display_name))
+            out["fd"].append({
+                "display_name": display_name,
+                "site_name": site_name,
+                "id": site_id,
+                "salary": salary if salary is not None else ""
+            })
 
     if dk_block is not None:
         for _, row in dk_block.iterrows():
-            name = _norm_str(row.get("Driver") or "")
-            site_id = _parse_site_id(row.get("ID") or row.get("Driver (ID)") or "")
-            if name and site_id:
-                out["dk"].append({"name": name, "id": site_id})
+            display_name = _norm_str(row.get("Driver") or "")
+            if not display_name:
+                continue
+            site_name, site_id = _parse_name_and_id(row.get("Driver (ID)") or "")
+            if not site_id:
+                site_id = _parse_site_id(row.get("ID") or "")
+            salary = sal_dk.get(_keyify(display_name))
+            out["dk"].append({
+                "display_name": display_name,
+                "site_name": site_name,
+                "id": site_id,
+                "salary": salary if salary is not None else ""
+            })
 
-    # de-dupe by normalized key, keep first occurrence
+    # de-dupe by normalized display name, keep first occurrence
     def dedupe(items: list[dict[str, str]]) -> list[dict[str, str]]:
         seen = set()
         keep = []
         for r in items:
-            k = _keyify(r["name"])
+            k = _keyify(r["display_name"])
             if k in seen:
                 continue
             seen.add(k)
