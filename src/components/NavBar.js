@@ -160,6 +160,7 @@ export default function NavBar() {
                 <MenuItem to="/nascar/cup/cheatsheets">Cheat Sheets</MenuItem>
                 <MenuItem to="/nascar/cup/gfs">GFS</MenuItem>
                 <MenuItem to="/nascar/cup/optimizer">Optimizer</MenuItem>
+                <MenuItem to="/nascar/cup/article">Article</MenuItem>
               </MenuGroup>
 
               <MenuGroup>
@@ -390,6 +391,7 @@ export default function NavBar() {
                   <MobileLink to="/nascar/cup/cheatsheets" onClick={closeMobile}>Cheat Sheets</MobileLink>
                   <MobileLink to="/nascar/cup/gfs" onClick={closeMobile}>GFS</MobileLink>
                   <MobileLink to="/nascar/cup/optimizer" onClick={closeMobile}>Optimizer</MobileLink>
+                  <MobileLink to="/nascar/cup/article" onClick={closeMobile}>Article</MobileLink>
 
                   {/* XFINITY */}
                   <div className="px-4 pt-3 pb-1 text-xs font-bold tracking-widest text-slate-500">XFINITY</div>
