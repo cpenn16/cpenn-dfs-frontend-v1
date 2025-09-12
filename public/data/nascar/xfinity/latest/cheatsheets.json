@@ -849,46 +849,46 @@
           "Value": 39.09
         },
         {
-          "Driver": "Carson Kvapil",
-          "Qual": 11,
-          "DK Sal": "8.6k",
-          "Value": 35.85
-        },
-        {
-          "Driver": "Sammy Smith",
-          "Qual": 14,
-          "DK Sal": "8.8k",
-          "Value": 31.11
-        },
-        {
-          "Driver": "Austin Hill",
-          "Qual": 21,
-          "DK Sal": "8.5k",
-          "Value": 29.52
-        },
-        {
-          "Driver": "Ryan Sieg",
-          "Qual": 8,
-          "DK Sal": "8.2k",
-          "Value": 24.07
-        },
-        {
-          "Driver": "Austin Green",
-          "Qual": 37,
-          "DK Sal": "6.4k",
-          "Value": 24.02
+          "Driver": "Daniel Dye",
+          "Qual": 31,
+          "DK Sal": "7.0k",
+          "Value": 33.4
         },
         {
           "Driver": "Brenden Queen",
           "Qual": 28,
           "DK Sal": "7.1k",
-          "Value": 23.37
+          "Value": 31.32
         },
         {
-          "Driver": "Daniel Dye",
-          "Qual": 31,
-          "DK Sal": "7.0k",
-          "Value": 21.75
+          "Driver": "Austin Green",
+          "Qual": 37,
+          "DK Sal": "6.4k",
+          "Value": 28.93
+        },
+        {
+          "Driver": "Carson Kvapil",
+          "Qual": 11,
+          "DK Sal": "8.6k",
+          "Value": 28.34
+        },
+        {
+          "Driver": "Brandon Jones",
+          "Qual": 22,
+          "DK Sal": "9.5k",
+          "Value": 25.54
+        },
+        {
+          "Driver": "Anthony Alfredo",
+          "Qual": 27,
+          "DK Sal": "6.5k",
+          "Value": 20.83
+        },
+        {
+          "Driver": "Austin Hill",
+          "Qual": 21,
+          "DK Sal": "8.5k",
+          "Value": 20.34
         }
       ]
     },
@@ -1241,22 +1241,10 @@
       ],
       "rows": [
         {
-          "Driver": "Blaine Perkins",
-          "Qual": 38,
-          "DK Sal": "5.0k",
-          "Value": 15.58
-        },
-        {
           "Driver": "Aric Almirola",
           "Qual": 3,
           "DK Sal": "11.0k",
           "Value": 12.88
-        },
-        {
-          "Driver": "Josh Williams",
-          "Qual": 33,
-          "DK Sal": "5.4k",
-          "Value": 12.22
         },
         {
           "Driver": "Joey Gase",
@@ -1265,40 +1253,52 @@
           "Value": 11.68
         },
         {
-          "Driver": "Daniel Dye",
-          "Qual": 31,
-          "DK Sal": "7.0k",
-          "Value": 10.39
-        },
-        {
-          "Driver": "Austin Green",
-          "Qual": 37,
-          "DK Sal": "6.4k",
-          "Value": 8.77
-        },
-        {
           "Driver": "Justin Allgaier",
           "Qual": 1,
           "DK Sal": "11.5k",
           "Value": 8.72
         },
         {
-          "Driver": "Brenden Queen",
-          "Qual": 28,
-          "DK Sal": "7.1k",
-          "Value": 8.66
-        },
-        {
-          "Driver": "Brandon Jones",
-          "Qual": 22,
-          "DK Sal": "9.5k",
-          "Value": 6.99
+          "Driver": "Blaine Perkins",
+          "Qual": 38,
+          "DK Sal": "5.0k",
+          "Value": 6.56
         },
         {
           "Driver": "Josh Bilicki",
           "Qual": 32,
           "DK Sal": "5.1k",
           "Value": 6.24
+        },
+        {
+          "Driver": "Anthony Alfredo",
+          "Qual": 27,
+          "DK Sal": "6.5k",
+          "Value": 4.27
+        },
+        {
+          "Driver": "Austin Green",
+          "Qual": 37,
+          "DK Sal": "6.4k",
+          "Value": 3.86
+        },
+        {
+          "Driver": "Josh Williams",
+          "Qual": 33,
+          "DK Sal": "5.4k",
+          "Value": 3.27
+        },
+        {
+          "Driver": "Kyle Sieg",
+          "Qual": 30,
+          "DK Sal": "5.9k",
+          "Value": 1.48
+        },
+        {
+          "Driver": "Brandon Jones",
+          "Qual": 22,
+          "DK Sal": "9.5k",
+          "Value": 1.34
         }
       ]
     },
