@@ -56,14 +56,14 @@ function CompactTable({ title, rows }) {
   }, [rows]);
 
   return (
-    <div className="mt-3">
+    <div className="mt-3 max-w-3xl mx-auto"> {/* centered & capped width */}
       <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
         <div className="px-4 py-3 border-b">
           <h2 className="text-sm font-semibold">{title}</h2>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
+          <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50">
                 {columns.map((c) => (
@@ -73,7 +73,6 @@ function CompactTable({ title, rows }) {
                       "px-4 py-2 text-gray-900 font-semibold border-b text-xs",
                       isNumericCol(c) ? "text-right" : "text-left",
                     ].join(" ")}
-                    title={c}
                   >
                     {c}
                   </th>
@@ -82,10 +81,7 @@ function CompactTable({ title, rows }) {
             </thead>
             <tbody>
               {rows.map((row, i) => (
-                <tr
-                  key={i}
-                  className={i % 2 ? "bg-white" : "bg-gray-50/50"}
-                >
+                <tr key={i} className={i % 2 ? "bg-white" : "bg-gray-50/50"}>
                   {columns.map((c) => (
                     <td
                       key={c}
@@ -93,7 +89,6 @@ function CompactTable({ title, rows }) {
                         "px-4 py-2 border-b",
                         isNumericCol(c) ? "text-right tabular-nums" : "text-left",
                       ].join(" ")}
-                      title={String(row?.[c] ?? "")}
                     >
                       {row?.[c] ?? ""}
                     </td>
@@ -123,7 +118,6 @@ function CompactTable({ title, rows }) {
 /* ------------------------------------------------------------------ */
 export default function XfCheatSheets() {
   const BASE = import.meta?.env?.BASE_URL ?? "/";
-  // Point this at your generated JSON
   const SOURCE = `${BASE}data/nascar/xfinity/latest/cheatsheets.json`;
   const { data, err, loading } = useJson(SOURCE);
 
@@ -144,27 +138,25 @@ export default function XfCheatSheets() {
     });
   }, [data]);
 
-  // Selected table
   const [tableId, setTableId] = useState("");
   useEffect(() => {
     if (!tableId && tables.length) setTableId(tables[0].id);
   }, [tables, tableId]);
+
   const selected = useMemo(
     () => tables.find((t) => t.id === tableId),
     [tables, tableId]
   );
 
   return (
-    <div className="px-5 py-6">
-      <h1 className="text-2xl sm:text-3xl font-extrabold mb-4">
+    <div className="px-5 py-6 max-w-4xl mx-auto"> {/* center whole section */}
+      <h1 className="text-2xl sm:text-3xl font-extrabold mb-4 text-center">
         NASCAR Xfinity — Cheat Sheets
       </h1>
 
-      {/* Control row (compact like NFL) */}
-      <div className="mb-3">
-        <label className="text-sm font-medium text-gray-700 mr-2">
-          Choose a table:
-        </label>
+      {/* Control row */}
+      <div className="mb-3 flex items-center gap-2 justify-center">
+        <label className="text-sm font-medium text-gray-700">Choose a table:</label>
         <select
           className="border rounded-md px-3 py-2 text-sm"
           value={tableId}
@@ -178,14 +170,14 @@ export default function XfCheatSheets() {
         </select>
       </div>
 
-      {loading && <div className="text-sm text-gray-600">Loading…</div>}
+      {loading && <div className="text-sm text-gray-600 text-center">Loading…</div>}
       {err && (
-        <div className="text-sm text-red-600">
+        <div className="text-sm text-red-600 text-center">
           Failed to load: {String(err)}
         </div>
       )}
       {!loading && !err && !tables.length && (
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-600 text-center">
           No tables found. Ensure{" "}
           <code>{`${BASE}data/nascar/xfinity/latest/cheatsheets.json`}</code>{" "}
           exists.
@@ -193,9 +185,7 @@ export default function XfCheatSheets() {
       )}
 
       {!loading && !err && selected && (
-        <>
-          <CompactTable title={selected.label} rows={selected.rows || []} />
-        </>
+        <CompactTable title={selected.label} rows={selected.rows || []} />
       )}
     </div>
   );
