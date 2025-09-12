@@ -1,9 +1,7 @@
 // src/pages/nascar/XfCheatSheets.jsx
 import React, { useEffect, useMemo, useState } from "react";
 
-/* ------------------------------------------------------------------ */
-/* Data fetch helper                                                   */
-/* ------------------------------------------------------------------ */
+/* --------------------------- data fetcher --------------------------- */
 function useJson(url) {
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
@@ -11,67 +9,74 @@ function useJson(url) {
 
   useEffect(() => {
     let alive = true;
+    if (!url) return;
     setLoading(true);
     fetch(url, { cache: "no-store" })
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then((j) => {
-        if (alive) {
-          setData(j);
-          setErr(null);
-        }
-      })
-      .catch((e) => {
-        if (alive) {
-          setErr(e);
-          setData(null);
-        }
-      })
+      .then((j) => alive && (setData(j), setErr(null)))
+      .catch((e) => alive && (setErr(e), setData(null)))
       .finally(() => alive && setLoading(false));
-    return () => {
-      alive = false;
-    };
+    return () => { alive = false; };
   }, [url]);
 
   return { data, err, loading };
 }
 
-/* ------------------------------------------------------------------ */
-/* Utils                                                               */
-/* ------------------------------------------------------------------ */
+/* ------------------------------- utils ------------------------------ */
 const isNumericCol = (c) =>
   /(^qual$|^value$|sal$|rank$|pts?$|proj|avg|score|own%?$|%$|^\d+$)/i.test(
-    String(c).trim()
+    String(c || "").trim()
   );
 
-/* ------------------------------------------------------------------ */
-/* Compact table (no export, no extras)                                */
-/* ------------------------------------------------------------------ */
+function fmtUpdated(meta) {
+  const raw =
+    meta?.updated || meta?.last_updated || meta?.lastUpdated || meta?.timestamp;
+  if (!raw) return "";
+  const d = new Date(raw);
+  if (isNaN(d)) return "";
+  // Example: 9/11, 1:29 AM
+  return d.toLocaleString(undefined, {
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+/* --------------------------- compact table -------------------------- */
 function CompactTable({ title, rows }) {
-  const columns = useMemo(() => {
-    if (Array.isArray(rows) && rows.length) return Object.keys(rows[0]);
-    return [];
-  }, [rows]);
+  const columns = useMemo(
+    () => (Array.isArray(rows) && rows.length ? Object.keys(rows[0]) : []),
+    [rows]
+  );
 
   return (
-    <div className="mt-3 max-w-3xl mx-auto"> {/* centered & capped width */}
+    <div className="mt-3 max-w-2xl mx-auto">
       <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-        <div className="px-4 py-3 border-b">
+        {/* Title bar (brand blue) */}
+        <div className="px-4 py-2 bg-blue-700 text-white">
           <h2 className="text-sm font-semibold">{title}</h2>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-[13px]">
             <thead>
-              <tr className="bg-gray-50">
-                {columns.map((c) => (
+              <tr className="bg-gray-100">
+                {columns.map((c, ci) => (
                   <th
                     key={c}
+                    title={c}
                     className={[
-                      "px-4 py-2 text-gray-900 font-semibold border-b text-xs",
-                      isNumericCol(c) ? "text-right" : "text-left",
+                      "px-3 py-2 border-b font-semibold text-gray-900",
+                      ci === 0
+                        ? "text-center"
+                        : isNumericCol(c)
+                        ? "text-right"
+                        : "text-left",
+                      "text-xs",
                     ].join(" ")}
                   >
                     {c}
@@ -81,13 +86,18 @@ function CompactTable({ title, rows }) {
             </thead>
             <tbody>
               {rows.map((row, i) => (
-                <tr key={i} className={i % 2 ? "bg-white" : "bg-gray-50/50"}>
-                  {columns.map((c) => (
+                <tr key={i} className={i % 2 ? "bg-white" : "bg-gray-50"}>
+                  {columns.map((c, ci) => (
                     <td
                       key={c}
+                      title={String(row?.[c] ?? "")}
                       className={[
-                        "px-4 py-2 border-b",
-                        isNumericCol(c) ? "text-right tabular-nums" : "text-left",
+                        "px-3 py-1.5 border-b whitespace-nowrap",
+                        ci === 0
+                          ? "text-center"
+                          : isNumericCol(c)
+                          ? "text-right tabular-nums"
+                          : "text-left",
                       ].join(" ")}
                     >
                       {row?.[c] ?? ""}
@@ -97,10 +107,7 @@ function CompactTable({ title, rows }) {
               ))}
               {!rows.length && (
                 <tr>
-                  <td
-                    className="px-4 py-3 text-gray-500 border-b"
-                    colSpan={columns.length || 1}
-                  >
+                  <td className="px-3 py-3 text-gray-500 border-b" colSpan={columns.length || 1}>
                     No rows.
                   </td>
                 </tr>
@@ -113,13 +120,16 @@ function CompactTable({ title, rows }) {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Page                                                                */
-/* ------------------------------------------------------------------ */
+/* -------------------------------- page ------------------------------ */
 export default function XfCheatSheets() {
   const BASE = import.meta?.env?.BASE_URL ?? "/";
-  const SOURCE = `${BASE}data/nascar/xfinity/latest/cheatsheets.json`;
-  const { data, err, loading } = useJson(SOURCE);
+
+  // Data + meta locations
+  const DATA_URL = `${BASE}data/nascar/xfinity/latest/cheatsheets.json`;
+  const META_URL = `${BASE}data/nascar/xfinity/latest/meta.json`;
+
+  const { data, err, loading } = useJson(DATA_URL);
+  const { data: meta } = useJson(META_URL);
 
   // Normalize -> [{ id, label, rows }]
   const tables = useMemo(() => {
@@ -138,6 +148,7 @@ export default function XfCheatSheets() {
     });
   }, [data]);
 
+  // selection
   const [tableId, setTableId] = useState("");
   useEffect(() => {
     if (!tableId && tables.length) setTableId(tables[0].id);
@@ -148,13 +159,22 @@ export default function XfCheatSheets() {
     [tables, tableId]
   );
 
-  return (
-    <div className="px-5 py-6 max-w-4xl mx-auto"> {/* center whole section */}
-      <h1 className="text-2xl sm:text-3xl font-extrabold mb-4 text-center">
-        NASCAR Xfinity — Cheat Sheets
-      </h1>
+  const updatedStr = fmtUpdated(meta);
+  const rowCount = selected?.rows?.length ?? 0;
 
-      {/* Control row */}
+  return (
+    <div className="px-5 py-6 max-w-4xl mx-auto">
+      <h1 className="text-2xl sm:text-3xl font-extrabold text-center">NASCAR Xfinity — Cheat Sheets</h1>
+
+      {/* Meta line: rows + updated */}
+      <div className="mt-1 mb-4 text-center text-xs text-gray-600">
+        {rowCount ? <span>{rowCount.toLocaleString()} rows</span> : null}
+        {updatedStr ? (
+          <span className={rowCount ? "ml-3" : ""}>Updated: {updatedStr}</span>
+        ) : null}
+      </div>
+
+      {/* Controls (compact) */}
       <div className="mb-3 flex items-center gap-2 justify-center">
         <label className="text-sm font-medium text-gray-700">Choose a table:</label>
         <select
@@ -172,15 +192,11 @@ export default function XfCheatSheets() {
 
       {loading && <div className="text-sm text-gray-600 text-center">Loading…</div>}
       {err && (
-        <div className="text-sm text-red-600 text-center">
-          Failed to load: {String(err)}
-        </div>
+        <div className="text-sm text-red-600 text-center">Failed to load: {String(err)}</div>
       )}
       {!loading && !err && !tables.length && (
         <div className="text-sm text-gray-600 text-center">
-          No tables found. Ensure{" "}
-          <code>{`${BASE}data/nascar/xfinity/latest/cheatsheets.json`}</code>{" "}
-          exists.
+          No tables found. Ensure <code>{DATA_URL}</code> exists.
         </div>
       )}
 
