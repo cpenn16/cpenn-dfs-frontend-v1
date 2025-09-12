@@ -208,7 +208,6 @@ export default function NavBar() {
               <MenuGroup>
                 <SectionTitle>SHOWDOWN</SectionTitle>
                 <MenuItem to="/nfl/showdown/projections">DFS Projections</MenuItem>
-                <MenuItem to="/nfl/showdown/stacks">Stacks</MenuItem>
                 <MenuItem to="/nfl/showdown/cheatsheets">Cheat Sheets</MenuItem>
                 <MenuItem to="/nfl/showdown/qb-projections">QB Projections</MenuItem>
                 <MenuItem to="/nfl/showdown/rb-projections">RB Projections</MenuItem>
@@ -438,8 +437,6 @@ export default function NavBar() {
                   {/* SHOWDOWN */}
                   <div className="px-4 pt-3 pb-1 text-xs font-bold tracking-widest text-slate-500">SHOWDOWN</div>
                   <MobileLink to="/nfl/showdown/projections" onClick={closeMobile}>DFS Projections</MobileLink>
-                  <MobileLink to="/nfl/showdown/stacks" onClick={closeMobile}>Stacks</MobileLink>
-                  <MobileLink to="/nfl/showdown/cheatsheets" onClick={closeMobile}>Cheat Sheets</MobileLink>
                   <MobileLink to="/nfl/showdown/qb-projections" onClick={closeMobile}>QB Projections</MobileLink>
                   <MobileLink to="/nfl/showdown/rb-projections" onClick={closeMobile}>RB Projections</MobileLink>
                   <MobileLink to="/nfl/showdown/wr-projections" onClick={closeMobile}>WR Projections</MobileLink>
