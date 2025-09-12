@@ -406,7 +406,7 @@
     "Average":28.0
   },
   {
-    "Driver":"Leland Honeyman Jr",
+    "Driver":"Leland Honeyman",
     "1 Lap":34,
     "5 Lap":34,
     "10 Lap":31,
@@ -414,10 +414,10 @@
     "20 Lap":"",
     "25 Lap":"",
     "30 Lap":"",
-    "Lap Avg":"",
+    "Lap Avg":29.0,
     "Sh. Run":34.0,
     "Lo. Run":31.0,
-    "Average":33.0
+    "Average":31.0
   },
   {
     "Driver":"Stefan Parsons",
