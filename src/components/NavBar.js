@@ -208,7 +208,6 @@ export default function NavBar() {
               <MenuGroup>
                 <SectionTitle>SHOWDOWN</SectionTitle>
                 <MenuItem to="/nfl/showdown/projections">DFS Projections</MenuItem>
-                <MenuItem to="/nfl/showdown/cheatsheets">Cheat Sheets</MenuItem>
                 <MenuItem to="/nfl/showdown/qb-projections">QB Projections</MenuItem>
                 <MenuItem to="/nfl/showdown/rb-projections">RB Projections</MenuItem>
                 <MenuItem to="/nfl/showdown/wr-projections">WR Projections</MenuItem>
