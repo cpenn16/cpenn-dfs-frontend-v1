@@ -17,16 +17,16 @@
         {
           "Top 10 All DK Proj": "Josh Allen",
           "Team": "BUF",
-          "DK Proj": "22.1"
+          "DK Proj": "22"
+        },
+        {
+          "Top 10 All DK Proj": "Ja'Marr Chase",
+          "Team": "CIN",
+          "DK Proj": "21.9"
         },
         {
           "Top 10 All DK Proj": "Jalen Hurts",
           "Team": "PHI",
-          "DK Proj": "21.8"
-        },
-        {
-          "Top 10 All DK Proj": "Christian McCaffrey",
-          "Team": "SF",
           "DK Proj": "20.9"
         },
         {
@@ -35,29 +35,29 @@
           "DK Proj": "20.8"
         },
         {
-          "Top 10 All DK Proj": "Ja'Marr Chase",
-          "Team": "CIN",
-          "DK Proj": "20.8"
+          "Top 10 All DK Proj": "Christian McCaffrey",
+          "Team": "SF",
+          "DK Proj": "20"
         },
         {
           "Top 10 All DK Proj": "De'Von Achane",
           "Team": "MIA",
-          "DK Proj": "19.5"
+          "DK Proj": "19.4"
         },
         {
           "Top 10 All DK Proj": "Kyler Murray",
           "Team": "ARI",
-          "DK Proj": "19.3"
+          "DK Proj": "19.2"
         },
         {
-          "Top 10 All DK Proj": "Patrick Mahomes",
-          "Team": "KC",
+          "Top 10 All DK Proj": "Puka Nacua",
+          "Team": "LAR",
           "DK Proj": "19.2"
         },
         {
           "Top 10 All DK Proj": "Derrick Henry",
           "Team": "BAL",
-          "DK Proj": "19.1"
+          "DK Proj": "18.8"
         }
       ]
     },
@@ -78,12 +78,12 @@
         {
           "Top 10 All FD Proj": "Josh Allen",
           "Team": "BUF",
-          "FD Proj": "22.1"
+          "FD Proj": "22"
         },
         {
           "Top 10 All FD Proj": "Jalen Hurts",
           "Team": "PHI",
-          "FD Proj": "21.8"
+          "FD Proj": "20.9"
         },
         {
           "Top 10 All FD Proj": "Joe Burrow",
@@ -93,32 +93,32 @@
         {
           "Top 10 All FD Proj": "Kyler Murray",
           "Team": "ARI",
-          "FD Proj": "19.3"
+          "FD Proj": "19.2"
         },
         {
           "Top 10 All FD Proj": "Patrick Mahomes",
           "Team": "KC",
-          "FD Proj": "19.2"
-        },
-        {
-          "Top 10 All FD Proj": "Justin Fields",
-          "Team": "NYJ",
-          "FD Proj": "19"
-        },
-        {
-          "Top 10 All FD Proj": "Christian McCaffrey",
-          "Team": "SF",
           "FD Proj": "18.4"
+        },
+        {
+          "Top 10 All FD Proj": "Ja'Marr Chase",
+          "Team": "CIN",
+          "FD Proj": "18.2"
         },
         {
           "Top 10 All FD Proj": "Derrick Henry",
           "Team": "BAL",
-          "FD Proj": "18.2"
+          "FD Proj": "18"
         },
         {
-          "Top 10 All FD Proj": "Jared Goff",
-          "Team": "DET",
-          "FD Proj": "17.6"
+          "Top 10 All FD Proj": "Christian McCaffrey",
+          "Team": "SF",
+          "FD Proj": "17.9"
+        },
+        {
+          "Top 10 All FD Proj": "Justin Fields",
+          "Team": "NYJ",
+          "FD Proj": "17.8"
         }
       ]
     },
@@ -132,14 +132,24 @@
       ],
       "rows": [
         {
+          "Top 10 All DK pOWN%": "Ja'Marr Chase",
+          "Team": "CIN",
+          "DK pOWN%": "33.8%"
+        },
+        {
           "Top 10 All DK pOWN%": "Ravens",
           "Team": "BAL",
           "DK pOWN%": "26.6%"
         },
         {
-          "Top 10 All DK pOWN%": "Ja'Marr Chase",
+          "Top 10 All DK pOWN%": "Chase Brown",
           "Team": "CIN",
-          "DK pOWN%": "24.1%"
+          "DK pOWN%": "25.5%"
+        },
+        {
+          "Top 10 All DK pOWN%": "Tee Higgins",
+          "Team": "CIN",
+          "DK pOWN%": "22.6%"
         },
         {
           "Top 10 All DK pOWN%": "Rams",
@@ -147,38 +157,28 @@
           "DK pOWN%": "22.2%"
         },
         {
-          "Top 10 All DK pOWN%": "Chase Brown",
-          "Team": "CIN",
-          "DK pOWN%": "21.0%"
+          "Top 10 All DK pOWN%": "Trey McBride",
+          "Team": "ARI",
+          "DK pOWN%": "20.2%"
         },
         {
           "Top 10 All DK pOWN%": "De'Von Achane",
           "Team": "MIA",
-          "DK pOWN%": "20.8%"
+          "DK pOWN%": "19.9%"
         },
         {
-          "Top 10 All DK pOWN%": "Christian McCaffrey",
-          "Team": "SF",
-          "DK pOWN%": "20.1%"
+          "Top 10 All DK pOWN%": "Brian Thomas Jr.",
+          "Team": "JAX",
+          "DK pOWN%": "17.2%"
         },
         {
           "Top 10 All DK pOWN%": "Jahmyr Gibbs",
           "Team": "DET",
-          "DK pOWN%": "17.1%"
+          "DK pOWN%": "16.2%"
         },
         {
           "Top 10 All DK pOWN%": "Amon-Ra St. Brown",
           "Team": "DET",
-          "DK pOWN%": "17.0%"
-        },
-        {
-          "Top 10 All DK pOWN%": "Tee Higgins",
-          "Team": "CIN",
-          "DK pOWN%": "15.6%"
-        },
-        {
-          "Top 10 All DK pOWN%": "Trey McBride",
-          "Team": "ARI",
           "DK pOWN%": "15.3%"
         }
       ]
@@ -195,32 +195,32 @@
         {
           "Top 10 All FD pOWN%": "Ja'Marr Chase",
           "Team": "CIN",
-          "FD pOWN%": "26.5%"
-        },
-        {
-          "Top 10 All FD pOWN%": "Ravens",
-          "Team": "BAL",
-          "FD pOWN%": "24.2%"
-        },
-        {
-          "Top 10 All FD pOWN%": "Chase Brown",
-          "Team": "CIN",
-          "FD pOWN%": "21.4%"
+          "FD pOWN%": "37.2%"
         },
         {
           "Top 10 All FD pOWN%": "Trey McBride",
           "Team": "ARI",
-          "FD pOWN%": "20.0%"
+          "FD pOWN%": "25.6%"
         },
         {
-          "Top 10 All FD pOWN%": "Jahmyr Gibbs",
-          "Team": "DET",
-          "FD pOWN%": "17.8%"
+          "Top 10 All FD pOWN%": "Chase Brown",
+          "Team": "CIN",
+          "FD pOWN%": "25.4%"
         },
         {
-          "Top 10 All FD pOWN%": "Travis Kelce",
-          "Team": "KC",
-          "FD pOWN%": "17.7%"
+          "Top 10 All FD pOWN%": "Ravens",
+          "Team": "BAL",
+          "FD pOWN%": "24.5%"
+        },
+        {
+          "Top 10 All FD pOWN%": "Tee Higgins",
+          "Team": "CIN",
+          "FD pOWN%": "21.0%"
+        },
+        {
+          "Top 10 All FD pOWN%": "Brian Thomas Jr.",
+          "Team": "JAX",
+          "FD pOWN%": "18.1%"
         },
         {
           "Top 10 All FD pOWN%": "Derrick Henry",
@@ -228,19 +228,19 @@
           "FD pOWN%": "17.3%"
         },
         {
-          "Top 10 All FD pOWN%": "Amon-Ra St. Brown",
+          "Top 10 All FD pOWN%": "Jahmyr Gibbs",
           "Team": "DET",
-          "FD pOWN%": "16.9%"
+          "FD pOWN%": "16.4%"
+        },
+        {
+          "Top 10 All FD pOWN%": "Travis Kelce",
+          "Team": "KC",
+          "FD pOWN%": "16.2%"
         },
         {
           "Top 10 All FD pOWN%": "De'Von Achane",
           "Team": "MIA",
-          "FD pOWN%": "15.5%"
-        },
-        {
-          "Top 10 All FD pOWN%": "Brian Thomas Jr.",
-          "Team": "JAX",
-          "FD pOWN%": "15.0%"
+          "FD pOWN%": "14.8%"
         }
       ]
     },
@@ -254,8 +254,13 @@
       ],
       "rows": [
         {
-          "Top 10 All DK Val": "Justin Fields",
-          "Team": "NYJ",
+          "Top 10 All DK Val": "Mac Jones",
+          "Team": "SF",
+          "DK Val": "3.6"
+        },
+        {
+          "Top 10 All DK Val": "Drake Maye",
+          "Team": "NE",
           "DK Val": "3.3"
         },
         {
@@ -264,23 +269,18 @@
           "DK Val": "3.3"
         },
         {
-          "Top 10 All DK Val": "Drake Maye",
-          "Team": "NE",
-          "DK Val": "3.3"
-        },
-        {
-          "Top 10 All DK Val": "Jalen Hurts",
-          "Team": "PHI",
-          "DK Val": "3.2"
-        },
-        {
           "Top 10 All DK Val": "Joe Burrow",
           "Team": "CIN",
-          "DK Val": "3.2"
+          "DK Val": "3.1"
         },
         {
-          "Top 10 All DK Val": "Trevor Lawrence",
-          "Team": "JAX",
+          "Top 10 All DK Val": "Daniel Jones",
+          "Team": "IND",
+          "DK Val": "3.1"
+        },
+        {
+          "Top 10 All DK Val": "Justin Fields",
+          "Team": "NYJ",
           "DK Val": "3.1"
         },
         {
@@ -289,18 +289,18 @@
           "DK Val": "3.1"
         },
         {
-          "Top 10 All DK Val": "Josh Allen",
-          "Team": "BUF",
-          "DK Val": "3.1"
-        },
-        {
           "Top 10 All DK Val": "Russell Wilson",
           "Team": "NYG",
           "DK Val": "3.1"
         },
         {
-          "Top 10 All DK Val": "Patrick Mahomes",
-          "Team": "KC",
+          "Top 10 All DK Val": "Josh Allen",
+          "Team": "BUF",
+          "DK Val": "3.1"
+        },
+        {
+          "Top 10 All DK Val": "Jalen Hurts",
+          "Team": "PHI",
           "DK Val": "3.1"
         }
       ]
@@ -320,28 +320,18 @@
           "FD Val": "2.7"
         },
         {
-          "Top 10 All FD Val": "Jalen Hurts",
-          "Team": "PHI",
-          "FD Val": "2.6"
-        },
-        {
           "Top 10 All FD Val": "Joe Burrow",
           "Team": "CIN",
           "FD Val": "2.6"
         },
         {
-          "Top 10 All FD Val": "Brock Purdy",
-          "Team": "SF",
-          "FD Val": "2.6"
-        },
-        {
-          "Top 10 All FD Val": "Trevor Lawrence",
-          "Team": "JAX",
+          "Top 10 All FD Val": "Drake Maye",
+          "Team": "NE",
           "FD Val": "2.5"
         },
         {
-          "Top 10 All FD Val": "Josh Allen",
-          "Team": "BUF",
+          "Top 10 All FD Val": "Jalen Hurts",
+          "Team": "PHI",
           "FD Val": "2.5"
         },
         {
@@ -350,19 +340,29 @@
           "FD Val": "2.5"
         },
         {
-          "Top 10 All FD Val": "Justin Fields",
-          "Team": "NYJ",
+          "Top 10 All FD Val": "Josh Allen",
+          "Team": "BUF",
           "FD Val": "2.5"
         },
         {
-          "Top 10 All FD Val": "Drake Maye",
-          "Team": "NE",
+          "Top 10 All FD Val": "Bo Nix",
+          "Team": "DEN",
           "FD Val": "2.5"
         },
         {
-          "Top 10 All FD Val": "Patrick Mahomes",
-          "Team": "KC",
-          "FD Val": "2.5"
+          "Top 10 All FD Val": "Caleb Williams",
+          "Team": "CHI",
+          "FD Val": "2.4"
+        },
+        {
+          "Top 10 All FD Val": "Russell Wilson",
+          "Team": "NYG",
+          "FD Val": "2.4"
+        },
+        {
+          "Top 10 All FD Val": "Trevor Lawrence",
+          "Team": "JAX",
+          "FD Val": "2.4"
         }
       ]
     },
@@ -378,17 +378,17 @@
         {
           "Top 10 All DK Opt%": "Rams",
           "Team": "LAR",
-          "DK Opt%": "30%"
+          "DK Opt%": "29.6%"
         },
         {
           "Top 10 All DK Opt%": "Ravens",
           "Team": "BAL",
-          "DK Opt%": "28.5%"
+          "DK Opt%": "28.4%"
         },
         {
-          "Top 10 All DK Opt%": "Christian McCaffrey",
-          "Team": "SF",
-          "DK Opt%": "26.6%"
+          "Top 10 All DK Opt%": "Ja'Marr Chase",
+          "Team": "CIN",
+          "DK Opt%": "25.8%"
         },
         {
           "Top 10 All DK Opt%": "De'Von Achane",
@@ -396,34 +396,34 @@
           "DK Opt%": "24.5%"
         },
         {
-          "Top 10 All DK Opt%": "Alvin Kamara",
-          "Team": "NO",
-          "DK Opt%": "20.9%"
-        },
-        {
-          "Top 10 All DK Opt%": "Jauan Jennings",
-          "Team": "SF",
-          "DK Opt%": "19.2%"
-        },
-        {
-          "Top 10 All DK Opt%": "Harold Fannin Jr.",
-          "Team": "CLE",
-          "DK Opt%": "18.2%"
-        },
-        {
-          "Top 10 All DK Opt%": "Tyreek Hill",
-          "Team": "MIA",
-          "DK Opt%": "17.7%"
+          "Top 10 All DK Opt%": "Tee Higgins",
+          "Team": "CIN",
+          "DK Opt%": "22.2%"
         },
         {
           "Top 10 All DK Opt%": "Chase Brown",
           "Team": "CIN",
-          "DK Opt%": "16.9%"
+          "DK Opt%": "21.9%"
         },
         {
-          "Top 10 All DK Opt%": "Ja'Marr Chase",
-          "Team": "CIN",
-          "DK Opt%": "16.7%"
+          "Top 10 All DK Opt%": "Trey McBride",
+          "Team": "ARI",
+          "DK Opt%": "20.8%"
+        },
+        {
+          "Top 10 All DK Opt%": "Harold Fannin Jr.",
+          "Team": "CLE",
+          "DK Opt%": "19.9%"
+        },
+        {
+          "Top 10 All DK Opt%": "Christian McCaffrey",
+          "Team": "SF",
+          "DK Opt%": "19.7%"
+        },
+        {
+          "Top 10 All DK Opt%": "Alvin Kamara",
+          "Team": "NO",
+          "DK Opt%": "17.7%"
         }
       ]
     },
@@ -437,54 +437,54 @@
       ],
       "rows": [
         {
-          "Top 10 All FD Opt%": "Ravens",
-          "Team": "BAL",
-          "FD Opt%": "28.4%"
-        },
-        {
-          "Top 10 All FD Opt%": "De'Von Achane",
-          "Team": "MIA",
-          "FD Opt%": "25.1%"
-        },
-        {
-          "Top 10 All FD Opt%": "Chase Brown",
-          "Team": "CIN",
-          "FD Opt%": "25%"
-        },
-        {
-          "Top 10 All FD Opt%": "Travis Kelce",
-          "Team": "KC",
-          "FD Opt%": "21.2%"
-        },
-        {
-          "Top 10 All FD Opt%": "Christian McCaffrey",
-          "Team": "SF",
-          "FD Opt%": "20.8%"
-        },
-        {
-          "Top 10 All FD Opt%": "Malik Nabers",
-          "Team": "NYG",
-          "FD Opt%": "19.5%"
-        },
-        {
           "Top 10 All FD Opt%": "Ja'Marr Chase",
           "Team": "CIN",
-          "FD Opt%": "19.4%"
-        },
-        {
-          "Top 10 All FD Opt%": "Tony Pollard",
-          "Team": "TEN",
-          "FD Opt%": "19.4%"
-        },
-        {
-          "Top 10 All FD Opt%": "Tyreek Hill",
-          "Team": "MIA",
-          "FD Opt%": "19%"
+          "FD Opt%": "27.2%"
         },
         {
           "Top 10 All FD Opt%": "Trey McBride",
           "Team": "ARI",
-          "FD Opt%": "18.2%"
+          "FD Opt%": "25.5%"
+        },
+        {
+          "Top 10 All FD Opt%": "Ravens",
+          "Team": "BAL",
+          "FD Opt%": "25.4%"
+        },
+        {
+          "Top 10 All FD Opt%": "Chase Brown",
+          "Team": "CIN",
+          "FD Opt%": "24.6%"
+        },
+        {
+          "Top 10 All FD Opt%": "Tony Pollard",
+          "Team": "TEN",
+          "FD Opt%": "24.1%"
+        },
+        {
+          "Top 10 All FD Opt%": "De'Von Achane",
+          "Team": "MIA",
+          "FD Opt%": "23.7%"
+        },
+        {
+          "Top 10 All FD Opt%": "Tee Higgins",
+          "Team": "CIN",
+          "FD Opt%": "19.9%"
+        },
+        {
+          "Top 10 All FD Opt%": "Brian Thomas Jr.",
+          "Team": "JAX",
+          "FD Opt%": "19.3%"
+        },
+        {
+          "Top 10 All FD Opt%": "Puka Nacua",
+          "Team": "LAR",
+          "FD Opt%": "19.2%"
+        },
+        {
+          "Top 10 All FD Opt%": "Jahmyr Gibbs",
+          "Team": "DET",
+          "FD Opt%": "18.8%"
         }
       ]
     },
@@ -498,54 +498,54 @@
       ],
       "rows": [
         {
-          "Top 10 All DK Lev%": "Alvin Kamara",
-          "Team": "NO",
-          "DK Lev%": "9.9%"
-        },
-        {
-          "Top 10 All DK Lev%": "Rams",
-          "Team": "LAR",
-          "DK Lev%": "7.8%"
-        },
-        {
-          "Top 10 All DK Lev%": "Calvin Ridley",
-          "Team": "TEN",
-          "DK Lev%": "7.6%"
-        },
-        {
           "Top 10 All DK Lev%": "Harold Fannin Jr.",
           "Team": "CLE",
-          "DK Lev%": "7.6%"
-        },
-        {
-          "Top 10 All DK Lev%": "Jauan Jennings",
-          "Team": "SF",
-          "DK Lev%": "7.3%"
-        },
-        {
-          "Top 10 All DK Lev%": "Christian McCaffrey",
-          "Team": "SF",
-          "DK Lev%": "6.5%"
-        },
-        {
-          "Top 10 All DK Lev%": "Chuba Hubbard",
-          "Team": "CAR",
-          "DK Lev%": "5.8%"
-        },
-        {
-          "Top 10 All DK Lev%": "Tyreek Hill",
-          "Team": "MIA",
-          "DK Lev%": "4.8%"
-        },
-        {
-          "Top 10 All DK Lev%": "Tetairoa McMillan",
-          "Team": "CAR",
-          "DK Lev%": "4.5%"
+          "DK Lev%": "9.1%"
         },
         {
           "Top 10 All DK Lev%": "Jaxon Smith-Njigba",
           "Team": "SEA",
-          "DK Lev%": "4.2%"
+          "DK Lev%": "8.7%"
+        },
+        {
+          "Top 10 All DK Lev%": "Alvin Kamara",
+          "Team": "NO",
+          "DK Lev%": "8.3%"
+        },
+        {
+          "Top 10 All DK Lev%": "Rams",
+          "Team": "LAR",
+          "DK Lev%": "7.4%"
+        },
+        {
+          "Top 10 All DK Lev%": "Tony Pollard",
+          "Team": "TEN",
+          "DK Lev%": "5.8%"
+        },
+        {
+          "Top 10 All DK Lev%": "Calvin Ridley",
+          "Team": "TEN",
+          "DK Lev%": "5.3%"
+        },
+        {
+          "Top 10 All DK Lev%": "Tyreek Hill",
+          "Team": "MIA",
+          "DK Lev%": "5.0%"
+        },
+        {
+          "Top 10 All DK Lev%": "Kyren Williams",
+          "Team": "LAR",
+          "DK Lev%": "4.9%"
+        },
+        {
+          "Top 10 All DK Lev%": "De'Von Achane",
+          "Team": "MIA",
+          "DK Lev%": "4.6%"
+        },
+        {
+          "Top 10 All DK Lev%": "Chris Olave",
+          "Team": "NO",
+          "DK Lev%": "4.6%"
         }
       ]
     },
@@ -561,52 +561,52 @@
         {
           "Top 10 All FD Lev%": "Tony Pollard",
           "Team": "TEN",
-          "FD Lev%": "10.8%"
-        },
-        {
-          "Top 10 All FD Lev%": "Alvin Kamara",
-          "Team": "NO",
-          "FD Lev%": "9.9%"
+          "FD Lev%": "14.4%"
         },
         {
           "Top 10 All FD Lev%": "De'Von Achane",
           "Team": "MIA",
-          "FD Lev%": "9.6%"
+          "FD Lev%": "8.9%"
         },
         {
-          "Top 10 All FD Lev%": "Christian McCaffrey",
-          "Team": "SF",
-          "FD Lev%": "7.5%"
+          "Top 10 All FD Lev%": "Jaylen Waddle",
+          "Team": "MIA",
+          "FD Lev%": "7.8%"
+        },
+        {
+          "Top 10 All FD Lev%": "Alvin Kamara",
+          "Team": "NO",
+          "FD Lev%": "7.7%"
+        },
+        {
+          "Top 10 All FD Lev%": "Jaylen Warren",
+          "Team": "PIT",
+          "FD Lev%": "6.1%"
         },
         {
           "Top 10 All FD Lev%": "Chuba Hubbard",
           "Team": "CAR",
-          "FD Lev%": "7.4%"
-        },
-        {
-          "Top 10 All FD Lev%": "Tetairoa McMillan",
-          "Team": "CAR",
-          "FD Lev%": "6.9%"
-        },
-        {
-          "Top 10 All FD Lev%": "Malik Nabers",
-          "Team": "NYG",
-          "FD Lev%": "6.2%"
-        },
-        {
-          "Top 10 All FD Lev%": "Tyreek Hill",
-          "Team": "MIA",
-          "FD Lev%": "5.7%"
+          "FD Lev%": "5.9%"
         },
         {
           "Top 10 All FD Lev%": "Puka Nacua",
           "Team": "LAR",
-          "FD Lev%": "5.4%"
+          "FD Lev%": "5.9%"
         },
         {
-          "Top 10 All FD Lev%": "Jauan Jennings",
+          "Top 10 All FD Lev%": "Malik Nabers",
+          "Team": "NYG",
+          "FD Lev%": "5.1%"
+        },
+        {
+          "Top 10 All FD Lev%": "Christian McCaffrey",
           "Team": "SF",
-          "FD Lev%": "5.3%"
+          "FD Lev%": "5.1%"
+        },
+        {
+          "Top 10 All FD Lev%": "Tyrone Tracy Jr.",
+          "Team": "NYG",
+          "FD Lev%": "4.8%"
         }
       ]
     },
@@ -622,22 +622,17 @@
         {
           "Top 10 All DK Rtg": "Ja'Marr Chase",
           "Team": "CIN",
-          "DK Rtg": "90.6"
+          "DK Rtg": "94"
         },
         {
           "Top 10 All DK Rtg": "Chase Brown",
           "Team": "CIN",
-          "DK Rtg": "87.4"
-        },
-        {
-          "Top 10 All DK Rtg": "Lamar Jackson",
-          "Team": "BAL",
-          "DK Rtg": "86.2"
+          "DK Rtg": "90.6"
         },
         {
           "Top 10 All DK Rtg": "Tee Higgins",
           "Team": "CIN",
-          "DK Rtg": "85.5"
+          "DK Rtg": "89.3"
         },
         {
           "Top 10 All DK Rtg": "Ravens",
@@ -645,29 +640,34 @@
           "DK Rtg": "84.8"
         },
         {
-          "Top 10 All DK Rtg": "Jahmyr Gibbs",
-          "Team": "DET",
-          "DK Rtg": "83.9"
-        },
-        {
           "Top 10 All DK Rtg": "Trey McBride",
           "Team": "ARI",
-          "DK Rtg": "83.7"
+          "DK Rtg": "84.2"
+        },
+        {
+          "Top 10 All DK Rtg": "Jahmyr Gibbs",
+          "Team": "DET",
+          "DK Rtg": "82"
         },
         {
           "Top 10 All DK Rtg": "James Conner",
           "Team": "ARI",
-          "DK Rtg": "80.3"
+          "DK Rtg": "81.4"
+        },
+        {
+          "Top 10 All DK Rtg": "Malik Nabers",
+          "Team": "NYG",
+          "DK Rtg": "78.9"
         },
         {
           "Top 10 All DK Rtg": "De'Von Achane",
           "Team": "MIA",
-          "DK Rtg": "80"
+          "DK Rtg": "78.3"
         },
         {
-          "Top 10 All DK Rtg": "Joe Burrow",
-          "Team": "CIN",
-          "DK Rtg": "79.6"
+          "Top 10 All DK Rtg": "Brian Thomas Jr.",
+          "Team": "JAX",
+          "DK Rtg": "78.3"
         }
       ]
     },
@@ -683,12 +683,12 @@
         {
           "Top 10 All FD Rtg": "Ja'Marr Chase",
           "Team": "CIN",
-          "FD Rtg": "92.7"
+          "FD Rtg": "94"
         },
         {
           "Top 10 All FD Rtg": "Chase Brown",
           "Team": "CIN",
-          "FD Rtg": "89.2"
+          "FD Rtg": "90.6"
         },
         {
           "Top 10 All FD Rtg": "Lamar Jackson",
@@ -698,17 +698,17 @@
         {
           "Top 10 All FD Rtg": "Trey McBride",
           "Team": "ARI",
-          "FD Rtg": "88.1"
-        },
-        {
-          "Top 10 All FD Rtg": "Jahmyr Gibbs",
-          "Team": "DET",
-          "FD Rtg": "85.6"
+          "FD Rtg": "88"
         },
         {
           "Top 10 All FD Rtg": "Tee Higgins",
           "Team": "CIN",
-          "FD Rtg": "85.2"
+          "FD Rtg": "87"
+        },
+        {
+          "Top 10 All FD Rtg": "Joe Burrow",
+          "Team": "CIN",
+          "FD Rtg": "85.1"
         },
         {
           "Top 10 All FD Rtg": "Ravens",
@@ -716,19 +716,19 @@
           "FD Rtg": "85"
         },
         {
-          "Top 10 All FD Rtg": "Joe Burrow",
-          "Team": "CIN",
-          "FD Rtg": "84.5"
-        },
-        {
-          "Top 10 All FD Rtg": "Malik Nabers",
-          "Team": "NYG",
-          "FD Rtg": "81.5"
+          "Top 10 All FD Rtg": "Jahmyr Gibbs",
+          "Team": "DET",
+          "FD Rtg": "81.8"
         },
         {
           "Top 10 All FD Rtg": "Derrick Henry",
           "Team": "BAL",
-          "FD Rtg": "81.3"
+          "FD Rtg": "79.9"
+        },
+        {
+          "Top 10 All FD Rtg": "James Conner",
+          "Team": "ARI",
+          "FD Rtg": "79.1"
         }
       ]
     },
@@ -749,12 +749,12 @@
         {
           "Top 10 QB DK Proj": "Josh Allen",
           "Team": "BUF",
-          "DK Proj": "22.1"
+          "DK Proj": "22"
         },
         {
           "Top 10 QB DK Proj": "Jalen Hurts",
           "Team": "PHI",
-          "DK Proj": "21.8"
+          "DK Proj": "20.9"
         },
         {
           "Top 10 QB DK Proj": "Joe Burrow",
@@ -764,17 +764,17 @@
         {
           "Top 10 QB DK Proj": "Kyler Murray",
           "Team": "ARI",
-          "DK Proj": "19.3"
+          "DK Proj": "19.2"
         },
         {
           "Top 10 QB DK Proj": "Patrick Mahomes",
           "Team": "KC",
-          "DK Proj": "19.2"
+          "DK Proj": "18.4"
         },
         {
           "Top 10 QB DK Proj": "Justin Fields",
           "Team": "NYJ",
-          "DK Proj": "19"
+          "DK Proj": "17.8"
         },
         {
           "Top 10 QB DK Proj": "Jared Goff",
@@ -782,14 +782,14 @@
           "DK Proj": "17.6"
         },
         {
-          "Top 10 QB DK Proj": "Trevor Lawrence",
-          "Team": "JAX",
-          "DK Proj": "17.6"
+          "Top 10 QB DK Proj": "Bo Nix",
+          "Team": "DEN",
+          "DK Proj": "17.5"
         },
         {
-          "Top 10 QB DK Proj": "Brock Purdy",
-          "Team": "SF",
-          "DK Proj": "17.6"
+          "Top 10 QB DK Proj": "Drake Maye",
+          "Team": "NE",
+          "DK Proj": "17.2"
         }
       ]
     },
@@ -810,12 +810,12 @@
         {
           "Top 10 QB FD Proj": "Josh Allen",
           "Team": "BUF",
-          "FD Proj": "22.1"
+          "FD Proj": "22"
         },
         {
           "Top 10 QB FD Proj": "Jalen Hurts",
           "Team": "PHI",
-          "FD Proj": "21.8"
+          "FD Proj": "20.9"
         },
         {
           "Top 10 QB FD Proj": "Joe Burrow",
@@ -825,17 +825,17 @@
         {
           "Top 10 QB FD Proj": "Kyler Murray",
           "Team": "ARI",
-          "FD Proj": "19.3"
+          "FD Proj": "19.2"
         },
         {
           "Top 10 QB FD Proj": "Patrick Mahomes",
           "Team": "KC",
-          "FD Proj": "19.2"
+          "FD Proj": "18.4"
         },
         {
           "Top 10 QB FD Proj": "Justin Fields",
           "Team": "NYJ",
-          "FD Proj": "19"
+          "FD Proj": "17.8"
         },
         {
           "Top 10 QB FD Proj": "Jared Goff",
@@ -843,14 +843,14 @@
           "FD Proj": "17.6"
         },
         {
-          "Top 10 QB FD Proj": "Trevor Lawrence",
-          "Team": "JAX",
-          "FD Proj": "17.6"
+          "Top 10 QB FD Proj": "Bo Nix",
+          "Team": "DEN",
+          "FD Proj": "17.5"
         },
         {
-          "Top 10 QB FD Proj": "Brock Purdy",
-          "Team": "SF",
-          "FD Proj": "17.6"
+          "Top 10 QB FD Proj": "Drake Maye",
+          "Team": "NE",
+          "FD Proj": "17.2"
         }
       ]
     },
@@ -866,36 +866,26 @@
         {
           "Top 10 QB DK pOWN%": "Lamar Jackson",
           "Team": "BAL",
-          "DK pOWN%": "10.2%"
+          "DK pOWN%": "10.5%"
         },
         {
           "Top 10 QB DK pOWN%": "Joe Burrow",
           "Team": "CIN",
-          "DK pOWN%": "8.2%"
-        },
-        {
-          "Top 10 QB DK pOWN%": "Jalen Hurts",
-          "Team": "PHI",
-          "DK pOWN%": "7.7%"
+          "DK pOWN%": "8.4%"
         },
         {
           "Top 10 QB DK pOWN%": "Josh Allen",
           "Team": "BUF",
-          "DK pOWN%": "7.6%"
+          "DK pOWN%": "7.7%"
         },
         {
-          "Top 10 QB DK pOWN%": "Justin Fields",
-          "Team": "NYJ",
-          "DK pOWN%": "5.9%"
+          "Top 10 QB DK pOWN%": "Jalen Hurts",
+          "Team": "PHI",
+          "DK pOWN%": "6.2%"
         },
         {
-          "Top 10 QB DK pOWN%": "Trevor Lawrence",
-          "Team": "JAX",
-          "DK pOWN%": "5.7%"
-        },
-        {
-          "Top 10 QB DK pOWN%": "Patrick Mahomes",
-          "Team": "KC",
+          "Top 10 QB DK pOWN%": "Mac Jones",
+          "Team": "SF",
           "DK pOWN%": "5.4%"
         },
         {
@@ -909,9 +899,19 @@
           "DK pOWN%": "4.9%"
         },
         {
+          "Top 10 QB DK pOWN%": "Trevor Lawrence",
+          "Team": "JAX",
+          "DK pOWN%": "4.6%"
+        },
+        {
           "Top 10 QB DK pOWN%": "Jared Goff",
           "Team": "DET",
-          "DK pOWN%": "4.8%"
+          "DK pOWN%": "4.5%"
+        },
+        {
+          "Top 10 QB DK pOWN%": "Justin Fields",
+          "Team": "NYJ",
+          "DK pOWN%": "4.5%"
         }
       ]
     },
@@ -927,37 +927,27 @@
         {
           "Top 10 QB FD pOWN%": "Lamar Jackson",
           "Team": "BAL",
-          "FD pOWN%": "11.4%"
+          "FD pOWN%": "12.3%"
         },
         {
           "Top 10 QB FD pOWN%": "Joe Burrow",
           "Team": "CIN",
-          "FD pOWN%": "9.3%"
-        },
-        {
-          "Top 10 QB FD pOWN%": "Jalen Hurts",
-          "Team": "PHI",
-          "FD pOWN%": "8.4%"
+          "FD pOWN%": "10.1%"
         },
         {
           "Top 10 QB FD pOWN%": "Josh Allen",
           "Team": "BUF",
-          "FD pOWN%": "8.0%"
+          "FD pOWN%": "8.6%"
+        },
+        {
+          "Top 10 QB FD pOWN%": "Jalen Hurts",
+          "Team": "PHI",
+          "FD pOWN%": "7.1%"
         },
         {
           "Top 10 QB FD pOWN%": "Kyler Murray",
           "Team": "ARI",
-          "FD pOWN%": "5.9%"
-        },
-        {
-          "Top 10 QB FD pOWN%": "Trevor Lawrence",
-          "Team": "JAX",
-          "FD pOWN%": "5.6%"
-        },
-        {
-          "Top 10 QB FD pOWN%": "Patrick Mahomes",
-          "Team": "KC",
-          "FD pOWN%": "5.2%"
+          "FD pOWN%": "6.2%"
         },
         {
           "Top 10 QB FD pOWN%": "Jared Goff",
@@ -965,14 +955,24 @@
           "FD pOWN%": "4.9%"
         },
         {
-          "Top 10 QB FD pOWN%": "Brock Purdy",
-          "Team": "SF",
-          "FD pOWN%": "4.5%"
+          "Top 10 QB FD pOWN%": "Trevor Lawrence",
+          "Team": "JAX",
+          "FD pOWN%": "4.8%"
         },
         {
-          "Top 10 QB FD pOWN%": "Justin Fields",
-          "Team": "NYJ",
+          "Top 10 QB FD pOWN%": "Patrick Mahomes",
+          "Team": "KC",
           "FD pOWN%": "4.4%"
+        },
+        {
+          "Top 10 QB FD pOWN%": "Drake Maye",
+          "Team": "NE",
+          "FD pOWN%": "4.0%"
+        },
+        {
+          "Top 10 QB FD pOWN%": "Dak Prescott",
+          "Team": "DAL",
+          "FD pOWN%": "4.0%"
         }
       ]
     },
@@ -986,8 +986,13 @@
       ],
       "rows": [
         {
-          "Top 10 QB DK Val": "Justin Fields",
-          "Team": "NYJ",
+          "Top 10 QB DK Val": "Mac Jones",
+          "Team": "SF",
+          "DK Val": "3.6"
+        },
+        {
+          "Top 10 QB DK Val": "Drake Maye",
+          "Team": "NE",
           "DK Val": "3.3"
         },
         {
@@ -996,23 +1001,18 @@
           "DK Val": "3.3"
         },
         {
-          "Top 10 QB DK Val": "Drake Maye",
-          "Team": "NE",
-          "DK Val": "3.3"
-        },
-        {
-          "Top 10 QB DK Val": "Jalen Hurts",
-          "Team": "PHI",
-          "DK Val": "3.2"
-        },
-        {
           "Top 10 QB DK Val": "Joe Burrow",
           "Team": "CIN",
-          "DK Val": "3.2"
+          "DK Val": "3.1"
         },
         {
-          "Top 10 QB DK Val": "Trevor Lawrence",
-          "Team": "JAX",
+          "Top 10 QB DK Val": "Daniel Jones",
+          "Team": "IND",
+          "DK Val": "3.1"
+        },
+        {
+          "Top 10 QB DK Val": "Justin Fields",
+          "Team": "NYJ",
           "DK Val": "3.1"
         },
         {
@@ -1021,18 +1021,18 @@
           "DK Val": "3.1"
         },
         {
-          "Top 10 QB DK Val": "Josh Allen",
-          "Team": "BUF",
-          "DK Val": "3.1"
-        },
-        {
           "Top 10 QB DK Val": "Russell Wilson",
           "Team": "NYG",
           "DK Val": "3.1"
         },
         {
-          "Top 10 QB DK Val": "Patrick Mahomes",
-          "Team": "KC",
+          "Top 10 QB DK Val": "Josh Allen",
+          "Team": "BUF",
+          "DK Val": "3.1"
+        },
+        {
+          "Top 10 QB DK Val": "Jalen Hurts",
+          "Team": "PHI",
           "DK Val": "3.1"
         }
       ]
@@ -1052,28 +1052,18 @@
           "FD Val": "2.7"
         },
         {
-          "Top 10 QB FD Val": "Jalen Hurts",
-          "Team": "PHI",
-          "FD Val": "2.6"
-        },
-        {
           "Top 10 QB FD Val": "Joe Burrow",
           "Team": "CIN",
           "FD Val": "2.6"
         },
         {
-          "Top 10 QB FD Val": "Brock Purdy",
-          "Team": "SF",
-          "FD Val": "2.6"
-        },
-        {
-          "Top 10 QB FD Val": "Trevor Lawrence",
-          "Team": "JAX",
+          "Top 10 QB FD Val": "Drake Maye",
+          "Team": "NE",
           "FD Val": "2.5"
         },
         {
-          "Top 10 QB FD Val": "Josh Allen",
-          "Team": "BUF",
+          "Top 10 QB FD Val": "Jalen Hurts",
+          "Team": "PHI",
           "FD Val": "2.5"
         },
         {
@@ -1082,19 +1072,29 @@
           "FD Val": "2.5"
         },
         {
-          "Top 10 QB FD Val": "Justin Fields",
-          "Team": "NYJ",
+          "Top 10 QB FD Val": "Josh Allen",
+          "Team": "BUF",
           "FD Val": "2.5"
         },
         {
-          "Top 10 QB FD Val": "Drake Maye",
-          "Team": "NE",
+          "Top 10 QB FD Val": "Bo Nix",
+          "Team": "DEN",
           "FD Val": "2.5"
         },
         {
-          "Top 10 QB FD Val": "Patrick Mahomes",
-          "Team": "KC",
-          "FD Val": "2.5"
+          "Top 10 QB FD Val": "Caleb Williams",
+          "Team": "CHI",
+          "FD Val": "2.4"
+        },
+        {
+          "Top 10 QB FD Val": "Russell Wilson",
+          "Team": "NYG",
+          "FD Val": "2.4"
+        },
+        {
+          "Top 10 QB FD Val": "Trevor Lawrence",
+          "Team": "JAX",
+          "FD Val": "2.4"
         }
       ]
     },
@@ -1110,52 +1110,52 @@
         {
           "Top 10 QB DK Opt%": "Lamar Jackson",
           "Team": "BAL",
-          "DK Opt%": "13.4%"
-        },
-        {
-          "Top 10 QB DK Opt%": "Jalen Hurts",
-          "Team": "PHI",
-          "DK Opt%": "10.4%"
+          "DK Opt%": "14.1%"
         },
         {
           "Top 10 QB DK Opt%": "Josh Allen",
           "Team": "BUF",
-          "DK Opt%": "9.5%"
+          "DK Opt%": "9.2%"
         },
         {
-          "Top 10 QB DK Opt%": "Justin Fields",
-          "Team": "NYJ",
-          "DK Opt%": "9.1%"
+          "Top 10 QB DK Opt%": "Jalen Hurts",
+          "Team": "PHI",
+          "DK Opt%": "8.1%"
         },
         {
           "Top 10 QB DK Opt%": "Joe Burrow",
           "Team": "CIN",
-          "DK Opt%": "8.6%"
-        },
-        {
-          "Top 10 QB DK Opt%": "Kyler Murray",
-          "Team": "ARI",
-          "DK Opt%": "6.1%"
+          "DK Opt%": "7.1%"
         },
         {
           "Top 10 QB DK Opt%": "Drake Maye",
           "Team": "NE",
-          "DK Opt%": "5.8%"
+          "DK Opt%": "6.3%"
+        },
+        {
+          "Top 10 QB DK Opt%": "Kyler Murray",
+          "Team": "ARI",
+          "DK Opt%": "6.2%"
+        },
+        {
+          "Top 10 QB DK Opt%": "Mac Jones",
+          "Team": "SF",
+          "DK Opt%": "5.7%"
+        },
+        {
+          "Top 10 QB DK Opt%": "Justin Fields",
+          "Team": "NYJ",
+          "DK Opt%": "4.5%"
+        },
+        {
+          "Top 10 QB DK Opt%": "Daniel Jones",
+          "Team": "IND",
+          "DK Opt%": "4.3%"
         },
         {
           "Top 10 QB DK Opt%": "Patrick Mahomes",
           "Team": "KC",
-          "DK Opt%": "5.5%"
-        },
-        {
-          "Top 10 QB DK Opt%": "Trevor Lawrence",
-          "Team": "JAX",
-          "DK Opt%": "4.6%"
-        },
-        {
-          "Top 10 QB DK Opt%": "Caleb Williams",
-          "Team": "CHI",
-          "DK Opt%": "4.5%"
+          "DK Opt%": "4.2%"
         }
       ]
     },
@@ -1171,52 +1171,52 @@
         {
           "Top 10 QB FD Opt%": "Lamar Jackson",
           "Team": "BAL",
-          "FD Opt%": "15.1%"
-        },
-        {
-          "Top 10 QB FD Opt%": "Jalen Hurts",
-          "Team": "PHI",
-          "FD Opt%": "12.8%"
+          "FD Opt%": "15%"
         },
         {
           "Top 10 QB FD Opt%": "Joe Burrow",
           "Team": "CIN",
-          "FD Opt%": "11%"
+          "FD Opt%": "10.9%"
         },
         {
           "Top 10 QB FD Opt%": "Josh Allen",
           "Team": "BUF",
-          "FD Opt%": "9.1%"
+          "FD Opt%": "10%"
         },
         {
-          "Top 10 QB FD Opt%": "Brock Purdy",
-          "Team": "SF",
-          "FD Opt%": "6.4%"
-        },
-        {
-          "Top 10 QB FD Opt%": "Patrick Mahomes",
-          "Team": "KC",
-          "FD Opt%": "6.3%"
+          "Top 10 QB FD Opt%": "Jalen Hurts",
+          "Team": "PHI",
+          "FD Opt%": "10%"
         },
         {
           "Top 10 QB FD Opt%": "Kyler Murray",
           "Team": "ARI",
-          "FD Opt%": "5.4%"
+          "FD Opt%": "7.2%"
         },
         {
-          "Top 10 QB FD Opt%": "Justin Fields",
-          "Team": "NYJ",
+          "Top 10 QB FD Opt%": "Drake Maye",
+          "Team": "NE",
           "FD Opt%": "5.2%"
-        },
-        {
-          "Top 10 QB FD Opt%": "Trevor Lawrence",
-          "Team": "JAX",
-          "FD Opt%": "4.4%"
         },
         {
           "Top 10 QB FD Opt%": "Bo Nix",
           "Team": "DEN",
           "FD Opt%": "4.3%"
+        },
+        {
+          "Top 10 QB FD Opt%": "Trevor Lawrence",
+          "Team": "JAX",
+          "FD Opt%": "3.9%"
+        },
+        {
+          "Top 10 QB FD Opt%": "Justin Fields",
+          "Team": "NYJ",
+          "FD Opt%": "3.8%"
+        },
+        {
+          "Top 10 QB FD Opt%": "Patrick Mahomes",
+          "Team": "KC",
+          "FD Opt%": "3.7%"
         }
       ]
     },
@@ -1232,52 +1232,52 @@
         {
           "Top 10 QB DK Lev%": "Lamar Jackson",
           "Team": "BAL",
-          "DK Lev%": "3.2%"
-        },
-        {
-          "Top 10 QB DK Lev%": "Justin Fields",
-          "Team": "NYJ",
-          "DK Lev%": "3.2%"
+          "DK Lev%": "3.6%"
         },
         {
           "Top 10 QB DK Lev%": "Jalen Hurts",
           "Team": "PHI",
-          "DK Lev%": "2.7%"
+          "DK Lev%": "1.9%"
         },
         {
           "Top 10 QB DK Lev%": "Josh Allen",
           "Team": "BUF",
-          "DK Lev%": "1.9%"
-        },
-        {
-          "Top 10 QB DK Lev%": "Kyler Murray",
-          "Team": "ARI",
-          "DK Lev%": "1.0%"
+          "DK Lev%": "1.5%"
         },
         {
           "Top 10 QB DK Lev%": "Drake Maye",
           "Team": "NE",
-          "DK Lev%": "0.9%"
+          "DK Lev%": "1.4%"
         },
         {
-          "Top 10 QB DK Lev%": "Joe Burrow",
-          "Team": "CIN",
-          "DK Lev%": "0.4%"
+          "Top 10 QB DK Lev%": "Kyler Murray",
+          "Team": "ARI",
+          "DK Lev%": "1.1%"
         },
         {
           "Top 10 QB DK Lev%": "Russell Wilson",
           "Team": "NYG",
+          "DK Lev%": "0.8%"
+        },
+        {
+          "Top 10 QB DK Lev%": "Daniel Jones",
+          "Team": "IND",
+          "DK Lev%": "0.7%"
+        },
+        {
+          "Top 10 QB DK Lev%": "Mac Jones",
+          "Team": "SF",
           "DK Lev%": "0.3%"
         },
         {
-          "Top 10 QB DK Lev%": "Caleb Williams",
-          "Team": "CHI",
-          "DK Lev%": "0.2%"
+          "Top 10 QB DK Lev%": "Justin Fields",
+          "Team": "NYJ",
+          "DK Lev%": "0.0%"
         },
         {
           "Top 10 QB DK Lev%": "Patrick Mahomes",
           "Team": "KC",
-          "DK Lev%": "0.1%"
+          "DK Lev%": "-0.1%"
         }
       ]
     },
@@ -1293,52 +1293,52 @@
         {
           "Top 10 QB FD Lev%": "Jalen Hurts",
           "Team": "PHI",
-          "FD Lev%": "4.4%"
+          "FD Lev%": "2.9%"
         },
         {
           "Top 10 QB FD Lev%": "Lamar Jackson",
           "Team": "BAL",
-          "FD Lev%": "3.7%"
-        },
-        {
-          "Top 10 QB FD Lev%": "Brock Purdy",
-          "Team": "SF",
-          "FD Lev%": "1.9%"
-        },
-        {
-          "Top 10 QB FD Lev%": "Joe Burrow",
-          "Team": "CIN",
-          "FD Lev%": "1.7%"
-        },
-        {
-          "Top 10 QB FD Lev%": "Patrick Mahomes",
-          "Team": "KC",
-          "FD Lev%": "1.1%"
+          "FD Lev%": "2.7%"
         },
         {
           "Top 10 QB FD Lev%": "Josh Allen",
           "Team": "BUF",
-          "FD Lev%": "1.1%"
+          "FD Lev%": "1.4%"
+        },
+        {
+          "Top 10 QB FD Lev%": "Drake Maye",
+          "Team": "NE",
+          "FD Lev%": "1.2%"
+        },
+        {
+          "Top 10 QB FD Lev%": "Kyler Murray",
+          "Team": "ARI",
+          "FD Lev%": "1.0%"
+        },
+        {
+          "Top 10 QB FD Lev%": "Joe Burrow",
+          "Team": "CIN",
+          "FD Lev%": "0.8%"
+        },
+        {
+          "Top 10 QB FD Lev%": "Tua Tagovailoa",
+          "Team": "MIA",
+          "FD Lev%": "0.6%"
         },
         {
           "Top 10 QB FD Lev%": "Bo Nix",
           "Team": "DEN",
-          "FD Lev%": "0.9%"
+          "FD Lev%": "0.4%"
         },
         {
           "Top 10 QB FD Lev%": "Justin Fields",
           "Team": "NYJ",
-          "FD Lev%": "0.8%"
+          "FD Lev%": "0.2%"
         },
         {
           "Top 10 QB FD Lev%": "Caleb Williams",
           "Team": "CHI",
-          "FD Lev%": "-0.3%"
-        },
-        {
-          "Top 10 QB FD Lev%": "Russell Wilson",
-          "Team": "NYG",
-          "FD Lev%": "-0.4%"
+          "FD Lev%": "-0.1%"
         }
       ]
     },
@@ -1354,52 +1354,52 @@
         {
           "Top 10 QB DK Rtg": "Lamar Jackson",
           "Team": "BAL",
-          "DK Rtg": "86.2"
+          "DK Rtg": "75.9"
         },
         {
           "Top 10 QB DK Rtg": "Joe Burrow",
           "Team": "CIN",
-          "DK Rtg": "79.6"
-        },
-        {
-          "Top 10 QB DK Rtg": "Jalen Hurts",
-          "Team": "PHI",
-          "DK Rtg": "74.5"
+          "DK Rtg": "71.8"
         },
         {
           "Top 10 QB DK Rtg": "Josh Allen",
           "Team": "BUF",
-          "DK Rtg": "71.6"
+          "DK Rtg": "63.6"
         },
         {
-          "Top 10 QB DK Rtg": "Justin Fields",
-          "Team": "NYJ",
-          "DK Rtg": "66.3"
-        },
-        {
-          "Top 10 QB DK Rtg": "Trevor Lawrence",
-          "Team": "JAX",
-          "DK Rtg": "66"
+          "Top 10 QB DK Rtg": "Jalen Hurts",
+          "Team": "PHI",
+          "DK Rtg": "57.5"
         },
         {
           "Top 10 QB DK Rtg": "Kyler Murray",
           "Team": "ARI",
-          "DK Rtg": "63.6"
+          "DK Rtg": "56.7"
+        },
+        {
+          "Top 10 QB DK Rtg": "Mac Jones",
+          "Team": "SF",
+          "DK Rtg": "56.6"
+        },
+        {
+          "Top 10 QB DK Rtg": "Trevor Lawrence",
+          "Team": "JAX",
+          "DK Rtg": "51.2"
         },
         {
           "Top 10 QB DK Rtg": "Drake Maye",
           "Team": "NE",
-          "DK Rtg": "57.8"
+          "DK Rtg": "47.5"
         },
         {
-          "Top 10 QB DK Rtg": "Patrick Mahomes",
-          "Team": "KC",
-          "DK Rtg": "57.2"
+          "Top 10 QB DK Rtg": "Justin Fields",
+          "Team": "NYJ",
+          "DK Rtg": "46.6"
         },
         {
           "Top 10 QB DK Rtg": "Caleb Williams",
           "Team": "CHI",
-          "DK Rtg": "54.7"
+          "DK Rtg": "45.8"
         }
       ]
     },
@@ -1420,47 +1420,47 @@
         {
           "Top 10 QB FD Rtg": "Joe Burrow",
           "Team": "CIN",
-          "FD Rtg": "84.5"
-        },
-        {
-          "Top 10 QB FD Rtg": "Jalen Hurts",
-          "Team": "PHI",
-          "FD Rtg": "77.7"
+          "FD Rtg": "85.1"
         },
         {
           "Top 10 QB FD Rtg": "Josh Allen",
           "Team": "BUF",
-          "FD Rtg": "74.1"
+          "FD Rtg": "73.9"
         },
         {
           "Top 10 QB FD Rtg": "Kyler Murray",
           "Team": "ARI",
-          "FD Rtg": "71.5"
+          "FD Rtg": "70.9"
+        },
+        {
+          "Top 10 QB FD Rtg": "Jalen Hurts",
+          "Team": "PHI",
+          "FD Rtg": "69.8"
         },
         {
           "Top 10 QB FD Rtg": "Trevor Lawrence",
           "Team": "JAX",
-          "FD Rtg": "66.7"
-        },
-        {
-          "Top 10 QB FD Rtg": "Brock Purdy",
-          "Team": "SF",
-          "FD Rtg": "59.2"
-        },
-        {
-          "Top 10 QB FD Rtg": "Patrick Mahomes",
-          "Team": "KC",
-          "FD Rtg": "57.8"
+          "FD Rtg": "60.4"
         },
         {
           "Top 10 QB FD Rtg": "Jared Goff",
           "Team": "DET",
-          "FD Rtg": "55.4"
+          "FD Rtg": "53.9"
         },
         {
-          "Top 10 QB FD Rtg": "Justin Fields",
-          "Team": "NYJ",
-          "FD Rtg": "55"
+          "Top 10 QB FD Rtg": "Bo Nix",
+          "Team": "DEN",
+          "FD Rtg": "53.8"
+        },
+        {
+          "Top 10 QB FD Rtg": "Dak Prescott",
+          "Team": "DAL",
+          "FD Rtg": "52.2"
+        },
+        {
+          "Top 10 QB FD Rtg": "Russell Wilson",
+          "Team": "NYG",
+          "FD Rtg": "52.1"
         }
       ]
     },
@@ -1476,52 +1476,52 @@
         {
           "Top 10 RB DK Proj": "Christian McCaffrey",
           "Team": "SF",
-          "DK Proj": "20.9"
+          "DK Proj": "20"
         },
         {
           "Top 10 RB DK Proj": "De'Von Achane",
           "Team": "MIA",
-          "DK Proj": "19.5"
+          "DK Proj": "19.4"
         },
         {
           "Top 10 RB DK Proj": "Derrick Henry",
           "Team": "BAL",
-          "DK Proj": "19.1"
-        },
-        {
-          "Top 10 RB DK Proj": "Jahmyr Gibbs",
-          "Team": "DET",
-          "DK Proj": "18.5"
-        },
-        {
-          "Top 10 RB DK Proj": "Saquon Barkley",
-          "Team": "PHI",
-          "DK Proj": "18.3"
+          "DK Proj": "18.8"
         },
         {
           "Top 10 RB DK Proj": "Chase Brown",
           "Team": "CIN",
-          "DK Proj": "18.1"
+          "DK Proj": "18.5"
         },
         {
-          "Top 10 RB DK Proj": "Alvin Kamara",
-          "Team": "NO",
-          "DK Proj": "16.7"
+          "Top 10 RB DK Proj": "Jahmyr Gibbs",
+          "Team": "DET",
+          "DK Proj": "18.4"
+        },
+        {
+          "Top 10 RB DK Proj": "Saquon Barkley",
+          "Team": "PHI",
+          "DK Proj": "17.9"
         },
         {
           "Top 10 RB DK Proj": "James Conner",
           "Team": "ARI",
-          "DK Proj": "16.4"
+          "DK Proj": "16.8"
         },
         {
           "Top 10 RB DK Proj": "Kyren Williams",
           "Team": "LAR",
+          "DK Proj": "16.2"
+        },
+        {
+          "Top 10 RB DK Proj": "Alvin Kamara",
+          "Team": "NO",
           "DK Proj": "16.1"
         },
         {
           "Top 10 RB DK Proj": "Jonathan Taylor",
           "Team": "IND",
-          "DK Proj": "15.5"
+          "DK Proj": "16"
         }
       ]
     },
@@ -1535,19 +1535,14 @@
       ],
       "rows": [
         {
-          "Top 10 RB FD Proj": "Christian McCaffrey",
-          "Team": "SF",
-          "FD Proj": "18.4"
-        },
-        {
           "Top 10 RB FD Proj": "Derrick Henry",
           "Team": "BAL",
-          "FD Proj": "18.2"
+          "FD Proj": "18"
         },
         {
-          "Top 10 RB FD Proj": "Saquon Barkley",
-          "Team": "PHI",
-          "FD Proj": "17.2"
+          "Top 10 RB FD Proj": "Christian McCaffrey",
+          "Team": "SF",
+          "FD Proj": "17.9"
         },
         {
           "Top 10 RB FD Proj": "De'Von Achane",
@@ -1555,33 +1550,38 @@
           "FD Proj": "17"
         },
         {
+          "Top 10 RB FD Proj": "Saquon Barkley",
+          "Team": "PHI",
+          "FD Proj": "16.8"
+        },
+        {
           "Top 10 RB FD Proj": "Jahmyr Gibbs",
           "Team": "DET",
-          "FD Proj": "17"
+          "FD Proj": "16.8"
         },
         {
           "Top 10 RB FD Proj": "Chase Brown",
           "Team": "CIN",
-          "FD Proj": "16.3"
+          "FD Proj": "16.7"
         },
         {
           "Top 10 RB FD Proj": "James Conner",
           "Team": "ARI",
-          "FD Proj": "15"
+          "FD Proj": "15.2"
         },
         {
           "Top 10 RB FD Proj": "Kyren Williams",
           "Team": "LAR",
-          "FD Proj": "15"
-        },
-        {
-          "Top 10 RB FD Proj": "Alvin Kamara",
-          "Team": "NO",
-          "FD Proj": "14.6"
+          "FD Proj": "15.1"
         },
         {
           "Top 10 RB FD Proj": "Jonathan Taylor",
           "Team": "IND",
+          "FD Proj": "14.8"
+        },
+        {
+          "Top 10 RB FD Proj": "Alvin Kamara",
+          "Team": "NO",
           "FD Proj": "14.3"
         }
       ]
@@ -1598,52 +1598,52 @@
         {
           "Top 10 RB DK pOWN%": "Chase Brown",
           "Team": "CIN",
-          "DK pOWN%": "21.0%"
+          "DK pOWN%": "25.5%"
         },
         {
           "Top 10 RB DK pOWN%": "De'Von Achane",
           "Team": "MIA",
-          "DK pOWN%": "20.8%"
-        },
-        {
-          "Top 10 RB DK pOWN%": "Christian McCaffrey",
-          "Team": "SF",
-          "DK pOWN%": "20.1%"
+          "DK pOWN%": "19.9%"
         },
         {
           "Top 10 RB DK pOWN%": "Jahmyr Gibbs",
           "Team": "DET",
-          "DK pOWN%": "17.1%"
+          "DK pOWN%": "16.2%"
         },
         {
-          "Top 10 RB DK pOWN%": "Derrick Henry",
-          "Team": "BAL",
-          "DK pOWN%": "12.6%"
+          "Top 10 RB DK pOWN%": "Christian McCaffrey",
+          "Team": "SF",
+          "DK pOWN%": "15.2%"
         },
         {
           "Top 10 RB DK pOWN%": "James Conner",
           "Team": "ARI",
-          "DK pOWN%": "12.1%"
+          "DK pOWN%": "13.9%"
         },
         {
-          "Top 10 RB DK pOWN%": "David Montgomery",
-          "Team": "DET",
-          "DK pOWN%": "11.6%"
-        },
-        {
-          "Top 10 RB DK pOWN%": "Alvin Kamara",
-          "Team": "NO",
-          "DK pOWN%": "11.0%"
+          "Top 10 RB DK pOWN%": "Derrick Henry",
+          "Team": "BAL",
+          "DK pOWN%": "12.4%"
         },
         {
           "Top 10 RB DK pOWN%": "Kyren Williams",
           "Team": "LAR",
-          "DK pOWN%": "10.3%"
+          "DK pOWN%": "10.6%"
         },
         {
-          "Top 10 RB DK pOWN%": "Saquon Barkley",
-          "Team": "PHI",
-          "DK pOWN%": "9.9%"
+          "Top 10 RB DK pOWN%": "James Cook",
+          "Team": "BUF",
+          "DK pOWN%": "10.4%"
+        },
+        {
+          "Top 10 RB DK pOWN%": "Travis Etienne Jr.",
+          "Team": "JAX",
+          "DK pOWN%": "9.4%"
+        },
+        {
+          "Top 10 RB DK pOWN%": "Alvin Kamara",
+          "Team": "NO",
+          "DK pOWN%": "9.4%"
         }
       ]
     },
@@ -1659,12 +1659,7 @@
         {
           "Top 10 RB FD pOWN%": "Chase Brown",
           "Team": "CIN",
-          "FD pOWN%": "21.4%"
-        },
-        {
-          "Top 10 RB FD pOWN%": "Jahmyr Gibbs",
-          "Team": "DET",
-          "FD pOWN%": "17.8%"
+          "FD pOWN%": "25.4%"
         },
         {
           "Top 10 RB FD pOWN%": "Derrick Henry",
@@ -1672,39 +1667,44 @@
           "FD pOWN%": "17.3%"
         },
         {
+          "Top 10 RB FD pOWN%": "Jahmyr Gibbs",
+          "Team": "DET",
+          "FD pOWN%": "16.4%"
+        },
+        {
           "Top 10 RB FD pOWN%": "De'Von Achane",
           "Team": "MIA",
-          "FD pOWN%": "15.5%"
-        },
-        {
-          "Top 10 RB FD pOWN%": "Christian McCaffrey",
-          "Team": "SF",
-          "FD pOWN%": "13.3%"
-        },
-        {
-          "Top 10 RB FD pOWN%": "David Montgomery",
-          "Team": "DET",
-          "FD pOWN%": "12.8%"
-        },
-        {
-          "Top 10 RB FD pOWN%": "Saquon Barkley",
-          "Team": "PHI",
-          "FD pOWN%": "11.4%"
-        },
-        {
-          "Top 10 RB FD pOWN%": "James Conner",
-          "Team": "ARI",
-          "FD pOWN%": "11.0%"
+          "FD pOWN%": "14.8%"
         },
         {
           "Top 10 RB FD pOWN%": "James Cook",
           "Team": "BUF",
-          "FD pOWN%": "10.7%"
+          "FD pOWN%": "12.8%"
         },
         {
-          "Top 10 RB FD pOWN%": "Chuba Hubbard",
-          "Team": "CAR",
-          "FD pOWN%": "10.1%"
+          "Top 10 RB FD pOWN%": "James Conner",
+          "Team": "ARI",
+          "FD pOWN%": "12.0%"
+        },
+        {
+          "Top 10 RB FD pOWN%": "Christian McCaffrey",
+          "Team": "SF",
+          "FD pOWN%": "10.8%"
+        },
+        {
+          "Top 10 RB FD pOWN%": "Saquon Barkley",
+          "Team": "PHI",
+          "FD pOWN%": "10.4%"
+        },
+        {
+          "Top 10 RB FD pOWN%": "Javonte Williams",
+          "Team": "DAL",
+          "FD pOWN%": "9.9%"
+        },
+        {
+          "Top 10 RB FD pOWN%": "Tony Pollard",
+          "Team": "TEN",
+          "FD pOWN%": "9.7%"
         }
       ]
     },
@@ -1723,19 +1723,19 @@
           "DK Val": "2.8"
         },
         {
+          "Top 10 RB DK Val": "Chase Brown",
+          "Team": "CIN",
+          "DK Val": "2.7"
+        },
+        {
           "Top 10 RB DK Val": "Christian McCaffrey",
           "Team": "SF",
-          "DK Val": "2.8"
+          "DK Val": "2.7"
         },
         {
           "Top 10 RB DK Val": "Alvin Kamara",
           "Team": "NO",
-          "DK Val": "2.7"
-        },
-        {
-          "Top 10 RB DK Val": "Chase Brown",
-          "Team": "CIN",
-          "DK Val": "2.7"
+          "DK Val": "2.6"
         },
         {
           "Top 10 RB DK Val": "Kyren Williams",
@@ -1743,18 +1743,8 @@
           "DK Val": "2.6"
         },
         {
-          "Top 10 RB DK Val": "Chuba Hubbard",
-          "Team": "CAR",
-          "DK Val": "2.5"
-        },
-        {
-          "Top 10 RB DK Val": "David Montgomery",
-          "Team": "DET",
-          "DK Val": "2.5"
-        },
-        {
-          "Top 10 RB DK Val": "Jahmyr Gibbs",
-          "Team": "DET",
+          "Top 10 RB DK Val": "James Conner",
+          "Team": "ARI",
           "DK Val": "2.5"
         },
         {
@@ -1763,8 +1753,18 @@
           "DK Val": "2.5"
         },
         {
-          "Top 10 RB DK Val": "James Conner",
-          "Team": "ARI",
+          "Top 10 RB DK Val": "Tyrone Tracy Jr.",
+          "Team": "NYG",
+          "DK Val": "2.5"
+        },
+        {
+          "Top 10 RB DK Val": "Jahmyr Gibbs",
+          "Team": "DET",
+          "DK Val": "2.5"
+        },
+        {
+          "Top 10 RB DK Val": "Chuba Hubbard",
+          "Team": "CAR",
           "DK Val": "2.5"
         }
       ]
@@ -1784,18 +1784,13 @@
           "FD Val": "2.3"
         },
         {
-          "Top 10 RB FD Val": "De'Von Achane",
-          "Team": "MIA",
-          "FD Val": "2.2"
-        },
-        {
-          "Top 10 RB FD Val": "Chuba Hubbard",
-          "Team": "CAR",
-          "FD Val": "2.2"
-        },
-        {
           "Top 10 RB FD Val": "Chase Brown",
           "Team": "CIN",
+          "FD Val": "2.2"
+        },
+        {
+          "Top 10 RB FD Val": "De'Von Achane",
+          "Team": "MIA",
           "FD Val": "2.2"
         },
         {
@@ -1804,28 +1799,33 @@
           "FD Val": "2.1"
         },
         {
-          "Top 10 RB FD Val": "David Montgomery",
-          "Team": "DET",
+          "Top 10 RB FD Val": "Chuba Hubbard",
+          "Team": "CAR",
           "FD Val": "2.1"
+        },
+        {
+          "Top 10 RB FD Val": "Jaylen Warren",
+          "Team": "PIT",
+          "FD Val": "2.1"
+        },
+        {
+          "Top 10 RB FD Val": "Javonte Williams",
+          "Team": "DAL",
+          "FD Val": "2"
         },
         {
           "Top 10 RB FD Val": "Alvin Kamara",
           "Team": "NO",
-          "FD Val": "2.1"
+          "FD Val": "2"
         },
         {
-          "Top 10 RB FD Val": "Christian McCaffrey",
-          "Team": "SF",
-          "FD Val": "2.1"
+          "Top 10 RB FD Val": "James Cook",
+          "Team": "BUF",
+          "FD Val": "2"
         },
         {
           "Top 10 RB FD Val": "Jahmyr Gibbs",
           "Team": "DET",
-          "FD Val": "2"
-        },
-        {
-          "Top 10 RB FD Val": "Derrick Henry",
-          "Team": "BAL",
           "FD Val": "2"
         }
       ]
@@ -1840,54 +1840,54 @@
       ],
       "rows": [
         {
-          "Top 10 RB DK Opt%": "Christian McCaffrey",
-          "Team": "SF",
-          "DK Opt%": "26.6%"
-        },
-        {
           "Top 10 RB DK Opt%": "De'Von Achane",
           "Team": "MIA",
           "DK Opt%": "24.5%"
         },
         {
-          "Top 10 RB DK Opt%": "Alvin Kamara",
-          "Team": "NO",
-          "DK Opt%": "20.9%"
-        },
-        {
           "Top 10 RB DK Opt%": "Chase Brown",
           "Team": "CIN",
-          "DK Opt%": "16.9%"
+          "DK Opt%": "21.9%"
         },
         {
-          "Top 10 RB DK Opt%": "Chuba Hubbard",
-          "Team": "CAR",
-          "DK Opt%": "14.5%"
+          "Top 10 RB DK Opt%": "Christian McCaffrey",
+          "Team": "SF",
+          "DK Opt%": "19.7%"
+        },
+        {
+          "Top 10 RB DK Opt%": "Alvin Kamara",
+          "Team": "NO",
+          "DK Opt%": "17.7%"
         },
         {
           "Top 10 RB DK Opt%": "Kyren Williams",
           "Team": "LAR",
-          "DK Opt%": "14.3%"
-        },
-        {
-          "Top 10 RB DK Opt%": "Jahmyr Gibbs",
-          "Team": "DET",
-          "DK Opt%": "13.3%"
+          "DK Opt%": "15.5%"
         },
         {
           "Top 10 RB DK Opt%": "James Conner",
           "Team": "ARI",
-          "DK Opt%": "12%"
+          "DK Opt%": "13.8%"
+        },
+        {
+          "Top 10 RB DK Opt%": "Jahmyr Gibbs",
+          "Team": "DET",
+          "DK Opt%": "13%"
         },
         {
           "Top 10 RB DK Opt%": "Tony Pollard",
           "Team": "TEN",
-          "DK Opt%": "10.2%"
+          "DK Opt%": "12.9%"
         },
         {
-          "Top 10 RB DK Opt%": "David Montgomery",
-          "Team": "DET",
-          "DK Opt%": "9.6%"
+          "Top 10 RB DK Opt%": "Javonte Williams",
+          "Team": "DAL",
+          "DK Opt%": "10.8%"
+        },
+        {
+          "Top 10 RB DK Opt%": "Chuba Hubbard",
+          "Team": "CAR",
+          "DK Opt%": "10.2%"
         }
       ]
     },
@@ -1901,54 +1901,54 @@
       ],
       "rows": [
         {
-          "Top 10 RB FD Opt%": "De'Von Achane",
-          "Team": "MIA",
-          "FD Opt%": "25.1%"
-        },
-        {
           "Top 10 RB FD Opt%": "Chase Brown",
           "Team": "CIN",
-          "FD Opt%": "25%"
-        },
-        {
-          "Top 10 RB FD Opt%": "Christian McCaffrey",
-          "Team": "SF",
-          "FD Opt%": "20.8%"
+          "FD Opt%": "24.6%"
         },
         {
           "Top 10 RB FD Opt%": "Tony Pollard",
           "Team": "TEN",
-          "FD Opt%": "19.4%"
+          "FD Opt%": "24.1%"
         },
         {
-          "Top 10 RB FD Opt%": "Chuba Hubbard",
-          "Team": "CAR",
-          "FD Opt%": "17.5%"
-        },
-        {
-          "Top 10 RB FD Opt%": "Alvin Kamara",
-          "Team": "NO",
-          "FD Opt%": "17.4%"
+          "Top 10 RB FD Opt%": "De'Von Achane",
+          "Team": "MIA",
+          "FD Opt%": "23.7%"
         },
         {
           "Top 10 RB FD Opt%": "Jahmyr Gibbs",
           "Team": "DET",
-          "FD Opt%": "16.1%"
+          "FD Opt%": "18.8%"
+        },
+        {
+          "Top 10 RB FD Opt%": "Christian McCaffrey",
+          "Team": "SF",
+          "FD Opt%": "15.9%"
         },
         {
           "Top 10 RB FD Opt%": "Derrick Henry",
           "Team": "BAL",
-          "FD Opt%": "16.1%"
+          "FD Opt%": "15.1%"
         },
         {
-          "Top 10 RB FD Opt%": "David Montgomery",
-          "Team": "DET",
-          "FD Opt%": "12.9%"
+          "Top 10 RB FD Opt%": "Alvin Kamara",
+          "Team": "NO",
+          "FD Opt%": "14.6%"
+        },
+        {
+          "Top 10 RB FD Opt%": "Chuba Hubbard",
+          "Team": "CAR",
+          "FD Opt%": "14.6%"
         },
         {
           "Top 10 RB FD Opt%": "James Conner",
           "Team": "ARI",
-          "FD Opt%": "12.6%"
+          "FD Opt%": "14.4%"
+        },
+        {
+          "Top 10 RB FD Opt%": "James Cook",
+          "Team": "BUF",
+          "FD Opt%": "13.2%"
         }
       ]
     },
@@ -1964,52 +1964,52 @@
         {
           "Top 10 RB DK Lev%": "Alvin Kamara",
           "Team": "NO",
-          "DK Lev%": "9.9%"
-        },
-        {
-          "Top 10 RB DK Lev%": "Christian McCaffrey",
-          "Team": "SF",
-          "DK Lev%": "6.5%"
-        },
-        {
-          "Top 10 RB DK Lev%": "Chuba Hubbard",
-          "Team": "CAR",
-          "DK Lev%": "5.8%"
+          "DK Lev%": "8.3%"
         },
         {
           "Top 10 RB DK Lev%": "Tony Pollard",
           "Team": "TEN",
-          "DK Lev%": "4.0%"
+          "DK Lev%": "5.8%"
         },
         {
           "Top 10 RB DK Lev%": "Kyren Williams",
           "Team": "LAR",
-          "DK Lev%": "4.0%"
+          "DK Lev%": "4.9%"
         },
         {
           "Top 10 RB DK Lev%": "De'Von Achane",
           "Team": "MIA",
-          "DK Lev%": "3.7%"
+          "DK Lev%": "4.6%"
+        },
+        {
+          "Top 10 RB DK Lev%": "Christian McCaffrey",
+          "Team": "SF",
+          "DK Lev%": "4.5%"
+        },
+        {
+          "Top 10 RB DK Lev%": "Tyrone Tracy Jr.",
+          "Team": "NYG",
+          "DK Lev%": "3.0%"
         },
         {
           "Top 10 RB DK Lev%": "Jaylen Warren",
           "Team": "PIT",
+          "DK Lev%": "2.8%"
+        },
+        {
+          "Top 10 RB DK Lev%": "Chuba Hubbard",
+          "Team": "CAR",
+          "DK Lev%": "2.8%"
+        },
+        {
+          "Top 10 RB DK Lev%": "Javonte Williams",
+          "Team": "DAL",
           "DK Lev%": "1.6%"
         },
         {
           "Top 10 RB DK Lev%": "Kenneth Gainwell",
           "Team": "PIT",
-          "DK Lev%": "1.3%"
-        },
-        {
-          "Top 10 RB DK Lev%": "Breece Hall",
-          "Team": "NYJ",
-          "DK Lev%": "0.9%"
-        },
-        {
-          "Top 10 RB DK Lev%": "D'Andre Swift",
-          "Team": "CHI",
-          "DK Lev%": "0.7%"
+          "DK Lev%": "0.3%"
         }
       ]
     },
@@ -2025,42 +2025,37 @@
         {
           "Top 10 RB FD Lev%": "Tony Pollard",
           "Team": "TEN",
-          "FD Lev%": "10.8%"
-        },
-        {
-          "Top 10 RB FD Lev%": "Alvin Kamara",
-          "Team": "NO",
-          "FD Lev%": "9.9%"
+          "FD Lev%": "14.4%"
         },
         {
           "Top 10 RB FD Lev%": "De'Von Achane",
           "Team": "MIA",
-          "FD Lev%": "9.6%"
+          "FD Lev%": "8.9%"
         },
         {
-          "Top 10 RB FD Lev%": "Christian McCaffrey",
-          "Team": "SF",
-          "FD Lev%": "7.5%"
+          "Top 10 RB FD Lev%": "Alvin Kamara",
+          "Team": "NO",
+          "FD Lev%": "7.7%"
+        },
+        {
+          "Top 10 RB FD Lev%": "Jaylen Warren",
+          "Team": "PIT",
+          "FD Lev%": "6.1%"
         },
         {
           "Top 10 RB FD Lev%": "Chuba Hubbard",
           "Team": "CAR",
-          "FD Lev%": "7.4%"
+          "FD Lev%": "5.9%"
+        },
+        {
+          "Top 10 RB FD Lev%": "Christian McCaffrey",
+          "Team": "SF",
+          "FD Lev%": "5.1%"
         },
         {
           "Top 10 RB FD Lev%": "Tyrone Tracy Jr.",
           "Team": "NYG",
-          "FD Lev%": "4.1%"
-        },
-        {
-          "Top 10 RB FD Lev%": "Kenneth Walker III",
-          "Team": "SEA",
-          "FD Lev%": "3.6%"
-        },
-        {
-          "Top 10 RB FD Lev%": "Chase Brown",
-          "Team": "CIN",
-          "FD Lev%": "3.6%"
+          "FD Lev%": "4.8%"
         },
         {
           "Top 10 RB FD Lev%": "Jonathan Taylor",
@@ -2070,7 +2065,12 @@
         {
           "Top 10 RB FD Lev%": "Kyren Williams",
           "Team": "LAR",
-          "FD Lev%": "2.9%"
+          "FD Lev%": "2.4%"
+        },
+        {
+          "Top 10 RB FD Lev%": "James Conner",
+          "Team": "ARI",
+          "FD Lev%": "2.4%"
         }
       ]
     },
@@ -2086,52 +2086,52 @@
         {
           "Top 10 RB DK Rtg": "Chase Brown",
           "Team": "CIN",
-          "DK Rtg": "87.4"
+          "DK Rtg": "90.6"
         },
         {
           "Top 10 RB DK Rtg": "Jahmyr Gibbs",
           "Team": "DET",
-          "DK Rtg": "83.9"
+          "DK Rtg": "82"
         },
         {
           "Top 10 RB DK Rtg": "James Conner",
           "Team": "ARI",
-          "DK Rtg": "80.3"
+          "DK Rtg": "81.4"
         },
         {
           "Top 10 RB DK Rtg": "De'Von Achane",
           "Team": "MIA",
-          "DK Rtg": "80"
-        },
-        {
-          "Top 10 RB DK Rtg": "Christian McCaffrey",
-          "Team": "SF",
-          "DK Rtg": "78.7"
-        },
-        {
-          "Top 10 RB DK Rtg": "David Montgomery",
-          "Team": "DET",
-          "DK Rtg": "78.6"
+          "DK Rtg": "78.3"
         },
         {
           "Top 10 RB DK Rtg": "Derrick Henry",
           "Team": "BAL",
-          "DK Rtg": "75.9"
+          "DK Rtg": "75.7"
+        },
+        {
+          "Top 10 RB DK Rtg": "Christian McCaffrey",
+          "Team": "SF",
+          "DK Rtg": "73.4"
         },
         {
           "Top 10 RB DK Rtg": "James Cook",
           "Team": "BUF",
-          "DK Rtg": "70.8"
+          "DK Rtg": "73.1"
         },
         {
-          "Top 10 RB DK Rtg": "Kyren Williams",
-          "Team": "LAR",
-          "DK Rtg": "70.4"
+          "Top 10 RB DK Rtg": "David Montgomery",
+          "Team": "DET",
+          "DK Rtg": "72.4"
         },
         {
           "Top 10 RB DK Rtg": "Javonte Williams",
           "Team": "DAL",
-          "DK Rtg": "69.9"
+          "DK Rtg": "71.4"
+        },
+        {
+          "Top 10 RB DK Rtg": "Travis Etienne Jr.",
+          "Team": "JAX",
+          "DK Rtg": "70.1"
         }
       ]
     },
@@ -2147,52 +2147,52 @@
         {
           "Top 10 RB FD Rtg": "Chase Brown",
           "Team": "CIN",
-          "FD Rtg": "89.2"
+          "FD Rtg": "90.6"
         },
         {
           "Top 10 RB FD Rtg": "Jahmyr Gibbs",
           "Team": "DET",
-          "FD Rtg": "85.6"
+          "FD Rtg": "81.8"
         },
         {
           "Top 10 RB FD Rtg": "Derrick Henry",
           "Team": "BAL",
-          "FD Rtg": "81.3"
-        },
-        {
-          "Top 10 RB FD Rtg": "David Montgomery",
-          "Team": "DET",
-          "FD Rtg": "80.9"
+          "FD Rtg": "79.9"
         },
         {
           "Top 10 RB FD Rtg": "James Conner",
           "Team": "ARI",
-          "FD Rtg": "79.9"
-        },
-        {
-          "Top 10 RB FD Rtg": "De'Von Achane",
-          "Team": "MIA",
-          "FD Rtg": "78.1"
-        },
-        {
-          "Top 10 RB FD Rtg": "Christian McCaffrey",
-          "Team": "SF",
-          "FD Rtg": "75"
+          "FD Rtg": "79.1"
         },
         {
           "Top 10 RB FD Rtg": "James Cook",
           "Team": "BUF",
+          "FD Rtg": "75.5"
+        },
+        {
+          "Top 10 RB FD Rtg": "De'Von Achane",
+          "Team": "MIA",
           "FD Rtg": "74.8"
+        },
+        {
+          "Top 10 RB FD Rtg": "David Montgomery",
+          "Team": "DET",
+          "FD Rtg": "72.5"
         },
         {
           "Top 10 RB FD Rtg": "Javonte Williams",
           "Team": "DAL",
-          "FD Rtg": "71.7"
+          "FD Rtg": "72.3"
         },
         {
-          "Top 10 RB FD Rtg": "Saquon Barkley",
-          "Team": "PHI",
-          "FD Rtg": "69.7"
+          "Top 10 RB FD Rtg": "Christian McCaffrey",
+          "Team": "SF",
+          "FD Rtg": "69.1"
+        },
+        {
+          "Top 10 RB FD Rtg": "Travis Etienne Jr.",
+          "Team": "JAX",
+          "FD Rtg": "67.1"
         }
       ]
     },
@@ -2208,47 +2208,47 @@
         {
           "Top 10 WR DK Proj": "Ja'Marr Chase",
           "Team": "CIN",
-          "DK Proj": "20.8"
+          "DK Proj": "21.9"
         },
         {
           "Top 10 WR DK Proj": "Puka Nacua",
           "Team": "LAR",
-          "DK Proj": "18.9"
+          "DK Proj": "19.2"
         },
         {
           "Top 10 WR DK Proj": "Malik Nabers",
           "Team": "NYG",
-          "DK Proj": "18.3"
+          "DK Proj": "18"
         },
         {
           "Top 10 WR DK Proj": "CeeDee Lamb",
           "Team": "DAL",
-          "DK Proj": "17.9"
+          "DK Proj": "17.8"
         },
         {
           "Top 10 WR DK Proj": "Amon-Ra St. Brown",
           "Team": "DET",
-          "DK Proj": "17.7"
+          "DK Proj": "17.3"
         },
         {
           "Top 10 WR DK Proj": "Brian Thomas Jr.",
           "Team": "JAX",
-          "DK Proj": "16.7"
-        },
-        {
-          "Top 10 WR DK Proj": "Tyreek Hill",
-          "Team": "MIA",
-          "DK Proj": "16.7"
+          "DK Proj": "17.3"
         },
         {
           "Top 10 WR DK Proj": "Tee Higgins",
           "Team": "CIN",
-          "DK Proj": "15.6"
+          "DK Proj": "16.5"
         },
         {
-          "Top 10 WR DK Proj": "A.J. Brown",
-          "Team": "PHI",
-          "DK Proj": "15"
+          "Top 10 WR DK Proj": "Tyreek Hill",
+          "Team": "MIA",
+          "DK Proj": "16.1"
+        },
+        {
+          "Top 10 WR DK Proj": "Jaxon Smith-Njigba",
+          "Team": "SEA",
+          "DK Proj": "15.5"
         },
         {
           "Top 10 WR DK Proj": "Courtland Sutton",
@@ -2269,52 +2269,52 @@
         {
           "Top 10 WR FD Proj": "Ja'Marr Chase",
           "Team": "CIN",
-          "FD Proj": "17.2"
+          "FD Proj": "18.2"
         },
         {
           "Top 10 WR FD Proj": "Puka Nacua",
           "Team": "LAR",
-          "FD Proj": "15.4"
+          "FD Proj": "15.7"
         },
         {
           "Top 10 WR FD Proj": "Malik Nabers",
           "Team": "NYG",
-          "FD Proj": "15"
+          "FD Proj": "14.7"
         },
         {
           "Top 10 WR FD Proj": "CeeDee Lamb",
           "Team": "DAL",
-          "FD Proj": "14.8"
-        },
-        {
-          "Top 10 WR FD Proj": "Amon-Ra St. Brown",
-          "Team": "DET",
-          "FD Proj": "14.5"
+          "FD Proj": "14.7"
         },
         {
           "Top 10 WR FD Proj": "Brian Thomas Jr.",
           "Team": "JAX",
-          "FD Proj": "13.9"
+          "FD Proj": "14.4"
         },
         {
-          "Top 10 WR FD Proj": "Tyreek Hill",
-          "Team": "MIA",
-          "FD Proj": "13.9"
+          "Top 10 WR FD Proj": "Amon-Ra St. Brown",
+          "Team": "DET",
+          "FD Proj": "14.1"
         },
         {
           "Top 10 WR FD Proj": "Tee Higgins",
           "Team": "CIN",
-          "FD Proj": "12.7"
+          "FD Proj": "13.6"
         },
         {
-          "Top 10 WR FD Proj": "A.J. Brown",
-          "Team": "PHI",
-          "FD Proj": "12.6"
+          "Top 10 WR FD Proj": "Tyreek Hill",
+          "Team": "MIA",
+          "FD Proj": "13.3"
+        },
+        {
+          "Top 10 WR FD Proj": "Jaxon Smith-Njigba",
+          "Team": "SEA",
+          "FD Proj": "12.8"
         },
         {
           "Top 10 WR FD Proj": "Courtland Sutton",
           "Team": "DEN",
-          "FD Proj": "12.5"
+          "FD Proj": "12.3"
         }
       ]
     },
@@ -2330,27 +2330,27 @@
         {
           "Top 10 WR DK pOWN%": "Ja'Marr Chase",
           "Team": "CIN",
-          "DK pOWN%": "24.1%"
-        },
-        {
-          "Top 10 WR DK pOWN%": "Amon-Ra St. Brown",
-          "Team": "DET",
-          "DK pOWN%": "17.0%"
+          "DK pOWN%": "33.8%"
         },
         {
           "Top 10 WR DK pOWN%": "Tee Higgins",
           "Team": "CIN",
-          "DK pOWN%": "15.6%"
+          "DK pOWN%": "22.6%"
         },
         {
           "Top 10 WR DK pOWN%": "Brian Thomas Jr.",
           "Team": "JAX",
-          "DK pOWN%": "14.0%"
+          "DK pOWN%": "17.2%"
         },
         {
-          "Top 10 WR DK pOWN%": "Tyreek Hill",
-          "Team": "MIA",
-          "DK pOWN%": "12.9%"
+          "Top 10 WR DK pOWN%": "Amon-Ra St. Brown",
+          "Team": "DET",
+          "DK pOWN%": "15.3%"
+        },
+        {
+          "Top 10 WR DK pOWN%": "Puka Nacua",
+          "Team": "LAR",
+          "DK pOWN%": "13.4%"
         },
         {
           "Top 10 WR DK pOWN%": "Malik Nabers",
@@ -2358,24 +2358,24 @@
           "DK pOWN%": "12.4%"
         },
         {
-          "Top 10 WR DK pOWN%": "Puka Nacua",
-          "Team": "LAR",
-          "DK pOWN%": "12.4%"
-        },
-        {
-          "Top 10 WR DK pOWN%": "Jauan Jennings",
-          "Team": "SF",
-          "DK pOWN%": "11.9%"
+          "Top 10 WR DK pOWN%": "Tyreek Hill",
+          "Team": "MIA",
+          "DK pOWN%": "10.5%"
         },
         {
           "Top 10 WR DK pOWN%": "CeeDee Lamb",
           "Team": "DAL",
-          "DK pOWN%": "10.0%"
+          "DK pOWN%": "10.1%"
         },
         {
-          "Top 10 WR DK pOWN%": "Hollywood Brown",
-          "Team": "KC",
-          "DK pOWN%": "9.1%"
+          "Top 10 WR DK pOWN%": "Jaxon Smith-Njigba",
+          "Team": "SEA",
+          "DK pOWN%": "8.4%"
+        },
+        {
+          "Top 10 WR DK pOWN%": "Davante Adams",
+          "Team": "LAR",
+          "DK pOWN%": "7.9%"
         }
       ]
     },
@@ -2391,42 +2391,37 @@
         {
           "Top 10 WR FD pOWN%": "Ja'Marr Chase",
           "Team": "CIN",
-          "FD pOWN%": "26.5%"
-        },
-        {
-          "Top 10 WR FD pOWN%": "Amon-Ra St. Brown",
-          "Team": "DET",
-          "FD pOWN%": "16.9%"
-        },
-        {
-          "Top 10 WR FD pOWN%": "Brian Thomas Jr.",
-          "Team": "JAX",
-          "FD pOWN%": "15.0%"
+          "FD pOWN%": "37.2%"
         },
         {
           "Top 10 WR FD pOWN%": "Tee Higgins",
           "Team": "CIN",
-          "FD pOWN%": "14.6%"
+          "FD pOWN%": "21.0%"
         },
         {
-          "Top 10 WR FD pOWN%": "Tyreek Hill",
-          "Team": "MIA",
+          "Top 10 WR FD pOWN%": "Brian Thomas Jr.",
+          "Team": "JAX",
+          "FD pOWN%": "18.1%"
+        },
+        {
+          "Top 10 WR FD pOWN%": "Amon-Ra St. Brown",
+          "Team": "DET",
+          "FD pOWN%": "14.7%"
+        },
+        {
+          "Top 10 WR FD pOWN%": "Puka Nacua",
+          "Team": "LAR",
           "FD pOWN%": "13.3%"
         },
         {
           "Top 10 WR FD pOWN%": "Malik Nabers",
           "Team": "NYG",
-          "FD pOWN%": "13.3%"
+          "FD pOWN%": "13.0%"
         },
         {
-          "Top 10 WR FD pOWN%": "George Pickens",
-          "Team": "DAL",
-          "FD pOWN%": "13.1%"
-        },
-        {
-          "Top 10 WR FD pOWN%": "Puka Nacua",
-          "Team": "LAR",
-          "FD pOWN%": "12.5%"
+          "Top 10 WR FD pOWN%": "Keon Coleman",
+          "Team": "BUF",
+          "FD pOWN%": "11.2%"
         },
         {
           "Top 10 WR FD pOWN%": "CeeDee Lamb",
@@ -2434,9 +2429,14 @@
           "FD pOWN%": "11.1%"
         },
         {
-          "Top 10 WR FD pOWN%": "Keon Coleman",
-          "Team": "BUF",
-          "FD pOWN%": "9.9%"
+          "Top 10 WR FD pOWN%": "Tyreek Hill",
+          "Team": "MIA",
+          "FD pOWN%": "10.5%"
+        },
+        {
+          "Top 10 WR FD pOWN%": "George Pickens",
+          "Team": "DAL",
+          "FD pOWN%": "10.4%"
         }
       ]
     },
@@ -2450,34 +2450,44 @@
       ],
       "rows": [
         {
-          "Top 10 WR DK Val": "Jauan Jennings",
-          "Team": "SF",
-          "DK Val": "2.8"
-        },
-        {
-          "Top 10 WR DK Val": "Calvin Ridley",
-          "Team": "TEN",
+          "Top 10 WR DK Val": "Tee Higgins",
+          "Team": "CIN",
           "DK Val": "2.7"
         },
         {
-          "Top 10 WR DK Val": "Tyreek Hill",
-          "Team": "MIA",
+          "Top 10 WR DK Val": "Ja'Marr Chase",
+          "Team": "CIN",
+          "DK Val": "2.7"
+        },
+        {
+          "Top 10 WR DK Val": "Jaxon Smith-Njigba",
+          "Team": "SEA",
+          "DK Val": "2.6"
+        },
+        {
+          "Top 10 WR DK Val": "Brian Thomas Jr.",
+          "Team": "JAX",
           "DK Val": "2.6"
         },
         {
           "Top 10 WR DK Val": "Malik Nabers",
           "Team": "NYG",
-          "DK Val": "2.6"
+          "DK Val": "2.5"
         },
         {
-          "Top 10 WR DK Val": "Ja'Marr Chase",
-          "Team": "CIN",
-          "DK Val": "2.6"
+          "Top 10 WR DK Val": "Puka Nacua",
+          "Team": "LAR",
+          "DK Val": "2.5"
         },
         {
-          "Top 10 WR DK Val": "Tee Higgins",
-          "Team": "CIN",
-          "DK Val": "2.6"
+          "Top 10 WR DK Val": "Calvin Ridley",
+          "Team": "TEN",
+          "DK Val": "2.5"
+        },
+        {
+          "Top 10 WR DK Val": "Tyreek Hill",
+          "Team": "MIA",
+          "DK Val": "2.5"
         },
         {
           "Top 10 WR DK Val": "Amon-Ra St. Brown",
@@ -2485,19 +2495,9 @@
           "DK Val": "2.5"
         },
         {
-          "Top 10 WR DK Val": "Tetairoa McMillan",
-          "Team": "CAR",
-          "DK Val": "2.5"
-        },
-        {
-          "Top 10 WR DK Val": "Hollywood Brown",
-          "Team": "KC",
-          "DK Val": "2.5"
-        },
-        {
-          "Top 10 WR DK Val": "Brian Thomas Jr.",
-          "Team": "JAX",
-          "DK Val": "2.5"
+          "Top 10 WR DK Val": "Chris Olave",
+          "Team": "NO",
+          "DK Val": "2.4"
         }
       ]
     },
@@ -2511,9 +2511,19 @@
       ],
       "rows": [
         {
-          "Top 10 WR FD Val": "George Pickens",
-          "Team": "DAL",
+          "Top 10 WR FD Val": "Ja'Marr Chase",
+          "Team": "CIN",
           "FD Val": "2"
+        },
+        {
+          "Top 10 WR FD Val": "Jaylen Waddle",
+          "Team": "MIA",
+          "FD Val": "2"
+        },
+        {
+          "Top 10 WR FD Val": "Tee Higgins",
+          "Team": "CIN",
+          "FD Val": "1.9"
         },
         {
           "Top 10 WR FD Val": "Malik Nabers",
@@ -2521,43 +2531,33 @@
           "FD Val": "1.9"
         },
         {
-          "Top 10 WR FD Val": "Tetairoa McMillan",
-          "Team": "CAR",
+          "Top 10 WR FD Val": "Brian Thomas Jr.",
+          "Team": "JAX",
           "FD Val": "1.9"
         },
         {
-          "Top 10 WR FD Val": "Calvin Ridley",
-          "Team": "TEN",
-          "FD Val": "1.9"
-        },
-        {
-          "Top 10 WR FD Val": "Tyreek Hill",
-          "Team": "MIA",
-          "FD Val": "1.9"
-        },
-        {
-          "Top 10 WR FD Val": "Jauan Jennings",
-          "Team": "SF",
-          "FD Val": "1.9"
-        },
-        {
-          "Top 10 WR FD Val": "Ja'Marr Chase",
-          "Team": "CIN",
+          "Top 10 WR FD Val": "Puka Nacua",
+          "Team": "LAR",
           "FD Val": "1.9"
         },
         {
           "Top 10 WR FD Val": "Keon Coleman",
           "Team": "BUF",
+          "FD Val": "1.9"
+        },
+        {
+          "Top 10 WR FD Val": "George Pickens",
+          "Team": "DAL",
+          "FD Val": "1.9"
+        },
+        {
+          "Top 10 WR FD Val": "Tyreek Hill",
+          "Team": "MIA",
           "FD Val": "1.8"
         },
         {
-          "Top 10 WR FD Val": "Puka Nacua",
-          "Team": "LAR",
-          "FD Val": "1.8"
-        },
-        {
-          "Top 10 WR FD Val": "Brian Thomas Jr.",
-          "Team": "JAX",
+          "Top 10 WR FD Val": "Calvin Ridley",
+          "Team": "TEN",
           "FD Val": "1.8"
         }
       ]
@@ -2572,54 +2572,54 @@
       ],
       "rows": [
         {
-          "Top 10 WR DK Opt%": "Jauan Jennings",
-          "Team": "SF",
-          "DK Opt%": "19.2%"
-        },
-        {
-          "Top 10 WR DK Opt%": "Tyreek Hill",
-          "Team": "MIA",
-          "DK Opt%": "17.7%"
-        },
-        {
           "Top 10 WR DK Opt%": "Ja'Marr Chase",
           "Team": "CIN",
-          "DK Opt%": "16.7%"
-        },
-        {
-          "Top 10 WR DK Opt%": "Amon-Ra St. Brown",
-          "Team": "DET",
-          "DK Opt%": "15.5%"
-        },
-        {
-          "Top 10 WR DK Opt%": "Malik Nabers",
-          "Team": "NYG",
-          "DK Opt%": "15.4%"
-        },
-        {
-          "Top 10 WR DK Opt%": "Calvin Ridley",
-          "Team": "TEN",
-          "DK Opt%": "15.3%"
-        },
-        {
-          "Top 10 WR DK Opt%": "Puka Nacua",
-          "Team": "LAR",
-          "DK Opt%": "14.6%"
+          "DK Opt%": "25.8%"
         },
         {
           "Top 10 WR DK Opt%": "Tee Higgins",
           "Team": "CIN",
-          "DK Opt%": "13.5%"
+          "DK Opt%": "22.2%"
         },
         {
           "Top 10 WR DK Opt%": "Brian Thomas Jr.",
           "Team": "JAX",
-          "DK Opt%": "13.2%"
+          "DK Opt%": "17.1%"
         },
         {
-          "Top 10 WR DK Opt%": "Hollywood Brown",
-          "Team": "KC",
-          "DK Opt%": "12.9%"
+          "Top 10 WR DK Opt%": "Jaxon Smith-Njigba",
+          "Team": "SEA",
+          "DK Opt%": "17.1%"
+        },
+        {
+          "Top 10 WR DK Opt%": "Tyreek Hill",
+          "Team": "MIA",
+          "DK Opt%": "15.5%"
+        },
+        {
+          "Top 10 WR DK Opt%": "Puka Nacua",
+          "Team": "LAR",
+          "DK Opt%": "15.3%"
+        },
+        {
+          "Top 10 WR DK Opt%": "Malik Nabers",
+          "Team": "NYG",
+          "DK Opt%": "15.1%"
+        },
+        {
+          "Top 10 WR DK Opt%": "Amon-Ra St. Brown",
+          "Team": "DET",
+          "DK Opt%": "12%"
+        },
+        {
+          "Top 10 WR DK Opt%": "Davante Adams",
+          "Team": "LAR",
+          "DK Opt%": "11.4%"
+        },
+        {
+          "Top 10 WR DK Opt%": "Calvin Ridley",
+          "Team": "TEN",
+          "DK Opt%": "11.1%"
         }
       ]
     },
@@ -2633,54 +2633,54 @@
       ],
       "rows": [
         {
-          "Top 10 WR FD Opt%": "Malik Nabers",
-          "Team": "NYG",
-          "FD Opt%": "19.5%"
-        },
-        {
           "Top 10 WR FD Opt%": "Ja'Marr Chase",
           "Team": "CIN",
-          "FD Opt%": "19.4%"
-        },
-        {
-          "Top 10 WR FD Opt%": "Tyreek Hill",
-          "Team": "MIA",
-          "FD Opt%": "19%"
-        },
-        {
-          "Top 10 WR FD Opt%": "Puka Nacua",
-          "Team": "LAR",
-          "FD Opt%": "17.9%"
-        },
-        {
-          "Top 10 WR FD Opt%": "George Pickens",
-          "Team": "DAL",
-          "FD Opt%": "17.6%"
-        },
-        {
-          "Top 10 WR FD Opt%": "Tetairoa McMillan",
-          "Team": "CAR",
-          "FD Opt%": "15.7%"
-        },
-        {
-          "Top 10 WR FD Opt%": "Brian Thomas Jr.",
-          "Team": "JAX",
-          "FD Opt%": "15.1%"
-        },
-        {
-          "Top 10 WR FD Opt%": "Jauan Jennings",
-          "Team": "SF",
-          "FD Opt%": "14.3%"
-        },
-        {
-          "Top 10 WR FD Opt%": "Amon-Ra St. Brown",
-          "Team": "DET",
-          "FD Opt%": "12.7%"
+          "FD Opt%": "27.2%"
         },
         {
           "Top 10 WR FD Opt%": "Tee Higgins",
           "Team": "CIN",
-          "FD Opt%": "12.6%"
+          "FD Opt%": "19.9%"
+        },
+        {
+          "Top 10 WR FD Opt%": "Brian Thomas Jr.",
+          "Team": "JAX",
+          "FD Opt%": "19.3%"
+        },
+        {
+          "Top 10 WR FD Opt%": "Puka Nacua",
+          "Team": "LAR",
+          "FD Opt%": "19.2%"
+        },
+        {
+          "Top 10 WR FD Opt%": "Malik Nabers",
+          "Team": "NYG",
+          "FD Opt%": "18.1%"
+        },
+        {
+          "Top 10 WR FD Opt%": "Jaylen Waddle",
+          "Team": "MIA",
+          "FD Opt%": "17.4%"
+        },
+        {
+          "Top 10 WR FD Opt%": "Tyreek Hill",
+          "Team": "MIA",
+          "FD Opt%": "14.1%"
+        },
+        {
+          "Top 10 WR FD Opt%": "George Pickens",
+          "Team": "DAL",
+          "FD Opt%": "13.3%"
+        },
+        {
+          "Top 10 WR FD Opt%": "Amon-Ra St. Brown",
+          "Team": "DET",
+          "FD Opt%": "11.4%"
+        },
+        {
+          "Top 10 WR FD Opt%": "Keon Coleman",
+          "Team": "BUF",
+          "FD Opt%": "10.9%"
         }
       ]
     },
@@ -2694,44 +2694,29 @@
       ],
       "rows": [
         {
-          "Top 10 WR DK Lev%": "Calvin Ridley",
-          "Team": "TEN",
-          "DK Lev%": "7.6%"
+          "Top 10 WR DK Lev%": "Jaxon Smith-Njigba",
+          "Team": "SEA",
+          "DK Lev%": "8.7%"
         },
         {
-          "Top 10 WR DK Lev%": "Jauan Jennings",
-          "Team": "SF",
-          "DK Lev%": "7.3%"
+          "Top 10 WR DK Lev%": "Calvin Ridley",
+          "Team": "TEN",
+          "DK Lev%": "5.3%"
         },
         {
           "Top 10 WR DK Lev%": "Tyreek Hill",
           "Team": "MIA",
-          "DK Lev%": "4.8%"
+          "DK Lev%": "5.0%"
         },
         {
-          "Top 10 WR DK Lev%": "Tetairoa McMillan",
-          "Team": "CAR",
-          "DK Lev%": "4.5%"
+          "Top 10 WR DK Lev%": "Chris Olave",
+          "Team": "NO",
+          "DK Lev%": "4.6%"
         },
         {
-          "Top 10 WR DK Lev%": "Jaxon Smith-Njigba",
-          "Team": "SEA",
-          "DK Lev%": "4.2%"
-        },
-        {
-          "Top 10 WR DK Lev%": "Jerry Jeudy",
-          "Team": "CLE",
-          "DK Lev%": "3.8%"
-        },
-        {
-          "Top 10 WR DK Lev%": "Hollywood Brown",
-          "Team": "KC",
-          "DK Lev%": "3.8%"
-        },
-        {
-          "Top 10 WR DK Lev%": "Malik Nabers",
-          "Team": "NYG",
-          "DK Lev%": "3.0%"
+          "Top 10 WR DK Lev%": "Davante Adams",
+          "Team": "LAR",
+          "DK Lev%": "3.5%"
         },
         {
           "Top 10 WR DK Lev%": "DK Metcalf",
@@ -2739,9 +2724,24 @@
           "DK Lev%": "2.8%"
         },
         {
-          "Top 10 WR DK Lev%": "Davante Adams",
-          "Team": "LAR",
+          "Top 10 WR DK Lev%": "Malik Nabers",
+          "Team": "NYG",
           "DK Lev%": "2.7%"
+        },
+        {
+          "Top 10 WR DK Lev%": "Wan'Dale Robinson",
+          "Team": "NYG",
+          "DK Lev%": "2.4%"
+        },
+        {
+          "Top 10 WR DK Lev%": "Jaylen Waddle",
+          "Team": "MIA",
+          "DK Lev%": "2.1%"
+        },
+        {
+          "Top 10 WR DK Lev%": "Jauan Jennings",
+          "Team": "SF",
+          "DK Lev%": "2.0%"
         }
       ]
     },
@@ -2755,54 +2755,54 @@
       ],
       "rows": [
         {
-          "Top 10 WR FD Lev%": "Tetairoa McMillan",
-          "Team": "CAR",
-          "FD Lev%": "6.9%"
-        },
-        {
-          "Top 10 WR FD Lev%": "Malik Nabers",
-          "Team": "NYG",
-          "FD Lev%": "6.2%"
-        },
-        {
-          "Top 10 WR FD Lev%": "Tyreek Hill",
+          "Top 10 WR FD Lev%": "Jaylen Waddle",
           "Team": "MIA",
-          "FD Lev%": "5.7%"
+          "FD Lev%": "7.8%"
         },
         {
           "Top 10 WR FD Lev%": "Puka Nacua",
           "Team": "LAR",
-          "FD Lev%": "5.4%"
+          "FD Lev%": "5.9%"
         },
         {
-          "Top 10 WR FD Lev%": "Jauan Jennings",
-          "Team": "SF",
-          "FD Lev%": "5.3%"
-        },
-        {
-          "Top 10 WR FD Lev%": "George Pickens",
-          "Team": "DAL",
-          "FD Lev%": "4.5%"
+          "Top 10 WR FD Lev%": "Malik Nabers",
+          "Team": "NYG",
+          "FD Lev%": "5.1%"
         },
         {
           "Top 10 WR FD Lev%": "Calvin Ridley",
           "Team": "TEN",
-          "FD Lev%": "4.0%"
+          "FD Lev%": "4.7%"
         },
         {
-          "Top 10 WR FD Lev%": "Courtland Sutton",
-          "Team": "DEN",
-          "FD Lev%": "3.2%"
+          "Top 10 WR FD Lev%": "Tetairoa McMillan",
+          "Team": "CAR",
+          "FD Lev%": "4.1%"
         },
         {
-          "Top 10 WR FD Lev%": "Davante Adams",
-          "Team": "LAR",
-          "FD Lev%": "2.3%"
+          "Top 10 WR FD Lev%": "Tyreek Hill",
+          "Team": "MIA",
+          "FD Lev%": "3.6%"
         },
         {
           "Top 10 WR FD Lev%": "Jerry Jeudy",
           "Team": "CLE",
-          "FD Lev%": "2.2%"
+          "FD Lev%": "3.6%"
+        },
+        {
+          "Top 10 WR FD Lev%": "Jaxon Smith-Njigba",
+          "Team": "SEA",
+          "FD Lev%": "3.1%"
+        },
+        {
+          "Top 10 WR FD Lev%": "George Pickens",
+          "Team": "DAL",
+          "FD Lev%": "2.9%"
+        },
+        {
+          "Top 10 WR FD Lev%": "Rashid Shaheed",
+          "Team": "NO",
+          "FD Lev%": "1.7%"
         }
       ]
     },
@@ -2818,52 +2818,52 @@
         {
           "Top 10 WR DK Rtg": "Ja'Marr Chase",
           "Team": "CIN",
-          "DK Rtg": "90.6"
+          "DK Rtg": "94"
         },
         {
           "Top 10 WR DK Rtg": "Tee Higgins",
           "Team": "CIN",
-          "DK Rtg": "85.5"
+          "DK Rtg": "89.3"
         },
         {
           "Top 10 WR DK Rtg": "Malik Nabers",
           "Team": "NYG",
-          "DK Rtg": "78.8"
+          "DK Rtg": "78.9"
         },
         {
           "Top 10 WR DK Rtg": "Brian Thomas Jr.",
           "Team": "JAX",
-          "DK Rtg": "76.6"
+          "DK Rtg": "78.3"
         },
         {
           "Top 10 WR DK Rtg": "Amon-Ra St. Brown",
           "Team": "DET",
-          "DK Rtg": "76.4"
+          "DK Rtg": "73.9"
         },
         {
           "Top 10 WR DK Rtg": "Tyreek Hill",
           "Team": "MIA",
-          "DK Rtg": "75.8"
+          "DK Rtg": "72.9"
+        },
+        {
+          "Top 10 WR DK Rtg": "CeeDee Lamb",
+          "Team": "DAL",
+          "DK Rtg": "71.6"
         },
         {
           "Top 10 WR DK Rtg": "Marvin Harrison Jr.",
           "Team": "ARI",
-          "DK Rtg": "75.1"
+          "DK Rtg": "71"
         },
         {
           "Top 10 WR DK Rtg": "A.J. Brown",
           "Team": "PHI",
-          "DK Rtg": "74.5"
+          "DK Rtg": "71"
         },
         {
-          "Top 10 WR DK Rtg": "Jauan Jennings",
-          "Team": "SF",
-          "DK Rtg": "74.4"
-        },
-        {
-          "Top 10 WR DK Rtg": "DJ Moore",
-          "Team": "CHI",
-          "DK Rtg": "73.8"
+          "Top 10 WR DK Rtg": "George Pickens",
+          "Team": "DAL",
+          "DK Rtg": "70.7"
         }
       ]
     },
@@ -2879,52 +2879,52 @@
         {
           "Top 10 WR FD Rtg": "Ja'Marr Chase",
           "Team": "CIN",
-          "FD Rtg": "92.7"
+          "FD Rtg": "94"
         },
         {
           "Top 10 WR FD Rtg": "Tee Higgins",
           "Team": "CIN",
-          "FD Rtg": "85.2"
+          "FD Rtg": "87"
         },
         {
           "Top 10 WR FD Rtg": "Malik Nabers",
           "Team": "NYG",
-          "FD Rtg": "81.5"
-        },
-        {
-          "Top 10 WR FD Rtg": "George Pickens",
-          "Team": "DAL",
-          "FD Rtg": "79"
+          "FD Rtg": "78.9"
         },
         {
           "Top 10 WR FD Rtg": "Brian Thomas Jr.",
           "Team": "JAX",
-          "FD Rtg": "78.2"
+          "FD Rtg": "77.6"
+        },
+        {
+          "Top 10 WR FD Rtg": "George Pickens",
+          "Team": "DAL",
+          "FD Rtg": "73.6"
+        },
+        {
+          "Top 10 WR FD Rtg": "Zay Flowers",
+          "Team": "BAL",
+          "FD Rtg": "72.9"
         },
         {
           "Top 10 WR FD Rtg": "Tyreek Hill",
           "Team": "MIA",
-          "FD Rtg": "77.7"
+          "FD Rtg": "72"
         },
         {
           "Top 10 WR FD Rtg": "Amon-Ra St. Brown",
           "Team": "DET",
-          "FD Rtg": "77"
-        },
-        {
-          "Top 10 WR FD Rtg": "Marvin Harrison Jr.",
-          "Team": "ARI",
-          "FD Rtg": "76.5"
-        },
-        {
-          "Top 10 WR FD Rtg": "A.J. Brown",
-          "Team": "PHI",
-          "FD Rtg": "76.1"
+          "FD Rtg": "71.9"
         },
         {
           "Top 10 WR FD Rtg": "CeeDee Lamb",
           "Team": "DAL",
-          "FD Rtg": "74"
+          "FD Rtg": "71.1"
+        },
+        {
+          "Top 10 WR FD Rtg": "Marvin Harrison Jr.",
+          "Team": "ARI",
+          "FD Rtg": "70.2"
         }
       ]
     },
@@ -2940,17 +2940,17 @@
         {
           "Top 10 TE DK Proj": "Trey McBride",
           "Team": "ARI",
-          "DK Proj": "15.2"
+          "DK Proj": "16.2"
         },
         {
           "Top 10 TE DK Proj": "Travis Kelce",
           "Team": "KC",
-          "DK Proj": "13.4"
+          "DK Proj": "13.5"
         },
         {
           "Top 10 TE DK Proj": "Sam LaPorta",
           "Team": "DET",
-          "DK Proj": "10.5"
+          "DK Proj": "11.2"
         },
         {
           "Top 10 TE DK Proj": "David Njoku",
@@ -2958,34 +2958,34 @@
           "DK Proj": "10.4"
         },
         {
-          "Top 10 TE DK Proj": "Tyler Warren",
-          "Team": "IND",
-          "DK Proj": "9.9"
-        },
-        {
           "Top 10 TE DK Proj": "Evan Engram",
           "Team": "DEN",
-          "DK Proj": "9.6"
+          "DK Proj": "10.1"
         },
         {
-          "Top 10 TE DK Proj": "Mark Andrews",
-          "Team": "BAL",
-          "DK Proj": "9.3"
-        },
-        {
-          "Top 10 TE DK Proj": "Brenton Strange",
-          "Team": "JAX",
-          "DK Proj": "9.1"
-        },
-        {
-          "Top 10 TE DK Proj": "Harold Fannin Jr.",
-          "Team": "CLE",
-          "DK Proj": "9.1"
+          "Top 10 TE DK Proj": "Tyler Warren",
+          "Team": "IND",
+          "DK Proj": "10"
         },
         {
           "Top 10 TE DK Proj": "Dallas Goedert",
           "Team": "PHI",
-          "DK Proj": "9.1"
+          "DK Proj": "9.4"
+        },
+        {
+          "Top 10 TE DK Proj": "Harold Fannin Jr.",
+          "Team": "CLE",
+          "DK Proj": "9.2"
+        },
+        {
+          "Top 10 TE DK Proj": "Jake Ferguson",
+          "Team": "DAL",
+          "DK Proj": "9"
+        },
+        {
+          "Top 10 TE DK Proj": "Mark Andrews",
+          "Team": "BAL",
+          "DK Proj": "9"
         }
       ]
     },
@@ -3001,27 +3001,37 @@
         {
           "Top 10 TE FD Proj": "Trey McBride",
           "Team": "ARI",
-          "FD Proj": "11.7"
+          "FD Proj": "12.6"
         },
         {
           "Top 10 TE FD Proj": "Travis Kelce",
           "Team": "KC",
-          "FD Proj": "10.7"
+          "FD Proj": "10.6"
         },
         {
           "Top 10 TE FD Proj": "Sam LaPorta",
           "Team": "DET",
-          "FD Proj": "8.5"
+          "FD Proj": "9.1"
         },
         {
           "Top 10 TE FD Proj": "David Njoku",
           "Team": "CLE",
-          "FD Proj": "8.2"
+          "FD Proj": "8.1"
+        },
+        {
+          "Top 10 TE FD Proj": "Evan Engram",
+          "Team": "DEN",
+          "FD Proj": "7.8"
         },
         {
           "Top 10 TE FD Proj": "Tyler Warren",
           "Team": "IND",
-          "FD Proj": "7.8"
+          "FD Proj": "7.7"
+        },
+        {
+          "Top 10 TE FD Proj": "Dallas Goedert",
+          "Team": "PHI",
+          "FD Proj": "7.4"
         },
         {
           "Top 10 TE FD Proj": "Mark Andrews",
@@ -3029,24 +3039,14 @@
           "FD Proj": "7.4"
         },
         {
-          "Top 10 TE FD Proj": "Evan Engram",
-          "Team": "DEN",
-          "FD Proj": "7.2"
+          "Top 10 TE FD Proj": "Harold Fannin Jr.",
+          "Team": "CLE",
+          "FD Proj": "7.3"
         },
         {
           "Top 10 TE FD Proj": "Brenton Strange",
           "Team": "JAX",
-          "FD Proj": "7.2"
-        },
-        {
-          "Top 10 TE FD Proj": "Harold Fannin Jr.",
-          "Team": "CLE",
-          "FD Proj": "7.2"
-        },
-        {
-          "Top 10 TE FD Proj": "Dallas Goedert",
-          "Team": "PHI",
-          "FD Proj": "7.1"
+          "FD Proj": "7"
         }
       ]
     },
@@ -3062,52 +3062,52 @@
         {
           "Top 10 TE DK pOWN%": "Trey McBride",
           "Team": "ARI",
-          "DK pOWN%": "15.3%"
+          "DK pOWN%": "20.2%"
         },
         {
           "Top 10 TE DK pOWN%": "Travis Kelce",
           "Team": "KC",
-          "DK pOWN%": "15.2%"
+          "DK pOWN%": "14.7%"
         },
         {
           "Top 10 TE DK pOWN%": "Harold Fannin Jr.",
           "Team": "CLE",
-          "DK pOWN%": "10.6%"
-        },
-        {
-          "Top 10 TE DK pOWN%": "Brenton Strange",
-          "Team": "JAX",
-          "DK pOWN%": "10.0%"
-        },
-        {
-          "Top 10 TE DK pOWN%": "Mike Gesicki",
-          "Team": "CIN",
-          "DK pOWN%": "9.0%"
-        },
-        {
-          "Top 10 TE DK pOWN%": "Dalton Kincaid",
-          "Team": "BUF",
-          "DK pOWN%": "7.8%"
-        },
-        {
-          "Top 10 TE DK pOWN%": "Dallas Goedert",
-          "Team": "PHI",
-          "DK pOWN%": "7.2%"
+          "DK pOWN%": "10.8%"
         },
         {
           "Top 10 TE DK pOWN%": "Sam LaPorta",
           "Team": "DET",
-          "DK pOWN%": "7.0%"
+          "DK pOWN%": "8.8%"
         },
         {
-          "Top 10 TE DK pOWN%": "Mason Taylor",
-          "Team": "NYJ",
-          "DK pOWN%": "5.6%"
+          "Top 10 TE DK pOWN%": "Brenton Strange",
+          "Team": "JAX",
+          "DK pOWN%": "8.6%"
         },
         {
-          "Top 10 TE DK pOWN%": "David Njoku",
-          "Team": "CLE",
-          "DK pOWN%": "4.9%"
+          "Top 10 TE DK pOWN%": "Dallas Goedert",
+          "Team": "PHI",
+          "DK pOWN%": "8.1%"
+        },
+        {
+          "Top 10 TE DK pOWN%": "Dalton Kincaid",
+          "Team": "BUF",
+          "DK pOWN%": "6.4%"
+        },
+        {
+          "Top 10 TE DK pOWN%": "Jake Ferguson",
+          "Team": "DAL",
+          "DK pOWN%": "6.1%"
+        },
+        {
+          "Top 10 TE DK pOWN%": "Evan Engram",
+          "Team": "DEN",
+          "DK pOWN%": "6.0%"
+        },
+        {
+          "Top 10 TE DK pOWN%": "Mike Gesicki",
+          "Team": "CIN",
+          "DK pOWN%": "5.5%"
         }
       ]
     },
@@ -3123,52 +3123,52 @@
         {
           "Top 10 TE FD pOWN%": "Trey McBride",
           "Team": "ARI",
-          "FD pOWN%": "20.0%"
+          "FD pOWN%": "25.6%"
         },
         {
           "Top 10 TE FD pOWN%": "Travis Kelce",
           "Team": "KC",
-          "FD pOWN%": "17.7%"
+          "FD pOWN%": "16.2%"
         },
         {
           "Top 10 TE FD pOWN%": "Sam LaPorta",
           "Team": "DET",
-          "FD pOWN%": "11.1%"
-        },
-        {
-          "Top 10 TE FD pOWN%": "Mike Gesicki",
-          "Team": "CIN",
-          "FD pOWN%": "9.0%"
+          "FD pOWN%": "12.7%"
         },
         {
           "Top 10 TE FD pOWN%": "Brenton Strange",
           "Team": "JAX",
-          "FD pOWN%": "8.5%"
-        },
-        {
-          "Top 10 TE FD pOWN%": "Mark Andrews",
-          "Team": "BAL",
-          "FD pOWN%": "6.8%"
-        },
-        {
-          "Top 10 TE FD pOWN%": "Dalton Kincaid",
-          "Team": "BUF",
-          "FD pOWN%": "6.4%"
+          "FD pOWN%": "7.2%"
         },
         {
           "Top 10 TE FD pOWN%": "Evan Engram",
           "Team": "DEN",
-          "FD pOWN%": "5.6%"
+          "FD pOWN%": "7.2%"
         },
         {
-          "Top 10 TE FD pOWN%": "Darren Waller",
-          "Team": "MIA",
-          "FD pOWN%": "5.1%"
+          "Top 10 TE FD pOWN%": "Mark Andrews",
+          "Team": "BAL",
+          "FD pOWN%": "6.6%"
+        },
+        {
+          "Top 10 TE FD pOWN%": "Mike Gesicki",
+          "Team": "CIN",
+          "FD pOWN%": "5.9%"
+        },
+        {
+          "Top 10 TE FD pOWN%": "Dalton Kincaid",
+          "Team": "BUF",
+          "FD pOWN%": "5.6%"
         },
         {
           "Top 10 TE FD pOWN%": "Dallas Goedert",
           "Team": "PHI",
-          "FD pOWN%": "5.0%"
+          "FD pOWN%": "5.4%"
+        },
+        {
+          "Top 10 TE FD pOWN%": "Jake Ferguson",
+          "Team": "DAL",
+          "FD pOWN%": "5.3%"
         }
       ]
     },
@@ -3184,7 +3184,12 @@
         {
           "Top 10 TE DK Val": "Harold Fannin Jr.",
           "Team": "CLE",
-          "DK Val": "2.9"
+          "DK Val": "3"
+        },
+        {
+          "Top 10 TE DK Val": "Trey McBride",
+          "Team": "ARI",
+          "DK Val": "2.7"
         },
         {
           "Top 10 TE DK Val": "Travis Kelce",
@@ -3197,38 +3202,33 @@
           "DK Val": "2.5"
         },
         {
-          "Top 10 TE DK Val": "Trey McBride",
-          "Team": "ARI",
+          "Top 10 TE DK Val": "Dallas Goedert",
+          "Team": "PHI",
           "DK Val": "2.5"
+        },
+        {
+          "Top 10 TE DK Val": "Evan Engram",
+          "Team": "DEN",
+          "DK Val": "2.4"
         },
         {
           "Top 10 TE DK Val": "Mason Taylor",
           "Team": "NYJ",
-          "DK Val": "2.5"
-        },
-        {
-          "Top 10 TE DK Val": "Chig Okonkwo",
-          "Team": "TEN",
-          "DK Val": "2.5"
-        },
-        {
-          "Top 10 TE DK Val": "Mike Gesicki",
-          "Team": "CIN",
           "DK Val": "2.4"
         },
         {
-          "Top 10 TE DK Val": "Dalton Kincaid",
-          "Team": "BUF",
-          "DK Val": "2.4"
-        },
-        {
-          "Top 10 TE DK Val": "Dallas Goedert",
-          "Team": "PHI",
+          "Top 10 TE DK Val": "Jake Ferguson",
+          "Team": "DAL",
           "DK Val": "2.4"
         },
         {
           "Top 10 TE DK Val": "David Njoku",
           "Team": "CLE",
+          "DK Val": "2.4"
+        },
+        {
+          "Top 10 TE DK Val": "Chig Okonkwo",
+          "Team": "TEN",
           "DK Val": "2.4"
         }
       ]
@@ -3243,14 +3243,29 @@
       ],
       "rows": [
         {
+          "Top 10 TE FD Val": "Trey McBride",
+          "Team": "ARI",
+          "FD Val": "1.8"
+        },
+        {
           "Top 10 TE FD Val": "Travis Kelce",
           "Team": "KC",
           "FD Val": "1.7"
         },
         {
-          "Top 10 TE FD Val": "Trey McBride",
-          "Team": "ARI",
-          "FD Val": "1.7"
+          "Top 10 TE FD Val": "Evan Engram",
+          "Team": "DEN",
+          "FD Val": "1.6"
+        },
+        {
+          "Top 10 TE FD Val": "Sam LaPorta",
+          "Team": "DET",
+          "FD Val": "1.5"
+        },
+        {
+          "Top 10 TE FD Val": "Harold Fannin Jr.",
+          "Team": "CLE",
+          "FD Val": "1.5"
         },
         {
           "Top 10 TE FD Val": "David Njoku",
@@ -3258,23 +3273,8 @@
           "FD Val": "1.5"
         },
         {
-          "Top 10 TE FD Val": "Evan Engram",
-          "Team": "DEN",
-          "FD Val": "1.4"
-        },
-        {
-          "Top 10 TE FD Val": "Sam LaPorta",
-          "Team": "DET",
-          "FD Val": "1.4"
-        },
-        {
-          "Top 10 TE FD Val": "Harold Fannin Jr.",
-          "Team": "CLE",
-          "FD Val": "1.4"
-        },
-        {
-          "Top 10 TE FD Val": "Brenton Strange",
-          "Team": "JAX",
+          "Top 10 TE FD Val": "Hunter Henry",
+          "Team": "NE",
           "FD Val": "1.4"
         },
         {
@@ -3283,8 +3283,8 @@
           "FD Val": "1.4"
         },
         {
-          "Top 10 TE FD Val": "Mike Gesicki",
-          "Team": "CIN",
+          "Top 10 TE FD Val": "Brenton Strange",
+          "Team": "JAX",
           "FD Val": "1.4"
         },
         {
@@ -3304,54 +3304,54 @@
       ],
       "rows": [
         {
+          "Top 10 TE DK Opt%": "Trey McBride",
+          "Team": "ARI",
+          "DK Opt%": "20.8%"
+        },
+        {
           "Top 10 TE DK Opt%": "Harold Fannin Jr.",
           "Team": "CLE",
-          "DK Opt%": "18.2%"
+          "DK Opt%": "19.9%"
         },
         {
           "Top 10 TE DK Opt%": "Travis Kelce",
           "Team": "KC",
-          "DK Opt%": "15.5%"
-        },
-        {
-          "Top 10 TE DK Opt%": "Trey McBride",
-          "Team": "ARI",
-          "DK Opt%": "12.2%"
-        },
-        {
-          "Top 10 TE DK Opt%": "Brenton Strange",
-          "Team": "JAX",
-          "DK Opt%": "8.5%"
-        },
-        {
-          "Top 10 TE DK Opt%": "Chig Okonkwo",
-          "Team": "TEN",
-          "DK Opt%": "6.7%"
+          "DK Opt%": "17.4%"
         },
         {
           "Top 10 TE DK Opt%": "David Njoku",
           "Team": "CLE",
-          "DK Opt%": "6.6%"
-        },
-        {
-          "Top 10 TE DK Opt%": "Dalton Kincaid",
-          "Team": "BUF",
-          "DK Opt%": "5.8%"
-        },
-        {
-          "Top 10 TE DK Opt%": "Mason Taylor",
-          "Team": "NYJ",
-          "DK Opt%": "5.7%"
-        },
-        {
-          "Top 10 TE DK Opt%": "Mike Gesicki",
-          "Team": "CIN",
-          "DK Opt%": "5.2%"
+          "DK Opt%": "7.5%"
         },
         {
           "Top 10 TE DK Opt%": "Dallas Goedert",
           "Team": "PHI",
-          "DK Opt%": "4.3%"
+          "DK Opt%": "6.8%"
+        },
+        {
+          "Top 10 TE DK Opt%": "Sam LaPorta",
+          "Team": "DET",
+          "DK Opt%": "6%"
+        },
+        {
+          "Top 10 TE DK Opt%": "Brenton Strange",
+          "Team": "JAX",
+          "DK Opt%": "5.9%"
+        },
+        {
+          "Top 10 TE DK Opt%": "Evan Engram",
+          "Team": "DEN",
+          "DK Opt%": "5.2%"
+        },
+        {
+          "Top 10 TE DK Opt%": "Jake Ferguson",
+          "Team": "DAL",
+          "DK Opt%": "4.5%"
+        },
+        {
+          "Top 10 TE DK Opt%": "Pat Freiermuth",
+          "Team": "PIT",
+          "DK Opt%": "3.6%"
         }
       ]
     },
@@ -3365,54 +3365,54 @@
       ],
       "rows": [
         {
-          "Top 10 TE FD Opt%": "Travis Kelce",
-          "Team": "KC",
-          "FD Opt%": "21.2%"
-        },
-        {
           "Top 10 TE FD Opt%": "Trey McBride",
           "Team": "ARI",
-          "FD Opt%": "18.2%"
+          "FD Opt%": "25.5%"
         },
         {
-          "Top 10 TE FD Opt%": "David Njoku",
-          "Team": "CLE",
-          "FD Opt%": "7.8%"
+          "Top 10 TE FD Opt%": "Travis Kelce",
+          "Team": "KC",
+          "FD Opt%": "17.6%"
         },
         {
           "Top 10 TE FD Opt%": "Evan Engram",
           "Team": "DEN",
-          "FD Opt%": "6.1%"
-        },
-        {
-          "Top 10 TE FD Opt%": "Darren Waller",
-          "Team": "MIA",
-          "FD Opt%": "5.6%"
-        },
-        {
-          "Top 10 TE FD Opt%": "Brenton Strange",
-          "Team": "JAX",
-          "FD Opt%": "5.5%"
-        },
-        {
-          "Top 10 TE FD Opt%": "Harold Fannin Jr.",
-          "Team": "CLE",
-          "FD Opt%": "5.3%"
-        },
-        {
-          "Top 10 TE FD Opt%": "Tyler Warren",
-          "Team": "IND",
-          "FD Opt%": "5.2%"
+          "FD Opt%": "10.4%"
         },
         {
           "Top 10 TE FD Opt%": "Sam LaPorta",
           "Team": "DET",
-          "FD Opt%": "5%"
+          "FD Opt%": "7.6%"
         },
         {
-          "Top 10 TE FD Opt%": "Mike Gesicki",
-          "Team": "CIN",
-          "FD Opt%": "4.5%"
+          "Top 10 TE FD Opt%": "David Njoku",
+          "Team": "CLE",
+          "FD Opt%": "5.7%"
+        },
+        {
+          "Top 10 TE FD Opt%": "Harold Fannin Jr.",
+          "Team": "CLE",
+          "FD Opt%": "3.9%"
+        },
+        {
+          "Top 10 TE FD Opt%": "Tyler Warren",
+          "Team": "IND",
+          "FD Opt%": "3.5%"
+        },
+        {
+          "Top 10 TE FD Opt%": "Brenton Strange",
+          "Team": "JAX",
+          "FD Opt%": "3.4%"
+        },
+        {
+          "Top 10 TE FD Opt%": "Darren Waller",
+          "Team": "MIA",
+          "FD Opt%": "3.4%"
+        },
+        {
+          "Top 10 TE FD Opt%": "Hunter Henry",
+          "Team": "NE",
+          "FD Opt%": "3.3%"
         }
       ]
     },
@@ -3428,52 +3428,52 @@
         {
           "Top 10 TE DK Lev%": "Harold Fannin Jr.",
           "Team": "CLE",
-          "DK Lev%": "7.6%"
-        },
-        {
-          "Top 10 TE DK Lev%": "Chig Okonkwo",
-          "Team": "TEN",
-          "DK Lev%": "2.3%"
+          "DK Lev%": "9.1%"
         },
         {
           "Top 10 TE DK Lev%": "David Njoku",
           "Team": "CLE",
-          "DK Lev%": "1.7%"
+          "DK Lev%": "2.9%"
         },
         {
           "Top 10 TE DK Lev%": "Travis Kelce",
           "Team": "KC",
-          "DK Lev%": "0.3%"
+          "DK Lev%": "2.7%"
         },
         {
-          "Top 10 TE DK Lev%": "Mason Taylor",
-          "Team": "NYJ",
-          "DK Lev%": "0.1%"
-        },
-        {
-          "Top 10 TE DK Lev%": "Austin Hooper",
-          "Team": "NE",
-          "DK Lev%": "-0.4%"
+          "Top 10 TE DK Lev%": "Trey McBride",
+          "Team": "ARI",
+          "DK Lev%": "0.6%"
         },
         {
           "Top 10 TE DK Lev%": "Pat Freiermuth",
           "Team": "PIT",
-          "DK Lev%": "-0.5%"
-        },
-        {
-          "Top 10 TE DK Lev%": "Evan Engram",
-          "Team": "DEN",
-          "DK Lev%": "-0.5%"
+          "DK Lev%": "0.3%"
         },
         {
           "Top 10 TE DK Lev%": "AJ Barner",
           "Team": "SEA",
-          "DK Lev%": "-0.6%"
+          "DK Lev%": "0.0%"
+        },
+        {
+          "Top 10 TE DK Lev%": "Chig Okonkwo",
+          "Team": "TEN",
+          "DK Lev%": "-0.1%"
+        },
+        {
+          "Top 10 TE DK Lev%": "Tommy Tremble",
+          "Team": "CAR",
+          "DK Lev%": "-0.3%"
         },
         {
           "Top 10 TE DK Lev%": "Ja'Tavion Sanders",
           "Team": "CAR",
-          "DK Lev%": "-0.8%"
+          "DK Lev%": "-0.4%"
+        },
+        {
+          "Top 10 TE DK Lev%": "Drew Sample",
+          "Team": "CIN",
+          "DK Lev%": "-0.7%"
         }
       ]
     },
@@ -3487,54 +3487,54 @@
       ],
       "rows": [
         {
+          "Top 10 TE FD Lev%": "Evan Engram",
+          "Team": "DEN",
+          "FD Lev%": "3.2%"
+        },
+        {
           "Top 10 TE FD Lev%": "Travis Kelce",
           "Team": "KC",
-          "FD Lev%": "3.5%"
+          "FD Lev%": "1.4%"
         },
         {
           "Top 10 TE FD Lev%": "David Njoku",
           "Team": "CLE",
-          "FD Lev%": "2.8%"
+          "FD Lev%": "1.2%"
+        },
+        {
+          "Top 10 TE FD Lev%": "Trey McBride",
+          "Team": "ARI",
+          "FD Lev%": "-0.1%"
         },
         {
           "Top 10 TE FD Lev%": "Harold Fannin Jr.",
           "Team": "CLE",
-          "FD Lev%": "1.2%"
+          "FD Lev%": "-0.2%"
         },
         {
-          "Top 10 TE FD Lev%": "Evan Engram",
-          "Team": "DEN",
-          "FD Lev%": "0.5%"
+          "Top 10 TE FD Lev%": "Pat Freiermuth",
+          "Team": "PIT",
+          "FD Lev%": "-0.4%"
         },
         {
-          "Top 10 TE FD Lev%": "Darren Waller",
-          "Team": "MIA",
-          "FD Lev%": "0.5%"
-        },
-        {
-          "Top 10 TE FD Lev%": "Tyler Warren",
-          "Team": "IND",
-          "FD Lev%": "0.5%"
+          "Top 10 TE FD Lev%": "Tommy Tremble",
+          "Team": "CAR",
+          "FD Lev%": "-0.4%"
         },
         {
           "Top 10 TE FD Lev%": "Chig Okonkwo",
           "Team": "TEN",
-          "FD Lev%": "0.0%"
-        },
-        {
-          "Top 10 TE FD Lev%": "AJ Barner",
-          "Team": "SEA",
           "FD Lev%": "-0.6%"
         },
         {
-          "Top 10 TE FD Lev%": "Austin Hooper",
-          "Team": "NE",
+          "Top 10 TE FD Lev%": "Juwan Johnson",
+          "Team": "NO",
           "FD Lev%": "-0.7%"
         },
         {
-          "Top 10 TE FD Lev%": "Ja'Tavion Sanders",
-          "Team": "CAR",
-          "FD Lev%": "-1.1%"
+          "Top 10 TE FD Lev%": "Darren Waller",
+          "Team": "MIA",
+          "FD Lev%": "-0.7%"
         }
       ]
     },
@@ -3550,52 +3550,52 @@
         {
           "Top 10 TE DK Rtg": "Trey McBride",
           "Team": "ARI",
-          "DK Rtg": "83.7"
+          "DK Rtg": "84.2"
         },
         {
           "Top 10 TE DK Rtg": "Brenton Strange",
           "Team": "JAX",
-          "DK Rtg": "78"
-        },
-        {
-          "Top 10 TE DK Rtg": "Mike Gesicki",
-          "Team": "CIN",
-          "DK Rtg": "76.5"
+          "DK Rtg": "75"
         },
         {
           "Top 10 TE DK Rtg": "Sam LaPorta",
           "Team": "DET",
-          "DK Rtg": "74.8"
-        },
-        {
-          "Top 10 TE DK Rtg": "Travis Kelce",
-          "Team": "KC",
-          "DK Rtg": "73.1"
+          "DK Rtg": "74.3"
         },
         {
           "Top 10 TE DK Rtg": "Dallas Goedert",
           "Team": "PHI",
-          "DK Rtg": "72.8"
+          "DK Rtg": "72.2"
         },
         {
-          "Top 10 TE DK Rtg": "Dalton Kincaid",
-          "Team": "BUF",
-          "DK Rtg": "71.1"
+          "Top 10 TE DK Rtg": "Mike Gesicki",
+          "Team": "CIN",
+          "DK Rtg": "71"
+        },
+        {
+          "Top 10 TE DK Rtg": "Travis Kelce",
+          "Team": "KC",
+          "DK Rtg": "70.8"
         },
         {
           "Top 10 TE DK Rtg": "Mark Andrews",
           "Team": "BAL",
-          "DK Rtg": "70.4"
+          "DK Rtg": "68"
+        },
+        {
+          "Top 10 TE DK Rtg": "Dalton Kincaid",
+          "Team": "BUF",
+          "DK Rtg": "67.7"
         },
         {
           "Top 10 TE DK Rtg": "Evan Engram",
           "Team": "DEN",
-          "DK Rtg": "64.2"
+          "DK Rtg": "65"
         },
         {
-          "Top 10 TE DK Rtg": "Harold Fannin Jr.",
-          "Team": "CLE",
-          "DK Rtg": "62.3"
+          "Top 10 TE DK Rtg": "Jake Ferguson",
+          "Team": "DAL",
+          "DK Rtg": "61.9"
         }
       ]
     },
@@ -3611,52 +3611,52 @@
         {
           "Top 10 TE FD Rtg": "Trey McBride",
           "Team": "ARI",
-          "FD Rtg": "88.1"
+          "FD Rtg": "88"
         },
         {
           "Top 10 TE FD Rtg": "Sam LaPorta",
           "Team": "DET",
-          "FD Rtg": "79.2"
+          "FD Rtg": "77.5"
         },
         {
           "Top 10 TE FD Rtg": "Travis Kelce",
           "Team": "KC",
-          "FD Rtg": "77.1"
+          "FD Rtg": "72.8"
         },
         {
           "Top 10 TE FD Rtg": "Brenton Strange",
           "Team": "JAX",
-          "FD Rtg": "76.6"
-        },
-        {
-          "Top 10 TE FD Rtg": "Mike Gesicki",
-          "Team": "CIN",
-          "FD Rtg": "76.3"
+          "FD Rtg": "72.3"
         },
         {
           "Top 10 TE FD Rtg": "Mark Andrews",
           "Team": "BAL",
-          "FD Rtg": "74.2"
+          "FD Rtg": "71.6"
+        },
+        {
+          "Top 10 TE FD Rtg": "Mike Gesicki",
+          "Team": "CIN",
+          "FD Rtg": "69.5"
         },
         {
           "Top 10 TE FD Rtg": "Dallas Goedert",
           "Team": "PHI",
-          "FD Rtg": "69"
-        },
-        {
-          "Top 10 TE FD Rtg": "Dalton Kincaid",
-          "Team": "BUF",
-          "FD Rtg": "68.9"
+          "FD Rtg": "67.5"
         },
         {
           "Top 10 TE FD Rtg": "Evan Engram",
           "Team": "DEN",
-          "FD Rtg": "66.7"
+          "FD Rtg": "67.3"
         },
         {
-          "Top 10 TE FD Rtg": "Darren Waller",
-          "Team": "MIA",
-          "FD Rtg": "62.8"
+          "Top 10 TE FD Rtg": "Dalton Kincaid",
+          "Team": "BUF",
+          "FD Rtg": "64.9"
+        },
+        {
+          "Top 10 TE FD Rtg": "Jake Ferguson",
+          "Team": "DAL",
+          "FD Rtg": "60"
         }
       ]
     },
@@ -3685,11 +3685,6 @@
           "DK Proj": "7.2"
         },
         {
-          "Top 10 DST DK Proj": "Cowboys",
-          "Team": "DAL",
-          "DK Proj": "6.8"
-        },
-        {
           "Top 10 DST DK Proj": "Lions",
           "Team": "DET",
           "DK Proj": "6.7"
@@ -3697,17 +3692,17 @@
         {
           "Top 10 DST DK Proj": "Dolphins",
           "Team": "MIA",
-          "DK Proj": "6.3"
+          "DK Proj": "6.6"
+        },
+        {
+          "Top 10 DST DK Proj": "Cowboys",
+          "Team": "DAL",
+          "DK Proj": "6.5"
         },
         {
           "Top 10 DST DK Proj": "Broncos",
           "Team": "DEN",
-          "DK Proj": "6.2"
-        },
-        {
-          "Top 10 DST DK Proj": "49ers",
-          "Team": "SF",
-          "DK Proj": "6"
+          "DK Proj": "6.1"
         },
         {
           "Top 10 DST DK Proj": "Cardinals",
@@ -3715,9 +3710,14 @@
           "DK Proj": "5.9"
         },
         {
-          "Top 10 DST DK Proj": "Bills",
-          "Team": "BUF",
-          "DK Proj": "5.8"
+          "Top 10 DST DK Proj": "Saints",
+          "Team": "NO",
+          "DK Proj": "5.7"
+        },
+        {
+          "Top 10 DST DK Proj": "49ers",
+          "Team": "SF",
+          "DK Proj": "5.6"
         }
       ]
     },
@@ -3746,11 +3746,6 @@
           "FD Proj": "7.2"
         },
         {
-          "Top 10 DST FD Proj": "Cowboys",
-          "Team": "DAL",
-          "FD Proj": "6.8"
-        },
-        {
           "Top 10 DST FD Proj": "Lions",
           "Team": "DET",
           "FD Proj": "6.7"
@@ -3758,17 +3753,17 @@
         {
           "Top 10 DST FD Proj": "Dolphins",
           "Team": "MIA",
-          "FD Proj": "6.3"
+          "FD Proj": "6.6"
+        },
+        {
+          "Top 10 DST FD Proj": "Cowboys",
+          "Team": "DAL",
+          "FD Proj": "6.5"
         },
         {
           "Top 10 DST FD Proj": "Broncos",
           "Team": "DEN",
-          "FD Proj": "6.2"
-        },
-        {
-          "Top 10 DST FD Proj": "49ers",
-          "Team": "SF",
-          "FD Proj": "6"
+          "FD Proj": "6.1"
         },
         {
           "Top 10 DST FD Proj": "Cardinals",
@@ -3776,9 +3771,14 @@
           "FD Proj": "5.9"
         },
         {
-          "Top 10 DST FD Proj": "Bills",
-          "Team": "BUF",
-          "FD Proj": "5.8"
+          "Top 10 DST FD Proj": "Saints",
+          "Team": "NO",
+          "FD Proj": "5.7"
+        },
+        {
+          "Top 10 DST FD Proj": "49ers",
+          "Team": "SF",
+          "FD Proj": "5.6"
         }
       ]
     },
@@ -3807,19 +3807,19 @@
           "DK pOWN%": "7.0%"
         },
         {
-          "Top 10 DST DK pOWN%": "Cowboys",
-          "Team": "DAL",
-          "DK pOWN%": "6.2%"
-        },
-        {
           "Top 10 DST DK pOWN%": "Dolphins",
           "Team": "MIA",
-          "DK pOWN%": "4.8%"
+          "DK pOWN%": "6.2%"
         },
         {
           "Top 10 DST DK pOWN%": "Saints",
           "Team": "NO",
-          "DK pOWN%": "4.7%"
+          "DK pOWN%": "5.4%"
+        },
+        {
+          "Top 10 DST DK pOWN%": "Cowboys",
+          "Team": "DAL",
+          "DK pOWN%": "4.8%"
         },
         {
           "Top 10 DST DK pOWN%": "Lions",
@@ -3837,9 +3837,9 @@
           "DK pOWN%": "2.8%"
         },
         {
-          "Top 10 DST DK pOWN%": "Jaguars",
-          "Team": "JAX",
-          "DK pOWN%": "2.7%"
+          "Top 10 DST DK pOWN%": "Patriots",
+          "Team": "NE",
+          "DK pOWN%": "2.5%"
         }
       ]
     },
@@ -3855,32 +3855,32 @@
         {
           "Top 10 DST FD pOWN%": "Ravens",
           "Team": "BAL",
-          "FD pOWN%": "24.2%"
+          "FD pOWN%": "24.5%"
         },
         {
           "Top 10 DST FD pOWN%": "Rams",
           "Team": "LAR",
-          "FD pOWN%": "13.8%"
+          "FD pOWN%": "13.9%"
         },
         {
           "Top 10 DST FD pOWN%": "Cowboys",
           "Team": "DAL",
-          "FD pOWN%": "12.5%"
+          "FD pOWN%": "9.8%"
         },
         {
           "Top 10 DST FD pOWN%": "Saints",
           "Team": "NO",
-          "FD pOWN%": "6.9%"
-        },
-        {
-          "Top 10 DST FD pOWN%": "Lions",
-          "Team": "DET",
-          "FD pOWN%": "6.6%"
+          "FD pOWN%": "8.1%"
         },
         {
           "Top 10 DST FD pOWN%": "Dolphins",
           "Team": "MIA",
-          "FD pOWN%": "6.2%"
+          "FD pOWN%": "8.1%"
+        },
+        {
+          "Top 10 DST FD pOWN%": "Lions",
+          "Team": "DET",
+          "FD pOWN%": "6.7%"
         },
         {
           "Top 10 DST FD pOWN%": "Giants",
@@ -3888,19 +3888,19 @@
           "FD pOWN%": "4.5%"
         },
         {
-          "Top 10 DST FD pOWN%": "Jaguars",
-          "Team": "JAX",
-          "FD pOWN%": "4.2%"
-        },
-        {
           "Top 10 DST FD pOWN%": "Steelers",
           "Team": "PIT",
-          "FD pOWN%": "3.9%"
+          "FD pOWN%": "4.0%"
         },
         {
           "Top 10 DST FD pOWN%": "Seahawks",
           "Team": "SEA",
           "FD pOWN%": "3.9%"
+        },
+        {
+          "Top 10 DST FD pOWN%": "Jaguars",
+          "Team": "JAX",
+          "FD pOWN%": "3.7%"
         }
       ]
     },
@@ -3929,18 +3929,18 @@
           "DK Val": "2.3"
         },
         {
-          "Top 10 DST DK Val": "Cowboys",
-          "Team": "DAL",
-          "DK Val": "2.3"
-        },
-        {
           "Top 10 DST DK Val": "Saints",
           "Team": "NO",
-          "DK Val": "2.2"
+          "DK Val": "2.3"
         },
         {
           "Top 10 DST DK Val": "Dolphins",
           "Team": "MIA",
+          "DK Val": "2.3"
+        },
+        {
+          "Top 10 DST DK Val": "Cowboys",
+          "Team": "DAL",
           "DK Val": "2.2"
         },
         {
@@ -3959,8 +3959,8 @@
           "DK Val": "2"
         },
         {
-          "Top 10 DST DK Val": "Jaguars",
-          "Team": "JAX",
+          "Top 10 DST DK Val": "Patriots",
+          "Team": "NE",
           "DK Val": "2"
         }
       ]
@@ -3980,13 +3980,13 @@
           "FD Val": "2.1"
         },
         {
-          "Top 10 DST FD Val": "Cowboys",
-          "Team": "DAL",
-          "FD Val": "2"
-        },
-        {
           "Top 10 DST FD Val": "Rams",
           "Team": "LAR",
+          "FD Val": "1.9"
+        },
+        {
+          "Top 10 DST FD Val": "Cowboys",
+          "Team": "DAL",
           "FD Val": "1.9"
         },
         {
@@ -3995,23 +3995,23 @@
           "FD Val": "1.9"
         },
         {
-          "Top 10 DST FD Val": "Lions",
-          "Team": "DET",
-          "FD Val": "1.8"
-        },
-        {
           "Top 10 DST FD Val": "Dolphins",
           "Team": "MIA",
           "FD Val": "1.8"
         },
         {
-          "Top 10 DST FD Val": "Jaguars",
-          "Team": "JAX",
-          "FD Val": "1.7"
+          "Top 10 DST FD Val": "Lions",
+          "Team": "DET",
+          "FD Val": "1.8"
         },
         {
           "Top 10 DST FD Val": "Giants",
           "Team": "NYG",
+          "FD Val": "1.7"
+        },
+        {
+          "Top 10 DST FD Val": "Jaguars",
+          "Team": "JAX",
           "FD Val": "1.7"
         },
         {
@@ -4038,51 +4038,51 @@
         {
           "Top 10 DST DK Opt%": "Rams",
           "Team": "LAR",
-          "DK Opt%": "30%"
+          "DK Opt%": "29.6%"
         },
         {
           "Top 10 DST DK Opt%": "Ravens",
           "Team": "BAL",
-          "DK Opt%": "28.5%"
-        },
-        {
-          "Top 10 DST DK Opt%": "Cowboys",
-          "Team": "DAL",
-          "DK Opt%": "6.7%"
+          "DK Opt%": "28.4%"
         },
         {
           "Top 10 DST DK Opt%": "Steelers",
           "Team": "PIT",
-          "DK Opt%": "6.7%"
-        },
-        {
-          "Top 10 DST DK Opt%": "Saints",
-          "Team": "NO",
-          "DK Opt%": "6.3%"
+          "DK Opt%": "8.1%"
         },
         {
           "Top 10 DST DK Opt%": "Dolphins",
           "Team": "MIA",
-          "DK Opt%": "3.9%"
+          "DK Opt%": "6.6%"
         },
         {
-          "Top 10 DST DK Opt%": "Giants",
-          "Team": "NYG",
-          "DK Opt%": "3.8%"
+          "Top 10 DST DK Opt%": "Saints",
+          "Team": "NO",
+          "DK Opt%": "5.6%"
+        },
+        {
+          "Top 10 DST DK Opt%": "Cowboys",
+          "Team": "DAL",
+          "DK Opt%": "4.8%"
         },
         {
           "Top 10 DST DK Opt%": "Lions",
           "Team": "DET",
-          "DK Opt%": "3.4%"
+          "DK Opt%": "3.6%"
         },
         {
-          "Top 10 DST DK Opt%": "Jaguars",
-          "Team": "JAX",
-          "DK Opt%": "2.3%"
+          "Top 10 DST DK Opt%": "Giants",
+          "Team": "NYG",
+          "DK Opt%": "3.6%"
         },
         {
           "Top 10 DST DK Opt%": "Seahawks",
           "Team": "SEA",
+          "DK Opt%": "2.6%"
+        },
+        {
+          "Top 10 DST DK Opt%": "Jaguars",
+          "Team": "JAX",
           "DK Opt%": "2.3%"
         }
       ]
@@ -4099,52 +4099,52 @@
         {
           "Top 10 DST FD Opt%": "Ravens",
           "Team": "BAL",
-          "FD Opt%": "28.4%"
+          "FD Opt%": "25.4%"
         },
         {
           "Top 10 DST FD Opt%": "Rams",
           "Team": "LAR",
-          "FD Opt%": "14.7%"
+          "FD Opt%": "16.2%"
         },
         {
           "Top 10 DST FD Opt%": "Cowboys",
           "Team": "DAL",
-          "FD Opt%": "14.7%"
+          "FD Opt%": "11.9%"
         },
         {
           "Top 10 DST FD Opt%": "Saints",
           "Team": "NO",
-          "FD Opt%": "9.2%"
-        },
-        {
-          "Top 10 DST FD Opt%": "Dolphins",
-          "Team": "MIA",
-          "FD Opt%": "7.4%"
+          "FD Opt%": "10.5%"
         },
         {
           "Top 10 DST FD Opt%": "Lions",
           "Team": "DET",
-          "FD Opt%": "6%"
+          "FD Opt%": "8.1%"
+        },
+        {
+          "Top 10 DST FD Opt%": "Dolphins",
+          "Team": "MIA",
+          "FD Opt%": "7.9%"
         },
         {
           "Top 10 DST FD Opt%": "Jaguars",
           "Team": "JAX",
-          "FD Opt%": "4.9%"
+          "FD Opt%": "4.6%"
+        },
+        {
+          "Top 10 DST FD Opt%": "Seahawks",
+          "Team": "SEA",
+          "FD Opt%": "4.3%"
         },
         {
           "Top 10 DST FD Opt%": "Giants",
           "Team": "NYG",
-          "FD Opt%": "4.7%"
+          "FD Opt%": "3.9%"
         },
         {
           "Top 10 DST FD Opt%": "Steelers",
           "Team": "PIT",
-          "FD Opt%": "3.7%"
-        },
-        {
-          "Top 10 DST FD Opt%": "Cardinals",
-          "Team": "ARI",
-          "FD Opt%": "2.2%"
+          "FD Opt%": "2.7%"
         }
       ]
     },
@@ -4160,52 +4160,52 @@
         {
           "Top 10 DST DK Lev%": "Rams",
           "Team": "LAR",
-          "DK Lev%": "7.8%"
+          "DK Lev%": "7.4%"
         },
         {
           "Top 10 DST DK Lev%": "Ravens",
           "Team": "BAL",
-          "DK Lev%": "1.9%"
-        },
-        {
-          "Top 10 DST DK Lev%": "Saints",
-          "Team": "NO",
-          "DK Lev%": "1.6%"
-        },
-        {
-          "Top 10 DST DK Lev%": "Cowboys",
-          "Team": "DAL",
-          "DK Lev%": "0.5%"
-        },
-        {
-          "Top 10 DST DK Lev%": "Giants",
-          "Team": "NYG",
-          "DK Lev%": "-0.1%"
-        },
-        {
-          "Top 10 DST DK Lev%": "Panthers",
-          "Team": "CAR",
-          "DK Lev%": "-0.2%"
+          "DK Lev%": "1.8%"
         },
         {
           "Top 10 DST DK Lev%": "Steelers",
           "Team": "PIT",
-          "DK Lev%": "-0.3%"
+          "DK Lev%": "1.1%"
+        },
+        {
+          "Top 10 DST DK Lev%": "Dolphins",
+          "Team": "MIA",
+          "DK Lev%": "0.4%"
+        },
+        {
+          "Top 10 DST DK Lev%": "Saints",
+          "Team": "NO",
+          "DK Lev%": "0.2%"
         },
         {
           "Top 10 DST DK Lev%": "Jaguars",
           "Team": "JAX",
-          "DK Lev%": "-0.4%"
+          "DK Lev%": "-0.0%"
         },
         {
-          "Top 10 DST DK Lev%": "Bears",
-          "Team": "CHI",
-          "DK Lev%": "-0.4%"
+          "Top 10 DST DK Lev%": "Cowboys",
+          "Team": "DAL",
+          "DK Lev%": "-0.0%"
         },
         {
           "Top 10 DST DK Lev%": "Seahawks",
           "Team": "SEA",
-          "DK Lev%": "-0.5%"
+          "DK Lev%": "-0.2%"
+        },
+        {
+          "Top 10 DST DK Lev%": "Titans",
+          "Team": "TEN",
+          "DK Lev%": "-0.3%"
+        },
+        {
+          "Top 10 DST DK Lev%": "Giants",
+          "Team": "NYG",
+          "DK Lev%": "-0.3%"
         }
       ]
     },
@@ -4219,54 +4219,54 @@
       ],
       "rows": [
         {
-          "Top 10 DST FD Lev%": "Ravens",
-          "Team": "BAL",
-          "FD Lev%": "4.2%"
-        },
-        {
           "Top 10 DST FD Lev%": "Saints",
           "Team": "NO",
+          "FD Lev%": "2.4%"
+        },
+        {
+          "Top 10 DST FD Lev%": "Rams",
+          "Team": "LAR",
           "FD Lev%": "2.3%"
         },
         {
           "Top 10 DST FD Lev%": "Cowboys",
           "Team": "DAL",
-          "FD Lev%": "2.2%"
+          "FD Lev%": "2.1%"
         },
         {
-          "Top 10 DST FD Lev%": "Dolphins",
-          "Team": "MIA",
-          "FD Lev%": "1.2%"
-        },
-        {
-          "Top 10 DST FD Lev%": "Rams",
-          "Team": "LAR",
-          "FD Lev%": "0.9%"
+          "Top 10 DST FD Lev%": "Lions",
+          "Team": "DET",
+          "FD Lev%": "1.4%"
         },
         {
           "Top 10 DST FD Lev%": "Jaguars",
           "Team": "JAX",
-          "FD Lev%": "0.7%"
+          "FD Lev%": "0.9%"
         },
         {
-          "Top 10 DST FD Lev%": "Giants",
-          "Team": "NYG",
-          "FD Lev%": "0.2%"
+          "Top 10 DST FD Lev%": "Ravens",
+          "Team": "BAL",
+          "FD Lev%": "0.9%"
         },
         {
-          "Top 10 DST FD Lev%": "Steelers",
-          "Team": "PIT",
+          "Top 10 DST FD Lev%": "Seahawks",
+          "Team": "SEA",
+          "FD Lev%": "0.4%"
+        },
+        {
+          "Top 10 DST FD Lev%": "Dolphins",
+          "Team": "MIA",
           "FD Lev%": "-0.2%"
-        },
-        {
-          "Top 10 DST FD Lev%": "Colts",
-          "Team": "IND",
-          "FD Lev%": "-0.3%"
         },
         {
           "Top 10 DST FD Lev%": "Bears",
           "Team": "CHI",
-          "FD Lev%": "-0.3%"
+          "FD Lev%": "-0.5%"
+        },
+        {
+          "Top 10 DST FD Lev%": "Eagles",
+          "Team": "PHI",
+          "FD Lev%": "-0.5%"
         }
       ]
     },
@@ -4290,19 +4290,19 @@
           "DK Rtg": "74.1"
         },
         {
+          "Top 10 DST DK Rtg": "Dolphins",
+          "Team": "MIA",
+          "DK Rtg": "61.8"
+        },
+        {
           "Top 10 DST DK Rtg": "Cowboys",
           "Team": "DAL",
-          "DK Rtg": "64.1"
+          "DK Rtg": "61.4"
         },
         {
           "Top 10 DST DK Rtg": "Lions",
           "Team": "DET",
-          "DK Rtg": "61.5"
-        },
-        {
-          "Top 10 DST DK Rtg": "Dolphins",
-          "Team": "MIA",
-          "DK Rtg": "59.3"
+          "DK Rtg": "60.5"
         },
         {
           "Top 10 DST DK Rtg": "Steelers",
@@ -4312,22 +4312,22 @@
         {
           "Top 10 DST DK Rtg": "Giants",
           "Team": "NYG",
-          "DK Rtg": "55.6"
-        },
-        {
-          "Top 10 DST DK Rtg": "Jaguars",
-          "Team": "JAX",
-          "DK Rtg": "54.5"
+          "DK Rtg": "55.4"
         },
         {
           "Top 10 DST DK Rtg": "Bengals",
           "Team": "CIN",
-          "DK Rtg": "53.7"
+          "DK Rtg": "53.5"
+        },
+        {
+          "Top 10 DST DK Rtg": "Jaguars",
+          "Team": "JAX",
+          "DK Rtg": "53.2"
         },
         {
           "Top 10 DST DK Rtg": "Saints",
           "Team": "NO",
-          "DK Rtg": "52.4"
+          "DK Rtg": "52.6"
         }
       ]
     },
@@ -4346,39 +4346,39 @@
           "FD Rtg": "85"
         },
         {
-          "Top 10 DST FD Rtg": "Cowboys",
-          "Team": "DAL",
-          "FD Rtg": "72.6"
-        },
-        {
           "Top 10 DST FD Rtg": "Rams",
           "Team": "LAR",
           "FD Rtg": "70.5"
         },
         {
+          "Top 10 DST FD Rtg": "Cowboys",
+          "Team": "DAL",
+          "FD Rtg": "69.5"
+        },
+        {
           "Top 10 DST FD Rtg": "Lions",
           "Team": "DET",
-          "FD Rtg": "67.1"
+          "FD Rtg": "66"
         },
         {
           "Top 10 DST FD Rtg": "Dolphins",
           "Team": "MIA",
-          "FD Rtg": "63"
+          "FD Rtg": "65.7"
         },
         {
           "Top 10 DST FD Rtg": "Jaguars",
           "Team": "JAX",
-          "FD Rtg": "59.9"
-        },
-        {
-          "Top 10 DST FD Rtg": "Giants",
-          "Team": "NYG",
-          "FD Rtg": "58.3"
+          "FD Rtg": "58.4"
         },
         {
           "Top 10 DST FD Rtg": "Saints",
           "Team": "NO",
-          "FD Rtg": "57.9"
+          "FD Rtg": "58.2"
+        },
+        {
+          "Top 10 DST FD Rtg": "Giants",
+          "Team": "NYG",
+          "FD Rtg": "58.1"
         },
         {
           "Top 10 DST FD Rtg": "Cardinals",
@@ -4388,7 +4388,7 @@
         {
           "Top 10 DST FD Rtg": "Steelers",
           "Team": "PIT",
-          "FD Rtg": "52.3"
+          "FD Rtg": "52.2"
         }
       ]
     }
