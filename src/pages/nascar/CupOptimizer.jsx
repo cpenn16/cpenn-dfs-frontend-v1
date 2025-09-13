@@ -86,10 +86,18 @@ const normName = (s) =>
 // Build a name → { id, nameFromSite } index from site_ids json
 function buildSiteIdIndex(siteIdsList) {
   const idx = new Map();
-  for (const r of (siteIdsList || [])) {
+  for (const r of siteIdsList || []) {
     const id =
       String(
-        r.id ?? r.ID ?? r.playerId ?? r.player_id ?? r.fd_id ?? r.FD_ID ?? r.dk_id ?? r.DK_ID ?? ""
+        r.id ??
+          r.ID ??
+          r.playerId ??
+          r.player_id ??
+          r.fd_id ??
+          r.FD_ID ??
+          r.dk_id ??
+          r.DK_ID ??
+          ""
       ).trim();
 
     const nm0 = r.name ?? r.player ?? r.Player ?? r.displayName ?? r.Name;
@@ -104,7 +112,7 @@ function buildSiteIdIndex(siteIdsList) {
 // Try to discover FanDuel slate/group prefix
 function detectFdPrefix(siteIdsList) {
   const counts = new Map();
-  for (const r of (siteIdsList || [])) {
+  for (const r of siteIdsList || []) {
     const px =
       r.slateId ?? r.slate_id ?? r.groupId ?? r.group_id ?? r.lid ?? r.prefix ?? r.fd_prefix ?? null;
     if (px != null && px !== "") {
@@ -177,7 +185,6 @@ function useJson(url) {
 }
 
 /* ---------------------------- CSV export --------------------------- */
-/* (kept helpers; only the plain Export CSV button was removed per request) */
 function toPlainCSV(rows) {
   const header = ["#", "Salary", "Total", "Drivers"].join(",");
   const lines = rows.map((L, i) => {
@@ -196,7 +203,7 @@ function downloadPlainCSV(rows, fname = "lineups.csv") {
   URL.revokeObjectURL(url);
 }
 
-/** Export (IDs) with headers D (DK) or Driver (FD) — no extra columns. DK: "Name (id)"; FD: "prefix-id:Display Name" */
+/** Export (IDs) with headers D (DK) or Driver (FD) — DK: "Name (id)"; FD: "prefix-id:Display Name" */
 function downloadSiteLineupsCSV({
   lineups,
   site,
@@ -206,8 +213,6 @@ function downloadSiteLineupsCSV({
 }) {
   const siteKey = site === "fd" ? "fd" : "dk";
 
-  // Support both flat and nested shapes:
-  // { fd: [...] }  or  { sites: { fd: [...] } }
   const list = Array.isArray(siteIds?.[siteKey])
     ? siteIds[siteKey]
     : (siteIds?.sites?.[siteKey] ?? []);
@@ -215,23 +220,20 @@ function downloadSiteLineupsCSV({
   const idIndex = buildSiteIdIndex(list);
   const fdPrefix = siteKey === "fd" ? detectFdPrefix(list) : null;
 
-  // Header: DK wants "D", FD wants "Driver"
   const header = Array.from({ length: rosterSize }, () => (siteKey === "fd" ? "Driver" : "D")).join(",");
 
   const lines = (lineups || []).map((L) => {
     const names = Array.isArray(L.drivers) ? L.drivers : [];
     const cells = names.slice(0, rosterSize).map((name) => {
       const rec = idIndex.get(normName(name));
-      if (!rec) return escapeCSV(name); // fallback to raw name
+      if (!rec) return escapeCSV(name);
 
       if (siteKey === "fd") {
-        // FanDuel wants: "<prefix>-<id>:<Display Name>"
         const outId = fdPrefix ? `${fdPrefix}-${rec.id}` : rec.id;
         const display = rec.nameFromSite || name;
         return escapeCSV(`${outId}:${display}`);
       }
 
-      // DraftKings wants: "Name (id)"
       return escapeCSV(`${name} (${rec.id})`);
     });
 
@@ -294,7 +296,6 @@ async function fetchFirstOk(paths, init) {
 
 /* ----------------------------- server calls ----------------------------- */
 async function solveStream(payload, onItem, onDone) {
-  // Try the primary streaming endpoint first
   let res;
   try {
     res = await fetch(`${API_BASE}/cup/solve_stream`, {
@@ -306,7 +307,6 @@ async function solveStream(payload, onItem, onDone) {
     res = null;
   }
 
-  // If streaming couldn't start, fall back to batch immediately
   if (!res || !res.ok || !res.body) {
     const attempt = await fetchFirstOk([...CUP_POST_PATHS, "solve"], {
       method: "POST",
@@ -321,7 +321,6 @@ async function solveStream(payload, onItem, onDone) {
     return;
   }
 
-  // --- Read the streaming body (newline-delimited JSON, "\n\n" separated) ---
   const reader = res.body.getReader();
   const decoder = new TextDecoder("utf-8");
   let buf = "";
@@ -333,7 +332,7 @@ async function solveStream(payload, onItem, onDone) {
 
     buf += decoder.decode(value, { stream: true });
     const parts = buf.split("\n\n");
-    buf = parts.pop(); // keep partial
+    buf = parts.pop();
 
     for (const part of parts) {
       const trimmed = part.trim();
@@ -349,13 +348,10 @@ async function solveStream(payload, onItem, onDone) {
         } else {
           onItem && onItem(msg);
         }
-      } catch {
-        // ignore parse blips; keep reading
-      }
+      } catch {}
     }
   }
 
-  // If the stream ended without a {done:true}, use non-streaming fallback once
   if (!sawAny) {
     const attempt = await fetchFirstOk([...CUP_POST_PATHS, "solve"], {
       method: "POST",
@@ -371,7 +367,6 @@ async function solveStream(payload, onItem, onDone) {
     onDone && onDone({ produced: undefined, reason: "stream-ended-no-done" });
   }
 }
-
 
 /* --------- robust per-site build naming to avoid stale length ------- */
 function nextBuildNameForSite(site) {
@@ -411,7 +406,6 @@ function DriverMultiPicker({ allDrivers, value, onChange, placeholder = "Add dri
 
   return (
     <div className="w-full">
-      {/* chips + input */}
       <div className="flex flex-wrap items-center gap-2 border rounded-md px-2 py-1.5">
         {value.map((name) => (
           <span
@@ -443,7 +437,6 @@ function DriverMultiPicker({ allDrivers, value, onChange, placeholder = "Add dri
         />
       </div>
 
-      {/* suggestion popover */}
       {!!q && suggestions.length > 0 && (
         <div className="mt-1 max-h-48 overflow-auto bg-white border rounded-md shadow-sm">
           {suggestions.map((n) => (
@@ -461,14 +454,11 @@ function DriverMultiPicker({ allDrivers, value, onChange, placeholder = "Add dri
   );
 }
 
-
-
 /* ============================== page =============================== */
 export default function CupOptimizer() {
   const { data, err, loading } = useJson(SOURCE);
   const { data: siteIds } = useJson(SITE_IDS_SOURCE);
 
-  // last updated (prefer freshest between projections and site_ids)
   const projUpdated = useLastUpdated(SOURCE, projMetaUrl);
   const idsUpdated  = useLastUpdated(SITE_IDS_SOURCE, idsMetaUrl);
   const updatedAt = useMemo(() => {
@@ -487,24 +477,27 @@ export default function CupOptimizer() {
 
   const [q, setQ] = useState("");
 
-  const [locks, setLocks] = useState(() => new Set());
-  const [excls, setExcls] = useState(() => new Set());
-  const [minPct, setMinPct] = useState(() => ({}));
-  const [maxPct, setMaxPct] = useState(() => ({}));
-  const [boost, setBoost] = useState(() => ({}));
+  /* ---- PERSISTED constraints (per-site) ---- */
+  const buildsKey = (k) => `cupOpt.${site}.${k}`;
 
-  // NEW: player groups (persisted per site)
-  const [groups, setGroups] = useStickyState(`cupOpt.${site}.groups`, []);
+  // Locks/Excludes persisted as arrays; use Sets for quick lookup
+  const [locksArr, setLocksArr] = useStickyState(buildsKey("locks"), []);
+  const [exclsArr, setExclsArr] = useStickyState(buildsKey("excls"), []);
+  const locks = useMemo(() => new Set(Array.isArray(locksArr) ? locksArr : []), [locksArr]);
+  const excls = useMemo(() => new Set(Array.isArray(exclsArr) ? exclsArr : []), [exclsArr]);
+
+  const [minPct, setMinPct]   = useStickyState(buildsKey("minPct"), {});
+  const [maxPct, setMaxPct]   = useStickyState(buildsKey("maxPct"), {});
+  const [boost, setBoost]     = useStickyState(buildsKey("boost"), {});
+  const [groups, setGroups]   = useStickyState(buildsKey("groups"), []);
 
   // Per-site builds (so DK builds don't appear on FD)
-  const buildsKey = (k) => `cupOpt.${site}.${k}`;
   const [builds, setBuilds] = useStickyState(buildsKey("builds"), []);
   const [activeBuildId, setActiveBuildId] = useStickyState(buildsKey("active"), null);
 
   const [lineups, setLineups] = useState([]);
   const [stopInfo, setStopInfo] = useState(null);
 
-  // compute actual exposure from the latest generated lineups
   const usagePct = useMemo(() => {
     if (!lineups.length) return {};
     const m = new Map();
@@ -515,14 +508,12 @@ export default function CupOptimizer() {
     return out;
   }, [lineups]);
 
-  /* Live-progress display (UI ticks even if stream flushes late) */
-  const [progressActual, setProgressActual] = useState(0); // truth from SSE
-  const [progressUI, setProgressUI] = useState(0); // what we show
+  const [progressActual, setProgressActual] = useState(0);
+  const [progressUI, setProgressUI] = useState(0);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const tickRef = useRef(null);
 
   useEffect(() => {
-    // smooth UI ticks while optimizing
     if (!isOptimizing) return;
     clearInterval(tickRef.current);
     tickRef.current = setInterval(() => {
@@ -537,7 +528,7 @@ export default function CupOptimizer() {
     return () => clearInterval(tickRef.current);
   }, [isOptimizing, progressActual, numLineups]);
 
-  // reset visuals on site change
+  // reset visuals (NOT constraints) on site change
   useEffect(() => {
     setLineups([]);
     setStopInfo(null);
@@ -564,7 +555,7 @@ export default function CupOptimizer() {
         ceil: num(r[cfg.ceil]),
         pown: getPct(r, cfg.pown),
         opt: getPct(r, cfg.opt),
-        val: 0, // computed dynamically for sorting
+        val: 0,
       }))
       .filter((r) => r.driver && r.salary > 0);
   }, [data, site]);
@@ -578,7 +569,6 @@ export default function CupOptimizer() {
     setOrder(initial.map((r) => r.driver));
   }, [site, rows.length]); // eslint-disable-line
 
-  // boosted projection for display/sorting (respects +/-3% Boosts)
   const boostedProj = (r) => r.proj * (1 + 0.03 * (boost[r.driver] || 0));
 
   const displayRows = useMemo(() => {
@@ -598,7 +588,6 @@ export default function CupOptimizer() {
     );
   }, [rows, order, q, usagePct, boost]);
 
-  // Make columns sortable (now includes Usage% and Val)
   const sortable = new Set(["qual", "salary", "proj", "val", "floor", "ceil", "pown", "opt", "usage"]);
 
   const setSort = (col) => {
@@ -611,8 +600,8 @@ export default function CupOptimizer() {
 
     const sorted = [...displayRows].sort((a, b) => {
       const getVal = (r) => {
-        if (col === "usage") return usagePct[r.driver] ?? -Infinity; // computed Usage%
-        if (col === "pown" || col === "opt") return ((r[col] || 0) * 100); // convert 0..1 → %
+        if (col === "usage") return usagePct[r.driver] ?? -Infinity;
+        if (col === "pown" || col === "opt") return ((r[col] || 0) * 100);
         if (col === "proj") return boostedProj(r);
         if (col === "val") {
           const salK = (r.salary || 0) / 1000;
@@ -635,23 +624,29 @@ export default function CupOptimizer() {
     sortRef.current.col === key ? (sortRef.current.dir === "asc" ? " ▲" : " ▼") : "";
 
   /* ----------------------------- actions ---------------------------- */
-  const bumpBoost = (d, step) => setBoost((m) => ({ ...m, [d]: clamp((m[d] || 0) + step, -6, 6) }));
+  const bumpBoost = (d, step) =>
+    setBoost((m) => ({ ...m, [d]: clamp((m[d] || 0) + step, -6, 6) }));
+
   const toggleLock = (d) =>
-    setLocks((s) => {
-      const n = new Set(s);
-      n.has(d) ? n.delete(d) : n.add(d);
-      return n;
-    });
-  const toggleExcl = (d) =>
-    setExcls((s) => {
-      const n = new Set(s);
-      n.has(d) ? n.delete(d) : n.add(d);
-      return n;
+    setLocksArr((arr) => {
+      const has = (arr || []).includes(d);
+      return has ? (arr || []).filter((x) => x !== d) : [...(arr || []), d];
     });
 
+  const toggleExcl = (d) =>
+    setExclsArr((arr) => {
+      const has = (arr || []).includes(d);
+      return has ? (arr || []).filter((x) => x !== d) : [...(arr || []), d];
+    });
+
+  const resetExposuresOnly = () => {
+    setMinPct({});
+    setMaxPct({});
+  };
+
   const resetConstraints = () => {
-    setLocks(new Set());
-    setExcls(new Set());
+    setLocksArr([]);
+    setExclsArr([]);
     setMinPct({});
     setMaxPct({});
     setBoost({});
@@ -683,8 +678,8 @@ export default function CupOptimizer() {
       cap: Math.min(cfg.cap, Number(maxSalary) || cfg.cap),
       n: N,
       objective: optBy,
-      locks: Array.from(locks),
-      excludes: Array.from(excls),
+      locks: Array.isArray(locksArr) ? locksArr : [],
+      excludes: Array.isArray(exclsArr) ? exclsArr : [],
       boosts: boost,
       randomness: clamp(Number(randomness) || 0, 0, 100),
       global_max_pct: clamp(Number(globalMax) || 100, 0, 100),
@@ -696,7 +691,7 @@ export default function CupOptimizer() {
       ),
       min_diff: 1,
       time_limit_ms: 1500,
-      groups: groups.map((g) => ({
+      groups: (groups || []).map((g) => ({
         mode: g.mode || "at_most",
         count: Math.max(0, Number(g.count) || 0),
         players: Array.isArray(g.players) ? g.players : [],
@@ -754,13 +749,10 @@ export default function CupOptimizer() {
       setIsOptimizing(false);
       clearInterval(tickRef.current);
 
-      if ((j.produced || 0) < payload.n) {
-        setStopInfo({ produced: j.produced || 0, requested: payload.n, reason: "stopped_early" });
-      }
+      if ((j.produced || 0) < payload.n) setStopInfo({ produced: j.produced || 0, requested: payload.n, reason: "stopped_early" });
       saveBuild(nextBuildNameForSite(site), out2);
     }
   }
-
 
   /* -------------------------- builds (per site) ---------------------- */
   function saveBuild(name, data) {
@@ -777,8 +769,8 @@ export default function CupOptimizer() {
         cap: Math.min(cfg.cap, Number(maxSalary) || cfg.cap),
         globalMax,
         randomness,
-        locks: [...locks],
-        excls: [...excls],
+        locks: Array.isArray(locksArr) ? locksArr : [],
+        excls: Array.isArray(exclsArr) ? exclsArr : [],
         minPct,
         maxPct,
         boost,
@@ -813,17 +805,11 @@ export default function CupOptimizer() {
 
   /* ------------------------------- UI -------------------------------- */
   const metricLabel =
-    optBy === "proj"
-      ? "Proj"
-      : optBy === "floor"
-      ? "Floor"
-      : optBy === "ceil"
-      ? "Ceiling"
-      : optBy === "pown"
-      ? "pOWN%"
-      : "Opt%";
+    optBy === "proj" ? "Proj" :
+    optBy === "floor" ? "Floor" :
+    optBy === "ceil" ? "Ceiling" :
+    optBy === "pown" ? "pOWN%" : "Opt%";
 
-  // compact, center-aligned look
   const cell = "px-2 py-1 text-center";
   const header = "px-2 py-1 font-semibold text-center";
   const textSz = "text-[12px]";
@@ -852,11 +838,7 @@ export default function CupOptimizer() {
     <div className="px-4 md:px-6 py-5">
       <div className="mb-1 flex items-end gap-3 flex-wrap">
         <h1 className="text-2xl md:text-3xl font-extrabold">NASCAR Cup — Optimizer</h1>
-        {updatedAt && (
-          <div className="text-sm text-gray-500">
-            Updated: {fmtUpdated(updatedAt)}
-          </div>
-        )}
+        {updatedAt && <div className="text-sm text-gray-500">Updated: {fmtUpdated(updatedAt)}</div>}
       </div>
 
       {/* site toggle & reset */}
@@ -864,11 +846,7 @@ export default function CupOptimizer() {
         {["dk", "fd"].map((s) => (
           <button
             key={s}
-            onClick={() => {
-              setSite(s);
-              setLocks(new Set());
-              setExcls(new Set());
-            }}
+            onClick={() => setSite(s)}
             className={`px-3 py-1.5 rounded-full border text-sm inline-flex items-center gap-2 ${
               site === s ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300 text-gray-700"
             }`}
@@ -877,9 +855,14 @@ export default function CupOptimizer() {
             <span>{SITES[s].label}</span>
           </button>
         ))}
-        <button className="ml-auto px-2.5 py-1.5 text-sm rounded-lg bg-white border hover:bg-gray-50" onClick={resetConstraints}>
-          Reset constraints
-        </button>
+        <div className="ml-auto flex gap-2">
+          <button className="px-2.5 py-1.5 text-sm rounded-lg bg-white border hover:bg-gray-50" onClick={resetExposuresOnly}>
+            Reset exposures
+          </button>
+          <button className="px-2.5 py-1.5 text-sm rounded-lg bg-white border hover:bg-gray-50" onClick={resetConstraints}>
+            Reset constraints
+          </button>
+        </div>
       </div>
 
       {/* controls bar */}
@@ -908,11 +891,7 @@ export default function CupOptimizer() {
         </div>
         <div>
           <label className="block text-[11px] text-gray-600 mb-1">Randomness %</label>
-          <input
-            className="w-full border rounded-md px-2 py-1.5 text-sm"
-            value={randomness}
-            onChange={(e) => setRandomness(e.target.value)}
-          />
+          <input className="w-full border rounded-md px-2 py-1.5 text-sm" value={randomness} onChange={(e) => setRandomness(e.target.value)} />
         </div>
 
         {/* progress + button */}
@@ -924,49 +903,13 @@ export default function CupOptimizer() {
             <div
               className="h-2 bg-blue-500 rounded transition-all duration-300"
               style={{
-                width: `${(Math.min(progressUI, Math.max(1, Number(numLineups) || 1)) / Math.max(
-                  1,
-                  Number(numLineups) || 1
-                )) * 100}%`,
+                width: `${(Math.min(progressUI, Math.max(1, Number(numLineups) || 1)) / Math.max(1, Number(numLineups) || 1)) * 100}%`,
               }}
             />
           </div>
-          <div className="text-sm text-gray-600 min-w-[60px] text-right">
-            {progressUI}/{numLineups}
-          </div>
+          <div className="text-sm text-gray-600 min-w-[60px] text-right">{progressUI}/{numLineups}</div>
         </div>
       </div>
-
-      {/* builds */}
-      {builds.length > 0 && (
-        <div className="mb-2">
-          <div className="mb-1 text-xs text-gray-600">Builds</div>
-          <div className="flex flex-wrap gap-2 items-center">
-            {builds.map((b) => (
-              <div
-                key={b.id}
-                className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border text-sm ${
-                  activeBuildId === b.id ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300"
-                }`}
-              >
-                <button
-                  onClick={() => loadBuild(b.id)}
-                  onDoubleClick={() => {
-                    const nm = prompt("Rename build:", b.name);
-                    if (nm && nm.trim()) renameBuild(b.id, nm.trim());
-                  }}
-                  title={new Date(b.ts).toLocaleString()}
-                >
-                  {b.name}
-                </button>
-                <button className="ml-1 text-gray-400 hover:text-red-600" title="Delete build" onClick={() => deleteBuild(b.id)}>
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Player Groups */}
       <section className="rounded-lg border bg-white p-3 mb-4">
@@ -990,9 +933,7 @@ export default function CupOptimizer() {
                   <select
                     value={g.mode || "at_most"}
                     onChange={(e) =>
-                      setGroups((Gs) =>
-                        Gs.map((gg, i) => (i === idx ? { ...gg, mode: e.target.value } : gg))
-                      )
+                      setGroups((Gs) => Gs.map((gg, i) => (i === idx ? { ...gg, mode: e.target.value } : gg)))
                     }
                     className="border rounded-md px-2 py-1 text-sm"
                     title="Group rule"
@@ -1009,9 +950,7 @@ export default function CupOptimizer() {
                     value={g.count ?? 1}
                     onChange={(e) =>
                       setGroups((Gs) =>
-                        Gs.map((gg, i) =>
-                          i === idx ? { ...gg, count: Math.max(0, Number(e.target.value) || 0) } : gg
-                        )
+                        Gs.map((gg, i) => (i === idx ? { ...gg, count: Math.max(0, Number(e.target.value) || 0) } : gg))
                       )
                     }
                     title="Number of players from the group"
@@ -1028,9 +967,7 @@ export default function CupOptimizer() {
                 <DriverMultiPicker
                   allDrivers={allDriverNames}
                   value={Array.isArray(g.players) ? g.players : []}
-                  onChange={(players) =>
-                    setGroups((Gs) => Gs.map((gg, i) => (i === idx ? { ...gg, players } : gg)))
-                  }
+                  onChange={(players) => setGroups((Gs) => Gs.map((gg, i) => (i === idx ? { ...gg, players } : gg)))}
                   placeholder="Type to search drivers and click to add…"
                 />
               </div>
@@ -1048,42 +985,37 @@ export default function CupOptimizer() {
         />
       </div>
 
-      {/* compact, center-aligned player table */}
-      <div className="rounded-xl border bg-white shadow-sm overflow-auto mb-6">
-        <table className={`w-full border-separate ${textSz}`} style={{ borderSpacing: 0 }}>
-          <thead className="bg-gray-50 sticky top-0 z-10">
-            <tr>
-              {TABLE_COLS.map(({ key, label, sortable }) => (
-                <th
-                  key={key}
-                  className={`${header} whitespace-nowrap cursor-${sortable ? "pointer" : "default"} select-none`}
-                  onClick={() => sortable && setSort(key)}
-                >
-                  {label}
-                  {sortable ? <span className="opacity-60">{sortArrow(key)}</span> : null}
-                </th>
-              ))}
-            </tr>
-          </thead>
+      {/* Player pool (scrollable, sticky header) */}
+      <div className="rounded-xl border bg-white shadow-sm overflow-hidden mb-6">
+        <div className="max-h-[520px] overflow-auto">
+          <table className={`w-full border-separate ${textSz}`} style={{ borderSpacing: 0 }}>
+            <thead className="bg-gray-50 sticky top-0 z-10">
+              <tr>
+                {TABLE_COLS.map(({ key, label, sortable }) => (
+                  <th
+                    key={key}
+                    className={`${header} whitespace-nowrap ${sortable ? "cursor-pointer" : "cursor-default"} select-none`}
+                    onClick={() => sortable && setSort(key)}
+                  >
+                    {label}
+                    {sortable ? <span className="opacity-60">{sortArrow(key)}</span> : null}
+                  </th>
+                ))}
+              </tr>
+            </thead>
 
-          <tbody>
-            {loading && (
-              <tr>
-                <td className={`${cell} text-gray-500`} colSpan={TABLE_COLS.length}>
-                  Loading…
-                </td>
-              </tr>
-            )}
-            {err && (
-              <tr>
-                <td className={`${cell} text-red-600`} colSpan={TABLE_COLS.length}>
-                  Failed to load: {String(err)}
-                </td>
-              </tr>
-            )}
-            {!loading &&
-              !err &&
-              displayRows.map((r) => {
+            <tbody>
+              {loading && (
+                <tr>
+                  <td className={`${cell} text-gray-500`} colSpan={TABLE_COLS.length}>Loading…</td>
+                </tr>
+              )}
+              {err && (
+                <tr>
+                  <td className={`${cell} text-red-600`} colSpan={TABLE_COLS.length}>Failed to load: {String(err)}</td>
+                </tr>
+              )}
+              {!loading && !err && displayRows.map((r) => {
                 const projBoosted = boostedProj(r);
                 const val = (r.salary > 0) ? projBoosted / (r.salary / 1000) : NaN;
 
@@ -1098,13 +1030,9 @@ export default function CupOptimizer() {
                     <td className={`${cell} tabular-nums`}>{r.qual || "—"}</td>
                     <td className={cell}>
                       <div className="inline-flex items-center gap-1">
-                        <button className="px-1.5 py-0.5 border rounded" title="+3%" onClick={() => bumpBoost(r.driver, +1)}>
-                          ▲
-                        </button>
+                        <button className="px-1.5 py-0.5 border rounded" title="+3%" onClick={() => bumpBoost(r.driver, +1)}>▲</button>
                         <span className="w-5 text-center">{boost[r.driver] || 0}</span>
-                        <button className="px-1.5 py-0.5 border rounded" title="-3%" onClick={() => bumpBoost(r.driver, -1)}>
-                          ▼
-                        </button>
+                        <button className="px-1.5 py-0.5 border rounded" title="-3%" onClick={() => bumpBoost(r.driver, -1)}>▼</button>
                       </div>
                     </td>
                     <td className={`${cell} whitespace-nowrap`}>{r.driver}</td>
@@ -1115,87 +1043,44 @@ export default function CupOptimizer() {
                     <td className={`${cell} tabular-nums`}>{fmt1(r.ceil)}</td>
                     <td className={`${cell} tabular-nums`}>{fmt1(r.pown * 100)}</td>
                     <td className={`${cell} tabular-nums`}>{fmt1(r.opt * 100)}</td>
-
-                    {/* Min% */}
                     <td className={cell}>
                       <div className="inline-flex items-center gap-1">
-                        <button
-                          className="px-1.5 py-0.5 border rounded"
-                          onClick={() => setMinPct((m) => ({ ...m, [r.driver]: clamp((num(m[r.driver]) || 0) - 5, 0, 100) }))}
-                          title="-5%"
-                        >
-                          –
-                        </button>
-                        <input
-                          className="w-12 border rounded px-1.5 py-0.5 text-center"
-                          value={String(minPct[r.driver] ?? "")}
-                          onChange={(e) => setMinPct((m) => ({ ...m, [r.driver]: e.target.value }))}
-                          placeholder="—"
-                        />
-                        <button
-                          className="px-1.5 py-0.5 border rounded"
-                          onClick={() => setMinPct((m) => ({ ...m, [r.driver]: clamp((num(m[r.driver]) || 0) + 5, 0, 100) }))}
-                          title="+5%"
-                        >
-                          +
-                        </button>
+                        <button className="px-1.5 py-0.5 border rounded" onClick={() => setMinPct((m) => ({ ...m, [r.driver]: clamp((num(m[r.driver]) || 0) - 5, 0, 100) }))} title="-5%">–</button>
+                        <input className="w-12 border rounded px-1.5 py-0.5 text-center" value={String(minPct[r.driver] ?? "")} onChange={(e) => setMinPct((m) => ({ ...m, [r.driver]: e.target.value }))} placeholder="—" />
+                        <button className="px-1.5 py-0.5 border rounded" onClick={() => setMinPct((m) => ({ ...m, [r.driver]: clamp((num(m[r.driver]) || 0) + 5, 0, 100) }))} title="+5%">+</button>
                       </div>
                     </td>
-
-                    {/* Max% */}
                     <td className={cell}>
                       <div className="inline-flex items-center gap-1">
-                        <button
-                          className="px-1.5 py-0.5 border rounded"
-                          onClick={() => setMaxPct((m) => ({ ...m, [r.driver]: clamp((num(m[r.driver]) || 100) - 5, 0, 100) }))}
-                          title="-5%"
-                        >
-                          –
-                        </button>
-                        <input
-                          className="w-12 border rounded px-1.5 py-0.5 text-center"
-                          value={String(maxPct[r.driver] ?? "")}
-                          onChange={(e) => setMaxPct((m) => ({ ...m, [r.driver]: e.target.value }))}
-                          placeholder="—"
-                        />
-                        <button
-                          className="px-1.5 py-0.5 border rounded"
-                          onClick={() => setMaxPct((m) => ({ ...m, [r.driver]: clamp((num(m[r.driver]) || 100) + 5, 0, 100) }))}
-                          title="+5%"
-                        >
-                          +
-                        </button>
+                        <button className="px-1.5 py-0.5 border rounded" onClick={() => setMaxPct((m) => ({ ...m, [r.driver]: clamp((num(m[r.driver]) || 100) - 5, 0, 100) }))} title="-5%">–</button>
+                        <input className="w-12 border rounded px-1.5 py-0.5 text-center" value={String(maxPct[r.driver] ?? "")} onChange={(e) => setMaxPct((m) => ({ ...m, [r.driver]: e.target.value }))} placeholder="—" />
+                        <button className="px-1.5 py-0.5 border rounded" onClick={() => setMaxPct((m) => ({ ...m, [r.driver]: clamp((num(m[r.driver]) || 100) + 5, 0, 100) }))} title="+5%">+</button>
                       </div>
                     </td>
-
-                    {/* Usage% */}
-                    <td className={cell}>
-                      {usagePct[r.driver] != null ? fmt1(usagePct[r.driver]) : "—"}
-                    </td>
+                    <td className={cell}>{usagePct[r.driver] != null ? fmt1(usagePct[r.driver]) : "—"}</td>
                   </tr>
                 );
               })}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* stop-info */}
       {stopInfo && (
         <div className="mb-3 rounded-md border border-amber-300 bg-amber-50 p-2 text-xs text-amber-900">
-          Stopped early at {stopInfo.produced}/{numLineups}
-          {stopInfo.reason ? ` — ${stopInfo.reason}` : ""}
+          Stopped early at {stopInfo.produced}/{numLineups}{stopInfo.reason ? ` — ${stopInfo.reason}` : ""}
         </div>
       )}
 
       {/* results */}
       {!!lineups.length && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Lineups */}
+          {/* Lineups (centered) */}
           <section className="lg:col-span-8 rounded-lg border bg-white p-3">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-base font-bold">Lineups ({lineups.length})</h2>
               <div className="flex items-center gap-2">
-                {/* Removed plain Export CSV button per request */}
                 <button
                   className="px-3 py-1.5 border rounded text-sm"
                   onClick={() =>
@@ -1213,9 +1098,9 @@ export default function CupOptimizer() {
               </div>
             </div>
 
-            {/* Shorter table + inside scroll */}
-            <div className="overflow-auto max-h-[320px]">
-              <table className="min-w-full text-[12px] border-separate" style={{ borderSpacing: 0 }}>
+            {/* Shorter table + centered + inside scroll */}
+            <div className="overflow-auto max-h-[320px] mx-auto">
+              <table className="min-w-[900px] mx-auto text-[12px] border-separate" style={{ borderSpacing: 0 }}>
                 <thead className="bg-gray-50 sticky top-0">
                   <tr>
                     <th className={header}>#</th>
@@ -1227,7 +1112,6 @@ export default function CupOptimizer() {
                 </thead>
                 <tbody>
                   {lineups.map((L, i) => {
-                    // Sort drivers by salary desc using chosen[] if available; fallback to raw names
                     const chosenSorted = Array.isArray(L.chosen)
                       ? [...L.chosen].sort((a, b) => (b?.salary || 0) - (a?.salary || 0))
                       : [];
@@ -1297,9 +1181,7 @@ export default function CupOptimizer() {
                             <td className={cell}>{r.driver}</td>
                             <td className={`${cell} tabular-nums`}>{r.qual || "—"}</td>
                             <td className={`${cell} tabular-nums`}>{fmt1((r.pown || 0) * 100)}</td>
-                            <td className={`${cell} tabular-nums`}>
-                              {fmt1(r.proj * (1 + 0.03 * (boost[r.driver] || 0)))}
-                            </td>
+                            <td className={`${cell} tabular-nums`}>{fmt1(r.proj * (1 + 0.03 * (boost[r.driver] || 0)))}</td>
                             <td className={`${cell} tabular-nums`}>{fmt0(r.salary)}</td>
                           </tr>
                         ))}
@@ -1342,7 +1224,7 @@ function ExposureTable({ lineups, maxHeightClass = "" }) {
   return (
     <div className={`overflow-auto ${maxHeightClass}`}>
       <table className="min-w-full text-[12px] border-separate" style={{ borderSpacing: 0 }}>
-        <thead className="bg-gray-50">
+        <thead className="bg-gray-50 sticky top-0">
           <tr>
             <th className={header}>Driver</th>
             <th className={header}>Count</th>
