@@ -1,2153 +1,1064 @@
 [
   {
-    "proj": "Fernando Tatis Jr.",
-    "team": "SD",
+    "proj": "James Wood",
+    "team": "WSH",
     "pos": "OF",
-    "dk_name": "Fernando Tatis Jr.",
-    "dk_id": "40023689",
-    "fd_name": "Fernando Tatis Jr.",
-    "fd_id": "120446-79393"
-  },
-  {
-    "proj": "Shohei Ohtani",
-    "team": "LAD",
-    "pos": "1B",
-    "dk_name": "Shohei Ohtani",
-    "dk_id": "40023679",
-    "fd_name": "Shohei Ohtani",
-    "fd_id": "120446-82440"
-  },
-  {
-    "proj": "Nick Kurtz",
-    "team": "ATH",
-    "pos": "1B",
-    "dk_name": "Nick Kurtz",
-    "dk_id": "40023685",
-    "fd_name": "Nick Kurtz",
-    "fd_id": "120446-222794"
-  },
-  {
-    "proj": "Manny Machado",
-    "team": "SD",
-    "pos": "3B",
-    "dk_name": "Manny Machado",
-    "dk_id": "40023699",
-    "fd_name": "Manny Machado",
-    "fd_id": "120446-13929"
+    "dk_name": "James Wood",
+    "dk_id": "40034213",
+    "fd_name": "James Wood",
+    "fd_id": "120487-165661"
   },
   {
     "proj": "Aaron Judge",
     "team": "NYY",
     "pos": "OF",
     "dk_name": "Aaron Judge",
-    "dk_id": "40023681",
+    "dk_id": "40034209",
     "fd_name": "Aaron Judge",
-    "fd_id": "120446-60643"
-  },
-  {
-    "proj": "Matt Olson",
-    "team": "ATL",
-    "pos": "1B",
-    "dk_name": "Matt Olson",
-    "dk_id": "40023735",
-    "fd_name": "Matt Olson",
-    "fd_id": "120446-52175"
-  },
-  {
-    "proj": "Jarren Duran",
-    "team": "BOS",
-    "pos": "OF",
-    "dk_name": "Jarren Duran",
-    "dk_id": "40023702",
-    "fd_name": "Jarren Duran",
-    "fd_id": "120446-119311"
-  },
-  {
-    "proj": "Elly De La Cruz",
-    "team": "CIN",
-    "pos": "SS",
-    "dk_name": "Elly De La Cruz",
-    "dk_id": "40023694",
-    "fd_name": "Elly De La Cruz",
-    "fd_id": "120446-165513"
-  },
-  {
-    "proj": "Yordan Alvarez",
-    "team": "HOU",
-    "pos": "OF",
-    "dk_name": "Yordan Alvarez",
-    "dk_id": "40023737",
-    "fd_name": "Yordan Alvarez",
-    "fd_id": "120446-82575"
-  },
-  {
-    "proj": "Cal Raleigh",
-    "team": "SEA",
-    "pos": "C",
-    "dk_name": "Cal Raleigh",
-    "dk_id": "40023684",
-    "fd_name": "Cal Raleigh",
-    "fd_id": "120446-102554"
-  },
-  {
-    "proj": "Byron Buxton",
-    "team": "MIN",
-    "pos": "OF",
-    "dk_name": "Byron Buxton",
-    "dk_id": "40023682",
-    "fd_name": "Byron Buxton",
-    "fd_id": "120446-39086"
-  },
-  {
-    "proj": "Jurickson Profar",
-    "team": "ATL",
-    "pos": "OF",
-    "dk_name": "Jurickson Profar",
-    "dk_id": "40023709",
-    "fd_name": "Jurickson Profar",
-    "fd_id": "120446-13262"
-  },
-  {
-    "proj": "Corbin Carroll",
-    "team": "ARI",
-    "pos": "OF",
-    "dk_name": "Corbin Carroll",
-    "dk_id": "40023687",
-    "fd_name": "Corbin Carroll",
-    "fd_id": "120446-119297"
-  },
-  {
-    "proj": "Alex Bregman",
-    "team": "BOS",
-    "pos": "3B",
-    "dk_name": "Alex Bregman",
-    "dk_id": "40023708",
-    "fd_name": "Alex Bregman",
-    "fd_id": "120446-68522"
-  },
-  {
-    "proj": "Jazz Chisholm Jr.",
-    "team": "NYY",
-    "pos": "2B",
-    "dk_name": "Jazz Chisholm Jr.",
-    "dk_id": "40023692",
-    "fd_name": "Jazz Chisholm Jr.",
-    "fd_id": "120446-82527"
-  },
-  {
-    "proj": "Cody Bellinger",
-    "team": "NYY",
-    "pos": "OF",
-    "dk_name": "Cody Bellinger",
-    "dk_id": "40023713",
-    "fd_name": "Cody Bellinger",
-    "fd_id": "120446-79159"
-  },
-  {
-    "proj": "Mookie Betts",
-    "team": "LAD",
-    "pos": "SS",
-    "dk_name": "Mookie Betts",
-    "dk_id": "40023706",
-    "fd_name": "Mookie Betts",
-    "fd_id": "120446-39151"
-  },
-  {
-    "proj": "Jackson Merrill",
-    "team": "SD",
-    "pos": "OF",
-    "dk_name": "Jackson Merrill",
-    "dk_id": "40023757",
-    "fd_name": "Jackson Merrill",
-    "fd_id": "120446-165666"
-  },
-  {
-    "proj": "Jose Ramirez",
-    "team": "CLE",
-    "pos": "3B",
-    "dk_name": "Jose Ramirez",
-    "dk_id": "40023686",
-    "fd_name": "Jose Ramirez",
-    "fd_id": "120446-38976"
-  },
-  {
-    "proj": "Luis Arraez",
-    "team": "SD",
-    "pos": "1B",
-    "dk_name": "Luis Arraez",
-    "dk_id": "40023759",
-    "fd_name": "Luis Arraez",
-    "fd_id": "120446-101827"
-  },
-  {
-    "proj": "Carlos Correa",
-    "team": "HOU",
-    "pos": "3B",
-    "dk_name": "Carlos Correa",
-    "dk_id": "40023865",
-    "fd_name": "Carlos Correa",
-    "fd_id": "120446-38614"
-  },
-  {
-    "proj": "Jackson Holliday",
-    "team": "BAL",
-    "pos": "2B",
-    "dk_name": "Jackson Holliday",
-    "dk_id": "40023749",
-    "fd_name": "Jackson Holliday",
-    "fd_id": "120446-197967"
-  },
-  {
-    "proj": "Jose Altuve",
-    "team": "HOU",
-    "pos": "2B",
-    "dk_name": "Jose Altuve",
-    "dk_id": "40023764",
-    "fd_name": "Jose Altuve",
-    "fd_id": "120446-14562"
-  },
-  {
-    "proj": "Kerry Carpenter",
-    "team": "DET",
-    "pos": "OF",
-    "dk_name": "Kerry Carpenter",
-    "dk_id": "40023731",
-    "fd_name": "Kerry Carpenter",
-    "fd_id": "120446-176691"
-  },
-  {
-    "proj": "Giancarlo Stanton",
-    "team": "NYY",
-    "pos": "OF",
-    "dk_name": "Giancarlo Stanton",
-    "dk_id": "40023703",
-    "fd_name": "Giancarlo Stanton",
-    "fd_id": "120446-12302"
-  },
-  {
-    "proj": "TJ Friedl",
-    "team": "CIN",
-    "pos": "OF",
-    "dk_name": "TJ Friedl",
-    "dk_id": "40023784",
-    "fd_name": "TJ Friedl",
-    "fd_id": "120446-102296"
-  },
-  {
-    "proj": "Julio Rodriguez",
-    "team": "SEA",
-    "pos": "OF",
-    "dk_name": "Julio Rodriguez",
-    "dk_id": "40023705",
-    "fd_name": "Julio Rodriguez",
-    "fd_id": "120446-102400"
-  },
-  {
-    "proj": "Ramon Laureano",
-    "team": "SD",
-    "pos": "OF",
-    "dk_name": "Ramon Laureano",
-    "dk_id": "40023743",
-    "fd_name": "Ramon Laureano",
-    "fd_id": "120446-83155"
-  },
-  {
-    "proj": "Tyler Soderstrom",
-    "team": "ATH",
-    "pos": "1B",
-    "dk_name": "Tyler Soderstrom",
-    "dk_id": "40023739",
-    "fd_name": "Tyler Soderstrom",
-    "fd_id": "120446-135298"
-  },
-  {
-    "proj": "Sal Frelick",
-    "team": "MIL",
-    "pos": "OF",
-    "dk_name": "Sal Frelick",
-    "dk_id": "40023765",
-    "fd_name": "Sal Frelick",
-    "fd_id": "120446-165605"
-  },
-  {
-    "proj": "Luke Keaschall",
-    "team": "MIN",
-    "pos": "2B",
-    "dk_name": "Luke Keaschall",
-    "dk_id": "40023697",
-    "fd_name": "Luke Keaschall",
-    "fd_id": "120446-222785"
-  },
-  {
-    "proj": "Ronald Acuna Jr.",
-    "team": "ATL",
-    "pos": "OF",
-    "dk_name": "Ronald Acuna Jr.",
-    "dk_id": "40023691",
-    "fd_name": "Ronald Acuna Jr.",
-    "fd_id": "120446-79756"
-  },
-  {
-    "proj": "Ben Rice",
-    "team": "NYY",
-    "pos": "C",
-    "dk_name": "Ben Rice",
-    "dk_id": "40023722",
-    "fd_name": "Ben Rice",
-    "fd_id": "120446-203111"
-  },
-  {
-    "proj": "Austin Hays",
-    "team": "CIN",
-    "pos": "OF",
-    "dk_name": "Austin Hays",
-    "dk_id": "40023768",
-    "fd_name": "Austin Hays",
-    "fd_id": "120446-81953"
-  },
-  {
-    "proj": "Matt Wallner",
-    "team": "MIN",
-    "pos": "OF",
-    "dk_name": "Matt Wallner",
-    "dk_id": "40023779",
-    "fd_name": "Matt Wallner",
-    "fd_id": "120446-119377"
-  },
-  {
-    "proj": "Shea Langeliers",
-    "team": "ATH",
-    "pos": "C",
-    "dk_name": "Shea Langeliers",
-    "dk_id": "40023696",
-    "fd_name": "Shea Langeliers",
-    "fd_id": "120446-119303"
-  },
-  {
-    "proj": "Gavin Sheets",
-    "team": "SD",
-    "pos": "OF",
-    "dk_name": "Gavin Sheets",
-    "dk_id": "40023792",
-    "fd_name": "Gavin Sheets",
-    "fd_id": "120446-82569"
-  },
-  {
-    "proj": "Royce Lewis",
-    "team": "MIN",
-    "pos": "3B",
-    "dk_name": "Royce Lewis",
-    "dk_id": "40023797",
-    "fd_name": "Royce Lewis",
-    "fd_id": "120446-82608"
-  },
-  {
-    "proj": "Ryan O'Hearn",
-    "team": "SD",
-    "pos": "1B",
-    "dk_name": "Ryan O'Hearn",
-    "dk_id": "40023770",
-    "fd_name": "Ryan O'Hearn",
-    "fd_id": "120446-79141"
-  },
-  {
-    "proj": "Brent Rooker",
-    "team": "ATH",
-    "pos": "OF",
-    "dk_name": "Brent Rooker",
-    "dk_id": "40023716",
-    "fd_name": "Brent Rooker",
-    "fd_id": "120446-82612"
-  },
-  {
-    "proj": "Lawrence Butler",
-    "team": "ATH",
-    "pos": "OF",
-    "dk_name": "Lawrence Butler",
-    "dk_id": "40023803",
-    "fd_name": "Lawrence Butler",
-    "fd_id": "120446-181795"
-  },
-  {
-    "proj": "Juan Soto",
-    "team": "NYM",
-    "pos": "OF",
-    "dk_name": "Juan Soto",
-    "dk_id": "40023683",
-    "fd_name": "Juan Soto",
-    "fd_id": "120446-79282"
-  },
-  {
-    "proj": "Riley Greene",
-    "team": "DET",
-    "pos": "OF",
-    "dk_name": "Riley Greene",
-    "dk_id": "40023701",
-    "fd_name": "Riley Greene",
-    "fd_id": "120446-119343"
-  },
-  {
-    "proj": "Trent Grisham",
-    "team": "NYY",
-    "pos": "OF",
-    "dk_name": "Trent Grisham",
-    "dk_id": "40023730",
-    "fd_name": "Trent Grisham",
-    "fd_id": "120446-79175"
-  },
-  {
-    "proj": "Hunter Goodman",
-    "team": "COL",
-    "pos": "C",
-    "dk_name": "Hunter Goodman",
-    "dk_id": "40023750",
-    "fd_name": "Hunter Goodman",
-    "fd_id": "120446-165527"
-  },
-  {
-    "proj": "Freddie Freeman",
-    "team": "LAD",
-    "pos": "1B",
-    "dk_name": "Freddie Freeman",
-    "dk_id": "40023711",
-    "fd_name": "Freddie Freeman",
-    "fd_id": "120446-11334"
-  },
-  {
-    "proj": "Randy Arozarena",
-    "team": "SEA",
-    "pos": "OF",
-    "dk_name": "Randy Arozarena",
-    "dk_id": "40023715",
-    "fd_name": "Randy Arozarena",
-    "fd_id": "120446-85261"
-  },
-  {
-    "proj": "Eugenio Suarez",
-    "team": "SEA",
-    "pos": "3B",
-    "dk_name": "Eugenio Suarez",
-    "dk_id": "40023742",
-    "fd_name": "Eugenio Suarez",
-    "fd_id": "120446-21633"
-  },
-  {
-    "proj": "Christian Yelich",
-    "team": "MIL",
-    "pos": "OF",
-    "dk_name": "Christian Yelich",
-    "dk_id": "40023704",
-    "fd_name": "Christian Yelich",
-    "fd_id": "120446-21609"
-  },
-  {
-    "proj": "Geraldo Perdomo",
-    "team": "ARI",
-    "pos": "SS",
-    "dk_name": "Geraldo Perdomo",
-    "dk_id": "40023736",
-    "fd_name": "Geraldo Perdomo",
-    "fd_id": "120446-102438"
-  },
-  {
-    "proj": "Gavin Lux",
-    "team": "CIN",
-    "pos": "OF",
-    "dk_name": "Gavin Lux",
-    "dk_id": "40023888",
-    "fd_name": "Gavin Lux",
-    "fd_id": "120446-79165"
-  },
-  {
-    "proj": "Trevor Larnach",
-    "team": "MIN",
-    "pos": "OF",
-    "dk_name": "Trevor Larnach",
-    "dk_id": "40023793",
-    "fd_name": "Trevor Larnach",
-    "fd_id": "120446-102362"
+    "fd_id": "120487-60643"
   },
   {
     "proj": "Francisco Lindor",
     "team": "NYM",
     "pos": "SS",
     "dk_name": "Francisco Lindor",
-    "dk_id": "40023688",
+    "dk_id": "40034211",
     "fd_name": "Francisco Lindor",
-    "fd_id": "120446-16952"
+    "fd_id": "120487-16952"
   },
   {
-    "proj": "Ozzie Albies",
-    "team": "ATL",
-    "pos": "2B",
-    "dk_name": "Ozzie Albies",
-    "dk_id": "40023789",
-    "fd_name": "Ozzie Albies",
-    "fd_id": "120446-68587"
-  },
-  {
-    "proj": "Mike Trout",
-    "team": "LAA",
-    "pos": "OF",
-    "dk_name": "Mike Trout",
-    "dk_id": "40023755",
-    "fd_name": "Mike Trout",
-    "fd_id": "120446-12933"
-  },
-  {
-    "proj": "Trevor Story",
-    "team": "BOS",
+    "proj": "CJ Abrams",
+    "team": "WSH",
     "pos": "SS",
-    "dk_name": "Trevor Story",
-    "dk_id": "40023712",
-    "fd_name": "Trevor Story",
-    "fd_id": "120446-52158"
+    "dk_name": "CJ Abrams",
+    "dk_id": "40034220",
+    "fd_name": "CJ Abrams",
+    "fd_id": "120487-119410"
   },
   {
-    "proj": "Gunnar Henderson",
-    "team": "BAL",
-    "pos": "SS",
-    "dk_name": "Gunnar Henderson",
-    "dk_id": "40023729",
-    "fd_name": "Gunnar Henderson",
-    "fd_id": "120446-119306"
-  },
-  {
-    "proj": "Jackson Chourio",
-    "team": "MIL",
-    "pos": "OF",
-    "dk_name": "Jackson Chourio",
-    "dk_id": "40023710",
-    "fd_name": "Jackson Chourio",
-    "fd_id": "120446-165611"
-  },
-  {
-    "proj": "Vladimir Guerrero Jr.",
-    "team": "TOR",
-    "pos": "1B",
-    "dk_name": "Vladimir Guerrero Jr.",
-    "dk_id": "40023698",
-    "fd_name": "Vladimir Guerrero Jr.",
-    "fd_id": "120446-79273"
-  },
-  {
-    "proj": "Zach Neto",
-    "team": "LAA",
-    "pos": "SS",
-    "dk_name": "Zach Neto",
-    "dk_id": "40023724",
-    "fd_name": "Zach Neto",
-    "fd_id": "120446-185300"
-  },
-  {
-    "proj": "Jacob Wilson",
-    "team": "ATH",
-    "pos": "SS",
-    "dk_name": "Jacob Wilson",
-    "dk_id": "40023781",
-    "fd_name": "Jacob Wilson",
-    "fd_id": "120446-206482"
-  },
-  {
-    "proj": "Spencer Torkelson",
-    "team": "DET",
-    "pos": "1B",
-    "dk_name": "Spencer Torkelson",
-    "dk_id": "40023748",
-    "fd_name": "Spencer Torkelson",
-    "fd_id": "120446-135203"
-  },
-  {
-    "proj": "Austin Martin",
-    "team": "MIN",
-    "pos": "OF",
-    "dk_name": "Austin Martin",
-    "dk_id": "40023832",
-    "fd_name": "Austin Martin",
-    "fd_id": "120446-135524"
-  },
-  {
-    "proj": "Masataka Yoshida",
-    "team": "BOS",
-    "pos": "OF",
-    "dk_name": "Masataka Yoshida",
-    "dk_id": "40023853",
-    "fd_name": "Masataka Yoshida",
-    "fd_id": "120446-181987"
-  },
-  {
-    "proj": "Tyler O'Neill",
-    "team": "BAL",
-    "pos": "OF",
-    "dk_name": "Tyler O'Neill",
-    "dk_id": "40024085",
-    "fd_name": "Tyler O'Neill",
-    "fd_id": "120446-68547"
-  },
-  {
-    "proj": "Dylan Beavers",
-    "team": "BAL",
-    "pos": "OF",
-    "dk_name": "Dylan Beavers",
-    "dk_id": "40023876",
-    "fd_name": "Dylan Beavers",
-    "fd_id": "120446-232356"
-  },
-  {
-    "proj": "Nathaniel Lowe",
-    "team": "BOS",
-    "pos": "1B",
-    "dk_name": "Nathaniel Lowe",
-    "dk_id": "40023761",
-    "fd_name": "Nathaniel Lowe",
-    "fd_id": "120446-85285"
-  },
-  {
-    "proj": "Brenton Doyle",
-    "team": "COL",
-    "pos": "OF",
-    "dk_name": "Brenton Doyle",
-    "dk_id": "40023868",
-    "fd_name": "Brenton Doyle",
-    "fd_id": "120446-146682"
-  },
-  {
-    "proj": "Tyler Stephenson",
-    "team": "CIN",
-    "pos": "C",
-    "dk_name": "Tyler Stephenson",
-    "dk_id": "40023856",
-    "fd_name": "Tyler Stephenson",
-    "fd_id": "120446-79110"
-  },
-  {
-    "proj": "Parker Meadows",
+    "proj": "Kerry Carpenter",
     "team": "DET",
     "pos": "OF",
-    "dk_name": "Parker Meadows",
-    "dk_id": "40023919",
-    "fd_name": "Parker Meadows",
-    "fd_id": "120446-102325"
+    "dk_name": "Kerry Carpenter",
+    "dk_id": "40034236",
+    "fd_name": "Kerry Carpenter",
+    "fd_id": "120487-176691"
   },
   {
-    "proj": "Alec Burleson",
-    "team": "STL",
-    "pos": "1B",
-    "dk_name": "Alec Burleson",
-    "dk_id": "40023794",
-    "fd_name": "Alec Burleson",
-    "fd_id": "120446-165693"
-  },
-  {
-    "proj": "Brice Turang",
-    "team": "MIL",
-    "pos": "2B",
-    "dk_name": "Brice Turang",
-    "dk_id": "40023721",
-    "fd_name": "Brice Turang",
-    "fd_id": "120446-102353"
-  },
-  {
-    "proj": "Jorge Polanco",
-    "team": "SEA",
-    "pos": "2B",
-    "dk_name": "Jorge Polanco",
-    "dk_id": "40023774",
-    "fd_name": "Jorge Polanco",
-    "fd_id": "120446-21874"
-  },
-  {
-    "proj": "Jo Adell",
-    "team": "LAA",
+    "proj": "Oneil Cruz",
+    "team": "PIT",
     "pos": "OF",
-    "dk_name": "Jo Adell",
-    "dk_id": "40023766",
-    "fd_name": "Jo Adell",
-    "fd_id": "120446-82580"
-  },
-  {
-    "proj": "Kyle Manzardo",
-    "team": "CLE",
-    "pos": "1B",
-    "dk_name": "Kyle Manzardo",
-    "dk_id": "40023707",
-    "fd_name": "Kyle Manzardo",
-    "fd_id": "120446-189308"
-  },
-  {
-    "proj": "Teoscar Hernandez",
-    "team": "LAD",
-    "pos": "OF",
-    "dk_name": "Teoscar Hernandez",
-    "dk_id": "40023738",
-    "fd_name": "Teoscar Hernandez",
-    "fd_id": "120446-73023"
-  },
-  {
-    "proj": "Jake Meyers",
-    "team": "HOU",
-    "pos": "OF",
-    "dk_name": "Jake Meyers",
-    "dk_id": "40023829",
-    "fd_name": "Jake Meyers",
-    "fd_id": "120446-135218"
-  },
-  {
-    "proj": "Jordan Beck",
-    "team": "COL",
-    "pos": "OF",
-    "dk_name": "Jordan Beck",
-    "dk_id": "40023843",
-    "fd_name": "Jordan Beck",
-    "fd_id": "120446-198880"
-  },
-  {
-    "proj": "Will Smith",
-    "team": "LAD",
-    "pos": "C",
-    "dk_name": "Will Smith",
-    "dk_id": "40023717",
-    "fd_name": "Will Smith",
-    "fd_id": "120446-79401"
-  },
-  {
-    "proj": "Pete Alonso",
-    "team": "NYM",
-    "pos": "1B",
-    "dk_name": "Pete Alonso",
-    "dk_id": "40023700",
-    "fd_name": "Pete Alonso",
-    "fd_id": "120446-82614"
-  },
-  {
-    "proj": "Rafael Devers",
-    "team": "SF",
-    "pos": "1B",
-    "dk_name": "Rafael Devers",
-    "dk_id": "40023693",
-    "fd_name": "Rafael Devers",
-    "fd_id": "120446-68585"
-  },
-  {
-    "proj": "Willson Contreras",
-    "team": "STL",
-    "pos": "1B",
-    "dk_name": "Willson Contreras",
-    "dk_id": "40023786",
-    "fd_name": "Willson Contreras",
-    "fd_id": "120446-21887"
-  },
-  {
-    "proj": "Ivan Herrera",
-    "team": "STL",
-    "pos": "C",
-    "dk_name": "Ivan Herrera",
-    "dk_id": "40023778",
-    "fd_name": "Ivan Herrera",
-    "fd_id": "120446-119420"
-  },
-  {
-    "proj": "Lars Nootbaar",
-    "team": "STL",
-    "pos": "OF",
-    "dk_name": "Lars Nootbaar",
-    "dk_id": "40023811",
-    "fd_name": "Lars Nootbaar",
-    "fd_id": "120446-154711"
-  },
-  {
-    "proj": "George Springer",
-    "team": "TOR",
-    "pos": "OF",
-    "dk_name": "George Springer",
-    "dk_id": "40023695",
-    "fd_name": "George Springer",
-    "fd_id": "120446-16983"
-  },
-  {
-    "proj": "Jakob Marsee",
-    "team": "MIA",
-    "pos": "OF",
-    "dk_name": "Jakob Marsee",
-    "dk_id": "40023714",
-    "fd_name": "Jakob Marsee",
-    "fd_id": "120446-231559"
-  },
-  {
-    "proj": "Colt Keith",
-    "team": "DET",
-    "pos": "3B",
-    "dk_name": "Colt Keith",
-    "dk_id": "40023806",
-    "fd_name": "Colt Keith",
-    "fd_id": "120446-165557"
-  },
-  {
-    "proj": "Gleyber Torres",
-    "team": "DET",
-    "pos": "2B",
-    "dk_name": "Gleyber Torres",
-    "dk_id": "40023741",
-    "fd_name": "Gleyber Torres",
-    "fd_id": "120446-68588"
-  },
-  {
-    "proj": "Max Muncy",
-    "team": "LAD",
-    "pos": "3B",
-    "dk_name": "Max Muncy",
-    "dk_id": "40023733",
-    "fd_name": "Max Muncy",
-    "fd_id": "120446-52176"
-  },
-  {
-    "proj": "Michael Toglia",
-    "team": "COL",
-    "pos": "1B",
-    "dk_name": "Michael Toglia",
-    "dk_id": "40023918",
-    "fd_name": "Michael Toglia",
-    "fd_id": "120446-119337"
-  },
-  {
-    "proj": "Ha-Seong Kim",
-    "team": "ATL",
-    "pos": "SS",
-    "dk_name": "Ha-Seong Kim",
-    "dk_id": "40023922",
-    "fd_name": "Ha-Seong Kim",
-    "fd_id": "120446-146160"
-  },
-  {
-    "proj": "Brendan Donovan",
-    "team": "STL",
-    "pos": "2B",
-    "dk_name": "Brendan Donovan",
-    "dk_id": "40024093",
-    "fd_name": "Brendan Donovan",
-    "fd_id": "120446-163706"
-  },
-  {
-    "proj": "Ezequiel Tovar",
-    "team": "COL",
-    "pos": "SS",
-    "dk_name": "Ezequiel Tovar",
-    "dk_id": "40023873",
-    "fd_name": "Ezequiel Tovar",
-    "fd_id": "120446-163674"
-  },
-  {
-    "proj": "Carlos Narvaez",
-    "team": "BOS",
-    "pos": "C",
-    "dk_name": "Carlos Narvaez",
-    "dk_id": "40023871",
-    "fd_name": "Carlos Narvaez",
-    "fd_id": "120446-197762"
-  },
-  {
-    "proj": "Jesus Sanchez",
-    "team": "HOU",
-    "pos": "OF",
-    "dk_name": "Jesus Sanchez",
-    "dk_id": "40023813",
-    "fd_name": "Jesus Sanchez",
-    "fd_id": "120446-82644"
-  },
-  {
-    "proj": "Hyeseong Kim",
-    "team": "LAD",
-    "pos": "2B",
-    "dk_name": "Hyeseong Kim",
-    "dk_id": "40023885",
-    "fd_name": "Hyeseong Kim",
-    "fd_id": "120446-222295"
-  },
-  {
-    "proj": "Christian Walker",
-    "team": "HOU",
-    "pos": "1B",
-    "dk_name": "Christian Walker",
-    "dk_id": "40023835",
-    "fd_name": "Christian Walker",
-    "fd_id": "120446-38218"
-  },
-  {
-    "proj": "William Contreras",
-    "team": "MIL",
-    "pos": "C",
-    "dk_name": "William Contreras",
-    "dk_id": "40023725",
-    "fd_name": "William Contreras",
-    "fd_id": "120446-102284"
-  },
-  {
-    "proj": "Yoan Moncada",
-    "team": "LAA",
-    "pos": "3B",
-    "dk_name": "Yoan Moncada",
-    "dk_id": "40023848",
-    "fd_name": "Yoan Moncada",
-    "fd_id": "120446-61553"
-  },
-  {
-    "proj": "Masyn Winn",
-    "team": "STL",
-    "pos": "SS",
-    "dk_name": "Masyn Winn",
-    "dk_id": "40023890",
-    "fd_name": "Masyn Winn",
-    "fd_id": "120446-135366"
-  },
-  {
-    "proj": "Gabriel Moreno",
-    "team": "ARI",
-    "pos": "C",
-    "dk_name": "Gabriel Moreno",
-    "dk_id": "40023836",
-    "fd_name": "Gabriel Moreno",
-    "fd_id": "120446-119442"
-  },
-  {
-    "proj": "Wyatt Langford",
-    "team": "TEX",
-    "pos": "OF",
-    "dk_name": "Wyatt Langford",
-    "dk_id": "40023734",
-    "fd_name": "Wyatt Langford",
-    "fd_id": "120446-198526"
-  },
-  {
-    "proj": "Colson Montgomery",
-    "team": "CWS",
-    "pos": "SS",
-    "dk_name": "Colson Montgomery",
-    "dk_id": "40023751",
-    "fd_name": "Colson Montgomery",
-    "fd_id": "120446-165535"
-  },
-  {
-    "proj": "Brandon Nimmo",
-    "team": "NYM",
-    "pos": "OF",
-    "dk_name": "Brandon Nimmo",
-    "dk_id": "40023726",
-    "fd_name": "Brandon Nimmo",
-    "fd_id": "120446-17097"
-  },
-  {
-    "proj": "Ryan Mountcastle",
-    "team": "BAL",
-    "pos": "1B",
-    "dk_name": "Ryan Mountcastle",
-    "dk_id": "40023893",
-    "fd_name": "Ryan Mountcastle",
-    "fd_id": "120446-79082"
-  },
-  {
-    "proj": "Matt Chapman",
-    "team": "SF",
-    "pos": "3B",
-    "dk_name": "Matt Chapman",
-    "dk_id": "40023796",
-    "fd_name": "Matt Chapman",
-    "fd_id": "120446-68544"
-  },
-  {
-    "proj": "Matt McLain",
-    "team": "CIN",
-    "pos": "2B",
-    "dk_name": "Matt McLain",
-    "dk_id": "40023810",
-    "fd_name": "Matt McLain",
-    "fd_id": "120446-165507"
-  },
-  {
-    "proj": "Drake Baldwin",
-    "team": "ATL",
-    "pos": "C",
-    "dk_name": "Drake Baldwin",
-    "dk_id": "40023790",
-    "fd_name": "Drake Baldwin",
-    "fd_id": "120446-222858"
-  },
-  {
-    "proj": "Steven Kwan",
-    "team": "CLE",
-    "pos": "OF",
-    "dk_name": "Steven Kwan",
-    "dk_id": "40023746",
-    "fd_name": "Steven Kwan",
-    "fd_id": "120446-163666"
-  },
-  {
-    "proj": "JJ Bleday",
-    "team": "ATH",
-    "pos": "OF",
-    "dk_name": "JJ Bleday",
-    "dk_id": "40023884",
-    "fd_name": "JJ Bleday",
-    "fd_id": "120446-119363"
-  },
-  {
-    "proj": "Kyle Teel",
-    "team": "CWS",
-    "pos": "C",
-    "dk_name": "Kyle Teel",
-    "dk_id": "40023767",
-    "fd_name": "Kyle Teel",
-    "fd_id": "120446-198869"
-  },
-  {
-    "proj": "Ernie Clement",
-    "team": "TOR",
-    "pos": "3B",
-    "dk_name": "Ernie Clement",
-    "dk_id": "40023896",
-    "fd_name": "Ernie Clement",
-    "fd_id": "120446-135314"
-  },
-  {
-    "proj": "Victor Caratini",
-    "team": "HOU",
-    "pos": "C",
-    "dk_name": "Victor Caratini",
-    "dk_id": "40023923",
-    "fd_name": "Victor Caratini",
-    "fd_id": "120446-80848"
-  },
-  {
-    "proj": "Will Benson",
-    "team": "CIN",
-    "pos": "OF",
-    "dk_name": "Will Benson",
-    "dk_id": "40023846",
-    "fd_name": "Will Benson",
-    "fd_id": "120446-79119"
-  },
-  {
-    "proj": "Isaac Collins",
-    "team": "MIL",
-    "pos": "OF",
-    "dk_name": "Isaac Collins",
-    "dk_id": "40023752",
-    "fd_name": "Isaac Collins",
-    "fd_id": "120446-211773"
-  },
-  {
-    "proj": "Josh Jung",
-    "team": "TEX",
-    "pos": "3B",
-    "dk_name": "Josh Jung",
-    "dk_id": "40023889",
-    "fd_name": "Josh Jung",
-    "fd_id": "120446-119437"
-  },
-  {
-    "proj": "Angel Martinez",
-    "team": "CLE",
-    "pos": "OF",
-    "dk_name": "Angel Martinez",
-    "dk_id": "40023946",
-    "fd_name": "Angel Martinez",
-    "fd_id": "120446-165514"
-  },
-  {
-    "proj": "Mike Tauchman",
-    "team": "CWS",
-    "pos": "OF",
-    "dk_name": "Mike Tauchman",
-    "dk_id": "40023830",
-    "fd_name": "Mike Tauchman",
-    "fd_id": "120446-80847"
-  },
-  {
-    "proj": "Andrew Benintendi",
-    "team": "CWS",
-    "pos": "OF",
-    "dk_name": "Andrew Benintendi",
-    "dk_id": "40023852",
-    "fd_name": "Andrew Benintendi",
-    "fd_id": "120446-68495"
-  },
-  {
-    "proj": "Josh Smith",
-    "team": "TEX",
-    "pos": "SS",
-    "dk_name": "Josh Smith",
-    "dk_id": "40023817",
-    "fd_name": "Josh Smith",
-    "fd_id": "120446-165707"
-  },
-  {
-    "proj": "Kody Clemens",
-    "team": "MIN",
-    "pos": "1B",
-    "dk_name": "Kody Clemens",
-    "dk_id": "40023864",
-    "fd_name": "Kody Clemens",
-    "fd_id": "120446-102326"
-  },
-  {
-    "proj": "Jake Burger",
-    "team": "TEX",
-    "pos": "1B",
-    "dk_name": "Jake Burger",
-    "dk_id": "40023854",
-    "fd_name": "Jake Burger",
-    "fd_id": "120446-82570"
-  },
-  {
-    "proj": "Jose Caballero",
-    "team": "NYY",
-    "pos": "SS",
-    "dk_name": "Jose Caballero",
-    "dk_id": "40023801",
-    "fd_name": "Jose Caballero",
-    "fd_id": "120446-185303"
-  },
-  {
-    "proj": "Spencer Steer",
-    "team": "CIN",
-    "pos": "1B",
-    "dk_name": "Spencer Steer",
-    "dk_id": "40023819",
-    "fd_name": "Spencer Steer",
-    "fd_id": "120446-179272"
-  },
-  {
-    "proj": "Jeremiah Jackson",
-    "team": "BAL",
-    "pos": "3B",
-    "dk_name": "Jeremiah Jackson",
-    "dk_id": "40023820",
-    "fd_name": "Jeremiah Jackson",
-    "fd_id": "120446-102348"
-  },
-  {
-    "proj": "Taylor Ward",
-    "team": "LAA",
-    "pos": "OF",
-    "dk_name": "Taylor Ward",
-    "dk_id": "40023777",
-    "fd_name": "Taylor Ward",
-    "fd_id": "120446-79151"
-  },
-  {
-    "proj": "Jung Hoo Lee",
-    "team": "SF",
-    "pos": "OF",
-    "dk_name": "Jung Hoo Lee",
-    "dk_id": "40023828",
-    "fd_name": "Jung Hoo Lee",
-    "fd_id": "120446-198539"
-  },
-  {
-    "proj": "Ildemaro Vargas",
-    "team": "ARI",
-    "pos": "1B",
-    "dk_name": "Ildemaro Vargas",
-    "dk_id": "40023914",
-    "fd_name": "Ildemaro Vargas",
-    "fd_id": "120446-80852"
-  },
-  {
-    "proj": "Mickey Moniak",
-    "team": "COL",
-    "pos": "OF",
-    "dk_name": "Mickey Moniak",
-    "dk_id": "40023903",
-    "fd_name": "Mickey Moniak",
-    "fd_id": "120446-79211"
-  },
-  {
-    "proj": "Ryan McMahon",
-    "team": "NYY",
-    "pos": "3B",
-    "dk_name": "Ryan McMahon",
-    "dk_id": "40023880",
-    "fd_name": "Ryan McMahon",
-    "fd_id": "120446-68514"
-  },
-  {
-    "proj": "Marcell Ozuna",
-    "team": "ATL",
-    "pos": "OF",
-    "dk_name": "Marcell Ozuna",
-    "dk_id": "40023844",
-    "fd_name": "Marcell Ozuna",
-    "fd_id": "120446-17086"
-  },
-  {
-    "proj": "Alejandro Kirk",
-    "team": "TOR",
-    "pos": "C",
-    "dk_name": "Alejandro Kirk",
-    "dk_id": "40023825",
-    "fd_name": "Alejandro Kirk",
-    "fd_id": "120446-119444"
-  },
-  {
-    "proj": "Willy Adames",
-    "team": "SF",
-    "pos": "SS",
-    "dk_name": "Willy Adames",
-    "dk_id": "40023744",
-    "fd_name": "Willy Adames",
-    "fd_id": "120446-60655"
-  },
-  {
-    "proj": "Michael Harris II",
-    "team": "ATL",
-    "pos": "OF",
-    "dk_name": "Michael Harris II",
-    "dk_id": "40023866",
-    "fd_name": "Michael Harris II",
-    "fd_id": "120446-136672"
-  },
-  {
-    "proj": "Davis Schneider",
-    "team": "TOR",
-    "pos": "OF",
-    "dk_name": "Davis Schneider",
-    "dk_id": "40023812",
-    "fd_name": "Davis Schneider",
-    "fd_id": "120446-192426"
-  },
-  {
-    "proj": "Heliot Ramos",
-    "team": "SF",
-    "pos": "OF",
-    "dk_name": "Heliot Ramos",
-    "dk_id": "40023775",
-    "fd_name": "Heliot Ramos",
-    "fd_id": "120446-82642"
-  },
-  {
-    "proj": "Jake Cronenworth",
-    "team": "SD",
-    "pos": "2B",
-    "dk_name": "Jake Cronenworth",
-    "dk_id": "40023860",
-    "fd_name": "Jake Cronenworth",
-    "fd_id": "120446-118210"
-  },
-  {
-    "proj": "Tyler Freeman",
-    "team": "COL",
-    "pos": "2B",
-    "dk_name": "Tyler Freeman",
-    "dk_id": "40023799",
-    "fd_name": "Tyler Freeman",
-    "fd_id": "120446-119333"
-  },
-  {
-    "proj": "Jake Bauers",
-    "team": "MIL",
-    "pos": "1B",
-    "dk_name": "Jake Bauers",
-    "dk_id": "40023878",
-    "fd_name": "Jake Bauers",
-    "fd_id": "120446-79255"
-  },
-  {
-    "proj": "Michael Conforto",
-    "team": "LAD",
-    "pos": "OF",
-    "dk_name": "Michael Conforto",
-    "dk_id": "40023932",
-    "fd_name": "Michael Conforto",
-    "fd_id": "120446-60642"
-  },
-  {
-    "proj": "Kyle Karros",
-    "team": "COL",
-    "pos": "3B",
-    "dk_name": "Kyle Karros",
-    "dk_id": "40023942",
-    "fd_name": "Kyle Karros",
-    "fd_id": "120446-232219"
-  },
-  {
-    "proj": "Austin Wells",
-    "team": "NYY",
-    "pos": "C",
-    "dk_name": "Austin Wells",
-    "dk_id": "40023798",
-    "fd_name": "Austin Wells",
-    "fd_id": "120446-146716"
+    "dk_name": "Oneil Cruz",
+    "dk_id": "40034222",
+    "fd_name": "Oneil Cruz",
+    "fd_id": "120487-102389"
   },
   {
     "proj": "Xavier Edwards",
     "team": "MIA",
     "pos": "2B",
     "dk_name": "Xavier Edwards",
-    "dk_id": "40023727",
+    "dk_id": "40034230",
     "fd_name": "Xavier Edwards",
-    "fd_id": "120446-102393"
+    "fd_id": "120487-102393"
   },
   {
-    "proj": "Luis Rengifo",
-    "team": "LAA",
+    "proj": "Bryan Reynolds",
+    "team": "PIT",
+    "pos": "OF",
+    "dk_name": "Bryan Reynolds",
+    "dk_id": "40034243",
+    "fd_name": "Bryan Reynolds",
+    "fd_id": "120487-79230"
+  },
+  {
+    "proj": "Jazz Chisholm Jr.",
+    "team": "NYY",
     "pos": "2B",
-    "dk_name": "Luis Rengifo",
-    "dk_id": "40023899",
-    "fd_name": "Luis Rengifo",
-    "fd_id": "120446-101817"
+    "dk_name": "Jazz Chisholm Jr.",
+    "dk_id": "40034215",
+    "fd_name": "Jazz Chisholm Jr.",
+    "fd_id": "120487-82527"
   },
   {
-    "proj": "Victor Robles",
-    "team": "SEA",
-    "pos": "OF",
-    "dk_name": "Victor Robles",
-    "dk_id": "40023886",
-    "fd_name": "Victor Robles",
-    "fd_id": "120446-68563"
-  },
-  {
-    "proj": "Joc Pederson",
-    "team": "TEX",
-    "pos": "OF",
-    "dk_name": "Joc Pederson",
-    "dk_id": "40024017",
-    "fd_name": "Joc Pederson",
-    "fd_id": "120446-13864"
-  },
-  {
-    "proj": "Miguel Vargas",
-    "team": "CWS",
-    "pos": "1B",
-    "dk_name": "Miguel Vargas",
-    "dk_id": "40023807",
-    "fd_name": "Miguel Vargas",
-    "fd_id": "120446-119372"
-  },
-  {
-    "proj": "Gabriel Arias",
-    "team": "CLE",
-    "pos": "SS",
-    "dk_name": "Gabriel Arias",
-    "dk_id": "40023927",
-    "fd_name": "Gabriel Arias",
-    "fd_id": "120446-102546"
-  },
-  {
-    "proj": "David Hamilton",
-    "team": "BOS",
+    "proj": "Nick Gonzales",
+    "team": "PIT",
     "pos": "2B",
-    "dk_name": "David Hamilton",
-    "dk_id": "40023926",
-    "fd_name": "David Hamilton",
-    "fd_id": "120446-181813"
+    "dk_name": "Nick Gonzales",
+    "dk_id": "40034322",
+    "fd_name": "Nick Gonzales",
+    "fd_id": "120487-136090"
   },
   {
-    "proj": "Nolan Gorman",
-    "team": "STL",
-    "pos": "1B",
-    "dk_name": "Nolan Gorman",
-    "dk_id": "40023833",
-    "fd_name": "Nolan Gorman",
-    "fd_id": "120446-102415"
-  },
-  {
-    "proj": "Ceddanne Rafaela",
-    "team": "BOS",
+    "proj": "Josh Lowe",
+    "team": "TB",
     "pos": "OF",
-    "dk_name": "Ceddanne Rafaela",
-    "dk_id": "40023758",
-    "fd_name": "Ceddanne Rafaela",
-    "fd_id": "120446-181811"
+    "dk_name": "Josh Lowe",
+    "dk_id": "40034235",
+    "fd_name": "Josh Lowe",
+    "fd_id": "120487-79257"
   },
   {
-    "proj": "Colton Cowser",
+    "proj": "Riley Greene",
+    "team": "DET",
+    "pos": "OF",
+    "dk_name": "Riley Greene",
+    "dk_id": "40034221",
+    "fd_name": "Riley Greene",
+    "fd_id": "120487-119343"
+  },
+  {
+    "proj": "Andrew McCutchen",
+    "team": "PIT",
+    "pos": "OF",
+    "dk_name": "Andrew McCutchen",
+    "dk_id": "40034283",
+    "fd_name": "Andrew McCutchen",
+    "fd_id": "120487-5456"
+  },
+  {
+    "proj": "Cody Bellinger",
+    "team": "NYY",
+    "pos": "OF",
+    "dk_name": "Cody Bellinger",
+    "dk_id": "40034232",
+    "fd_name": "Cody Bellinger",
+    "fd_id": "120487-79159"
+  },
+  {
+    "proj": "Parker Meadows",
+    "team": "DET",
+    "pos": "OF",
+    "dk_name": "Parker Meadows",
+    "dk_id": "40034326",
+    "fd_name": "Parker Meadows",
+    "fd_id": "120487-102325"
+  },
+  {
+    "proj": "Pete Crow-Armstrong",
+    "team": "CHC",
+    "pos": "OF",
+    "dk_name": "Pete Crow-Armstrong",
+    "dk_id": "40034241",
+    "fd_name": "Pete Crow-Armstrong",
+    "fd_id": "120487-146704"
+  },
+  {
+    "proj": "Tyler O'Neill",
     "team": "BAL",
     "pos": "OF",
-    "dk_name": "Colton Cowser",
-    "dk_id": "40023814",
-    "fd_name": "Colton Cowser",
-    "fd_id": "120446-164507"
+    "dk_name": "Tyler O'Neill",
+    "dk_id": "40034418",
+    "fd_name": "Tyler O'Neill",
+    "fd_id": "120487-68547"
+  },
+  {
+    "proj": "Tommy Pham",
+    "team": "PIT",
+    "pos": "OF",
+    "dk_name": "Tommy Pham",
+    "dk_id": "40034295",
+    "fd_name": "Tommy Pham",
+    "fd_id": "120487-13487"
+  },
+  {
+    "proj": "Gunnar Henderson",
+    "team": "BAL",
+    "pos": "SS",
+    "dk_name": "Gunnar Henderson",
+    "dk_id": "40034231",
+    "fd_name": "Gunnar Henderson",
+    "fd_id": "120487-119306"
+  },
+  {
+    "proj": "Vladimir Guerrero Jr.",
+    "team": "TOR",
+    "pos": "1B",
+    "dk_name": "Vladimir Guerrero Jr.",
+    "dk_id": "40034216",
+    "fd_name": "Vladimir Guerrero Jr.",
+    "fd_id": "120487-79273"
+  },
+  {
+    "proj": "Carson Williams",
+    "team": "TB",
+    "pos": "SS",
+    "dk_name": "Carson Williams",
+    "dk_id": "40034293",
+    "fd_name": "Carson Williams",
+    "fd_id": "120487-165702"
+  },
+  {
+    "proj": "Junior Caminero",
+    "team": "TB",
+    "pos": "3B",
+    "dk_name": "Junior Caminero",
+    "dk_id": "40034212",
+    "fd_name": "Junior Caminero",
+    "fd_id": "120487-195679"
+  },
+  {
+    "proj": "Jakob Marsee",
+    "team": "MIA",
+    "pos": "OF",
+    "dk_name": "Jakob Marsee",
+    "dk_id": "40034229",
+    "fd_name": "Jakob Marsee",
+    "fd_id": "120487-231559"
+  },
+  {
+    "proj": "Spencer Torkelson",
+    "team": "DET",
+    "pos": "1B",
+    "dk_name": "Spencer Torkelson",
+    "dk_id": "40034242",
+    "fd_name": "Spencer Torkelson",
+    "fd_id": "120487-135203"
+  },
+  {
+    "proj": "Juan Soto",
+    "team": "NYM",
+    "pos": "OF",
+    "dk_name": "Juan Soto",
+    "dk_id": "40034210",
+    "fd_name": "Juan Soto",
+    "fd_id": "120487-79282"
+  },
+  {
+    "proj": "Daylen Lile",
+    "team": "WSH",
+    "pos": "OF",
+    "dk_name": "Daylen Lile",
+    "dk_id": "40034299",
+    "fd_name": "Daylen Lile",
+    "fd_id": "120487-165725"
+  },
+  {
+    "proj": "Chandler Simpson",
+    "team": "TB",
+    "pos": "OF",
+    "dk_name": "Chandler Simpson",
+    "dk_id": "40034227",
+    "fd_name": "Chandler Simpson",
+    "fd_id": "120487-225386"
+  },
+  {
+    "proj": "Pete Alonso",
+    "team": "NYM",
+    "pos": "1B",
+    "dk_name": "Pete Alonso",
+    "dk_id": "40034219",
+    "fd_name": "Pete Alonso",
+    "fd_id": "120487-82614"
+  },
+  {
+    "proj": "Brandon Lowe",
+    "team": "TB",
+    "pos": "2B",
+    "dk_name": "Brandon Lowe",
+    "dk_id": "40034217",
+    "fd_name": "Brandon Lowe",
+    "fd_id": "120487-85504"
+  },
+  {
+    "proj": "Romy Gonzalez",
+    "team": "BOS",
+    "pos": "1B",
+    "dk_name": "Romy Gonzalez",
+    "dk_id": "40034233",
+    "fd_name": "Romy Gonzalez",
+    "fd_id": "120487-161418"
+  },
+  {
+    "proj": "Giancarlo Stanton",
+    "team": "NYY",
+    "pos": "OF",
+    "dk_name": "Giancarlo Stanton",
+    "dk_id": "40034226",
+    "fd_name": "Giancarlo Stanton",
+    "fd_id": "120487-12302"
+  },
+  {
+    "proj": "Dylan Crews",
+    "team": "WSH",
+    "pos": "OF",
+    "dk_name": "Dylan Crews",
+    "dk_id": "40034268",
+    "fd_name": "Dylan Crews",
+    "fd_id": "120487-197982"
+  },
+  {
+    "proj": "Wenceel Perez",
+    "team": "DET",
+    "pos": "OF",
+    "dk_name": "Wenceel Perez",
+    "dk_id": "40034257",
+    "fd_name": "Wenceel Perez",
+    "fd_id": "120487-119341"
+  },
+  {
+    "proj": "Luis Garcia Jr.",
+    "team": "WSH",
+    "pos": "2B",
+    "dk_name": "Luis Garcia Jr.",
+    "dk_id": "40034256",
+    "fd_name": "Luis Garcia Jr.",
+    "fd_id": "120487-82660"
   },
   {
     "proj": "Otto Lopez",
     "team": "MIA",
     "pos": "SS",
     "dk_name": "Otto Lopez",
-    "dk_id": "40023788",
+    "dk_id": "40034258",
     "fd_name": "Otto Lopez",
-    "fd_id": "120446-145618"
+    "fd_id": "120487-145618"
   },
   {
-    "proj": "Lenyn Sosa",
-    "team": "CWS",
-    "pos": "1B",
-    "dk_name": "Lenyn Sosa",
-    "dk_id": "40023771",
-    "fd_name": "Lenyn Sosa",
-    "fd_id": "120446-165544"
+    "proj": "Jackson Holliday",
+    "team": "BAL",
+    "pos": "2B",
+    "dk_name": "Jackson Holliday",
+    "dk_id": "40034244",
+    "fd_name": "Jackson Holliday",
+    "fd_id": "120487-197967"
   },
   {
     "proj": "Michael Helman",
     "team": "TEX",
     "pos": "OF",
     "dk_name": "Michael Helman",
-    "dk_id": "40023785",
+    "dk_id": "40034267",
     "fd_name": "Michael Helman",
-    "fd_id": "120446-211345"
+    "fd_id": "120487-211345"
+  },
+  {
+    "proj": "Jake Mangum",
+    "team": "TB",
+    "pos": "OF",
+    "dk_name": "Jake Mangum",
+    "dk_id": "40034260",
+    "fd_name": "Jake Mangum",
+    "fd_id": "120487-219666"
+  },
+  {
+    "proj": "George Springer",
+    "team": "TOR",
+    "pos": "OF",
+    "dk_name": "George Springer",
+    "dk_id": "40034214",
+    "fd_name": "George Springer",
+    "fd_id": "120487-16983"
+  },
+  {
+    "proj": "Wyatt Langford",
+    "team": "TEX",
+    "pos": "OF",
+    "dk_name": "Wyatt Langford",
+    "dk_id": "40034240",
+    "fd_name": "Wyatt Langford",
+    "fd_id": "120487-198526"
+  },
+  {
+    "proj": "Trevor Story",
+    "team": "BOS",
+    "pos": "SS",
+    "dk_name": "Trevor Story",
+    "dk_id": "40034225",
+    "fd_name": "Trevor Story",
+    "fd_id": "120487-52158"
+  },
+  {
+    "proj": "Ben Rice",
+    "team": "NYY",
+    "pos": "C",
+    "dk_name": "Ben Rice",
+    "dk_id": "40034237",
+    "fd_name": "Ben Rice",
+    "fd_id": "120487-203111"
+  },
+  {
+    "proj": "Gleyber Torres",
+    "team": "DET",
+    "pos": "2B",
+    "dk_name": "Gleyber Torres",
+    "dk_id": "40034239",
+    "fd_name": "Gleyber Torres",
+    "fd_id": "120487-68588"
+  },
+  {
+    "proj": "Jake Burger",
+    "team": "TEX",
+    "pos": "1B",
+    "dk_name": "Jake Burger",
+    "dk_id": "40034308",
+    "fd_name": "Jake Burger",
+    "fd_id": "120487-82570"
+  },
+  {
+    "proj": "Spencer Horwitz",
+    "team": "PIT",
+    "pos": "1B",
+    "dk_name": "Spencer Horwitz",
+    "dk_id": "40034285",
+    "fd_name": "Spencer Horwitz",
+    "fd_id": "120487-181829"
   },
   {
     "proj": "Agustin Ramirez",
     "team": "MIA",
     "pos": "C",
     "dk_name": "Agustin Ramirez",
-    "dk_id": "40023756",
+    "dk_id": "40034248",
     "fd_name": "Agustin Ramirez",
-    "fd_id": "120446-197886"
+    "fd_id": "120487-197886"
   },
   {
-    "proj": "Dominic Smith",
-    "team": "SF",
-    "pos": "1B",
-    "dk_name": "Dominic Smith",
-    "dk_id": "40023875",
-    "fd_name": "Dominic Smith",
-    "fd_id": "120446-52170"
-  },
-  {
-    "proj": "Zach McKinstry",
-    "team": "DET",
-    "pos": "3B",
-    "dk_name": "Zach McKinstry",
-    "dk_id": "40023762",
-    "fd_name": "Zach McKinstry",
-    "fd_id": "120446-118218"
-  },
-  {
-    "proj": "Samuel Basallo",
+    "proj": "Dylan Beavers",
     "team": "BAL",
+    "pos": "OF",
+    "dk_name": "Dylan Beavers",
+    "dk_id": "40034329",
+    "fd_name": "Dylan Beavers",
+    "fd_id": "120487-232356"
+  },
+  {
+    "proj": "Trent Grisham",
+    "team": "NYY",
+    "pos": "OF",
+    "dk_name": "Trent Grisham",
+    "dk_id": "40034246",
+    "fd_name": "Trent Grisham",
+    "fd_id": "120487-79175"
+  },
+  {
+    "proj": "Henry Davis",
+    "team": "PIT",
     "pos": "C",
-    "dk_name": "Samuel Basallo",
-    "dk_id": "40023824",
-    "fd_name": "Samuel Basallo",
-    "fd_id": "120446-198867"
+    "dk_name": "Henry Davis",
+    "dk_id": "40034394",
+    "fd_name": "Henry Davis",
+    "fd_id": "120487-165654"
   },
   {
-    "proj": "Zack Gelof",
-    "team": "ATH",
-    "pos": "2B",
-    "dk_name": "Zack Gelof",
-    "dk_id": "40023943",
-    "fd_name": "Zack Gelof",
-    "fd_id": "120446-165643"
+    "proj": "Jared Triolo",
+    "team": "PIT",
+    "pos": "3B",
+    "dk_name": "Jared Triolo",
+    "dk_id": "40034304",
+    "fd_name": "Jared Triolo",
+    "fd_id": "120487-181851"
   },
   {
-    "proj": "Tim Tawa",
-    "team": "ARI",
+    "proj": "Josh Bell",
+    "team": "WSH",
     "pos": "1B",
-    "dk_name": "Tim Tawa",
-    "dk_id": "40023930",
-    "fd_name": "Tim Tawa",
-    "fd_id": "120446-219727"
-  },
-  {
-    "proj": "Alek Thomas",
-    "team": "ARI",
-    "pos": "OF",
-    "dk_name": "Alek Thomas",
-    "dk_id": "40024014",
-    "fd_name": "Alek Thomas",
-    "fd_id": "120446-102283"
-  },
-  {
-    "proj": "Ke'Bryan Hayes",
-    "team": "CIN",
-    "pos": "3B",
-    "dk_name": "Ke'Bryan Hayes",
-    "dk_id": "40023916",
-    "fd_name": "Ke'Bryan Hayes",
-    "fd_id": "120446-79216"
-  },
-  {
-    "proj": "Brooks Lee",
-    "team": "MIN",
-    "pos": "SS",
-    "dk_name": "Brooks Lee",
-    "dk_id": "40023904",
-    "fd_name": "Brooks Lee",
-    "fd_id": "120446-197972"
-  },
-  {
-    "proj": "Cedric Mullins",
-    "team": "NYM",
-    "pos": "OF",
-    "dk_name": "Cedric Mullins",
-    "dk_id": "40023782",
-    "fd_name": "Cedric Mullins",
-    "fd_id": "120446-82536"
-  },
-  {
-    "proj": "Freddy Fermin",
-    "team": "SD",
-    "pos": "C",
-    "dk_name": "Freddy Fermin",
-    "dk_id": "40024000",
-    "fd_name": "Freddy Fermin",
-    "fd_id": "120446-135194"
-  },
-  {
-    "proj": "Nacho Alvarez Jr.",
-    "team": "ATL",
-    "pos": "3B",
-    "dk_name": "Nacho Alvarez Jr.",
-    "dk_id": "40024007",
-    "fd_name": "Nacho Alvarez Jr.",
-    "fd_id": "120446-206608"
-  },
-  {
-    "proj": "Mitch Garver",
-    "team": "SEA",
-    "pos": "C",
-    "dk_name": "Mitch Garver",
-    "dk_id": "40023952",
-    "fd_name": "Mitch Garver",
-    "fd_id": "120446-81622"
-  },
-  {
-    "proj": "Jake McCarthy",
-    "team": "ARI",
-    "pos": "OF",
-    "dk_name": "Jake McCarthy",
-    "dk_id": "40023981",
-    "fd_name": "Jake McCarthy",
-    "fd_id": "120446-102282"
-  },
-  {
-    "proj": "Nate Eaton",
-    "team": "BOS",
-    "pos": "3B",
-    "dk_name": "Nate Eaton",
-    "dk_id": "40024018",
-    "fd_name": "Nate Eaton",
-    "fd_id": "120446-173546"
-  },
-  {
-    "proj": "Mark Vientos",
-    "team": "NYM",
-    "pos": "3B",
-    "dk_name": "Mark Vientos",
-    "dk_id": "40023787",
-    "fd_name": "Mark Vientos",
-    "fd_id": "120446-82615"
-  },
-  {
-    "proj": "Luke Raley",
-    "team": "SEA",
-    "pos": "1B",
-    "dk_name": "Luke Raley",
-    "dk_id": "40023959",
-    "fd_name": "Luke Raley",
-    "fd_id": "120446-102363"
-  },
-  {
-    "proj": "Caleb Durbin",
-    "team": "MIL",
-    "pos": "3B",
-    "dk_name": "Caleb Durbin",
-    "dk_id": "40023867",
-    "fd_name": "Caleb Durbin",
-    "fd_id": "120446-219698"
-  },
-  {
-    "proj": "Jordan Walker",
-    "team": "STL",
-    "pos": "OF",
-    "dk_name": "Jordan Walker",
-    "dk_id": "40023976",
-    "fd_name": "Jordan Walker",
-    "fd_id": "120446-135364"
-  },
-  {
-    "proj": "Jake Rogers",
-    "team": "DET",
-    "pos": "C",
-    "dk_name": "Jake Rogers",
-    "dk_id": "40023953",
-    "fd_name": "Jake Rogers",
-    "fd_id": "120446-82596"
-  },
-  {
-    "proj": "Jimmy Crooks",
-    "team": "STL",
-    "pos": "C",
-    "dk_name": "Jimmy Crooks",
-    "dk_id": "40024068",
-    "fd_name": "Jimmy Crooks",
-    "fd_id": "120446-222835"
-  },
-  {
-    "proj": "Joey Wiemer",
-    "team": "MIA",
-    "pos": "OF",
-    "dk_name": "Joey Wiemer",
-    "dk_id": "40023996",
-    "fd_name": "Joey Wiemer",
-    "fd_id": "120446-167500"
-  },
-  {
-    "proj": "Andres Gimenez",
-    "team": "TOR",
-    "pos": "2B",
-    "dk_name": "Andres Gimenez",
-    "dk_id": "40023928",
-    "fd_name": "Andres Gimenez",
-    "fd_id": "120446-82617"
-  },
-  {
-    "proj": "Ryan Ritter",
-    "team": "COL",
-    "pos": "2B",
-    "dk_name": "Ryan Ritter",
-    "dk_id": "40024012",
-    "fd_name": "Ryan Ritter",
-    "fd_id": "120446-226967"
-  },
-  {
-    "proj": "Mauricio Dubon",
-    "team": "HOU",
-    "pos": "2B",
-    "dk_name": "Mauricio Dubon",
-    "dk_id": "40024023",
-    "fd_name": "Mauricio Dubon",
-    "fd_id": "120446-79181"
-  },
-  {
-    "proj": "Brett Baty",
-    "team": "NYM",
-    "pos": "2B",
-    "dk_name": "Brett Baty",
-    "dk_id": "40023822",
-    "fd_name": "Brett Baty",
-    "fd_id": "120446-119376"
-  },
-  {
-    "proj": "David Fry",
-    "team": "CLE",
-    "pos": "C",
-    "dk_name": "David Fry",
-    "dk_id": "40023869",
-    "fd_name": "David Fry",
-    "fd_id": "120446-185632"
-  },
-  {
-    "proj": "Blaze Alexander",
-    "team": "ARI",
-    "pos": "3B",
-    "dk_name": "Blaze Alexander",
-    "dk_id": "40023881",
-    "fd_name": "Blaze Alexander",
-    "fd_id": "120446-102435"
-  },
-  {
-    "proj": "Jeff McNeil",
-    "team": "NYM",
-    "pos": "2B",
-    "dk_name": "Jeff McNeil",
-    "dk_id": "40023804",
-    "fd_name": "Jeff McNeil",
-    "fd_id": "120446-85307"
-  },
-  {
-    "proj": "Jordan Lawlar",
-    "team": "ARI",
-    "pos": "2B",
-    "dk_name": "Jordan Lawlar",
-    "dk_id": "40024063",
-    "fd_name": "Jordan Lawlar",
-    "fd_id": "120446-164495"
-  },
-  {
-    "proj": "J.P. Crawford",
-    "team": "SEA",
-    "pos": "SS",
-    "dk_name": "J.P. Crawford",
-    "dk_id": "40023850",
-    "fd_name": "J.P. Crawford",
-    "fd_id": "120446-52179"
-  },
-  {
-    "proj": "Javier Baez",
-    "team": "DET",
-    "pos": "SS",
-    "dk_name": "Javier Baez",
-    "dk_id": "40023907",
-    "fd_name": "Javier Baez",
-    "fd_id": "120446-21885"
-  },
-  {
-    "proj": "Tommy Edman",
-    "team": "LAD",
-    "pos": "2B",
-    "dk_name": "Tommy Edman",
-    "dk_id": "40023858",
-    "fd_name": "Tommy Edman",
-    "fd_id": "120446-108450"
-  },
-  {
-    "proj": "Bryce Teodosio",
-    "team": "LAA",
-    "pos": "OF",
-    "dk_name": "Bryce Teodosio",
-    "dk_id": "40024026",
-    "fd_name": "Bryce Teodosio",
-    "fd_id": "120446-211757"
-  },
-  {
-    "proj": "Brayan Rocchio",
-    "team": "CLE",
-    "pos": "2B",
-    "dk_name": "Brayan Rocchio",
-    "dk_id": "40024009",
-    "fd_name": "Brayan Rocchio",
-    "fd_id": "120446-102475"
-  },
-  {
-    "proj": "Francisco Alvarez",
-    "team": "NYM",
-    "pos": "C",
-    "dk_name": "Francisco Alvarez",
-    "dk_id": "40023902",
-    "fd_name": "Francisco Alvarez",
-    "fd_id": "120446-102365"
-  },
-  {
-    "proj": "Jonah Heim",
-    "team": "TEX",
-    "pos": "C",
-    "dk_name": "Jonah Heim",
-    "dk_id": "40023997",
-    "fd_name": "Jonah Heim",
-    "fd_id": "120446-118120"
-  },
-  {
-    "proj": "Jhonny Pereda",
-    "team": "MIN",
-    "pos": "C",
-    "dk_name": "Jhonny Pereda",
-    "dk_id": "40023991",
-    "fd_name": "Jhonny Pereda",
-    "fd_id": "120446-102454"
-  },
-  {
-    "proj": "Isiah Kiner-Falefa",
-    "team": "TOR",
-    "pos": "3B",
-    "dk_name": "Isiah Kiner-Falefa",
-    "dk_id": "40023956",
-    "fd_name": "Isiah Kiner-Falefa",
-    "fd_id": "120446-82977"
-  },
-  {
-    "proj": "Alejandro Osuna",
-    "team": "TEX",
-    "pos": "OF",
-    "dk_name": "Alejandro Osuna",
-    "dk_id": "40024031",
-    "fd_name": "Alejandro Osuna",
-    "fd_id": "120446-226907"
-  },
-  {
-    "proj": "Ty France",
-    "team": "TOR",
-    "pos": "1B",
-    "dk_name": "Ty France",
-    "dk_id": "40023949",
-    "fd_name": "Ty France",
-    "fd_id": "120446-101842"
-  },
-  {
-    "proj": "Eric Wagaman",
-    "team": "MIA",
-    "pos": "1B",
-    "dk_name": "Eric Wagaman",
-    "dk_id": "40023901",
-    "fd_name": "Eric Wagaman",
-    "fd_id": "120446-211919"
-  },
-  {
-    "proj": "Emmanuel Rivera",
-    "team": "BAL",
-    "pos": "3B",
-    "dk_name": "Emmanuel Rivera",
-    "dk_id": "40023992",
-    "fd_name": "Emmanuel Rivera",
-    "fd_id": "120446-102488"
-  },
-  {
-    "proj": "Jhonkensy Noel",
-    "team": "CLE",
-    "pos": "1B",
-    "dk_name": "Jhonkensy Noel",
-    "dk_id": "40024065",
-    "fd_name": "Jhonkensy Noel",
-    "fd_id": "120446-163667"
-  },
-  {
-    "proj": "Brooks Baldwin",
-    "team": "CWS",
-    "pos": "OF",
-    "dk_name": "Brooks Baldwin",
-    "dk_id": "40023917",
-    "fd_name": "Brooks Baldwin",
-    "fd_id": "120446-206383"
-  },
-  {
-    "proj": "Will Robertson",
-    "team": "CWS",
-    "pos": "OF",
-    "dk_name": "Will Robertson",
-    "dk_id": "40024054",
-    "fd_name": "Will Robertson",
-    "fd_id": "120446-226979"
-  },
-  {
-    "proj": "Myles Straw",
-    "team": "TOR",
-    "pos": "OF",
-    "dk_name": "Myles Straw",
-    "dk_id": "40023913",
-    "fd_name": "Myles Straw",
-    "fd_id": "120446-97257"
-  },
-  {
-    "proj": "Chase Meidroth",
-    "team": "CWS",
-    "pos": "2B",
-    "dk_name": "Chase Meidroth",
-    "dk_id": "40023874",
-    "fd_name": "Chase Meidroth",
-    "fd_id": "120446-222287"
-  },
-  {
-    "proj": "Javier Sanoja",
-    "team": "MIA",
-    "pos": "3B",
-    "dk_name": "Javier Sanoja",
-    "dk_id": "40024015",
-    "fd_name": "Javier Sanoja",
-    "fd_id": "120446-211756"
-  },
-  {
-    "proj": "Casey Schmitt",
-    "team": "SF",
-    "pos": "2B",
-    "dk_name": "Casey Schmitt",
-    "dk_id": "40023894",
-    "fd_name": "Casey Schmitt",
-    "fd_id": "120446-165686"
-  },
-  {
-    "proj": "Joey Ortiz",
-    "team": "MIL",
-    "pos": "SS",
-    "dk_name": "Joey Ortiz",
-    "dk_id": "40023941",
-    "fd_name": "Joey Ortiz",
-    "fd_id": "120446-164513"
-  },
-  {
-    "proj": "Darell Hernaiz",
-    "team": "ATH",
-    "pos": "3B",
-    "dk_name": "Darell Hernaiz",
-    "dk_id": "40023965",
-    "fd_name": "Darell Hernaiz",
-    "fd_id": "120446-197904"
-  },
-  {
-    "proj": "Sebastian Rivero",
-    "team": "LAA",
-    "pos": "C",
-    "dk_name": "Sebastian Rivero",
-    "dk_id": "40024045",
-    "fd_name": "Sebastian Rivero",
-    "fd_id": "120446-135195"
+    "dk_name": "Josh Bell",
+    "dk_id": "40034286",
+    "fd_name": "Josh Bell",
+    "fd_id": "120487-53994"
   },
   {
     "proj": "Heriberto Hernandez",
     "team": "MIA",
     "pos": "OF",
     "dk_name": "Heriberto Hernandez",
-    "dk_id": "40023851",
+    "dk_id": "40034297",
     "fd_name": "Heriberto Hernandez",
-    "fd_id": "120446-165703"
+    "fd_id": "120487-165703"
   },
   {
-    "proj": "Drew Gilbert",
-    "team": "SF",
+    "proj": "Nico Hoerner",
+    "team": "CHC",
+    "pos": "2B",
+    "dk_name": "Nico Hoerner",
+    "dk_id": "40034271",
+    "fd_name": "Nico Hoerner",
+    "fd_id": "120487-102301"
+  },
+  {
+    "proj": "Ryan Mountcastle",
+    "team": "BAL",
+    "pos": "1B",
+    "dk_name": "Ryan Mountcastle",
+    "dk_id": "40034342",
+    "fd_name": "Ryan Mountcastle",
+    "fd_id": "120487-79082"
+  },
+  {
+    "proj": "Alex Bregman",
+    "team": "BOS",
+    "pos": "3B",
+    "dk_name": "Alex Bregman",
+    "dk_id": "40034223",
+    "fd_name": "Alex Bregman",
+    "fd_id": "120487-68522"
+  },
+  {
+    "proj": "Seiya Suzuki",
+    "team": "CHC",
     "pos": "OF",
-    "dk_name": "Drew Gilbert",
-    "dk_id": "40023849",
-    "fd_name": "Drew Gilbert",
-    "fd_id": "120446-198903"
+    "dk_name": "Seiya Suzuki",
+    "dk_id": "40034255",
+    "fd_name": "Seiya Suzuki",
+    "fd_id": "120487-167012"
+  },
+  {
+    "proj": "Ian Happ",
+    "team": "CHC",
+    "pos": "OF",
+    "dk_name": "Ian Happ",
+    "dk_id": "40034264",
+    "fd_name": "Ian Happ",
+    "fd_id": "120487-79092"
+  },
+  {
+    "proj": "Mark Vientos",
+    "team": "NYM",
+    "pos": "3B",
+    "dk_name": "Mark Vientos",
+    "dk_id": "40034253",
+    "fd_name": "Mark Vientos",
+    "fd_id": "120487-82615"
+  },
+  {
+    "proj": "Liam Hicks",
+    "team": "MIA",
+    "pos": "C",
+    "dk_name": "Liam Hicks",
+    "dk_id": "40034314",
+    "fd_name": "Liam Hicks",
+    "fd_id": "120487-220835"
+  },
+  {
+    "proj": "Starling Marte",
+    "team": "NYM",
+    "pos": "OF",
+    "dk_name": "Starling Marte",
+    "dk_id": "40034284",
+    "fd_name": "Starling Marte",
+    "fd_id": "120487-13423"
+  },
+  {
+    "proj": "Brandon Nimmo",
+    "team": "NYM",
+    "pos": "OF",
+    "dk_name": "Brandon Nimmo",
+    "dk_id": "40034245",
+    "fd_name": "Brandon Nimmo",
+    "fd_id": "120487-17097"
+  },
+  {
+    "proj": "Cam Devanney",
+    "team": "PIT",
+    "pos": "3B",
+    "dk_name": "Cam Devanney",
+    "dk_id": "40034408",
+    "fd_name": "Cam Devanney",
+    "fd_id": "120487-228949"
+  },
+  {
+    "proj": "Kyle Higashioka",
+    "team": "TEX",
+    "pos": "C",
+    "dk_name": "Kyle Higashioka",
+    "dk_id": "40034313",
+    "fd_name": "Kyle Higashioka",
+    "fd_id": "120487-79918"
+  },
+  {
+    "proj": "Yandy Diaz",
+    "team": "TB",
+    "pos": "1B",
+    "dk_name": "Yandy Diaz",
+    "dk_id": "40034224",
+    "fd_name": "Yandy Diaz",
+    "fd_id": "120487-79120"
+  },
+  {
+    "proj": "Jeremiah Jackson",
+    "team": "BAL",
+    "pos": "3B",
+    "dk_name": "Jeremiah Jackson",
+    "dk_id": "40034277",
+    "fd_name": "Jeremiah Jackson",
+    "fd_id": "120487-102348"
+  },
+  {
+    "proj": "Josh Smith",
+    "team": "TEX",
+    "pos": "SS",
+    "dk_name": "Josh Smith",
+    "dk_id": "40034290",
+    "fd_name": "Josh Smith",
+    "fd_id": "120487-165707"
+  },
+  {
+    "proj": "Nathan Lukes",
+    "team": "TOR",
+    "pos": "OF",
+    "dk_name": "Nathan Lukes",
+    "dk_id": "40034312",
+    "fd_name": "Nathan Lukes",
+    "fd_id": "120487-181662"
+  },
+  {
+    "proj": "Josh Jung",
+    "team": "TEX",
+    "pos": "3B",
+    "dk_name": "Josh Jung",
+    "dk_id": "40034325",
+    "fd_name": "Josh Jung",
+    "fd_id": "120487-119437"
+  },
+  {
+    "proj": "Davis Schneider",
+    "team": "TOR",
+    "pos": "OF",
+    "dk_name": "Davis Schneider",
+    "dk_id": "40034298",
+    "fd_name": "Davis Schneider",
+    "fd_id": "120487-192426"
+  },
+  {
+    "proj": "Jeff McNeil",
+    "team": "NYM",
+    "pos": "2B",
+    "dk_name": "Jeff McNeil",
+    "dk_id": "40034279",
+    "fd_name": "Jeff McNeil",
+    "fd_id": "120487-85307"
+  },
+  {
+    "proj": "Michael Busch",
+    "team": "CHC",
+    "pos": "1B",
+    "dk_name": "Michael Busch",
+    "dk_id": "40034254",
+    "fd_name": "Michael Busch",
+    "fd_id": "120487-119352"
+  },
+  {
+    "proj": "Joc Pederson",
+    "team": "TEX",
+    "pos": "OF",
+    "dk_name": "Joc Pederson",
+    "dk_id": "40034379",
+    "fd_name": "Joc Pederson",
+    "fd_id": "120487-13864"
+  },
+  {
+    "proj": "Isiah Kiner-Falefa",
+    "team": "TOR",
+    "pos": "3B",
+    "dk_name": "Isiah Kiner-Falefa",
+    "dk_id": "40034356",
+    "fd_name": "Isiah Kiner-Falefa",
+    "fd_id": "120487-82977"
+  },
+  {
+    "proj": "Alejandro Kirk",
+    "team": "TOR",
+    "pos": "C",
+    "dk_name": "Alejandro Kirk",
+    "dk_id": "40034276",
+    "fd_name": "Alejandro Kirk",
+    "fd_id": "120487-119444"
+  },
+  {
+    "proj": "Jarren Duran",
+    "team": "BOS",
+    "pos": "OF",
+    "dk_name": "Jarren Duran",
+    "dk_id": "40034218",
+    "fd_name": "Jarren Duran",
+    "fd_id": "120487-119311"
+  },
+  {
+    "proj": "Ty France",
+    "team": "TOR",
+    "pos": "1B",
+    "dk_name": "Ty France",
+    "dk_id": "40034355",
+    "fd_name": "Ty France",
+    "fd_id": "120487-101842"
+  },
+  {
+    "proj": "Jose Caballero",
+    "team": "NYY",
+    "pos": "3B",
+    "dk_name": "Jose Caballero",
+    "dk_id": "40034273",
+    "fd_name": "Jose Caballero",
+    "fd_id": "120487-185303"
+  },
+  {
+    "proj": "Riley Adams",
+    "team": "WSH",
+    "pos": "C",
+    "dk_name": "Riley Adams",
+    "dk_id": "40034327",
+    "fd_name": "Riley Adams",
+    "fd_id": "120487-135284"
+  },
+  {
+    "proj": "Myles Straw",
+    "team": "TOR",
+    "pos": "OF",
+    "dk_name": "Myles Straw",
+    "dk_id": "40034332",
+    "fd_name": "Myles Straw",
+    "fd_id": "120487-97257"
+  },
+  {
+    "proj": "Coby Mayo",
+    "team": "BAL",
+    "pos": "1B",
+    "dk_name": "Coby Mayo",
+    "dk_id": "40034395",
+    "fd_name": "Coby Mayo",
+    "fd_id": "120487-164512"
+  },
+  {
+    "proj": "Samuel Basallo",
+    "team": "BAL",
+    "pos": "C",
+    "dk_name": "Samuel Basallo",
+    "dk_id": "40034287",
+    "fd_name": "Samuel Basallo",
+    "fd_id": "120487-198867"
+  },
+  {
+    "proj": "Richie Palacios",
+    "team": "TB",
+    "pos": "1B",
+    "dk_name": "Richie Palacios",
+    "dk_id": "40034310",
+    "fd_name": "Richie Palacios",
+    "fd_id": "120487-163668"
+  },
+  {
+    "proj": "Austin Wells",
+    "team": "NYY",
+    "pos": "C",
+    "dk_name": "Austin Wells",
+    "dk_id": "40034282",
+    "fd_name": "Austin Wells",
+    "fd_id": "120487-146716"
+  },
+  {
+    "proj": "Zach McKinstry",
+    "team": "DET",
+    "pos": "3B",
+    "dk_name": "Zach McKinstry",
+    "dk_id": "40034249",
+    "fd_name": "Zach McKinstry",
+    "fd_id": "120487-118218"
+  },
+  {
+    "proj": "Rob Refsnyder",
+    "team": "BOS",
+    "pos": "OF",
+    "dk_name": "Rob Refsnyder",
+    "dk_id": "40034269",
+    "fd_name": "Rob Refsnyder",
+    "fd_id": "120487-53757"
+  },
+  {
+    "proj": "Colton Cowser",
+    "team": "BAL",
+    "pos": "OF",
+    "dk_name": "Colton Cowser",
+    "dk_id": "40034292",
+    "fd_name": "Colton Cowser",
+    "fd_id": "120487-164507"
+  },
+  {
+    "proj": "Colt Keith",
+    "team": "DET",
+    "pos": "3B",
+    "dk_name": "Colt Keith",
+    "dk_id": "40034261",
+    "fd_name": "Colt Keith",
+    "fd_id": "120487-165557"
+  },
+  {
+    "proj": "Ryan McMahon",
+    "team": "NYY",
+    "pos": "3B",
+    "dk_name": "Ryan McMahon",
+    "dk_id": "40034318",
+    "fd_name": "Ryan McMahon",
+    "fd_id": "120487-68514"
+  },
+  {
+    "proj": "Carson Kelly",
+    "team": "CHC",
+    "pos": "C",
+    "dk_name": "Carson Kelly",
+    "dk_id": "40034281",
+    "fd_name": "Carson Kelly",
+    "fd_id": "120487-73871"
+  },
+  {
+    "proj": "Dillon Dingler",
+    "team": "DET",
+    "pos": "C",
+    "dk_name": "Dillon Dingler",
+    "dk_id": "40034291",
+    "fd_name": "Dillon Dingler",
+    "fd_id": "120487-135204"
+  },
+  {
+    "proj": "Jose Siri",
+    "team": "NYM",
+    "pos": "OF",
+    "dk_name": "Jose Siri",
+    "dk_id": "40034406",
+    "fd_name": "Jose Siri",
+    "fd_id": "120487-82553"
+  },
+  {
+    "proj": "Francisco Alvarez",
+    "team": "NYM",
+    "pos": "C",
+    "dk_name": "Francisco Alvarez",
+    "dk_id": "40034323",
+    "fd_name": "Francisco Alvarez",
+    "fd_id": "120487-102365"
+  },
+  {
+    "proj": "Willi Castro",
+    "team": "CHC",
+    "pos": "3B",
+    "dk_name": "Willi Castro",
+    "dk_id": "40034306",
+    "fd_name": "Willi Castro",
+    "fd_id": "120487-82555"
+  },
+  {
+    "proj": "Brady House",
+    "team": "WSH",
+    "pos": "3B",
+    "dk_name": "Brady House",
+    "dk_id": "40034348",
+    "fd_name": "Brady House",
+    "fd_id": "120487-165726"
+  },
+  {
+    "proj": "Dansby Swanson",
+    "team": "CHC",
+    "pos": "SS",
+    "dk_name": "Dansby Swanson",
+    "dk_id": "40034263",
+    "fd_name": "Dansby Swanson",
+    "fd_id": "120487-68586"
+  },
+  {
+    "proj": "Ceddanne Rafaela",
+    "team": "BOS",
+    "pos": "OF",
+    "dk_name": "Ceddanne Rafaela",
+    "dk_id": "40034259",
+    "fd_name": "Ceddanne Rafaela",
+    "fd_id": "120487-181811"
+  },
+  {
+    "proj": "Ernie Clement",
+    "team": "TOR",
+    "pos": "3B",
+    "dk_name": "Ernie Clement",
+    "dk_id": "40034320",
+    "fd_name": "Ernie Clement",
+    "fd_id": "120487-135314"
+  },
+  {
+    "proj": "Nick Sogard",
+    "team": "BOS",
+    "pos": "2B",
+    "dk_name": "Nick Sogard",
+    "dk_id": "40034368",
+    "fd_name": "Nick Sogard",
+    "fd_id": "120487-207557"
+  },
+  {
+    "proj": "Matt Shaw",
+    "team": "CHC",
+    "pos": "3B",
+    "dk_name": "Matt Shaw",
+    "dk_id": "40034337",
+    "fd_name": "Matt Shaw",
+    "fd_id": "120487-198877"
+  },
+  {
+    "proj": "Carlos Narvaez",
+    "team": "BOS",
+    "pos": "C",
+    "dk_name": "Carlos Narvaez",
+    "dk_id": "40034319",
+    "fd_name": "Carlos Narvaez",
+    "fd_id": "120487-197762"
   },
   {
     "proj": "Maximo Acosta",
     "team": "MIA",
     "pos": "2B",
     "dk_name": "Maximo Acosta",
-    "dk_id": "40023905",
+    "dk_id": "40034335",
     "fd_name": "Maximo Acosta",
-    "fd_id": "120446-119436"
+    "fd_id": "120487-119436"
   },
   {
-    "proj": "Patrick Bailey",
-    "team": "SF",
-    "pos": "C",
-    "dk_name": "Patrick Bailey",
-    "dk_id": "40023978",
-    "fd_name": "Patrick Bailey",
-    "fd_id": "120446-136504"
-  },
-  {
-    "proj": "Oswald Peraza",
-    "team": "LAA",
+    "proj": "Troy Johnston",
+    "team": "MIA",
     "pos": "1B",
-    "dk_name": "Oswald Peraza",
-    "dk_id": "40024055",
-    "fd_name": "Oswald Peraza",
-    "fd_id": "120446-145611"
+    "dk_name": "Troy Johnston",
+    "dk_id": "40034353",
+    "fd_name": "Troy Johnston",
+    "fd_id": "120487-231534"
+  },
+  {
+    "proj": "Alejandro Osuna",
+    "team": "TEX",
+    "pos": "OF",
+    "dk_name": "Alejandro Osuna",
+    "dk_id": "40034384",
+    "fd_name": "Alejandro Osuna",
+    "fd_id": "120487-226907"
+  },
+  {
+    "proj": "Hunter Feduccia",
+    "team": "TB",
+    "pos": "C",
+    "dk_name": "Hunter Feduccia",
+    "dk_id": "40034396",
+    "fd_name": "Hunter Feduccia",
+    "fd_id": "120487-197915"
+  },
+  {
+    "proj": "Nate Eaton",
+    "team": "BOS",
+    "pos": "3B",
+    "dk_name": "Nate Eaton",
+    "dk_id": "40034387",
+    "fd_name": "Nate Eaton",
+    "fd_id": "120487-173546"
   },
   {
     "proj": "Cody Freeman",
     "team": "TEX",
     "pos": "2B",
     "dk_name": "Cody Freeman",
-    "dk_id": "40023972",
+    "dk_id": "40034364",
     "fd_name": "Cody Freeman",
-    "fd_id": "120446-229041"
+    "fd_id": "120487-229041"
   },
   {
-    "proj": "Austin Hedges",
-    "team": "CLE",
-    "pos": "C",
-    "dk_name": "Austin Hedges",
-    "dk_id": "40024053",
-    "fd_name": "Austin Hedges",
-    "fd_id": "120446-38004"
-  },
-  {
-    "proj": "Tarik Skubal",
-    "team": "DET",
-    "pos": "",
-    "dk_name": "Tarik Skubal",
-    "dk_id": "40023655",
-    "fd_name": "Tarik Skubal",
-    "fd_id": "120446-119340"
-  },
-  {
-    "proj": "Yoshinobu Yamamoto",
-    "team": "LAD",
-    "pos": "",
-    "dk_name": "Yoshinobu Yamamoto",
-    "dk_id": "40023657",
-    "fd_name": "Yoshinobu Yamamoto",
-    "fd_id": "120446-198625"
-  },
-  {
-    "proj": "Jacob deGrom",
-    "team": "TEX",
-    "pos": "",
-    "dk_name": "Jacob deGrom",
-    "dk_id": "40023658",
-    "fd_name": "Jacob deGrom",
-    "fd_id": "120446-52859"
-  },
-  {
-    "proj": "Luis Castillo",
-    "team": "SEA",
-    "pos": "",
-    "dk_name": "Luis Castillo",
-    "dk_id": "40023667",
-    "fd_name": "Luis Castillo",
-    "fd_id": "120446-79162"
-  },
-  {
-    "proj": "Jonah Tong",
-    "team": "NYM",
-    "pos": "",
-    "dk_name": "Jonah Tong",
-    "dk_id": "40023665",
-    "fd_name": "Jonah Tong",
-    "fd_id": "120446-222819"
-  },
-  {
-    "proj": "Pablo Lopez",
-    "team": "MIN",
-    "pos": "",
-    "dk_name": "Pablo Lopez",
-    "dk_id": "40023660",
-    "fd_name": "Pablo Lopez",
-    "fd_id": "120446-83152"
-  },
-  {
-    "proj": "Trevor Rogers",
-    "team": "BAL",
-    "pos": "",
-    "dk_name": "Trevor Rogers",
-    "dk_id": "40024291",
-    "fd_name": "Trevor Rogers",
-    "fd_id": "120446-82607"
-  },
-  {
-    "proj": "Chris Bassitt",
-    "team": "TOR",
-    "pos": "",
-    "dk_name": "Chris Bassitt",
-    "dk_id": "40023663",
-    "fd_name": "Chris Bassitt",
-    "fd_id": "120446-53067"
-  },
-  {
-    "proj": "Yusei Kikuchi",
-    "team": "LAA",
-    "pos": "",
-    "dk_name": "Yusei Kikuchi",
-    "dk_id": "40023668",
-    "fd_name": "Yusei Kikuchi",
-    "fd_id": "120446-102001"
-  },
-  {
-    "proj": "Lucas Giolito",
-    "team": "BOS",
-    "pos": "",
-    "dk_name": "Lucas Giolito",
-    "dk_id": "40023664",
-    "fd_name": "Lucas Giolito",
-    "fd_id": "120446-52198"
-  },
-  {
-    "proj": "Hurston Waldrep",
-    "team": "ATL",
-    "pos": "",
-    "dk_name": "Hurston Waldrep",
-    "dk_id": "40023659",
-    "fd_name": "Hurston Waldrep",
-    "fd_id": "120446-198872"
-  },
-  {
-    "proj": "Brady Singer",
-    "team": "CIN",
-    "pos": "",
-    "dk_name": "Brady Singer",
-    "dk_id": "40023666",
-    "fd_name": "Brady Singer",
-    "fd_id": "120446-102344"
-  },
-  {
-    "proj": "Tanner Bibee",
-    "team": "CLE",
-    "pos": "",
-    "dk_name": "Tanner Bibee",
-    "dk_id": "40023669",
-    "fd_name": "Tanner Bibee",
-    "fd_id": "120446-185501"
-  },
-  {
-    "proj": "Luis Gil",
+    "proj": "Max Fried",
     "team": "NYY",
     "pos": "",
-    "dk_name": "Luis Gil",
-    "dk_id": "40023670",
-    "fd_name": "Luis Gil",
-    "fd_id": "120446-118206"
+    "dk_name": "Max Fried",
+    "dk_id": "40034197",
+    "fd_name": "Max Fried",
+    "fd_id": "120487-52185"
   },
   {
-    "proj": "Quinn Priester",
-    "team": "MIL",
+    "proj": "Max Scherzer",
+    "team": "TOR",
     "pos": "",
-    "dk_name": "Quinn Priester",
-    "dk_id": "40023662",
-    "fd_name": "Quinn Priester",
-    "fd_id": "120446-119409"
+    "dk_name": "Max Scherzer",
+    "dk_id": "40034199",
+    "fd_name": "Max Scherzer",
+    "fd_id": "120487-5481"
   },
   {
-    "proj": "Sandy Alcantara",
+    "proj": "Brandon Sproat",
+    "team": "NYM",
+    "pos": "",
+    "dk_name": "Brandon Sproat",
+    "dk_id": "40034202",
+    "fd_name": "Brandon Sproat",
+    "fd_id": "120487-222822"
+  },
+  {
+    "proj": "Drew Rasmussen",
+    "team": "TB",
+    "pos": "",
+    "dk_name": "Drew Rasmussen",
+    "dk_id": "40034200",
+    "fd_name": "Drew Rasmussen",
+    "fd_id": "120487-119361"
+  },
+  {
+    "proj": "Brayan Bello",
+    "team": "BOS",
+    "pos": "",
+    "dk_name": "Brayan Bello",
+    "dk_id": "40034198",
+    "fd_name": "Brayan Bello",
+    "fd_id": "120487-163680"
+  },
+  {
+    "proj": "Andrew Alvarez",
+    "team": "WSH",
+    "pos": "",
+    "dk_name": "Andrew Alvarez",
+    "dk_id": "40034208",
+    "fd_name": "Andrew Alvarez",
+    "fd_id": "120487-232674"
+  },
+  {
+    "proj": "Charlie Morton",
+    "team": "DET",
+    "pos": "",
+    "dk_name": "Charlie Morton",
+    "dk_id": "40034201",
+    "fd_name": "Charlie Morton",
+    "fd_id": "120487-5466"
+  },
+  {
+    "proj": "Janson Junk",
     "team": "MIA",
     "pos": "",
-    "dk_name": "Sandy Alcantara",
-    "dk_id": "40023675",
-    "fd_name": "Sandy Alcantara",
-    "fd_id": "120446-79245"
+    "dk_name": "Janson Junk",
+    "dk_id": "40034206",
+    "fd_name": "Janson Junk",
+    "fd_id": "120487-161450"
   },
   {
-    "proj": "J.T. Ginn",
-    "team": "ATH",
+    "proj": "Patrick Corbin",
+    "team": "TEX",
     "pos": "",
-    "dk_name": "J.T. Ginn",
-    "dk_id": "40023676",
-    "fd_name": "J.T. Ginn",
-    "fd_id": "120446-146705"
+    "dk_name": "Patrick Corbin",
+    "dk_id": "40034203",
+    "fd_name": "Patrick Corbin",
+    "fd_id": "120487-13664"
   },
   {
-    "proj": "Martin Perez",
-    "team": "CWS",
+    "proj": "Colin Rea",
+    "team": "CHC",
     "pos": "",
-    "dk_name": "Martin Perez",
-    "dk_id": "40023673",
-    "fd_name": "Martin Perez",
-    "fd_id": "120446-11328"
+    "dk_name": "Colin Rea",
+    "dk_id": "40034207",
+    "fd_name": "Colin Rea",
+    "fd_id": "120487-64488"
   },
   {
-    "proj": "Justin Verlander",
-    "team": "SF",
+    "proj": "Bubba Chandler",
+    "team": "PIT",
     "pos": "",
-    "dk_name": "Justin Verlander",
-    "dk_id": "40023671",
-    "fd_name": "Justin Verlander",
-    "fd_id": "120446-5202"
+    "dk_name": "Bubba Chandler",
+    "dk_id": "40034204",
+    "fd_name": "Bubba Chandler",
+    "fd_id": "120487-165655"
   },
   {
-    "proj": "JP Sears",
-    "team": "SD",
+    "proj": "Tomoyuki Sugano",
+    "team": "BAL",
     "pos": "",
-    "dk_name": "JP Sears",
-    "dk_id": "40024404",
-    "fd_name": "JP Sears",
-    "fd_id": "120446-163685"
-  },
-  {
-    "proj": "Brandon Pfaadt",
-    "team": "ARI",
-    "pos": "",
-    "dk_name": "Brandon Pfaadt",
-    "dk_id": "40023674",
-    "fd_name": "Brandon Pfaadt",
-    "fd_id": "120446-185701"
-  },
-  {
-    "proj": "Andre Pallante",
-    "team": "STL",
-    "pos": "",
-    "dk_name": "Andre Pallante",
-    "dk_id": "40023677",
-    "fd_name": "Andre Pallante",
-    "fd_id": "120446-168950"
-  },
-  {
-    "proj": "AJ Blubaugh",
-    "team": "HOU",
-    "pos": "",
-    "dk_name": "AJ Blubaugh",
-    "dk_id": "40024413",
-    "fd_name": "AJ Blubaugh",
-    "fd_id": "120446-226643"
-  },
-  {
-    "proj": "Tanner Gordon",
-    "team": "COL",
-    "pos": "",
-    "dk_name": "Tanner Gordon",
-    "dk_id": "40023678",
-    "fd_name": "Tanner Gordon",
-    "fd_id": "120446-204632"
+    "dk_name": "Tomoyuki Sugano",
+    "dk_id": "40034205",
+    "fd_name": "Tomoyuki Sugano",
+    "fd_id": "120487-220895"
   }
 ]
