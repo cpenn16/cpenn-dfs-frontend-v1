@@ -205,6 +205,7 @@ function downloadSiteLineupsCSV({
 }) {
   const siteKey = site === "fd" ? "fd" : "dk";
 
+  // list is site_ids.json[dk|fd] or site_ids.json.sites[dk|fd]
   const list = Array.isArray(siteIds?.[siteKey])
     ? siteIds[siteKey]
     : (siteIds?.sites?.[siteKey] ?? []);
@@ -218,19 +219,20 @@ function downloadSiteLineupsCSV({
     const names = Array.isArray(L.drivers) ? L.drivers : [];
     const cells = names.slice(0, rosterSize).map((name) => {
       const rec = idIndex.get(normName(name));
-      if (!rec) return escapeCSV(name);
+      if (!rec) {
+        // fallback so the row isn't broken if a match wasn't found
+        return escapeCSV(name);
+      }
 
       if (siteKey === "fd") {
         const outId = fdPrefix ? `${fdPrefix}-${rec.id}` : rec.id;
-        const display = rec.nameFromSite || name;
-        return escapeCSV(`${outId}:${display}`);
+        return escapeCSV(outId); // <-- ID only for FanDuel
       }
 
-      return escapeCSV(`${name} (${rec.id})`);
+      return escapeCSV(rec.id);   // <-- ID only for DraftKings
     });
 
     while (cells.length < rosterSize) cells.push("");
-
     return cells.join(",");
   });
 
