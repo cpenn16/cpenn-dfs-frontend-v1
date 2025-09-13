@@ -54,6 +54,7 @@ import NflProjections from "./pages/nfl/NflProjections";
 import NflStacks from "./pages/nfl/NflStacks";
 import NflCheatSheets from "./pages/nfl/NflCheatSheets";
 import NFLOptimizer from "./pages/nfl/NflOptimizer";
+import PlayerPool from "./pages/nfl/PlayerPool";
 
 // position projections
 import NflQBProjections from "./pages/nfl/NflQBProjections";
@@ -211,6 +212,11 @@ export default function App() {
               <Route path="/nfl/classic/stacks" element={<NflStacks />} />
               <Route path="/nfl/classic/cheatsheets" element={<NflCheatSheets />} />
               <Route path="/nfl/classic/optimizer" element={<NFLOptimizer />} />
+
+              
+              {/* NEW: Player Pool */}
+              <Route path="/nfl/classic/player-pool" element={<PlayerPool />} />
+              <Route path="/nfl/classic/playerpool" element={<Navigate to="/nfl/classic/player-pool" replace />} />
 
               {/* Projections by position */}
               <Route path="/nfl/classic/qb-projections" element={<NflQBProjections />} />

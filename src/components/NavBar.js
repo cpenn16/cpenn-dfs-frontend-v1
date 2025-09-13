@@ -193,6 +193,7 @@ export default function NavBar() {
                 <MenuItem to="/nfl/classic/projections">DFS Projections</MenuItem>
                 <MenuItem to="/nfl/classic/stacks">Stacks</MenuItem>
                 <MenuItem to="/nfl/classic/cheatsheets">Cheat Sheets</MenuItem>
+                <MenuItem to="/nfl/classic/player-pool">Player Pool</MenuItem>
                 <MenuItem to="/nfl/classic/qb-projections">QB Projections</MenuItem>
                 <MenuItem to="/nfl/classic/rb-projections">RB Projections</MenuItem>
                 <MenuItem to="/nfl/classic/wr-projections">WR Projections</MenuItem>
@@ -419,6 +420,7 @@ export default function NavBar() {
                   <MobileLink to="/nfl/classic/projections" onClick={closeMobile}>DFS Projections</MobileLink>
                   <MobileLink to="/nfl/classic/stacks" onClick={closeMobile}>Stacks</MobileLink>
                   <MobileLink to="/nfl/classic/cheatsheets" onClick={closeMobile}>Cheat Sheets</MobileLink>
+                  <MobileLink to="/nfl/classic/player-pool" onClick={closeMobile}>Player Pool</MobileLink>
                   <MobileLink to="/nfl/classic/qb-projections" onClick={closeMobile}>QB Projections</MobileLink>
                   <MobileLink to="/nfl/classic/rb-projections" onClick={closeMobile}>RB Projections</MobileLink>
                   <MobileLink to="/nfl/classic/wr-projections" onClick={closeMobile}>WR Projections</MobileLink>

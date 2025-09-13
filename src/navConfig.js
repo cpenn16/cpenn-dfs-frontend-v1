@@ -54,6 +54,7 @@ export const sportsNav = [
           { label: "DFS Projections", path: "/nfl/classic/dfs-projections" },
           { label: "Stacks", path: "/nfl/classic/stacks" },
           { label: "Cheat Sheets", path: "/nfl/classic/cheat-sheets" },
+          { label: "Player Pool", path: "/nfl/classic/player-pool" },
           { label: "QB Projections", path: "/nfl/classic/qb-projections" },
           { label: "RB Projections", path: "/nfl/classic/rb-projections" },
           { label: "WR Projections", path: "/nfl/classic/wr-projections" },
