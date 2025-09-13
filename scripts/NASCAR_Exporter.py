@@ -3,14 +3,27 @@
 Export selected sheets from an Excel .xlsm workbook into CSV and/or JSON files.
 
 - Robust filtering & formatting retained from your version.
-- run_cheatsheets finds each cheat-sheet block by its title cell
-  and exports one JSON table per yellow header block.
-- run_site_ids scans the Import sheet for "FD IDs" / "DK IDs" blocks
-  and writes a compact JSON mapping used by the app to format exported CSV
-  driver strings as "Name (ID)" for DK/FD.
+- run_cheatsheets finds each cheat-sheet block by its title cell and exports one JSON table per yellow header block.
+- run_site_ids reads fixed pairs on the Imports sheet for DK/FD Salaries and DK/FD IDs and writes a JSON mapping:
+    {
+      "dk":[
+        {
+          "name": "NameFromID",             # same as name_id, for backward compatibility
+          "name_id": "NameFromID",          # site ID-table display name (authoritative for uploads)
+          "name_salary": "NameFromSalary",  # salaries-table display name (your modeling)
+          "aliases": ["NameFromID","NameFromSalary"],
+          "id": "12345",
+          "salary": 6200,
+          "upload": "NameFromID (12345)"
+        }, ...
+      ],
+      "fd":[ ... ]
+    }
+  FD “Driver (ID)” may be "ID:Name" (e.g., 120350-82888:Kyle Larson); we parse both ID and Name.
 - NEW: Stages a temp copy of the workbook so Excel can stay open while reading.
 - NEW: More verbose logging (paths, sheet list, each task) for easy debugging.
 - NEW: Automatically writes `meta.json` with timestamps next to each exported file.
+- NEW: SiteNameResolver + per-task "use_site_display" option to rewrite the Driver column to the site's "ID-name (ID)" before CSV export.
 """
 
 from __future__ import annotations
@@ -344,6 +357,295 @@ def _apply_filters(df: pd.DataFrame, filters: Union[List, Dict]) -> pd.DataFrame
         return df[mask]
     return df
 
+# -------------------- site-name & alias helpers --------------------
+def _norm_str(v: Any) -> str:
+    s = "" if v is None or (isinstance(v, float) and pd.isna(v)) else str(v)
+    return s.strip()
+
+def _keyify(v: Any) -> str:
+    # normalize for fuzzy-ish matches across naming variants
+    return re.sub(r"[^a-z0-9]+", " ", _norm_str(v).lower()).strip()
+
+def _alias_keys(name: str) -> set[str]:
+    """Generate tolerant keys for a person name (drop suffixes, allow middle/initial/period-free)."""
+    n = _norm_str(name)
+    n = re.sub(r"\b(jr|sr|ii|iii|iv)\b\.?", "", n, flags=re.I).strip()
+    base = {_keyify(n), _keyify(n.replace(".", ""))}
+    parts = re.split(r"\s+", n)
+    if len(parts) >= 3:
+        first, middle, last = parts[0], parts[1], parts[-1]
+        base.add(_keyify(f"{first} {last}"))
+        base.add(_keyify(f"{first} {middle[0]} {last}"))
+        base.add(_keyify(f"{first} {middle[0]}. {last}"))
+        base.add(_keyify(f"{first} {middle} {last}"))
+    return base
+
+# -------------------- site id exporter --------------------
+def _find_header_row_for_pair(raw: pd.DataFrame, c0: int, c1: int) -> Optional[int]:
+    """Find a header row for a two-column block where the headers are 'Driver' and 'Salary' or 'ID'."""
+    n_rows = raw.shape[0]
+    for r in range(min(n_rows, 80)):  # search near the top
+        a = str(_norm_str(raw.iat[r, c0])).lower()
+        b = str(_norm_str(raw.iat[r, c1])).lower()
+        if a == "driver" and b in ("salary", "id", "driver (id)"):
+            return r
+    return None
+
+def _parse_site_id(val: Any) -> str:
+    """
+    Accept:
+      'Joey Logano (39722112)' → '39722112'
+      '119626-82889'           → '119626-82889'
+      '120350-82888:Kyle Larson' → '120350-82888'   (ID:Name)
+    """
+    s = _norm_str(val)
+    if not s:
+        return ""
+    # ID:Name form
+    m_idname = re.match(r"^\s*([\d-]+)\s*:(.+)$", s)
+    if m_idname:
+        return m_idname.group(1)
+    # Name (ID) form
+    m = re.search(r"\(([\d-]+)\)\s*$", s)
+    if m:
+        return m.group(1)
+    # Raw digits/hyphen ID
+    m2 = re.fullmatch(r"[\d-]+", s)
+    return m2.group(0) if m2 else s
+
+def _parse_idside_name(val: Any) -> str:
+    """
+    From a 'Driver (ID)' column that may contain 'ID:Name', extract the Name if present.
+    """
+    s = _norm_str(val)
+    if not s:
+        return ""
+    m = re.match(r"^\s*[\d-]+\s*:(.+)$", s)
+    return _norm_str(m.group(1)) if m else ""
+
+def run_site_ids(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> Optional[Path]:
+    """
+    Reads the 'Imports' sheet and produces site_ids.json with BOTH display names:
+      - name_id:     display name from IDs table (preferred for uploads; for FD can be parsed from 'ID:Name')
+      - name_salary: display name from Salaries table
+      - name:        same as name_id (back-compat)
+      - aliases:     both names
+      - id, salary, upload ('name_id (id)')
+    Fixed pairs:
+      DK Salaries: A:B  (0,1) = Driver | Salary
+      FD Salaries: C:D  (2,3) = Driver | Salary
+      FD IDs     : F:G  (5,6) = Driver | ID
+      DK IDs     : I:J  (8,9) = Driver | ID
+      Optional helper column 'Driver (ID)' may contain 'ID:Name' (we use Name part if present)
+    """
+    scfg = cfg.get("site_ids")
+    if not scfg:
+        return None
+
+    sheet   = scfg.get("sheet") or "Imports"
+    out_rel = (scfg.get("out_rel") or "").lstrip(r"\\/")
+
+    if not out_rel:
+        print("⚠️  SKIP site_ids: missing out_rel")
+        return None
+
+    raw = pd.read_excel(xlsm_path, sheet_name=sheet, engine="openpyxl", header=None, dtype=object)
+    if raw is None or raw.empty:
+        print("⚠️  SKIP site_ids: empty sheet")
+        return None
+
+    # column index pairs
+    DK_SAL = (0,1)  # A,B
+    FD_SAL = (2,3)  # C,D
+    FD_IDS = (5,6)  # F,G
+    DK_IDS = (8,9)  # I,J
+
+    def read_block(pair: tuple[int,int], kind: str) -> pd.DataFrame:
+        c0,c1 = pair
+        hdr = _find_header_row_for_pair(raw, c0, c1)
+        if hdr is None:
+            print(f"⚠️  site_ids: header not found for {kind} at cols {c0},{c1}")
+            return pd.DataFrame(columns=["Driver","Value"])
+        r = hdr + 1
+        rows = []
+        while r < raw.shape[0]:
+            a = _norm_str(raw.iat[r, c0]); b = _norm_str(raw.iat[r, c1])
+            if a == "" and b == "":
+                break
+            rows.append((a, b))
+            r += 1
+        df = pd.DataFrame(rows, columns=["Driver","Value"])
+        df = df[df["Driver"] != ""].copy()
+        return df
+
+    # read four blocks
+    dk_sal_df = read_block(DK_SAL, "DK Salaries")
+    fd_sal_df = read_block(FD_SAL, "FD Salaries")
+    fd_ids_df = read_block(FD_IDS, "FD IDs")
+    dk_ids_df = read_block(DK_IDS, "DK IDs")
+
+    # Possibly there is a 'Driver (ID)' column to the right of each IDs pair: try to detect & harvest 'ID:Name' form
+    # For FD, this is commonly at H (index 7). For DK, K (index 10). We'll scan the row below the FD/DK IDs headers.
+    def try_idside_names(start_col_idx: int) -> dict[str,str]:
+        # Find header cell "Driver (ID)" in same header row
+        name_map: dict[str,str] = {}
+        n_rows, n_cols = raw.shape
+        for r in range(min(n_rows, 80)):
+            for c in range(start_col_idx, min(start_col_idx+4, n_cols)):
+                if _keyify(raw.iat[r, c]) == _keyify("Driver (ID)"):
+                    # collect until blank
+                    rr = r + 1
+                    while rr < n_rows:
+                        cell = _norm_str(raw.iat[rr, c])
+                        if cell == "":
+                            break
+                        name = _parse_idside_name(cell)
+                        id_  = _parse_site_id(cell)
+                        if id_ and name:
+                            name_map[id_] = name
+                        rr += 1
+                    return name_map
+        return name_map
+
+    fd_idside_names = try_idside_names(7)   # around H
+    dk_idside_names = try_idside_names(10)  # around K
+
+    def to_num(x):
+        s = str(x).replace(",", "").replace("$", "").strip()
+        try: return int(float(s))
+        except: return None
+
+    dk_sal_df["Salary"] = dk_sal_df["Value"].map(to_num)
+    fd_sal_df["Salary"] = fd_sal_df["Value"].map(to_num)
+    dk_ids_df["ID"]     = dk_ids_df["Value"].map(_parse_site_id)
+    fd_ids_df["ID"]     = fd_ids_df["Value"].map(_parse_site_id)
+
+    # build lookup maps for salaries by alias keys, and keep original salary names too
+    def make_salary_maps(sal_df: pd.DataFrame):
+        key_to_salary = {}
+        key_to_display = {}
+        for name, sal in zip(sal_df["Driver"], sal_df["Salary"]):
+            if not name:
+                continue
+            for k in _alias_keys(name):
+                if k not in key_to_salary:
+                    key_to_salary[k] = sal
+                    key_to_display[k] = name
+        return key_to_salary, key_to_display
+
+    dk_sal_map, dk_sal_disp = make_salary_maps(dk_sal_df)
+    fd_sal_map, fd_sal_disp = make_salary_maps(fd_sal_df)
+
+    def merge_for_site(ids_df: pd.DataFrame, sal_map: dict, sal_disp_map: dict, idside_names: dict[str,str]) -> list[dict[str,Any]]:
+        items = []
+        for disp_from_ids, site_id in zip(ids_df["Driver"], ids_df["ID"]):
+            if not site_id:
+                continue
+            # If a companion 'Driver (ID)' provided "ID:Name", override the display-from-IDs with that precise ID-side name
+            disp_id = idside_names.get(site_id, disp_from_ids) or disp_from_ids
+            # Salary lookup using aliases derived from the ID-side name (best attempt)
+            salary = None
+            salary_name = None
+            for k in _alias_keys(disp_id):
+                if k in sal_map:
+                    salary = sal_map[k]
+                    salary_name = sal_disp_map.get(k)
+                    break
+            # construct entry
+            entry = {
+                "name": disp_id,                  # preferred: ID-table (or ID:Name) display
+                "name_id": disp_id,
+                "name_salary": salary_name,
+                "aliases": list({disp_id, *( [salary_name] if salary_name else [] )}),
+                "id": site_id,
+                "salary": salary,
+                "upload": f"{disp_id} ({site_id})"
+            }
+            items.append(entry)
+        return items
+
+    out = {
+        "dk": merge_for_site(dk_ids_df, dk_sal_map, dk_sal_disp, dk_idside_names),
+        "fd": merge_for_site(fd_ids_df, fd_sal_map, fd_sal_disp, fd_idside_names)
+    }
+
+    out_path = (project_root / "public" / Path(out_rel)).with_suffix(".json")
+    ensure_parent(out_path)
+    out_path.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"✔️  JSON → {out_path}  (dk={len(out['dk'])}, fd={len(out['fd'])})")
+    _mark_meta_dir(out_path.parent)
+    return out_path
+
+# -------------------- resolver --------------------
+class SiteNameResolver:
+    """
+    Loads site_ids.json and maps any of your internal names to:
+      (display_from_id_table, id, salary)
+    Matching considers:
+      - the explicit aliases saved in site_ids.json (ID-name and Salary-name)
+      - tolerant generated aliases (middle name vs initial, periods removed, suffixes removed)
+    """
+    def __init__(self, site_ids_json: Optional[Path]):
+        self.valid = False
+        self.maps: dict[str, tuple[dict, dict]] = {}
+        if not site_ids_json or not Path(site_ids_json).exists():
+            return
+        try:
+            data = json.loads(Path(site_ids_json).read_text(encoding="utf-8"))
+        except Exception:
+            return
+        self.valid = True
+        for site in ("dk", "fd"):
+            entries = data.get(site, [])
+            by_key: dict[str, tuple[str,str,Optional[int]]] = {}
+            alias: dict[str, tuple[str,str,Optional[int]]] = {}
+            for e in entries:
+                disp = e.get("name") or e.get("name_id") or ""
+                sid  = e.get("id", "")
+                sal  = e.get("salary")
+                if not disp:
+                    continue
+                # canonical key of the ID-side display
+                by_key[_keyify(disp)] = (disp, sid, sal)
+                # explicit aliases from JSON
+                names = [disp]
+                if e.get("name_salary"):
+                    names.append(e["name_salary"])
+                names.extend(e.get("aliases", []))
+                # generate tolerant alias keys for each
+                keys = set()
+                for nm in names:
+                    if nm:
+                        keys |= _alias_keys(nm)
+                for k in keys:
+                    alias.setdefault(k, (disp, sid, sal))
+            self.maps[site] = (by_key, alias)
+
+    def to_site(self, raw_name: str, site: str) -> tuple[str, str, Optional[int]]:
+        if not self.valid or site not in self.maps:
+            return (raw_name, "", None)
+        by_key, alias = self.maps[site]
+        k = _keyify(raw_name)
+        if k in by_key: return by_key[k]
+        if k in alias:  return alias[k]
+        return (raw_name, "", None)
+
+    def fmt_upload(self, raw_name: str, site: str) -> str:
+        disp, sid, _ = self.to_site(raw_name, site)
+        return f"{disp} ({sid})" if sid else disp
+
+def _apply_site_display(df: pd.DataFrame, use_cfg: dict, resolver: Optional[SiteNameResolver]) -> pd.DataFrame:
+    """Optionally rewrite a Driver column to the site's 'ID-name (ID)' display before CSV export."""
+    if not use_cfg or not resolver or not resolver.valid:
+        return df
+    site = str(use_cfg.get("site","")).lower()
+    col  = str(use_cfg.get("driver_col","Driver"))
+    if site not in {"dk","fd"} or col not in df.columns:
+        return df
+    out = df.copy()
+    out[col] = out[col].astype(str).map(lambda v: resolver.fmt_upload(v, site))
+    return out
+
 # -------------------- export core --------------------
 def export_one(df: pd.DataFrame, out_csv: Optional[Path], out_json: Optional[Path]) -> None:
     if out_csv:
@@ -358,7 +660,7 @@ def export_one(df: pd.DataFrame, out_csv: Optional[Path], out_json: Optional[Pat
         print(f"✔️  JSON → {out_json}")
         _mark_meta_dir(out_json.parent)
 
-def run_task(xlsm_path: Path, project_root: Path, task: Dict[str, Any]) -> None:
+def run_task(xlsm_path: Path, project_root: Path, task: Dict[str, Any], resolver: Optional[SiteNameResolver]) -> None:
     sheet = task.get("sheet")
     if not sheet:
         print("  ⚠ SKIP: task missing 'sheet'.")
@@ -403,6 +705,9 @@ def run_task(xlsm_path: Path, project_root: Path, task: Dict[str, Any]) -> None:
     # Optional: per-column integer rounding (e.g., Fair Odds columns)
     df = round_integer_columns(df, [str(x) for x in (task.get("integer_columns") or [])])
 
+    # NEW: rewrite Driver column to site display "ID-name (ID)" if requested
+    df = _apply_site_display(df, task.get("use_site_display"), resolver)
+
     out_rel = (task.get("out_rel", "") or "").lstrip(r"\/")
     if not out_rel:
         print(f"  ⚠ SKIP: task for sheet '{sheet}' missing 'out_rel'.")
@@ -417,18 +722,6 @@ def run_task(xlsm_path: Path, project_root: Path, task: Dict[str, Any]) -> None:
 
 # -------------------- cheatsheets exporter --------------------
 def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> None:
-    """
-    Export cheatsheets.json from a sheet of yellow-header blocks.
-
-    Config:
-      "cheatsheets": {
-        "sheet": "Cheat Sheet",
-        "out_rel": "data/nascar/cup/latest/cheatsheets",
-        "tables": [{ "title": "...", "width": 4 }, ...],
-        "title_match_ci": true,
-        "limit_rows": 10
-      }
-    """
     cs = cfg.get("cheatsheets")
     if not cs:
         return
@@ -550,132 +843,6 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
     print(f"✔️  JSON → {out_path}  (tables written: {len(tables_out)} of {len(tables_cfg)})")
     _mark_meta_dir(out_path.parent)
 
-# -------------------- site id exporter --------------------
-def _norm_str(v: Any) -> str:
-    s = "" if v is None or (isinstance(v, float) and pd.isna(v)) else str(v)
-    return s.strip()
-
-def _keyify(v: Any) -> str:
-    # normalize for fuzzy-ish matches across naming variants
-    return re.sub(r"[^a-z0-9]+", " ", _norm_str(v).lower()).strip()
-
-def _scan_title_block(raw: pd.DataFrame, title: str, width: int = 3) -> Optional[pd.DataFrame]:
-    """
-    Find a horizontal block by a title cell (e.g. 'FD IDs') where the *next row*
-    is the header (Driver | ID | Driver (ID)), and rows below are data until
-    a blank row is reached. Returns a DataFrame with real columns.
-    """
-    n_rows, n_cols = raw.shape
-    tnorm = _keyify(title)
-    for r in range(n_rows):
-        for c in range(n_cols - (width - 1)):
-            if _keyify(raw.iat[r, c]) == tnorm:
-                header_r, c0, c1 = r + 1, c, c + width
-                if header_r >= n_rows:
-                    continue
-                cols = [_norm_str(x) or f"col_{i+1}" for i, x in enumerate(raw.iloc[header_r, c0:c1])]
-                data_r0 = header_r + 1
-                r2 = data_r0
-                while r2 < n_rows:
-                    row = raw.iloc[r2, c0:c1].tolist()
-                    if all((_norm_str(x) == "" for x in row)):
-                        break
-                    r2 += 1
-                sub = raw.iloc[data_r0:r2, c0:c1].copy()
-                if sub.empty:
-                    return None
-                sub.columns = cols
-                sub = sub.dropna(axis=0, how="all")
-                sub = sub.astype(object).where(pd.notna(sub), "")
-                return sub
-    return None
-
-def _parse_site_id(val: Any) -> str:
-    """
-    Accept plain IDs or text like 'Joey Logano (39722112)' → '39722112'
-    and '119626-82889' → keep as-is.
-    """
-    s = _norm_str(val)
-    if not s:
-        return ""
-    m = re.search(r"\(([\d-]+)\)\s*$", s)
-    if m:
-        return m.group(1)
-    m2 = re.fullmatch(r"[\d-]+", s)
-    return m2.group(0) if m2 else s
-
-def run_site_ids(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> None:
-    """
-    Reads the 'Import' sheet (or a sheet you specify) and produces:
-      public/<out_rel>.json  => {"dk":[{"name","id"}...], "fd":[...]}
-
-    It expects two blocks:
-      - 'FD IDs' with columns: Driver | ID | Driver (ID)
-      - 'DK IDs' with columns: Driver | ID | Driver (ID)
-
-    The function searches the whole sheet for those titles and
-    stops each block at the first blank row.
-    """
-    scfg = cfg.get("site_ids")
-    if not scfg:
-        return
-
-    sheet   = scfg.get("sheet") or "Imports"
-    out_rel = (scfg.get("out_rel") or "").lstrip(r"\\/")
-
-    if not out_rel:
-        print("⚠️  SKIP site_ids: missing out_rel")
-        return
-
-    raw = pd.read_excel(xlsm_path, sheet_name=sheet, engine="openpyxl", header=None, dtype=object)
-    if raw is None or raw.empty:
-        print("⚠️  SKIP site_ids: empty sheet")
-        return
-
-    fd_block = _scan_title_block(raw, "FD IDs", width=3)
-    dk_block = _scan_title_block(raw, "DK IDs", width=3)
-
-    if fd_block is None and dk_block is None:
-        print("⚠️  SKIP site_ids: couldn't find 'FD IDs' or 'DK IDs' blocks")
-        return
-
-    out = {"fd": [], "dk": []}
-
-    if fd_block is not None:
-        for _, row in fd_block.iterrows():
-            name = _norm_str(row.get("Driver") or "")
-            site_id = _parse_site_id(row.get("ID") or row.get("Driver (ID)") or "")
-            if name and site_id:
-                out["fd"].append({"name": name, "id": site_id})
-
-    if dk_block is not None:
-        for _, row in dk_block.iterrows():
-            name = _norm_str(row.get("Driver") or "")
-            site_id = _parse_site_id(row.get("ID") or row.get("Driver (ID)") or "")
-            if name and site_id:
-                out["dk"].append({"name": name, "id": site_id})
-
-    # de-dupe by normalized key, keep first occurrence
-    def dedupe(items: list[dict[str, str]]) -> list[dict[str, str]]:
-        seen = set()
-        keep = []
-        for r in items:
-            k = _keyify(r["name"])
-            if k in seen:
-                continue
-            seen.add(k)
-            keep.append(r)
-        return keep
-
-    out["fd"] = dedupe(out["fd"])
-    out["dk"] = dedupe(out["dk"])
-
-    out_path = (project_root / "public" / Path(out_rel)).with_suffix(".json")
-    ensure_parent(out_path)
-    out_path.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"✔️  JSON → {out_path}  (dk={len(out['dk'])}, fd={len(out['fd'])})")
-    _mark_meta_dir(out_path.parent)
-
 # -------------------- H2H matrix exporter --------------------
 def _clean_h2h_number(x: Any) -> Optional[float]:
     if x is None or (isinstance(x, float) and pd.isna(x)):
@@ -686,7 +853,6 @@ def _clean_h2h_number(x: Any) -> Optional[float]:
     s = s.replace(",", "").replace("%", "").strip()
     try:
         v = float(s)
-        # heuristic: if value <= 1.5, assume it was a fraction → convert to %
         if v <= 1.5:
             return v * 100.0
         return v
@@ -694,10 +860,6 @@ def _clean_h2h_number(x: Any) -> Optional[float]:
         return None
 
 def run_h2h_matrix(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> None:
-    """
-    Reads a 'Driver vs Driver' matrix and writes a JSON array of records:
-      [{ "Driver": "A", "B": 51.2, "C": 48.8, ... }, ...]
-    """
     hcfg = cfg.get("h2h_matrix", {}) or {}
     sheet   = hcfg.get("sheet") or "H2H Matrix"
     out_rel = (hcfg.get("out_rel") or "data/nascar/cup/latest/h2h_matrix").lstrip(r"\/")
@@ -764,11 +926,6 @@ def _clean_percent_cell(x: Any) -> Optional[float]:
         return None
 
 def run_finish_distribution(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> None:
-    """
-    Reads a sheet like:
-      Driver | 1 | 2 | 3 | ... (cells are probs either as fractions or percents)
-    Writes JSON records with percentage units (0–100) and headers 'P1','P2',...
-    """
     fcfg = cfg.get("finish_distribution", {}) or {}
     sheet   = fcfg.get("sheet") or "Finish Distributions"
     out_rel = (fcfg.get("out_rel") or "data/nascar/cup/latest/finish_dist").lstrip(r"\/")
@@ -865,6 +1022,8 @@ def main() -> None:
     staged_xlsm, temp_dir = _stage_copy_for_read(xlsm_path)
     print(f"  staged : {staged_xlsm}")
 
+    resolver: Optional[SiteNameResolver] = None
+
     try:
         # validate sheets on the staged copy
         try:
@@ -878,6 +1037,11 @@ def main() -> None:
         if not tasks:
             print("ERROR: config has no 'tasks' array.", file=sys.stderr); sys.exit(1)
 
+        # Build site_ids FIRST so tasks can use mapping
+        print("\n=== SITE IDS ===")
+        site_ids_path = run_site_ids(staged_xlsm, project_root, cfg)
+        resolver = SiteNameResolver(site_ids_path) if site_ids_path else None
+
         print("\n=== TASKS ===")
         for t in tasks:
             sheet = t.get("sheet")
@@ -888,7 +1052,7 @@ def main() -> None:
             if sheet not in sheet_names:
                 print(f"  ⚠ SKIP: sheet '{sheet}' not found in workbook."); continue
             try:
-                run_task(staged_xlsm, project_root, t)
+                run_task(staged_xlsm, project_root, t, resolver)
             except Exception as e:
                 print(f"  ⚠ task failed: {e}")
 
@@ -897,12 +1061,6 @@ def main() -> None:
             run_cheatsheets(staged_xlsm, project_root, cfg)
         except Exception as e:
             print(f"⚠️  SKIP cheatsheets: {e}")
-
-        print("\n=== SITE IDS ===")
-        try:
-            run_site_ids(staged_xlsm, project_root, cfg)
-        except Exception as e:
-            print(f"⚠️  SKIP site_ids: {e}")
 
         print("\n=== H2H MATRIX ===")
         try:
