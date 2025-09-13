@@ -89,15 +89,7 @@ function buildSiteIdIndex(siteIdsList) {
   for (const r of siteIdsList || []) {
     const id =
       String(
-        r.id ??
-          r.ID ??
-          r.playerId ??
-          r.player_id ??
-          r.fd_id ??
-          r.FD_ID ??
-          r.dk_id ??
-          r.DK_ID ??
-          ""
+        r.id ?? r.ID ?? r.playerId ?? r.player_id ?? r.fd_id ?? r.FD_ID ?? r.dk_id ?? r.DK_ID ?? ""
       ).trim();
 
     const nm0 = r.name ?? r.player ?? r.Player ?? r.displayName ?? r.Name;
@@ -287,9 +279,7 @@ async function fetchFirstOk(paths, init) {
       const base = API_BASE.replace(/\/$/, "");
       const res = await fetch(`${base}/${p}`, init);
       if (res.ok) return { res, path: p };
-    } catch (_) {
-      // try next
-    }
+    } catch (_) {}
   }
   return null;
 }
@@ -480,18 +470,18 @@ export default function CupOptimizer() {
   /* ---- PERSISTED constraints (per-site) ---- */
   const buildsKey = (k) => `cupOpt.${site}.${k}`;
 
-  // Locks/Excludes persisted as arrays; use Sets for quick lookup
+  // Locks/Excludes in localStorage; wrap as Sets for UI
   const [locksArr, setLocksArr] = useStickyState(buildsKey("locks"), []);
   const [exclsArr, setExclsArr] = useStickyState(buildsKey("excls"), []);
   const locks = useMemo(() => new Set(Array.isArray(locksArr) ? locksArr : []), [locksArr]);
   const excls = useMemo(() => new Set(Array.isArray(exclsArr) ? exclsArr : []), [exclsArr]);
 
-  const [minPct, setMinPct]   = useStickyState(buildsKey("minPct"), {});
-  const [maxPct, setMaxPct]   = useStickyState(buildsKey("maxPct"), {});
-  const [boost, setBoost]     = useStickyState(buildsKey("boost"), {});
-  const [groups, setGroups]   = useStickyState(buildsKey("groups"), []);
+  const [minPct, setMinPct] = useStickyState(buildsKey("minPct"), {});
+  const [maxPct, setMaxPct] = useStickyState(buildsKey("maxPct"), {});
+  const [boost, setBoost]   = useStickyState(buildsKey("boost"), {});
+  const [groups, setGroups] = useStickyState(buildsKey("groups"), []);
 
-  // Per-site builds (so DK builds don't appear on FD)
+  // Per-site builds (chips restored)
   const [builds, setBuilds] = useStickyState(buildsKey("builds"), []);
   const [activeBuildId, setActiveBuildId] = useStickyState(buildsKey("active"), null);
 
@@ -528,7 +518,7 @@ export default function CupOptimizer() {
     return () => clearInterval(tickRef.current);
   }, [isOptimizing, progressActual, numLineups]);
 
-  // reset visuals (NOT constraints) on site change
+  // reset visuals on site change (keep constraints persisted)
   useEffect(() => {
     setLineups([]);
     setStopInfo(null);
@@ -911,6 +901,37 @@ export default function CupOptimizer() {
         </div>
       </div>
 
+      {/* Builds (chips restored) */}
+      {builds.length > 0 && (
+        <div className="mb-3">
+          <div className="mb-1 text-xs text-gray-600">Builds</div>
+          <div className="flex flex-wrap gap-2 items-center">
+            {builds.map((b) => (
+              <div
+                key={b.id}
+                className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border text-sm ${
+                  activeBuildId === b.id ? "bg-blue-50 border-blue-300 text-blue-800" : "bg-white border-gray-300"
+                }`}
+              >
+                <button
+                  onClick={() => loadBuild(b.id)}
+                  onDoubleClick={() => {
+                    const nm = prompt("Rename build:", b.name);
+                    if (nm && nm.trim()) renameBuild(b.id, nm.trim());
+                  }}
+                  title={new Date(b.ts).toLocaleString()}
+                >
+                  {b.name}
+                </button>
+                <button className="ml-1 text-gray-400 hover:text-red-600" title="Delete build" onClick={() => deleteBuild(b.id)}>
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Player Groups */}
       <section className="rounded-lg border bg-white p-3 mb-4">
         <div className="flex items-center justify-between mb-2">
@@ -932,9 +953,7 @@ export default function CupOptimizer() {
                 <div className="flex items-center gap-2 mb-2">
                   <select
                     value={g.mode || "at_most"}
-                    onChange={(e) =>
-                      setGroups((Gs) => Gs.map((gg, i) => (i === idx ? { ...gg, mode: e.target.value } : gg)))
-                    }
+                    onChange={(e) => setGroups((Gs) => Gs.map((gg, i) => (i === idx ? { ...gg, mode: e.target.value } : gg)))}
                     className="border rounded-md px-2 py-1 text-sm"
                     title="Group rule"
                   >
@@ -948,11 +967,7 @@ export default function CupOptimizer() {
                     min={0}
                     className="w-16 border rounded-md px-2 py-1 text-sm"
                     value={g.count ?? 1}
-                    onChange={(e) =>
-                      setGroups((Gs) =>
-                        Gs.map((gg, i) => (i === idx ? { ...gg, count: Math.max(0, Number(e.target.value) || 0) } : gg))
-                      )
-                    }
+                    onChange={(e) => setGroups((Gs) => Gs.map((gg, i) => (i === idx ? { ...gg, count: Math.max(0, Number(e.target.value) || 0) } : gg)))}
                     title="Number of players from the group"
                   />
 
@@ -1076,7 +1091,7 @@ export default function CupOptimizer() {
       {/* results */}
       {!!lineups.length && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Lineups (centered) */}
+          {/* Lineups (full-width inside section) */}
           <section className="lg:col-span-8 rounded-lg border bg-white p-3">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-base font-bold">Lineups ({lineups.length})</h2>
@@ -1098,9 +1113,9 @@ export default function CupOptimizer() {
               </div>
             </div>
 
-            {/* Shorter table + centered + inside scroll */}
-            <div className="overflow-auto max-h-[320px] mx-auto">
-              <table className="min-w-[900px] mx-auto text-[12px] border-separate" style={{ borderSpacing: 0 }}>
+            {/* Full width, sticky header, internal scroll */}
+            <div className="overflow-auto max-h-[360px]">
+              <table className="w-full text-[13px] border-separate" style={{ borderSpacing: 0 }}>
                 <thead className="bg-gray-50 sticky top-0">
                   <tr>
                     <th className={header}>#</th>
@@ -1118,18 +1133,17 @@ export default function CupOptimizer() {
                     const driversSorted = chosenSorted.length
                       ? chosenSorted.map((r) => r.driver)
                       : (Array.isArray(L.drivers) ? [...L.drivers] : []);
-
                     const totalPownPct = chosenSorted.length
                       ? chosenSorted.reduce((acc, r) => acc + (r.pown || 0) * 100, 0)
                       : 0;
 
                     return (
                       <tr key={i} className="odd:bg-white even:bg-gray-50">
-                        <td className="px-2 py-0.5 text-center">{i + 1}</td>
-                        <td className="px-2 py-0.5 text-center tabular-nums">{fmt0(L.salary)}</td>
-                        <td className="px-2 py-0.5 text-center tabular-nums">{fmt1(L.total)}</td>
-                        <td className="px-2 py-0.5 text-center tabular-nums">{fmt1(totalPownPct)}</td>
-                        <td className="px-2 py-0.5 leading-snug">
+                        <td className="px-2 py-1 text-center">{i + 1}</td>
+                        <td className="px-2 py-1 text-center tabular-nums">{fmt0(L.salary)}</td>
+                        <td className="px-2 py-1 text-center tabular-nums">{fmt1(L.total)}</td>
+                        <td className="px-2 py-1 text-center tabular-nums">{fmt1(totalPownPct)}</td>
+                        <td className="px-2 py-1 leading-snug">
                           <span className="break-words">{driversSorted.join(" • ")}</span>
                         </td>
                       </tr>
@@ -1151,10 +1165,10 @@ export default function CupOptimizer() {
             <ExposureTable lineups={lineups} maxHeightClass="max-h-[440px]" />
           </section>
 
-          {/* Cards */}
+          {/* Cards — 5 per row on xl */}
           <section className="lg:col-span-12">
             <h3 className="text-base font-semibold mb-2">Cards</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
               {lineups.map((L, idx) => {
                 const chosenSorted = [...(L.chosen || [])].sort((a, b) => b.salary - a.salary);
                 const totalPownPct = chosenSorted.reduce((acc, r) => acc + (r.pown || 0) * 100, 0);
@@ -1181,7 +1195,9 @@ export default function CupOptimizer() {
                             <td className={cell}>{r.driver}</td>
                             <td className={`${cell} tabular-nums`}>{r.qual || "—"}</td>
                             <td className={`${cell} tabular-nums`}>{fmt1((r.pown || 0) * 100)}</td>
-                            <td className={`${cell} tabular-nums`}>{fmt1(r.proj * (1 + 0.03 * (boost[r.driver] || 0)))}</td>
+                            <td className={`${cell} tabular-nums`}>
+                              {fmt1(r.proj * (1 + 0.03 * (boost[r.driver] || 0)))}
+                            </td>
                             <td className={`${cell} tabular-nums`}>{fmt0(r.salary)}</td>
                           </tr>
                         ))}
