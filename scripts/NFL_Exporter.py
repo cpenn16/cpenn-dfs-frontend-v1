@@ -2,11 +2,15 @@
 """
 NFL_Exporter.py — Single meta.json version + separate Player Pool export
 -----------------------------------------------------------------------
-Exports tasks, cheatsheets (Cheat Sheet), player_pool (Player Pool), gameboard,
-and merges salaries/time into projections — all while writing ONE consolidated
-meta file:
+Exports:
+  • tasks (generic sheet → csv/json)
+  • cheatsheets (Cheat Sheet)
+  • player_pool (Player Pool)   ← NEW, independent of cheatsheets
+  • gameboard (NFL Matchups)
+  • projections merge with DK/FD salaries + kickoff time
 
-  public/data/nfl/classic/latest/meta.json   (default; configurable via --meta_rel)
+Writes ONE consolidated meta file (configurable via --meta_rel):
+  public/data/nfl/classic/latest/meta.json
 
 Usage
 -----
@@ -31,9 +35,9 @@ from openpyxl.worksheet.worksheet import Worksheet
 THIS = Path(__file__).resolve()
 ROOT = THIS.parents[1]  # repo root (expected to include /public)
 
-DEFAULT_XLSM   = r"C:\Users\cpenn\Dropbox\Sports Models\NFL\NFL Week 2 Classic.xlsm"
-DEFAULT_PROJ   = str(ROOT)
-DEFAULT_CONFIG = str(ROOT / "scripts" / "configs" / "nfl_classic.json")
+DEFAULT_XLSM     = r"C:\Users\cpenn\Dropbox\Sports Models\NFL\NFL Week 2 Classic.xlsm"
+DEFAULT_PROJ     = str(ROOT)
+DEFAULT_CONFIG   = str(ROOT / "scripts" / "configs" / "nfl_classic.json")
 DEFAULT_META_REL = "data/nfl/classic/latest/meta.json"   # relative to /public
 
 # ------------------------------ Single Meta -----------------------------
@@ -214,27 +218,24 @@ _HEADER_ALIASES = {
     "dk sal": "DK Sal",
     "fd sal": "FD Sal",
     "teamabbrev": "Team",
+    # Player Pool/MLB-style labels
+    "opponent": "Opp",
+    "opp": "Opp",
+    "o/u": "O/U",
+    "imp. total": "Imp. Total",
+    "impl. total": "Imp. Total",
+    "projection": "Proj",
+    "proj": "Proj",
+    "value": "Value",
+    "pown": "pOWN",
+    "pown%": "pOWN",
+    "cash/gpp/both": "Cash/GPP/Both",
 }
 
 def _norm_header_label(s: str) -> str:
     t = (s or "").replace("\u00A0", " ").replace("\u202F", " ").strip()
     key = re.sub(r"\s+", " ", t).lower()
     return _HEADER_ALIASES.get(key, t)
-
-# Extra aliases for Player Pool → MLB-style labels
-_HEADER_ALIASES.update({
-    "opponent": "Opp",
-    "opp": "Opp",
-    "o/u": "O/U",
-    "imp. total": "Imp. Total",
-    "impl. total": "Imp. Total",
-    "projection": "Projection",
-    "proj": "Projection",
-    "value": "Value",
-    "pown": "pOWN",
-    "pown%": "pOWN",
-    "cash/gpp/both": "Cash/GPP/Both",
-})
 
 # ------------------------------ filters engine --------------------------
 
@@ -352,6 +353,28 @@ def run_task(xlsm_path: Path, project_root: Path, task: Dict[str, Any], meta: Si
     json_path = base.with_suffix(".json") if fmt in ("json", "both") else None
     export_one(df, csv_path, json_path, meta, sheet=sheet, t0=t0)
 
+# ----------------------- header-on-next-row helper ----------------------
+
+_HEADER_KEYS = {"player","salary","team","opponent","opp","o/u","imp. total","proj","projection","value","pown","pown%","cash/gpp/both","time"}
+
+def _looks_like_header(vals: List[str]) -> bool:
+    tokens = {re.sub(r"\s+"," ",str(v or "")).strip().lower() for v in vals}
+    return len(tokens & _HEADER_KEYS) >= 2
+
+def _maybe_shift_header_down(ws: Worksheet, header_r: int, start_c: int, width: int, n_cols: int, title_text: str) -> int:
+    """
+    If the current header row is the section title (e.g., 'Cash Core') and the *next* row
+    looks like real headers (Player, Salary, Team, ...), shift header down by +1.
+    """
+    head_vals = [_format_cell(ws.cell(header_r, c)) for c in range(start_c, min(start_c+width, n_cols+1))]
+    first_cell = (head_vals[0] or "").strip()
+    if first_cell == (title_text or "").strip():
+        nxt = header_r + 1
+        nxt_vals = [_format_cell(ws.cell(nxt, c)) for c in range(start_c, min(start_c+width, n_cols+1))]
+        if _looks_like_header(nxt_vals):
+            return nxt
+    return header_r
+
 # -------------------------- cheatsheets (by title) ----------------------
 
 def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any], meta: SingleMeta) -> None:
@@ -379,7 +402,7 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any], me
         titles_cfg = cs.get("tables") or []
         all_titles_norm = {norm(t.get("title")) for t in titles_cfg if t.get("title")}
 
-        # Fast index
+        # Fast index of first occurrences of every non-empty cell text
         index: Dict[str, tuple] = {}
         max_scan_rows = min(n_rows, int(cs.get("max_scan_rows", n_rows)))
         for r in range(1, max_scan_rows + 1):
@@ -399,7 +422,9 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any], me
                 print(f"⚠️  cheatsheets: title not found: '{title}'")
                 continue
             start_r, start_c = loc
-            header_r = start_r
+
+            # ← FIX: if current row is the section title, push header row down one line when needed
+            header_r = _maybe_shift_header_down(ws, start_r, start_c, width, n_cols, title)
             data_r0  = header_r + 1
 
             hdr_cells = [ws.cell(header_r, c) for c in range(start_c, min(start_c + width, n_cols + 1))]
@@ -424,13 +449,21 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any], me
                 r += 1
 
             sub = pd.DataFrame(rows, columns=headers)
+
+            # Normalize a "Player" column for Player Pool/pos tables
+            if "Player" not in sub.columns:
+                for cand in ["QB","RB","WR","TE","Name","PLAYER"]:
+                    if cand in sub.columns:
+                        sub = sub.rename(columns={cand:"Player"})
+                        break
+
             tables_out.append({
                 "id":      f"t{i+1}",
                 "label":   title,
                 "columns": list(sub.columns),
                 "rows":    sub.astype(object).where(pd.notna(sub), "").to_dict(orient="records"),
             })
-            print(f"• cheatsheet '{title}' rows={len(sub)} in {int((time.time()-t0)*1000)} ms")
+            print(f"• table '{title}' rows={len(sub)} in {int((time.time()-t0)*1000)} ms")
 
         out_path = (project_root / "public" / Path(out_rel)).with_suffix(".json")
         ensure_parent(out_path)
@@ -565,7 +598,7 @@ def _gb_parse_ml_pieces(s: str) -> Dict[str, int]:
     return out
 
 def _gb_parse_spread_pieces(s: str) -> Dict[str, float]:
-    m = re.search(r"Spread:\s*([A-Z]{2,4})\s*([+-]?[0-9.]+)\s*\|\s*([A-Z]{2,4})\s*([+-]?[0-9.]+)", s, flags=re.I)
+    m = re.search(r"Spread:\s*([A-Z]{2,4})\s*([+-]?[0.9]+)\s*\|\s*([A-Z]{2,4})\s*([+-]?[0-9.]+)", s, flags=re.I)
     if not m: return {}
     return {m.group(1).upper(): float(m.group(2)), m.group(3).upper(): float(m.group(4))}
 
@@ -760,7 +793,7 @@ def run_gameboard(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any], meta
     finally:
         wb.close()
 
-# ------------------------- SALARY MERGE (with TIME) ---------------------
+# ------------------------- JSON helpers (once) --------------------------
 
 def _load_json(path: Path):
     try:
@@ -796,6 +829,8 @@ def _write_back(rows, shape, out_path: Path):
         _save_json(out_path, container)
     else:
         _save_json(out_path, rows)
+
+# ------------------------- SALARY MERGE (with TIME) ---------------------
 
 _TIME_RE = re.compile(r"(\d{1,2})\s*:\s*(\d{2})(?::\d{2})?\s*([ap])\s*\.?\s*m", re.I)
 
@@ -875,12 +910,6 @@ def _build_kickoff_map_from_workbook(xlsm_path: Path) -> dict[str, str]:
         return kick
     finally:
         wb.close()
-
-def _load_json(path: Path):
-    try:
-        return json.loads(path.read_text(encoding="utf-8-sig"))
-    except FileNotFoundError:
-        return None
 
 def _build_salary_map(base_dir: Path):
     files = ["qb_data.json","rb_data.json","wr_data.json","te_data.json","dst_data.json"]
@@ -974,18 +1003,73 @@ def merge_salaries_into_projections(project_root: Path,
         meta.add(proj_path, sheet=None, record_count=len(rows),
                  duration_ms=int((time.time()-t0)*1000), tags={"kind":"merge","dk_hits":dk_hits,"fd_hits":fd_hits})
 
+# ---------------------- Player Pool enrich (name/role/time) --------------
+
+def _enrich_player_pool_json(out_path: Path, xlsm_path: Path) -> None:
+    pp = _load_json(out_path)
+    if not isinstance(pp, dict) or "tables" not in pp:
+        return
+
+    kickoff_map = _build_kickoff_map_from_workbook(xlsm_path)
+
+    def pick_player(d: dict) -> str:
+        return _first(d, ["Player","QB","RB","WR","TE","Name","PLAYER"], "")
+
+    def pick_team(d: dict) -> str:
+        return _first(d, ["Team","Tm","TEAM","TeamAbbrev","teamabbrev"], "")
+
+    for tbl in pp.get("tables", []):
+        label = (tbl.get("label") or "").strip()
+        rows  = tbl.get("rows") or []
+
+        # Default Cash/GPP/Both for Cash Core
+        if label.lower() == "cash core":
+            for r in rows:
+                if not _first(r, ["Cash/GPP/Both","Role"], None):
+                    r["Cash/GPP/Both"] = "Cash"
+
+        # Ensure 'Player' exists (normalize QB/RB/WR/TE header cases)
+        if rows and "Player" not in (tbl.get("columns") or []):
+            for r in rows:
+                p = pick_player(r)
+                if p and "Player" not in r:
+                    r["Player"] = p
+            cols = list(tbl.get("columns") or [])
+            if "Player" not in cols:
+                cols.insert(0, "Player")
+            tbl["columns"] = cols
+
+        # Fill missing Time via kickoff_map
+        for r in rows:
+            if not r.get("Time") and not r.get("time"):
+                key = _key_for(pick_player(r), pick_team(r).upper())
+                t = kickoff_map.get(key)
+                if t:
+                    r["Time"] = t
+
+    _save_json(out_path, pp)
+
 # ---------------------------- optional Player Pool ----------------------
 
 def _run_optional_player_pool(staged_xlsm: Path, project_root: Path, cfg: dict, meta: SingleMeta) -> None:
     """
     Reuse run_cheatsheets() for a second, independent export driven by cfg['player_pool'].
-    Does nothing if the 'player_pool' block is absent.
+    Then enrich the JSON: ensure Player col, default role for Cash Core, add Time from DK sheet.
     """
     pp = cfg.get("player_pool")
     if not isinstance(pp, dict):
         return
     print("• Player Pool: exporting from sheet:", pp.get("sheet", "Player Pool"))
     run_cheatsheets(staged_xlsm, project_root, {"cheatsheets": pp}, meta)
+
+    out_rel = (pp.get("out_rel") or "").lstrip(r"\/")
+    if out_rel:
+        out_path = (project_root / "public" / Path(out_rel)).with_suffix(".json")
+        try:
+            _enrich_player_pool_json(out_path, staged_xlsm)
+            print(f"• Player Pool enriched (name/role/time) → {out_path}")
+        except Exception as e:
+            print(f"⚠️  Player Pool enrich failed: {e}")
 
 # --------------------------------- main ---------------------------------
 
@@ -1040,12 +1124,14 @@ def main() -> None:
         try:
             # existing Cheat Sheet export
             run_cheatsheets(staged_xlsm, project_root, cfg, meta)
+        except Exception as e:
+            print(f"⚠️  SKIP cheatsheets: {e}")
 
-            # NEW: optional Player Pool export (separate artifact)
-            print("\n=== PLAYER POOL ===")
+        print("\n=== PLAYER POOL ===")
+        try:
             _run_optional_player_pool(staged_xlsm, project_root, cfg, meta)
         except Exception as e:
-            print(f"⚠️  SKIP cheatsheets / player pool: {e}")
+            print(f"⚠️  SKIP player pool: {e}")
 
         print("\n=== GAMEBOARD (NFL Matchups) ===")
         try:
@@ -1053,6 +1139,7 @@ def main() -> None:
         except Exception as e:
             print(f"⚠️  SKIP gameboard: {e}")
 
+        # Build kickoff map once for projections merge
         try:
             kickoff_map = _build_kickoff_map_from_workbook(staged_xlsm)
         except Exception as e:

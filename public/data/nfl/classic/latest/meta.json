@@ -1,13 +1,13 @@
 {
-  "last_updated": "2025-09-13T14:03:48",
-  "last_updated_ms": 1757786628961,
+  "last_updated": "2025-09-13T14:47:48",
+  "last_updated_ms": 1757789268382,
   "source_workbook": "C:\\Users\\cpenn\\Dropbox\\Sports Models\\NFL\\NFL Week 2 Classic.xlsm",
   "artifacts": [
     {
       "path": "public/data/nfl/classic/latest/projections.json",
       "sheet": "Projections",
       "record_count": 240,
-      "duration_ms": 4753,
+      "duration_ms": 5421,
       "kind": "task",
       "format": "json"
     },
@@ -15,7 +15,7 @@
       "path": "public/data/nfl/classic/latest/stacks.json",
       "sheet": "Stacks",
       "record_count": 24,
-      "duration_ms": 202,
+      "duration_ms": 260,
       "kind": "task",
       "format": "json"
     },
@@ -23,7 +23,7 @@
       "path": "public/data/nfl/classic/latest/qb_projections.json",
       "sheet": "QB Projections",
       "record_count": 24,
-      "duration_ms": 153,
+      "duration_ms": 200,
       "kind": "task",
       "format": "json"
     },
@@ -31,7 +31,7 @@
       "path": "public/data/nfl/classic/latest/rb_projections.json",
       "sheet": "RB Projections",
       "record_count": 48,
-      "duration_ms": 318,
+      "duration_ms": 495,
       "kind": "task",
       "format": "json"
     },
@@ -39,7 +39,7 @@
       "path": "public/data/nfl/classic/latest/wr_projections.json",
       "sheet": "WR Projections",
       "record_count": 96,
-      "duration_ms": 670,
+      "duration_ms": 868,
       "kind": "task",
       "format": "json"
     },
@@ -47,7 +47,7 @@
       "path": "public/data/nfl/classic/latest/te_projections.json",
       "sheet": "TE Projections",
       "record_count": 48,
-      "duration_ms": 259,
+      "duration_ms": 279,
       "kind": "task",
       "format": "json"
     },
@@ -55,7 +55,7 @@
       "path": "public/data/nfl/classic/latest/qb_data.json",
       "sheet": "QB",
       "record_count": 24,
-      "duration_ms": 232,
+      "duration_ms": 245,
       "kind": "task",
       "format": "json"
     },
@@ -63,7 +63,7 @@
       "path": "public/data/nfl/classic/latest/rb_data.json",
       "sheet": "RB",
       "record_count": 48,
-      "duration_ms": 451,
+      "duration_ms": 566,
       "kind": "task",
       "format": "json"
     },
@@ -71,7 +71,7 @@
       "path": "public/data/nfl/classic/latest/wr_data.json",
       "sheet": "WR",
       "record_count": 96,
-      "duration_ms": 1139,
+      "duration_ms": 1450,
       "kind": "task",
       "format": "json"
     },
@@ -79,7 +79,7 @@
       "path": "public/data/nfl/classic/latest/te_data.json",
       "sheet": "TE",
       "record_count": 48,
-      "duration_ms": 431,
+      "duration_ms": 503,
       "kind": "task",
       "format": "json"
     },
@@ -87,7 +87,7 @@
       "path": "public/data/nfl/classic/latest/dst_data.json",
       "sheet": "DST",
       "record_count": 24,
-      "duration_ms": 204,
+      "duration_ms": 254,
       "kind": "task",
       "format": "json"
     },
@@ -95,28 +95,28 @@
       "path": "public/data/nfl/classic/latest/cheatsheets.json",
       "sheet": "Cheat Sheet",
       "record_count": 720,
-      "duration_ms": 27631,
+      "duration_ms": 37593,
       "kind": "cheatsheets"
     },
     {
       "path": "public/data/nfl/classic/latest/player_pool.json",
       "sheet": "Player Pool",
       "record_count": 46,
-      "duration_ms": 1541,
+      "duration_ms": 2373,
       "kind": "cheatsheets"
     },
     {
       "path": "public/data/nfl/classic/latest/nfl_gameboard.json",
       "sheet": "NFL Dashboard",
       "record_count": 15,
-      "duration_ms": 5324,
+      "duration_ms": 6106,
       "kind": "gameboard"
     },
     {
       "path": "public/data/nfl/classic/latest/projections.json",
       "sheet": null,
       "record_count": 240,
-      "duration_ms": 73,
+      "duration_ms": 53,
       "kind": "merge",
       "dk_hits": 240,
       "fd_hits": 240

@@ -4,7 +4,7 @@
     "away": "CLE",
     "home": "BAL",
     "ou": 44.5,
-    "spread_home": -11.5,
+    "spread_home": null,
     "ml_home": -700,
     "ml_away": 500,
     "weather": {
@@ -51,7 +51,7 @@
     "away": "JAX",
     "home": "CIN",
     "ou": 49.5,
-    "spread_home": -3.5,
+    "spread_home": null,
     "ml_home": -180,
     "ml_away": 150,
     "weather": {
@@ -98,7 +98,7 @@
     "away": "NYG",
     "home": "DAL",
     "ou": 44.5,
-    "spread_home": -4.5,
+    "spread_home": null,
     "ml_home": -230,
     "ml_away": 190,
     "weather": {
@@ -145,7 +145,7 @@
     "away": "CHI",
     "home": "DET",
     "ou": 46.5,
-    "spread_home": -6.0,
+    "spread_home": null,
     "ml_home": -278,
     "ml_away": 225,
     "weather": {
@@ -192,7 +192,7 @@
     "away": "NE",
     "home": "MIA",
     "ou": 43.5,
-    "spread_home": -2.5,
+    "spread_home": null,
     "ml_home": -130,
     "ml_away": 110,
     "weather": {
@@ -239,7 +239,7 @@
     "away": "SF",
     "home": "NO",
     "ou": 40.5,
-    "spread_home": 3.0,
+    "spread_home": null,
     "ml_home": 142,
     "ml_away": -170,
     "weather": {
@@ -286,7 +286,7 @@
     "away": "BUF",
     "home": "NYJ",
     "ou": 46.5,
-    "spread_home": 6.5,
+    "spread_home": null,
     "ml_home": 235,
     "ml_away": -290,
     "weather": {
@@ -333,7 +333,7 @@
     "away": "SEA",
     "home": "PIT",
     "ou": 39.5,
-    "spread_home": -3.0,
+    "spread_home": null,
     "ml_home": -166,
     "ml_away": 140,
     "weather": {
@@ -380,7 +380,7 @@
     "away": "LAR",
     "home": "TEN",
     "ou": 41.5,
-    "spread_home": 5.5,
+    "spread_home": null,
     "ml_home": 185,
     "ml_away": -225,
     "weather": {
@@ -427,7 +427,7 @@
     "away": "CAR",
     "home": "ARI",
     "ou": 44.5,
-    "spread_home": -6.5,
+    "spread_home": null,
     "ml_home": -290,
     "ml_away": 235,
     "weather": {
@@ -474,7 +474,7 @@
     "away": "DEN",
     "home": "IND",
     "ou": 42.5,
-    "spread_home": 1.5,
+    "spread_home": null,
     "ml_home": 110,
     "ml_away": -130,
     "weather": {
@@ -521,7 +521,7 @@
     "away": "PHI",
     "home": "KC",
     "ou": 46.5,
-    "spread_home": 1.5,
+    "spread_home": null,
     "ml_home": 105,
     "ml_away": -125,
     "weather": {
@@ -568,7 +568,7 @@
     "away": "ATL",
     "home": "MIN",
     "ou": 44.5,
-    "spread_home": -3.5,
+    "spread_home": null,
     "ml_home": -175,
     "ml_away": 145,
     "weather": {
@@ -615,7 +615,7 @@
     "away": "TB",
     "home": "HOU",
     "ou": 42.5,
-    "spread_home": -2.5,
+    "spread_home": null,
     "ml_home": -135,
     "ml_away": 114,
     "weather": {
@@ -662,7 +662,7 @@
     "away": "LAC",
     "home": "LV",
     "ou": 46.5,
-    "spread_home": 3.0,
+    "spread_home": null,
     "ml_home": 154,
     "ml_away": -185,
     "weather": {

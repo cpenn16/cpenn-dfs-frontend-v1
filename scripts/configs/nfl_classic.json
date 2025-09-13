@@ -702,15 +702,14 @@
     "sheet": "Player Pool",
     "out_rel": "data/nfl/classic/latest/player_pool",
     "title_match_ci": true,
-    "limit_rows": 200,
-    "max_scan_rows": 400,
+    "limit_rows": 999,
     "tables": [
-      { "title": "QB",        "width": 9 },
-      { "title": "RB",        "width": 9 },
-      { "title": "WR",        "width": 9 },
-      { "title": "TE",        "width": 9 },
-      { "title": "DST",       "width": 9 },
-      { "title": "Cash Core", "width": 9 }
+      { "title": "QB",        "width": 11 },
+      { "title": "RB",        "width": 11 },
+      { "title": "WR",        "width": 11 },
+      { "title": "TE",        "width": 11 },
+      { "title": "DST",       "width": 11 },
+      { "title": "Cash Core", "width": 11 }
     ]
   },
     "site_ids": {
