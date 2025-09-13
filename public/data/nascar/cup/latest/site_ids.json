@@ -1,866 +1,318 @@
 {
-  "dk": [
-    {
-      "name": "Kyle Larson",
-      "name_id": "Kyle Larson",
-      "name_salary": "Kyle Larson",
-      "aliases": [
-        "Kyle Larson"
-      ],
-      "id": "40011998",
-      "salary": 11500,
-      "upload": "Kyle Larson (40011998)"
-    },
-    {
-      "name": "Denny Hamlin",
-      "name_id": "Denny Hamlin",
-      "name_salary": "Denny Hamlin",
-      "aliases": [
-        "Denny Hamlin"
-      ],
-      "id": "40011999",
-      "salary": 11000,
-      "upload": "Denny Hamlin (40011999)"
-    },
-    {
-      "name": "Ryan Blaney",
-      "name_id": "Ryan Blaney",
-      "name_salary": "Ryan Blaney",
-      "aliases": [
-        "Ryan Blaney"
-      ],
-      "id": "40012000",
-      "salary": 10700,
-      "upload": "Ryan Blaney (40012000)"
-    },
-    {
-      "name": "Christopher Bell",
-      "name_id": "Christopher Bell",
-      "name_salary": "Christopher Bell",
-      "aliases": [
-        "Christopher Bell"
-      ],
-      "id": "40012001",
-      "salary": 10200,
-      "upload": "Christopher Bell (40012001)"
-    },
-    {
-      "name": "Chase Briscoe",
-      "name_id": "Chase Briscoe",
-      "name_salary": "Chase Briscoe",
-      "aliases": [
-        "Chase Briscoe"
-      ],
-      "id": "40012002",
-      "salary": 10000,
-      "upload": "Chase Briscoe (40012002)"
-    },
-    {
-      "name": "William Byron",
-      "name_id": "William Byron",
-      "name_salary": "William Byron",
-      "aliases": [
-        "William Byron"
-      ],
-      "id": "40012003",
-      "salary": 9800,
-      "upload": "William Byron (40012003)"
-    },
-    {
-      "name": "Chase Elliott",
-      "name_id": "Chase Elliott",
-      "name_salary": "Chase Elliott",
-      "aliases": [
-        "Chase Elliott"
-      ],
-      "id": "40012004",
-      "salary": 9500,
-      "upload": "Chase Elliott (40012004)"
-    },
-    {
-      "name": "Joey Logano",
-      "name_id": "Joey Logano",
-      "name_salary": "Joey Logano",
-      "aliases": [
-        "Joey Logano"
-      ],
-      "id": "40012005",
-      "salary": 9200,
-      "upload": "Joey Logano (40012005)"
-    },
-    {
-      "name": "Bubba Wallace",
-      "name_id": "Bubba Wallace",
-      "name_salary": "Bubba Wallace",
-      "aliases": [
-        "Bubba Wallace"
-      ],
-      "id": "40012006",
-      "salary": 9000,
-      "upload": "Bubba Wallace (40012006)"
-    },
-    {
-      "name": "Ty Gibbs",
-      "name_id": "Ty Gibbs",
-      "name_salary": "Ty Gibbs",
-      "aliases": [
-        "Ty Gibbs"
-      ],
-      "id": "40012007",
-      "salary": 8700,
-      "upload": "Ty Gibbs (40012007)"
-    },
-    {
-      "name": "Tyler Reddick",
-      "name_id": "Tyler Reddick",
-      "name_salary": "Tyler Reddick",
-      "aliases": [
-        "Tyler Reddick"
-      ],
-      "id": "40012008",
-      "salary": 8500,
-      "upload": "Tyler Reddick (40012008)"
-    },
-    {
-      "name": "Ross Chastain",
-      "name_id": "Ross Chastain",
-      "name_salary": "Ross Chastain",
-      "aliases": [
-        "Ross Chastain"
-      ],
-      "id": "40012009",
-      "salary": 8300,
-      "upload": "Ross Chastain (40012009)"
-    },
-    {
-      "name": "Alex Bowman",
-      "name_id": "Alex Bowman",
-      "name_salary": "Alex Bowman",
-      "aliases": [
-        "Alex Bowman"
-      ],
-      "id": "40012010",
-      "salary": 8100,
-      "upload": "Alex Bowman (40012010)"
-    },
-    {
-      "name": "Kyle Busch",
-      "name_id": "Kyle Busch",
-      "name_salary": "Kyle Busch",
-      "aliases": [
-        "Kyle Busch"
-      ],
-      "id": "40012011",
-      "salary": 8000,
-      "upload": "Kyle Busch (40012011)"
-    },
-    {
-      "name": "Brad Keselowski",
-      "name_id": "Brad Keselowski",
-      "name_salary": "Brad Keselowski",
-      "aliases": [
-        "Brad Keselowski"
-      ],
-      "id": "40012012",
-      "salary": 7800,
-      "upload": "Brad Keselowski (40012012)"
-    },
-    {
-      "name": "Chris Buescher",
-      "name_id": "Chris Buescher",
-      "name_salary": "Chris Buescher",
-      "aliases": [
-        "Chris Buescher"
-      ],
-      "id": "40012013",
-      "salary": 7700,
-      "upload": "Chris Buescher (40012013)"
-    },
-    {
-      "name": "Carson Hocevar",
-      "name_id": "Carson Hocevar",
-      "name_salary": "Carson Hocevar",
-      "aliases": [
-        "Carson Hocevar"
-      ],
-      "id": "40012014",
-      "salary": 7500,
-      "upload": "Carson Hocevar (40012014)"
-    },
-    {
-      "name": "Austin Dillon",
-      "name_id": "Austin Dillon",
-      "name_salary": "Austin Dillon",
-      "aliases": [
-        "Austin Dillon"
-      ],
-      "id": "40012015",
-      "salary": 7300,
-      "upload": "Austin Dillon (40012015)"
-    },
-    {
-      "name": "Austin Cindric",
-      "name_id": "Austin Cindric",
-      "name_salary": "Austin Cindric",
-      "aliases": [
-        "Austin Cindric"
-      ],
-      "id": "40012016",
-      "salary": 7200,
-      "upload": "Austin Cindric (40012016)"
-    },
-    {
-      "name": "Ryan Preece",
-      "name_id": "Ryan Preece",
-      "name_salary": "Ryan Preece",
-      "aliases": [
-        "Ryan Preece"
-      ],
-      "id": "40012017",
-      "salary": 7000,
-      "upload": "Ryan Preece (40012017)"
-    },
-    {
-      "name": "Josh Berry",
-      "name_id": "Josh Berry",
-      "name_salary": "Josh Berry",
-      "aliases": [
-        "Josh Berry"
-      ],
-      "id": "40012018",
-      "salary": 6800,
-      "upload": "Josh Berry (40012018)"
-    },
-    {
-      "name": "AJ Allmendinger",
-      "name_id": "AJ Allmendinger",
-      "name_salary": "AJ Allmendinger",
-      "aliases": [
-        "AJ Allmendinger"
-      ],
-      "id": "40012019",
-      "salary": 6600,
-      "upload": "AJ Allmendinger (40012019)"
-    },
-    {
-      "name": "Shane Van Gisbergen",
-      "name_id": "Shane Van Gisbergen",
-      "name_salary": "Shane Van Gisbergen",
-      "aliases": [
-        "Shane Van Gisbergen"
-      ],
-      "id": "40012020",
-      "salary": 6500,
-      "upload": "Shane Van Gisbergen (40012020)"
-    },
-    {
-      "name": "Ricky Stenhouse Jr",
-      "name_id": "Ricky Stenhouse Jr",
-      "name_salary": "Ricky Stenhouse Jr",
-      "aliases": [
-        "Ricky Stenhouse Jr"
-      ],
-      "id": "40012021",
-      "salary": 6400,
-      "upload": "Ricky Stenhouse Jr (40012021)"
-    },
-    {
-      "name": "Erik Jones",
-      "name_id": "Erik Jones",
-      "name_salary": "Erik Jones",
-      "aliases": [
-        "Erik Jones"
-      ],
-      "id": "40012022",
-      "salary": 6300,
-      "upload": "Erik Jones (40012022)"
-    },
-    {
-      "name": "John H. Nemechek",
-      "name_id": "John H. Nemechek",
-      "name_salary": "John Hunter Nemechek",
-      "aliases": [
-        "John H. Nemechek",
-        "John Hunter Nemechek"
-      ],
-      "id": "40012023",
-      "salary": 6200,
-      "upload": "John H. Nemechek (40012023)"
-    },
-    {
-      "name": "Michael McDowell",
-      "name_id": "Michael McDowell",
-      "name_salary": "Michael McDowell",
-      "aliases": [
-        "Michael McDowell"
-      ],
-      "id": "40012024",
-      "salary": 6100,
-      "upload": "Michael McDowell (40012024)"
-    },
-    {
-      "name": "Daniel Suarez",
-      "name_id": "Daniel Suarez",
-      "name_salary": "Daniel Suarez",
-      "aliases": [
-        "Daniel Suarez"
-      ],
-      "id": "40012025",
-      "salary": 6000,
-      "upload": "Daniel Suarez (40012025)"
-    },
-    {
-      "name": "Corey Heim",
-      "name_id": "Corey Heim",
-      "name_salary": "Corey Heim",
-      "aliases": [
-        "Corey Heim"
-      ],
-      "id": "40012026",
-      "salary": 5900,
-      "upload": "Corey Heim (40012026)"
-    },
-    {
-      "name": "Noah Gragson",
-      "name_id": "Noah Gragson",
-      "name_salary": "Noah Gragson",
-      "aliases": [
-        "Noah Gragson"
-      ],
-      "id": "40012027",
-      "salary": 5800,
-      "upload": "Noah Gragson (40012027)"
-    },
-    {
-      "name": "Justin Haley",
-      "name_id": "Justin Haley",
-      "name_salary": "Justin Haley",
-      "aliases": [
-        "Justin Haley"
-      ],
-      "id": "40012028",
-      "salary": 5700,
-      "upload": "Justin Haley (40012028)"
-    },
-    {
-      "name": "Zane Smith",
-      "name_id": "Zane Smith",
-      "name_salary": "Zane Smith",
-      "aliases": [
-        "Zane Smith"
-      ],
-      "id": "40012029",
-      "salary": 5500,
-      "upload": "Zane Smith (40012029)"
-    },
-    {
-      "name": "Todd Gilliland",
-      "name_id": "Todd Gilliland",
-      "name_salary": "Todd Gilliland",
-      "aliases": [
-        "Todd Gilliland"
-      ],
-      "id": "40012030",
-      "salary": 5400,
-      "upload": "Todd Gilliland (40012030)"
-    },
-    {
-      "name": "Austin Hill",
-      "name_id": "Austin Hill",
-      "name_salary": "Austin Hill",
-      "aliases": [
-        "Austin Hill"
-      ],
-      "id": "40012031",
-      "salary": 5300,
-      "upload": "Austin Hill (40012031)"
-    },
-    {
-      "name": "Cole Custer",
-      "name_id": "Cole Custer",
-      "name_salary": "Cole Custer",
-      "aliases": [
-        "Cole Custer"
-      ],
-      "id": "40012032",
-      "salary": 5100,
-      "upload": "Cole Custer (40012032)"
-    },
-    {
-      "name": "Riley Herbst",
-      "name_id": "Riley Herbst",
-      "name_salary": "Riley Herbst",
-      "aliases": [
-        "Riley Herbst"
-      ],
-      "id": "40012033",
-      "salary": 5000,
-      "upload": "Riley Herbst (40012033)"
-    },
-    {
-      "name": "Ty Dillon",
-      "name_id": "Ty Dillon",
-      "name_salary": "Ty Dillon",
-      "aliases": [
-        "Ty Dillon"
-      ],
-      "id": "40012034",
-      "salary": 4800,
-      "upload": "Ty Dillon (40012034)"
-    },
-    {
-      "name": "Cody Ware",
-      "name_id": "Cody Ware",
-      "name_salary": "Cody Ware",
-      "aliases": [
-        "Cody Ware"
-      ],
-      "id": "40012035",
-      "salary": 4700,
-      "upload": "Cody Ware (40012035)"
-    },
-    {
-      "name": "Chad Finchum",
-      "name_id": "Chad Finchum",
-      "name_salary": "Chad Finchum",
-      "aliases": [
-        "Chad Finchum"
-      ],
-      "id": "40012036",
-      "salary": 4500,
-      "upload": "Chad Finchum (40012036)"
-    }
-  ],
   "fd": [
     {
       "name": "Kyle Larson",
-      "name_id": "Kyle Larson",
-      "name_salary": "Kyle Larson",
-      "aliases": [
-        "Kyle Larson"
-      ],
-      "id": "120350-82888",
-      "salary": 14000,
-      "upload": "Kyle Larson (120350-82888)"
+      "id": "120350-82888"
     },
     {
       "name": "Denny Hamlin",
-      "name_id": "Denny Hamlin",
-      "name_salary": "Denny Hamlin",
-      "aliases": [
-        "Denny Hamlin"
-      ],
-      "id": "120350-82878",
-      "salary": 13500,
-      "upload": "Denny Hamlin (120350-82878)"
+      "id": "120350-82878"
     },
     {
       "name": "Ryan Blaney",
-      "name_id": "Ryan Blaney",
-      "name_salary": "Ryan Blaney",
-      "aliases": [
-        "Ryan Blaney"
-      ],
-      "id": "120350-82858",
-      "salary": 13000,
-      "upload": "Ryan Blaney (120350-82858)"
+      "id": "120350-82858"
     },
     {
       "name": "Christopher Bell",
-      "name_id": "Christopher Bell",
-      "name_salary": "Christopher Bell",
-      "aliases": [
-        "Christopher Bell"
-      ],
-      "id": "120350-118521",
-      "salary": 12500,
-      "upload": "Christopher Bell (120350-118521)"
+      "id": "120350-118521"
     },
     {
       "name": "Chase Briscoe",
-      "name_id": "Chase Briscoe",
-      "name_salary": "Chase Briscoe",
-      "aliases": [
-        "Chase Briscoe"
-      ],
-      "id": "120350-146285",
-      "salary": 12000,
-      "upload": "Chase Briscoe (120350-146285)"
+      "id": "120350-146285"
     },
     {
       "name": "Chase Elliott",
-      "name_id": "Chase Elliott",
-      "name_salary": "Chase Elliott",
-      "aliases": [
-        "Chase Elliott"
-      ],
-      "id": "120350-82872",
-      "salary": 11500,
-      "upload": "Chase Elliott (120350-82872)"
+      "id": "120350-82872"
     },
     {
       "name": "William Byron",
-      "name_id": "William Byron",
-      "name_salary": "William Byron",
-      "aliases": [
-        "William Byron"
-      ],
-      "id": "120350-82864",
-      "salary": 11000,
-      "upload": "William Byron (120350-82864)"
+      "id": "120350-82864"
     },
     {
       "name": "Alex Bowman",
-      "name_id": "Alex Bowman",
-      "name_salary": "Alex Bowman",
-      "aliases": [
-        "Alex Bowman"
-      ],
-      "id": "120350-82859",
-      "salary": 10500,
-      "upload": "Alex Bowman (120350-82859)"
+      "id": "120350-82859"
     },
     {
       "name": "Joey Logano",
-      "name_id": "Joey Logano",
-      "name_salary": "Joey Logano",
-      "aliases": [
-        "Joey Logano"
-      ],
-      "id": "120350-82889",
-      "salary": 10000,
-      "upload": "Joey Logano (120350-82889)"
+      "id": "120350-82889"
     },
     {
       "name": "Bubba Wallace",
-      "name_id": "Bubba Wallace",
-      "name_salary": "Bubba Wallace",
-      "aliases": [
-        "Bubba Wallace"
-      ],
-      "id": "120350-82904",
-      "salary": 9500,
-      "upload": "Bubba Wallace (120350-82904)"
+      "id": "120350-82904"
     },
     {
       "name": "Tyler Reddick",
-      "name_id": "Tyler Reddick",
-      "name_salary": "Tyler Reddick",
-      "aliases": [
-        "Tyler Reddick"
-      ],
-      "id": "120350-102623",
-      "salary": 9000,
-      "upload": "Tyler Reddick (120350-102623)"
+      "id": "120350-102623"
     },
     {
       "name": "Brad Keselowski",
-      "name_id": "Brad Keselowski",
-      "name_salary": "Brad Keselowski",
-      "aliases": [
-        "Brad Keselowski"
-      ],
-      "id": "120350-82886",
-      "salary": 8500,
-      "upload": "Brad Keselowski (120350-82886)"
+      "id": "120350-82886"
     },
     {
       "name": "Ross Chastain",
-      "name_id": "Ross Chastain",
-      "name_salary": "Ross Chastain",
-      "aliases": [
-        "Ross Chastain"
-      ],
-      "id": "120350-82866",
-      "salary": 8200,
-      "upload": "Ross Chastain (120350-82866)"
+      "id": "120350-82866"
     },
     {
       "name": "Ty Gibbs",
-      "name_id": "Ty Gibbs",
-      "name_salary": "Ty Gibbs",
-      "aliases": [
-        "Ty Gibbs"
-      ],
-      "id": "120350-174405",
-      "salary": 8000,
-      "upload": "Ty Gibbs (120350-174405)"
+      "id": "120350-174405"
     },
     {
       "name": "Chris Buescher",
-      "name_id": "Chris Buescher",
-      "name_salary": "Chris Buescher",
-      "aliases": [
-        "Chris Buescher"
-      ],
-      "id": "120350-82861",
-      "salary": 7800,
-      "upload": "Chris Buescher (120350-82861)"
+      "id": "120350-82861"
     },
     {
       "name": "Carson Hocevar",
-      "name_id": "Carson Hocevar",
-      "name_salary": "Carson Hocevar",
-      "aliases": [
-        "Carson Hocevar"
-      ],
-      "id": "120350-187152",
-      "salary": 7500,
-      "upload": "Carson Hocevar (120350-187152)"
+      "id": "120350-187152"
     },
     {
       "name": "Josh Berry",
-      "name_id": "Josh Berry",
-      "name_salary": "Josh Berry",
-      "aliases": [
-        "Josh Berry"
-      ],
-      "id": "120350-150102",
-      "salary": 7200,
-      "upload": "Josh Berry (120350-150102)"
+      "id": "120350-150102"
     },
     {
       "name": "Ryan Preece",
-      "name_id": "Ryan Preece",
-      "name_salary": "Ryan Preece",
-      "aliases": [
-        "Ryan Preece"
-      ],
-      "id": "120350-101999",
-      "salary": 7000,
-      "upload": "Ryan Preece (120350-101999)"
+      "id": "120350-101999"
     },
     {
       "name": "Kyle Busch",
-      "name_id": "Kyle Busch",
-      "name_salary": "Kyle Busch",
-      "aliases": [
-        "Kyle Busch"
-      ],
-      "id": "120350-82863",
-      "salary": 6800,
-      "upload": "Kyle Busch (120350-82863)"
+      "id": "120350-82863"
     },
     {
       "name": "Austin Cindric",
-      "name_id": "Austin Cindric",
-      "name_salary": "Austin Cindric",
-      "aliases": [
-        "Austin Cindric"
-      ],
-      "id": "120350-146657",
-      "salary": 6500,
-      "upload": "Austin Cindric (120350-146657)"
+      "id": "120350-146657"
     },
     {
       "name": "Austin Dillon",
-      "name_id": "Austin Dillon",
-      "name_salary": "Austin Dillon",
-      "aliases": [
-        "Austin Dillon"
-      ],
-      "id": "120350-82869",
-      "salary": 6200,
-      "upload": "Austin Dillon (120350-82869)"
+      "id": "120350-82869"
     },
     {
       "name": "AJ Allmendinger",
-      "name_id": "AJ Allmendinger",
-      "name_salary": "AJ Allmendinger",
-      "aliases": [
-        "AJ Allmendinger"
-      ],
-      "id": "120350-82854",
-      "salary": 6000,
-      "upload": "AJ Allmendinger (120350-82854)"
+      "id": "120350-82854"
     },
     {
       "name": "Michael McDowell",
-      "name_id": "Michael McDowell",
-      "name_salary": "Michael McDowell",
-      "aliases": [
-        "Michael McDowell"
-      ],
-      "id": "120350-82891",
-      "salary": 5800,
-      "upload": "Michael McDowell (120350-82891)"
+      "id": "120350-82891"
     },
     {
       "name": "John Hunter Nemechek",
-      "name_id": "John Hunter Nemechek",
-      "name_salary": "John Hunter Nemechek",
-      "aliases": [
-        "John Hunter Nemechek"
-      ],
-      "id": "120350-118091",
-      "salary": 5500,
-      "upload": "John Hunter Nemechek (120350-118091)"
+      "id": "120350-118091"
     },
     {
       "name": "Justin Haley",
-      "name_id": "Justin Haley",
-      "name_salary": "Justin Haley",
-      "aliases": [
-        "Justin Haley"
-      ],
-      "id": "120350-103754",
-      "salary": 5200,
-      "upload": "Justin Haley (120350-103754)"
+      "id": "120350-103754"
     },
     {
       "name": "Erik Jones",
-      "name_id": "Erik Jones",
-      "name_salary": "Erik Jones",
-      "aliases": [
-        "Erik Jones"
-      ],
-      "id": "120350-82883",
-      "salary": 5000,
-      "upload": "Erik Jones (120350-82883)"
+      "id": "120350-82883"
     },
     {
       "name": "Ricky Stenhouse Jr.",
-      "name_id": "Ricky Stenhouse Jr.",
-      "name_salary": "Ricky Stenhouse Jr",
-      "aliases": [
-        "Ricky Stenhouse Jr",
-        "Ricky Stenhouse Jr."
-      ],
-      "id": "120350-82900",
-      "salary": 4800,
-      "upload": "Ricky Stenhouse Jr. (120350-82900)"
+      "id": "120350-82900"
     },
     {
       "name": "Daniel Suarez",
-      "name_id": "Daniel Suarez",
-      "name_salary": "Daniel Suarez",
-      "aliases": [
-        "Daniel Suarez"
-      ],
-      "id": "120350-82901",
-      "salary": 4500,
-      "upload": "Daniel Suarez (120350-82901)"
+      "id": "120350-82901"
     },
     {
       "name": "Noah Gragson",
-      "name_id": "Noah Gragson",
-      "name_salary": "Noah Gragson",
-      "aliases": [
-        "Noah Gragson"
-      ],
-      "id": "120350-147038",
-      "salary": 4200,
-      "upload": "Noah Gragson (120350-147038)"
+      "id": "120350-147038"
     },
     {
       "name": "Corey Heim",
-      "name_id": "Corey Heim",
-      "name_salary": "Corey Heim",
-      "aliases": [
-        "Corey Heim"
-      ],
-      "id": "120350-200943",
-      "salary": 4000,
-      "upload": "Corey Heim (120350-200943)"
+      "id": "120350-200943"
     },
     {
       "name": "Zane Smith",
-      "name_id": "Zane Smith",
-      "name_salary": "Zane Smith",
-      "aliases": [
-        "Zane Smith"
-      ],
-      "id": "120350-170604",
-      "salary": 3800,
-      "upload": "Zane Smith (120350-170604)"
+      "id": "120350-170604"
     },
     {
       "name": "Austin Hill",
-      "name_id": "Austin Hill",
-      "name_salary": "Austin Hill",
-      "aliases": [
-        "Austin Hill"
-      ],
-      "id": "120350-175280",
-      "salary": 3500,
-      "upload": "Austin Hill (120350-175280)"
+      "id": "120350-175280"
     },
     {
       "name": "Shane van Gisbergen",
-      "name_id": "Shane van Gisbergen",
-      "name_salary": "Shane van Gisbergen",
-      "aliases": [
-        "Shane van Gisbergen"
-      ],
-      "id": "120350-188888",
-      "salary": 3200,
-      "upload": "Shane van Gisbergen (120350-188888)"
+      "id": "120350-188888"
     },
     {
       "name": "Cole Custer",
-      "name_id": "Cole Custer",
-      "name_salary": "Cole Custer",
-      "aliases": [
-        "Cole Custer"
-      ],
-      "id": "120350-82867",
-      "salary": 3000,
-      "upload": "Cole Custer (120350-82867)"
+      "id": "120350-82867"
     },
     {
       "name": "Todd Gilliland",
-      "name_id": "Todd Gilliland",
-      "name_salary": "Todd Gilliland",
-      "aliases": [
-        "Todd Gilliland"
-      ],
-      "id": "120350-164023",
-      "salary": 3000,
-      "upload": "Todd Gilliland (120350-164023)"
+      "id": "120350-164023"
     },
     {
       "name": "Riley Herbst",
-      "name_id": "Riley Herbst",
-      "name_salary": "Riley Herbst",
-      "aliases": [
-        "Riley Herbst"
-      ],
-      "id": "120350-182931",
-      "salary": 2500,
-      "upload": "Riley Herbst (120350-182931)"
+      "id": "120350-182931"
     },
     {
       "name": "Ty Dillon",
-      "name_id": "Ty Dillon",
-      "name_salary": "Ty Dillon",
-      "aliases": [
-        "Ty Dillon"
-      ],
-      "id": "120350-82870",
-      "salary": 2500,
-      "upload": "Ty Dillon (120350-82870)"
+      "id": "120350-82870"
     },
     {
       "name": "Cody Ware",
-      "name_id": "Cody Ware",
-      "name_salary": "Cody Ware",
-      "aliases": [
-        "Cody Ware"
-      ],
-      "id": "120350-82905",
-      "salary": 2000,
-      "upload": "Cody Ware (120350-82905)"
+      "id": "120350-82905"
     },
     {
       "name": "Chad Finchum",
-      "name_id": "Chad Finchum",
-      "name_salary": "Chad Finchum",
-      "aliases": [
-        "Chad Finchum"
-      ],
-      "id": "120350-82937",
-      "salary": 2000,
-      "upload": "Chad Finchum (120350-82937)"
+      "id": "120350-82937"
+    }
+  ],
+  "dk": [
+    {
+      "name": "Kyle Larson",
+      "id": "40011998"
+    },
+    {
+      "name": "Denny Hamlin",
+      "id": "40011999"
+    },
+    {
+      "name": "Ryan Blaney",
+      "id": "40012000"
+    },
+    {
+      "name": "Christopher Bell",
+      "id": "40012001"
+    },
+    {
+      "name": "Chase Briscoe",
+      "id": "40012002"
+    },
+    {
+      "name": "William Byron",
+      "id": "40012003"
+    },
+    {
+      "name": "Chase Elliott",
+      "id": "40012004"
+    },
+    {
+      "name": "Joey Logano",
+      "id": "40012005"
+    },
+    {
+      "name": "Bubba Wallace",
+      "id": "40012006"
+    },
+    {
+      "name": "Ty Gibbs",
+      "id": "40012007"
+    },
+    {
+      "name": "Tyler Reddick",
+      "id": "40012008"
+    },
+    {
+      "name": "Ross Chastain",
+      "id": "40012009"
+    },
+    {
+      "name": "Alex Bowman",
+      "id": "40012010"
+    },
+    {
+      "name": "Kyle Busch",
+      "id": "40012011"
+    },
+    {
+      "name": "Brad Keselowski",
+      "id": "40012012"
+    },
+    {
+      "name": "Chris Buescher",
+      "id": "40012013"
+    },
+    {
+      "name": "Carson Hocevar",
+      "id": "40012014"
+    },
+    {
+      "name": "Austin Dillon",
+      "id": "40012015"
+    },
+    {
+      "name": "Austin Cindric",
+      "id": "40012016"
+    },
+    {
+      "name": "Ryan Preece",
+      "id": "40012017"
+    },
+    {
+      "name": "Josh Berry",
+      "id": "40012018"
+    },
+    {
+      "name": "AJ Allmendinger",
+      "id": "40012019"
+    },
+    {
+      "name": "Shane Van Gisbergen",
+      "id": "40012020"
+    },
+    {
+      "name": "Ricky Stenhouse Jr",
+      "id": "40012021"
+    },
+    {
+      "name": "Erik Jones",
+      "id": "40012022"
+    },
+    {
+      "name": "John H. Nemechek",
+      "id": "40012023"
+    },
+    {
+      "name": "Michael McDowell",
+      "id": "40012024"
+    },
+    {
+      "name": "Daniel Suarez",
+      "id": "40012025"
+    },
+    {
+      "name": "Corey Heim",
+      "id": "40012026"
+    },
+    {
+      "name": "Noah Gragson",
+      "id": "40012027"
+    },
+    {
+      "name": "Justin Haley",
+      "id": "40012028"
+    },
+    {
+      "name": "Zane Smith",
+      "id": "40012029"
+    },
+    {
+      "name": "Todd Gilliland",
+      "id": "40012030"
+    },
+    {
+      "name": "Austin Hill",
+      "id": "40012031"
+    },
+    {
+      "name": "Cole Custer",
+      "id": "40012032"
+    },
+    {
+      "name": "Riley Herbst",
+      "id": "40012033"
+    },
+    {
+      "name": "Ty Dillon",
+      "id": "40012034"
+    },
+    {
+      "name": "Cody Ware",
+      "id": "40012035"
+    },
+    {
+      "name": "Chad Finchum",
+      "id": "40012036"
     }
   ]
 }
