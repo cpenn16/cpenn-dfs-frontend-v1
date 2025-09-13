@@ -83,21 +83,44 @@ const normName = (s) =>
     .replace(/\s+/g, " ")
     .trim();
 
-// Build a name → { id, nameFromSite } index from site_ids json
+// Build a lookup from many possible name variants → { id, display, siteName, nameFromSite }
 function buildSiteIdIndex(siteIdsList) {
   const idx = new Map();
+
   for (const r of siteIdsList || []) {
-    const id =
-      String(
-        r.id ?? r.ID ?? r.playerId ?? r.player_id ?? r.fd_id ?? r.FD_ID ?? r.dk_id ?? r.DK_ID ?? ""
-      ).trim();
+    const id = String(
+      r.id ?? r.ID ?? r.playerId ?? r.player_id ?? r.fd_id ?? r.FD_ID ?? r.dk_id ?? r.DK_ID ?? ""
+    ).trim();
+    if (!id) continue;
 
-    const nm0 = r.name ?? r.player ?? r.Player ?? r.displayName ?? r.Name;
-    if (!id || !nm0) continue;
+    // v2 rich fields (what the sites require)
+    const display  = r.display  != null ? String(r.display).trim()  : "";  // FD ID name
+    const siteName = r.siteName != null ? String(r.siteName).trim() : "";  // DK ID name
 
-    const key = normName(nm0);
-    if (!idx.has(key)) idx.set(key, { id, nameFromSite: String(nm0) });
+    // legacy fallbacks (v1)
+    const legacy = (r.name ?? r.player ?? r.Player ?? r.displayName ?? r.Name) ?? "";
+    const legacyStr = legacy != null ? String(legacy).trim() : "";
+
+    // Also accept any explicit aliases array if you ever add it
+    const aliases = Array.isArray(r.aliases) ? r.aliases.map(String) : [];
+
+    // Index every plausible variant so matching is robust
+    const candidates = [display, siteName, legacyStr, ...aliases].filter(Boolean);
+
+    for (const nm of candidates) {
+      const key = normName(nm);
+      if (!key) continue;
+      if (!idx.has(key)) {
+        idx.set(key, {
+          id,
+          display,          // FD’s “ID name”
+          siteName,         // DK’s “ID name”
+          nameFromSite: nm, // whichever string produced this key
+        });
+      }
+    }
   }
+
   return idx;
 }
 
@@ -205,30 +228,38 @@ function downloadSiteLineupsCSV({
 }) {
   const siteKey = site === "fd" ? "fd" : "dk";
 
+  // Accept either flat {dk:[...], fd:[...]} or nested {sites:{dk:[...],fd:[...]}}
   const list = Array.isArray(siteIds?.[siteKey])
     ? siteIds[siteKey]
     : (siteIds?.sites?.[siteKey] ?? []);
 
-  const idIndex = buildSiteIdIndex(list);
+  const idIndex  = buildSiteIdIndex(list);                  // expects fields: id, display, siteName
   const fdPrefix = siteKey === "fd" ? detectFdPrefix(list) : null;
 
-  const header = Array.from({ length: rosterSize }, () => (siteKey === "fd" ? "Driver" : "D")).join(",");
+  const header = Array.from({ length: rosterSize }, () =>
+    siteKey === "fd" ? "Driver" : "D"
+  ).join(",");
 
   const lines = (lineups || []).map((L) => {
     const names = Array.isArray(L.drivers) ? L.drivers : [];
+
     const cells = names.slice(0, rosterSize).map((name) => {
       const rec = idIndex.get(normName(name));
       if (!rec) return escapeCSV(name);
 
       if (siteKey === "fd") {
-        const outId = fdPrefix ? `${fdPrefix}-${rec.id}` : rec.id;
-        const display = rec.nameFromSite || name;
-        return escapeCSV(`${outId}:${display}`);
+        // FanDuel requires the FD ID-name in the text part
+        const outId  = fdPrefix ? `${fdPrefix}-${rec.id}` : rec.id;
+        const idName = rec.display || rec.siteName || rec.nameFromSite || name; // prefer FD display
+        return escapeCSV(`${outId}:${idName}`);
       }
 
-      return escapeCSV(`${name} (${rec.id})`);
+      // DraftKings requires the DK ID-name in the text part
+      const idName = rec.siteName || rec.display || rec.nameFromSite || name;   // prefer DK siteName
+      return escapeCSV(`${idName} (${rec.id})`);
     });
 
+    // pad empty columns if fewer than roster size
     while (cells.length < rosterSize) cells.push("");
 
     return cells.join(",");

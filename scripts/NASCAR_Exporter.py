@@ -5,11 +5,15 @@ Export selected sheets from an Excel .xlsm workbook into CSV and/or JSON files.
 - Robust filtering & formatting retained from your version.
 - run_cheatsheets finds each cheat-sheet block by its title cell
   and exports one JSON table per yellow header block.
-- run_site_ids reads your *restructured* Imports sheet that contains two
-  4-column blocks with exact headers:
-      DK block: DK Driver Display | DK Driver ID | DK Salary | DK ID
-      FD block: FD Driver Display | FD Driver ID | FD Salary | FD ID
-  and writes a compact JSON used by the app to format exported CSV strings.
+- run_site_ids reads your *restructured* Imports sheet laid out exactly like:
+      A: DK Driver Display   B: DK Driver ID   C: DK Salary   D: DK ID
+      E: FD Driver Display   F: FD Driver ID   G: FD Salary   H: FD ID
+  with headers on row 2 and data from row 3 down until the first blank row.
+  It writes BOTH name variants for each site into:
+    1) Back-compat arrays: { "dk":[{"name","id"}...], "fd":[...] }
+    2) Rich arrays:        { "sites": { "dk":[{"display","siteName","salary","id"}...],
+                                        "fd":[{"display","siteName","salary","id"}...] } }
+  plus "schema":"v2" so you can confirm you’re seeing the new file.
 - NEW: Stages a temp copy of the workbook so Excel can stay open while reading.
 - NEW: More verbose logging (paths, sheet list, each task) for easy debugging.
 - NEW: Automatically writes `meta.json` with timestamps next to each exported file.
@@ -421,15 +425,6 @@ def run_task(xlsm_path: Path, project_root: Path, task: Dict[str, Any]) -> None:
 def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> None:
     """
     Export cheatsheets.json from a sheet of yellow-header blocks.
-
-    Config:
-      "cheatsheets": {
-        "sheet": "Cheat Sheet",
-        "out_rel": "data/nascar/cup/latest/cheatsheets",
-        "tables": [{ "title": "...", "width": 4 }, ...],
-        "title_match_ci": true,
-        "limit_rows": 10
-      }
     """
     cs = cfg.get("cheatsheets")
     if not cs:
@@ -476,18 +471,18 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
             print(f"⚠️  cheatsheets: title not found: '{title}'")
             continue
 
-        # The yellow row *with the title text* IS the header row
+        # The yellow row WITH the title text IS the header row
         start_r, start_c = min(locs, key=lambda rc: (rc[0], rc[1]))
         c0, c1 = start_c, min(start_c + width, n_cols)
 
-        header_r = start_r              # <- header is the same row as the title
-        data_r0  = header_r + 1         # data starts immediately below
+        header_r = start_r              # header row
+        data_r0  = header_r + 1         # data starts directly below
 
         if header_r >= n_rows or data_r0 >= n_rows:
             print(f"⚠️  cheatsheets: '{title}' missing header/data rows")
             continue
 
-        # find end: stop at blank row, next title, or after limit_rows
+        # stop at blank row, next title, or after limit_rows
         r = data_r0
         taken = 0
         while r < n_rows and taken < limit_rows:
@@ -502,11 +497,9 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
             taken += 1
         data_r1 = r
 
-        # headers from the yellow row
         header_vals = [str(x).strip() for x in raw.iloc[header_r, c0:c1].tolist()]
         cols = dedup([hv if hv != "" else f"col_{j+1}" for j, hv in enumerate(header_vals)])
 
-        # normalize column names
         if cols:
             if cols[0] == "" or cols[0].lower().startswith("top 10"):
                 cols[0] = "Driver"
@@ -522,7 +515,6 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
         sub = sub.dropna(axis=0, how="all")
         sub = sub.astype(object).where(pd.notna(sub), "")
 
-        # Percent blocks: Win% / T3% / T5% / T10% => format 'Value' (or last col) as X.Y%
         title_l = title.lower()
         if any(k in title_l for k in ["win%", "t3%", "t5%", "t10%"]) and sub.shape[1] >= 2:
             value_col = None
@@ -552,135 +544,168 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
     print(f"✔️  JSON → {out_path}  (tables written: {len(tables_out)} of {len(tables_cfg)})")
     _mark_meta_dir(out_path.parent)
 
-# -------------------- site id exporter (restructured Imports sheet) --------------------
+# -------------------- site id exporter (Imports sheet → both names + rich) --------------------
 def _norm_str(v: Any) -> str:
     s = "" if v is None or (isinstance(v, float) and pd.isna(v)) else str(v)
     return s.strip()
 
-def _locate_header_block_anywhere(raw: pd.DataFrame, labels: list[str]) -> Optional[pd.DataFrame]:
-    """
-    Find a horizontal block whose *next row* is data, where the header cells in one row
-    match the provided `labels` (exact, case-sensitive). Returns a clean DataFrame or None.
+def _parse_site_id(val: Any) -> str:
+    s = _norm_str(val)
+    if not s:
+        return ""
+    m = re.search(r"\(([\d-]+)\)\s*$", s)
+    if m:
+        return m.group(1)
+    m2 = re.fullmatch(r"[\d-]+", s)
+    return m2.group(0) if m2 else s
 
-    It scans every row/col and looks for the exact sequence of labels in consecutive columns.
-    Data extends until the first blank row (considering all block columns).
-    """
-    if raw is None or raw.empty:
+def _num_or_none(v: Any) -> Optional[int]:
+    s = _norm_str(v)
+    if not s:
         return None
-
-    n_rows, n_cols = raw.shape
-    width = len(labels)
-    lab_norm = [str(x).strip() for x in labels]
-
-    def _is_blank_row(r0: int, c0: int, w: int) -> bool:
-        row = raw.iloc[r0, c0:c0 + w].tolist()
-        return all((str(x).strip() == "" or pd.isna(x)) for x in row)
-
-    for r in range(n_rows):
-        for c in range(0, n_cols - width + 1):
-            header_cells = [str(x).strip() for x in raw.iloc[r, c:c + width].tolist()]
-            if header_cells == lab_norm:
-                header_r = r
-                data_r0 = header_r + 1
-                if data_r0 >= n_rows:
-                    continue
-                # walk down until blank row
-                r2 = data_r0
-                while r2 < n_rows and not _is_blank_row(r2, c, width):
-                    r2 += 1
-                sub = raw.iloc[data_r0:r2, c:c + width].copy()
-                if sub.empty:
-                    return None
-                sub.columns = labels
-                sub = sub.dropna(axis=0, how="all")
-                sub = sub.astype(object).where(pd.notna(sub), "")
-                return sub
-    return None
+    try:
+        return int(float(s.replace(",", "")))
+    except Exception:
+        return None
 
 def run_site_ids(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> None:
     """
-    Reads a single sheet that contains BOTH blocks side-by-side:
+    Reads the 'Imports' sheet laid out like your screenshot:
 
-      DK block headers: ['DK Driver Display','DK Driver ID','DK Salary','DK ID']
-      FD block headers: ['FD Driver Display','FD Driver ID','FD Salary','FD ID']
+      A: DK Driver Display   B: DK Driver ID   C: DK Salary   D: DK ID
+      E: FD Driver Display   F: FD Driver ID   G: FD Salary   H: FD ID
 
-    Produces:
-      public/<out_rel>.json => {"dk":[{ui,siteName,salary,id},...], "fd":[...]}
+    Headers are on row 2 (A2:H2). Data starts on row 3 and runs downward
+    until the first blank row.
+
+    Writes JSON with schema v2:
+
+      {
+        "schema": "v2",
+        "dk":    [ { "name": <display>, "id": <dk_id> }, { "name": <siteName>, "id": <dk_id> }, ... ],
+        "fd":    [ { "name": <display>, "id": <fd_id> }, { "name": <siteName>, "id": <fd_id> }, ... ],
+        "sites": {
+          "dk": [ { "display": <display>, "siteName": <siteName>, "salary": <int or null>, "id": <dk_id> }, ... ],
+          "fd": [ { "display": <display>, "siteName": <siteName>, "salary": <int or null>, "id": <fd_id> }, ... ]
+        }
+      }
     """
-    scfg = cfg.get("site_ids")
-    if not scfg:
-        return
-
-    sheet   = scfg.get("sheet") or "Imports"     # the sheet that holds both blocks
+    scfg = cfg.get("site_ids") or {}
+    sheet   = scfg.get("sheet") or "Imports"
     out_rel = (scfg.get("out_rel") or "").lstrip(r"\\/")
     if not out_rel:
-        print("⚠️  SKIP site_ids: missing out_rel")
+        print("⚠️  SKIP site_ids: missing out_rel"); return
+
+    try:
+        # header=1 => use Excel row 2 as header (0-based index 1)
+        raw = pd.read_excel(xlsm_path, sheet_name=sheet, engine="openpyxl", header=1, dtype=object)
+    except Exception as e:
+        print(f"⚠️  SKIP site_ids: cannot read sheet '{sheet}': {e}")
         return
 
-    # Read raw (no header) so we can search for the header rows anywhere
-    raw = pd.read_excel(xlsm_path, sheet_name=sheet, engine="openpyxl", header=None, dtype=object)
     if raw is None or raw.empty:
-        print("⚠️  SKIP site_ids: empty sheet")
+        print("⚠️  SKIP site_ids: empty sheet"); return
+
+    # Resolve headers case-insensitively
+    def _resolve(label: str) -> Optional[str]:
+        want = label.strip().lower()
+        for c in raw.columns:
+            if str(c).strip().lower() == want:
+                return c
+        return None
+
+    DK_DISPLAY = _resolve("DK Driver Display")
+    DK_NAME    = _resolve("DK Driver ID")
+    DK_SAL     = _resolve("DK Salary")
+    DK_ID      = _resolve("DK ID")
+
+    FD_DISPLAY = _resolve("FD Driver Display")
+    FD_NAME    = _resolve("FD Driver ID")
+    FD_SAL     = _resolve("FD Salary")
+    FD_ID      = _resolve("FD ID")
+
+    missing = [lbl for lbl, c in [
+        ("DK Driver Display", DK_DISPLAY), ("DK Driver ID", DK_NAME),
+        ("DK Salary", DK_SAL), ("DK ID", DK_ID),
+        ("FD Driver Display", FD_DISPLAY), ("FD Driver ID", FD_NAME),
+        ("FD Salary", FD_SAL), ("FD ID", FD_ID),
+    ] if c is None]
+
+    if missing:
+        print(f"⚠️  SKIP site_ids: missing columns on '{sheet}': {', '.join(missing)}")
         return
 
-    dk_labels = ["DK Driver Display", "DK Driver ID", "DK Salary", "DK ID"]
-    fd_labels = ["FD Driver Display", "FD Driver ID", "FD Salary", "FD ID"]
+    back_dk: list[dict[str, str]] = []
+    back_fd: list[dict[str, str]] = []
+    rich_dk: list[dict[str, Any]] = []
+    rich_fd: list[dict[str, Any]] = []
 
-    dk_block = _locate_header_block_anywhere(raw, dk_labels)
-    fd_block = _locate_header_block_anywhere(raw, fd_labels)
+    added_pairs = {"dk": 0, "fd": 0}
 
-    if dk_block is None and fd_block is None:
-        print("⚠️  SKIP site_ids: couldn't find DK/FD blocks with expected headers")
-        return
+    for _, row in raw.iterrows():
+        # stop when the row is truly blank on key identifiers
+        if all(_norm_str(row[c]) == "" for c in [DK_DISPLAY, DK_NAME, DK_ID, FD_DISPLAY, FD_NAME, FD_ID]):
+            break
 
-    def _clean_salary(v: Any) -> Optional[int]:
-        if v is None or (isinstance(v, float) and pd.isna(v)):
-            return None
-        s = str(v).strip().replace(",", "")
-        try:
-            return int(round(float(s)))
-        except Exception:
-            return None
+        dk_display = _norm_str(row[DK_DISPLAY]); dk_site = _norm_str(row[DK_NAME])
+        dk_id = _parse_site_id(row[DK_ID]); dk_sal = _num_or_none(row[DK_SAL])
 
-    out: dict[str, list[dict[str, Any]]] = {"dk": [], "fd": []}
+        fd_display = _norm_str(row[FD_DISPLAY]); fd_site = _norm_str(row[FD_NAME])
+        fd_id = _parse_site_id(row[FD_ID]); fd_sal = _num_or_none(row[FD_SAL])
 
-    if dk_block is not None:
-        for _, row in dk_block.iterrows():
-            ui        = str(row.get("DK Driver Display") or "").strip()
-            site_name = str(row.get("DK Driver ID") or "").strip()
-            salary    = _clean_salary(row.get("DK Salary"))
-            pid       = str(row.get("DK ID") or "").strip()
-            if pid:
-                out["dk"].append({"ui": ui, "siteName": site_name, "salary": salary, "id": pid})
+        if dk_id:
+            if dk_display:
+                back_dk.append({"name": dk_display, "id": dk_id})
+            if dk_site and dk_site != dk_display:
+                back_dk.append({"name": dk_site, "id": dk_id})
+            rich_dk.append({"display": dk_display or dk_site, "siteName": dk_site or dk_display, "salary": dk_sal, "id": dk_id})
+            added_pairs["dk"] += 1
 
-    if fd_block is not None:
-        for _, row in fd_block.iterrows():
-            ui        = str(row.get("FD Driver Display") or "").strip()
-            site_name = str(row.get("FD Driver ID") or "").strip()
-            salary    = _clean_salary(row.get("FD Salary"))
-            pid       = str(row.get("FD ID") or "").strip()
-            if pid:
-                out["fd"].append({"ui": ui, "siteName": site_name, "salary": salary, "id": pid})
+        if fd_id:
+            if fd_display:
+                back_fd.append({"name": fd_display, "id": fd_id})
+            if fd_site and fd_site != fd_display:
+                back_fd.append({"name": fd_site, "id": fd_id})
+            rich_fd.append({"display": fd_display or fd_site, "siteName": fd_site or fd_display, "salary": fd_sal, "id": fd_id})
+            added_pairs["fd"] += 1
 
-    # (Optional) de-dup by ID while preserving order
-    def _dedupe_by_id(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        seen = set()
-        keep = []
+    # De-dupe (name,id) and (id) for rich lists, preserve order
+    def _dedupe_name_id(items: list[dict[str, str]]) -> list[dict[str, str]]:
+        seen = set(); keep = []
         for r in items:
-            if r["id"] in seen:
-                continue
-            seen.add(r["id"])
-            keep.append(r)
+            key = (r["name"].strip().lower(), r["id"])
+            if key in seen: continue
+            seen.add(key); keep.append(r)
         return keep
 
-    out["dk"] = _dedupe_by_id(out["dk"])
-    out["fd"] = _dedupe_by_id(out["fd"])
+    def _dedupe_by_id(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        seen = set(); keep = []
+        for r in items:
+            key = r.get("id")
+            if key in seen: continue
+            seen.add(key); keep.append(r)
+        return keep
+
+    out = {
+        "schema": "v2",
+        "dk": _dedupe_name_id(back_dk),
+        "fd": _dedupe_name_id(back_fd),
+        "sites": {
+            "dk": _dedupe_by_id(rich_dk),
+            "fd": _dedupe_by_id(rich_fd),
+        }
+    }
 
     out_path = (project_root / "public" / Path(out_rel)).with_suffix(".json")
     ensure_parent(out_path)
     out_path.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"✔️  JSON → {out_path}  (dk={len(out['dk'])}, fd={len(out['fd'])})")
-    _mark_meta_dir(out_path.parent)
+    print(f"✔️  JSON → {out_path}  [schema=v2]  (dk_names={len(out['dk'])}, fd_names={len(out['fd'])}; dk_rows={len(out['sites']['dk'])}, fd_rows={len(out['sites']['fd'])})")
+
+    # helpful samples in stdout
+    for label, arr in (("DK", out["dk"]), ("FD", out["fd"])):
+        for rec in arr:
+            if "nemechek" in rec["name"].lower() or "stenhouse" in rec["name"].lower():
+                print(f"  sample {label}: {rec['name']} -> {rec['id']}")
 
 # -------------------- H2H matrix exporter --------------------
 def _clean_h2h_number(x: Any) -> Optional[float]:
@@ -692,7 +717,6 @@ def _clean_h2h_number(x: Any) -> Optional[float]:
     s = s.replace(",", "").replace("%", "").strip()
     try:
         v = float(s)
-        # heuristic: if value <= 1.5, assume it was a fraction → convert to %
         if v <= 1.5:
             return v * 100.0
         return v
@@ -700,10 +724,6 @@ def _clean_h2h_number(x: Any) -> Optional[float]:
         return None
 
 def run_h2h_matrix(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> None:
-    """
-    Reads a 'Driver vs Driver' matrix and writes a JSON array of records:
-      [{ "Driver": "A", "B": 51.2, "C": 48.8, ... }, ...]
-    """
     hcfg = cfg.get("h2h_matrix", {}) or {}
     sheet   = hcfg.get("sheet") or "H2H Matrix"
     out_rel = (hcfg.get("out_rel") or "data/nascar/cup/latest/h2h_matrix").lstrip(r"\/")
@@ -750,13 +770,6 @@ def run_h2h_matrix(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> 
 
 # -------------------- Finish distribution exporter (robust) --------------------
 def _clean_percent_cell(x: Any) -> Optional[float]:
-    """
-    Accepts:
-      0.143   -> 0.143  (Excel % stored as fraction)
-      "14.3%" -> 14.3
-      "14.3"  -> 14.3
-    We'll post-scale later if we detect rows summing to ~1.
-    """
     if x is None or (isinstance(x, float) and pd.isna(x)):
         return None
     s = str(x).strip()
@@ -770,11 +783,6 @@ def _clean_percent_cell(x: Any) -> Optional[float]:
         return None
 
 def run_finish_distribution(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> None:
-    """
-    Reads a sheet like:
-      Driver | 1 | 2 | 3 | ... (cells are probs either as fractions or percents)
-    Writes JSON records with percentage units (0–100) and headers 'P1','P2',...
-    """
     fcfg = cfg.get("finish_distribution", {}) or {}
     sheet   = fcfg.get("sheet") or "Finish Distributions"
     out_rel = (fcfg.get("out_rel") or "data/nascar/cup/latest/finish_dist").lstrip(r"\/")
@@ -807,8 +815,6 @@ def run_finish_distribution(xlsm_path: Path, project_root: Path, cfg: Dict[str, 
         if m:
             n = int(m.group(1))
             pos_map[c] = f"P{n}"
-        else:
-            pass
 
     ordered = sorted([(int(re.fullmatch(r"P?(\d+)", str(c).strip(), flags=re.IGNORECASE).group(1)), c)
                       for c in pos_cols_raw
