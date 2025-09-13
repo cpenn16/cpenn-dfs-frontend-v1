@@ -5,9 +5,11 @@ Export selected sheets from an Excel .xlsm workbook into CSV and/or JSON files.
 - Robust filtering & formatting retained from your version.
 - run_cheatsheets finds each cheat-sheet block by its title cell
   and exports one JSON table per yellow header block.
-- run_site_ids scans the Import sheet for "FD IDs" / "DK IDs" blocks
-  and writes a compact JSON mapping used by the app to format exported CSV
-  driver strings as "Name (ID)" for DK/FD.
+- run_site_ids reads your *restructured* Imports sheet that contains two
+  4-column blocks with exact headers:
+      DK block: DK Driver Display | DK Driver ID | DK Salary | DK ID
+      FD block: FD Driver Display | FD Driver ID | FD Salary | FD ID
+  and writes a compact JSON used by the app to format exported CSV strings.
 - NEW: Stages a temp copy of the workbook so Excel can stay open while reading.
 - NEW: More verbose logging (paths, sheet list, each task) for easy debugging.
 - NEW: Automatically writes `meta.json` with timestamps next to each exported file.
@@ -550,125 +552,129 @@ def run_cheatsheets(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) ->
     print(f"✔️  JSON → {out_path}  (tables written: {len(tables_out)} of {len(tables_cfg)})")
     _mark_meta_dir(out_path.parent)
 
-# -------------------- site id exporter --------------------
+# -------------------- site id exporter (restructured Imports sheet) --------------------
 def _norm_str(v: Any) -> str:
     s = "" if v is None or (isinstance(v, float) and pd.isna(v)) else str(v)
     return s.strip()
 
-def _keyify(v: Any) -> str:
-    # normalize for fuzzy-ish matches across naming variants
-    return re.sub(r"[^a-z0-9]+", " ", _norm_str(v).lower()).strip()
+def _locate_header_block_anywhere(raw: pd.DataFrame, labels: list[str]) -> Optional[pd.DataFrame]:
+    """
+    Find a horizontal block whose *next row* is data, where the header cells in one row
+    match the provided `labels` (exact, case-sensitive). Returns a clean DataFrame or None.
 
-def _scan_title_block(raw: pd.DataFrame, title: str, width: int = 3) -> Optional[pd.DataFrame]:
+    It scans every row/col and looks for the exact sequence of labels in consecutive columns.
+    Data extends until the first blank row (considering all block columns).
     """
-    Find a horizontal block by a title cell (e.g. 'FD IDs') where the *next row*
-    is the header (Driver | ID | Driver (ID)), and rows below are data until
-    a blank row is reached. Returns a DataFrame with real columns.
-    """
+    if raw is None or raw.empty:
+        return None
+
     n_rows, n_cols = raw.shape
-    tnorm = _keyify(title)
+    width = len(labels)
+    lab_norm = [str(x).strip() for x in labels]
+
+    def _is_blank_row(r0: int, c0: int, w: int) -> bool:
+        row = raw.iloc[r0, c0:c0 + w].tolist()
+        return all((str(x).strip() == "" or pd.isna(x)) for x in row)
+
     for r in range(n_rows):
-        for c in range(n_cols - (width - 1)):
-            if _keyify(raw.iat[r, c]) == tnorm:
-                header_r, c0, c1 = r + 1, c, c + width
-                if header_r >= n_rows:
-                    continue
-                cols = [_norm_str(x) or f"col_{i+1}" for i, x in enumerate(raw.iloc[header_r, c0:c1])]
+        for c in range(0, n_cols - width + 1):
+            header_cells = [str(x).strip() for x in raw.iloc[r, c:c + width].tolist()]
+            if header_cells == lab_norm:
+                header_r = r
                 data_r0 = header_r + 1
+                if data_r0 >= n_rows:
+                    continue
+                # walk down until blank row
                 r2 = data_r0
-                while r2 < n_rows:
-                    row = raw.iloc[r2, c0:c1].tolist()
-                    if all((_norm_str(x) == "" for x in row)):
-                        break
+                while r2 < n_rows and not _is_blank_row(r2, c, width):
                     r2 += 1
-                sub = raw.iloc[data_r0:r2, c0:c1].copy()
+                sub = raw.iloc[data_r0:r2, c:c + width].copy()
                 if sub.empty:
                     return None
-                sub.columns = cols
+                sub.columns = labels
                 sub = sub.dropna(axis=0, how="all")
                 sub = sub.astype(object).where(pd.notna(sub), "")
                 return sub
     return None
 
-def _parse_site_id(val: Any) -> str:
-    """
-    Accept plain IDs or text like 'Joey Logano (39722112)' → '39722112'
-    and '119626-82889' → keep as-is.
-    """
-    s = _norm_str(val)
-    if not s:
-        return ""
-    m = re.search(r"\(([\d-]+)\)\s*$", s)
-    if m:
-        return m.group(1)
-    m2 = re.fullmatch(r"[\d-]+", s)
-    return m2.group(0) if m2 else s
-
 def run_site_ids(xlsm_path: Path, project_root: Path, cfg: Dict[str, Any]) -> None:
     """
-    Reads the 'Import' sheet (or a sheet you specify) and produces:
-      public/<out_rel>.json  => {"dk":[{"name","id"}...], "fd":[...]}
+    Reads a single sheet that contains BOTH blocks side-by-side:
 
-    It expects two blocks:
-      - 'FD IDs' with columns: Driver | ID | Driver (ID)
-      - 'DK IDs' with columns: Driver | ID | Driver (ID)
+      DK block headers: ['DK Driver Display','DK Driver ID','DK Salary','DK ID']
+      FD block headers: ['FD Driver Display','FD Driver ID','FD Salary','FD ID']
 
-    The function searches the whole sheet for those titles and
-    stops each block at the first blank row.
+    Produces:
+      public/<out_rel>.json => {"dk":[{ui,siteName,salary,id},...], "fd":[...]}
     """
     scfg = cfg.get("site_ids")
     if not scfg:
         return
 
-    sheet   = scfg.get("sheet") or "Imports"
+    sheet   = scfg.get("sheet") or "Imports"     # the sheet that holds both blocks
     out_rel = (scfg.get("out_rel") or "").lstrip(r"\\/")
-
     if not out_rel:
         print("⚠️  SKIP site_ids: missing out_rel")
         return
 
+    # Read raw (no header) so we can search for the header rows anywhere
     raw = pd.read_excel(xlsm_path, sheet_name=sheet, engine="openpyxl", header=None, dtype=object)
     if raw is None or raw.empty:
         print("⚠️  SKIP site_ids: empty sheet")
         return
 
-    fd_block = _scan_title_block(raw, "FD IDs", width=3)
-    dk_block = _scan_title_block(raw, "DK IDs", width=3)
+    dk_labels = ["DK Driver Display", "DK Driver ID", "DK Salary", "DK ID"]
+    fd_labels = ["FD Driver Display", "FD Driver ID", "FD Salary", "FD ID"]
 
-    if fd_block is None and dk_block is None:
-        print("⚠️  SKIP site_ids: couldn't find 'FD IDs' or 'DK IDs' blocks")
+    dk_block = _locate_header_block_anywhere(raw, dk_labels)
+    fd_block = _locate_header_block_anywhere(raw, fd_labels)
+
+    if dk_block is None and fd_block is None:
+        print("⚠️  SKIP site_ids: couldn't find DK/FD blocks with expected headers")
         return
 
-    out = {"fd": [], "dk": []}
+    def _clean_salary(v: Any) -> Optional[int]:
+        if v is None or (isinstance(v, float) and pd.isna(v)):
+            return None
+        s = str(v).strip().replace(",", "")
+        try:
+            return int(round(float(s)))
+        except Exception:
+            return None
 
-    if fd_block is not None:
-        for _, row in fd_block.iterrows():
-            name = _norm_str(row.get("Driver") or "")
-            site_id = _parse_site_id(row.get("ID") or row.get("Driver (ID)") or "")
-            if name and site_id:
-                out["fd"].append({"name": name, "id": site_id})
+    out: dict[str, list[dict[str, Any]]] = {"dk": [], "fd": []}
 
     if dk_block is not None:
         for _, row in dk_block.iterrows():
-            name = _norm_str(row.get("Driver") or "")
-            site_id = _parse_site_id(row.get("ID") or row.get("Driver (ID)") or "")
-            if name and site_id:
-                out["dk"].append({"name": name, "id": site_id})
+            ui        = str(row.get("DK Driver Display") or "").strip()
+            site_name = str(row.get("DK Driver ID") or "").strip()
+            salary    = _clean_salary(row.get("DK Salary"))
+            pid       = str(row.get("DK ID") or "").strip()
+            if pid:
+                out["dk"].append({"ui": ui, "siteName": site_name, "salary": salary, "id": pid})
 
-    # de-dupe by normalized key, keep first occurrence
-    def dedupe(items: list[dict[str, str]]) -> list[dict[str, str]]:
+    if fd_block is not None:
+        for _, row in fd_block.iterrows():
+            ui        = str(row.get("FD Driver Display") or "").strip()
+            site_name = str(row.get("FD Driver ID") or "").strip()
+            salary    = _clean_salary(row.get("FD Salary"))
+            pid       = str(row.get("FD ID") or "").strip()
+            if pid:
+                out["fd"].append({"ui": ui, "siteName": site_name, "salary": salary, "id": pid})
+
+    # (Optional) de-dup by ID while preserving order
+    def _dedupe_by_id(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
         seen = set()
         keep = []
         for r in items:
-            k = _keyify(r["name"])
-            if k in seen:
+            if r["id"] in seen:
                 continue
-            seen.add(k)
+            seen.add(r["id"])
             keep.append(r)
         return keep
 
-    out["fd"] = dedupe(out["fd"])
-    out["dk"] = dedupe(out["dk"])
+    out["dk"] = _dedupe_by_id(out["dk"])
+    out["fd"] = _dedupe_by_id(out["fd"])
 
     out_path = (project_root / "public" / Path(out_rel)).with_suffix(".json")
     ensure_parent(out_path)
