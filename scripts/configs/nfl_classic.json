@@ -698,6 +698,21 @@
       { "title": "Top 10 DST FD Rtg",   "width": 3 }
     ]
   },
+  "player_pool": {
+    "sheet": "Player Pool",
+    "out_rel": "data/nfl/classic/latest/player_pool",
+    "title_match_ci": true,
+    "limit_rows": 200,
+    "max_scan_rows": 400,
+    "tables": [
+      { "title": "QB",        "width": 9 },
+      { "title": "RB",        "width": 9 },
+      { "title": "WR",        "width": 9 },
+      { "title": "TE",        "width": 9 },
+      { "title": "DST",       "width": 9 },
+      { "title": "Cash Core", "width": 9 }
+    ]
+  },
     "site_ids": {
     "out_rel": "data/nfl/classic/latest/site_ids",
     "dk_sheet": "DK Salaries",

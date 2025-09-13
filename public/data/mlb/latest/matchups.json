@@ -18,29 +18,29 @@
       "away": {
         "header": "TB (4.3)",
         "lines": [
-          "1 - Chandler Simpson (L) 8.5  4.9k |  10.4  3k",
-          "2 - Yandy Diaz (R) 7.2  5k |  9.2  3.2k",
-          "3 - Brandon Lowe (L) 8.4  5.3k |  10.8  3.4k",
-          "4 - Junior Caminero (R) 8.7  5.7k |  11.1  3.7k",
+          "1 - Chandler Simpson (L) 8.7  4.9k |  10.6  3k",
+          "2 - Yandy Diaz (R) 7.4  5k |  9.4  3.2k",
+          "3 - Brandon Lowe (L) 8.7  5.3k |  11.1  3.4k",
+          "4 - Junior Caminero (R) 9.2  5.7k |  11.6  3.7k",
           "5 - Josh Lowe (L) 9.4  4.7k |  11.8  3.1k",
-          "6 - Jake Mangum (B) 8.1  4k |  9.9  2.8k",
-          "7 - Richie Palacios (L) 6.2  3.3k |  7.8  2.5k",
-          "8 - Tristan Gray (N/A) 0.0  0 |  0.0  0",
+          "6 - Bob Seymour (L) 7.9  2.8k |  10.2  2.2k",
+          "7 - Richie Palacios (L) 6.3  3.3k |  8.0  2.5k",
+          "8 - Carson Williams (R) 6.8  3.5k |  8.7  2.6k",
           "9 - Hunter Feduccia (L) 4.6  2.2k |  6.0  2.2k"
         ]
       },
       "home": {
         "header": "CHC (4.2)",
         "lines": [
-          "1 - Michael Busch (L) 7.0  4.2k |  8.9  3k",
-          "2 - Ian Happ (B) 7.4  3.9k |  9.5  3.5k",
-          "3 - Seiya Suzuki (R) 7.4  4.1k |  9.4  3.3k",
-          "4 - Pete Crow-Armstrong (L) 9.0  4.5k |  11.3  3.5k",
-          "5 - Nico Hoerner (R) 7.5  3.8k |  9.3  3k",
-          "6 - Willi Castro (B) 5.5  3.3k |  6.9  2.9k",
-          "7 - Dansby Swanson (R) 5.3  3.9k |  6.7  3.2k",
-          "8 - Matt Shaw (R) 5.0  3k |  6.3  2.9k",
-          "9 - Reese McGuire (N/A) 0.0  0 |  0.0  0"
+          "1 - Michael Busch (L) 6.8  4.2k |  8.7  3k",
+          "2 - Ian Happ (B) 7.1  3.9k |  9.1  3.5k",
+          "3 - Carson Kelly (R) 6.1  3.7k |  7.8  2.9k",
+          "4 - Pete Crow-Armstrong (L) 8.8  4.5k |  11.1  3.5k",
+          "5 - Nico Hoerner (R) 7.4  3.8k |  9.1  3k",
+          "6 - Moises Ballesteros (L) 4.8  2k |  6.1  2k",
+          "7 - Dansby Swanson (R) 5.2  3.9k |  6.6  3.2k",
+          "8 - Owen Caissie (L) 5.4  2k |  6.9  2k",
+          "9 - Matt Shaw (R) 4.9  3k |  6.2  2.9k"
         ]
       }
     }
@@ -64,29 +64,29 @@
       "away": {
         "header": "BAL (4.1)",
         "lines": [
-          "1 - Jackson Holliday (L) 8.3  4.5k |  10.5  3k",
-          "2 - Jeremiah Jackson (R) 7.2  3.8k |  9.0  2.9k",
-          "3 - Gunnar Henderson (L) 8.8  4.8k |  11.3  3.2k",
-          "4 - Ryan Mountcastle (R) 7.5  3k |  9.5  2.8k",
-          "5 - Dylan Beavers (L) 7.8  3.1k |  10.1  2.7k",
-          "6 - Tyler O'Neill (R) 9.0  4k |  11.6  2.9k",
-          "7 - Colton Cowser (L) 6.1  3.5k |  8.0  2.7k",
-          "8 - Samuel Basallo (L) 6.2  3.6k |  8.1  2.4k",
-          "9 - Emmanuel Rivera (N/A) 0.0  0 |  0.0  0"
+          "1 - Jackson Holliday (L) 8.6  4.5k |  10.9  3k",
+          "2 - Dylan Beavers (L) 7.9  3.1k |  10.2  2.7k",
+          "3 - Gunnar Henderson (L) 9.1  4.8k |  11.6  3.2k",
+          "4 - Tyler O'Neill (R) 8.9  4k |  11.6  2.9k",
+          "5 - Samuel Basallo (L) 8.0  3.6k |  10.5  2.4k",
+          "6 - Emmanuel Rivera (R) 5.2  2.4k |  6.6  2.1k",
+          "7 - Colton Cowser (L) 6.5  3.5k |  8.4  2.7k",
+          "8 - Dylan Carlson (B) 4.9  2.5k |  6.2  2.2k",
+          "9 - Coby Mayo (R) 4.8  2.2k |  6.2  2.3k"
         ]
       },
       "home": {
         "header": "TOR (4.3)",
         "lines": [
-          "1 - George Springer (R) 8.1  5.5k |  10.4  3.6k",
-          "2 - Nathan Lukes (L) 7.2  3.3k |  9.2  2.7k",
-          "3 - Vladimir Guerrero Jr. (R) 8.8  5.3k |  11.2  3.5k",
-          "4 - Addison Barger (N/A) 0.0  0 |  0.0  0",
-          "5 - Alejandro Kirk (R) 6.8  3.8k |  8.6  2.7k",
-          "6 - Daulton Varsho (N/A) 0.0  0 |  0.0  0",
-          "7 - Ernie Clement (R) 5.0  3.2k |  6.2  2.6k",
-          "8 - Joey Loperfido (N/A) 0.0  0 |  0.0  0",
-          "9 - Andres Gimenez (N/A) 0.0  0 |  0.0  0"
+          "1 - George Springer (R) 7.9  5.5k |  10.2  3.6k",
+          "2 - Nathan Lukes (L) 7.1  3.3k |  9.1  2.7k",
+          "3 - Vladimir Guerrero Jr. (R) 8.7  5.3k |  11.1  3.5k",
+          "4 - Addison Barger (L) 7.4  4.3k |  9.4  2.9k",
+          "5 - Davis Schneider (R) 5.3  3.4k |  6.9  2.6k",
+          "6 - Daulton Varsho (L) 7.8  4.9k |  10.0  3.4k",
+          "7 - Ernie Clement (R) 4.9  3.2k |  6.1  2.6k",
+          "8 - Tyler Heineman (B) 5.3  3.5k |  6.6  2.5k",
+          "9 - Andres Gimenez (L) 5.7  2.9k |  7.1  2.6k"
         ]
       }
     }
@@ -110,28 +110,28 @@
       "away": {
         "header": "PIT (4.5)",
         "lines": [
-          "1 - Jared Triolo (R) 7.5  3.4k |  9.5  2.5k",
-          "2 - Tommy Pham (R) 8.9  3.5k |  11.4  2.7k",
-          "3 - Bryan Reynolds (B) 9.5  4.5k |  12.1  2.9k",
-          "4 - Nick Gonzales (R) 9.5  3.2k |  11.8  2.6k",
-          "5 - Andrew McCutchen (R) 9.2  3.7k |  11.8  2.7k",
-          "6 - Joey Bart (N/A) 0.0  0 |  0.0  0",
-          "7 - Nick Yorke (N/A) 0.0  0 |  0.0  0",
-          "8 - Alexander Canario (N/A) 0.0  0 |  0.0  0",
-          "9 - Liover Peguero (N/A) 0.0  0 |  0.0  0"
+          "1 - Jared Triolo (R) 7.6  3.4k |  9.5  2.5k",
+          "2 - Tommy Pham (R) 8.7  3.5k |  10.9  2.7k",
+          "3 - Bryan Reynolds (B) 9.8  4.5k |  12.5  2.9k",
+          "4 - Nick Gonzales (R) 9.4  3.2k |  11.7  2.6k",
+          "5 - Andrew McCutchen (R) 9.1  3.7k |  11.6  2.7k",
+          "6 - Alexander Canario (R) 9.6  2.7k |  12.3  2.5k",
+          "7 - Nick Yorke (R) 6.6  2.3k |  8.4  2.1k",
+          "8 - Henry Davis (R) 6.1  2.2k |  7.8  2.5k",
+          "9 - Cam Devanney (R) 5.4  2k |  7.0  2.2k"
         ]
       },
       "home": {
         "header": "WSH (4.5)",
         "lines": [
-          "1 - CJ Abrams (L) 10.6  5.2k |  13.4  3.4k",
-          "2 - James Wood (L) 12.0  5.7k |  15.6  3.3k",
-          "3 - Josh Bell (B) 7.5  3.6k |  9.9  2.7k",
-          "4 - Daylen Lile (L) 8.5  3.4k |  10.7  2.9k",
-          "5 - Luis Garcia Jr. (L) 8.3  4.1k |  10.6  2.8k",
-          "6 - Riley Adams (R) 6.5  3.1k |  8.3  2.5k",
-          "7 - Dylan Crews (R) 8.4  3.9k |  10.8  2.7k",
-          "8 - Brady House (R) 5.3  2.9k |  6.8  2.4k",
+          "1 - CJ Abrams (L) 11.1  5.2k |  14.1  3.4k",
+          "2 - James Wood (L) 12.1  5.7k |  15.8  3.3k",
+          "3 - Josh Bell (B) 7.8  3.6k |  10.2  2.7k",
+          "4 - Daylen Lile (L) 8.7  3.4k |  10.9  2.9k",
+          "5 - Luis Garcia Jr. (L) 8.4  4.1k |  10.7  2.8k",
+          "6 - Jorge Alfaro (R) 5.3  2.7k |  6.8  2.1k",
+          "7 - Dylan Crews (R) 8.3  3.9k |  10.6  2.7k",
+          "8 - Brady House (R) 5.4  2.9k |  6.9  2.4k",
           "9 - Robert Hassell (N/A) 0.0  0 |  0.0  0"
         ]
       }
@@ -156,29 +156,29 @@
       "away": {
         "header": "NYY (4.3)",
         "lines": [
-          "1 - Trent Grisham (L) 7.8  4.4k |  10.1  3.4k",
-          "2 - Aaron Judge (R) 11.7  6.4k |  15.3  4.8k",
-          "3 - Ben Rice (L) 7.9  4.6k |  10.2  3.1k",
-          "4 - Cody Bellinger (L) 9.1  4.7k |  11.7  3.4k",
-          "5 - Giancarlo Stanton (R) 8.4  4.9k |  10.9  3.5k",
-          "6 - Jazz Chisholm Jr. (L) 9.5  5.3k |  12.1  3.7k",
-          "7 - Austin Wells (L) 6.1  3.7k |  8.0  2.9k",
-          "8 - Jose Caballero (R) 6.6  3.8k |  8.2  2.9k",
-          "9 - Ryan McMahon (L) 6.0  3.2k |  7.7  2.9k"
+          "1 - Trent Grisham (L) 7.7  4.4k |  10.0  3.4k",
+          "2 - Ben Rice (L) 8.3  4.6k |  10.7  3.1k",
+          "3 - Aaron Judge (R) 11.8  6.4k |  15.4  4.8k",
+          "4 - Cody Bellinger (L) 9.2  4.7k |  11.8  3.4k",
+          "5 - Jazz Chisholm Jr. (L) 9.3  5.3k |  11.9  3.7k",
+          "6 - Jasson Dominguez (B) 8.7  3.9k |  11.2  2.9k",
+          "7 - Jose Caballero (R) 6.6  3.8k |  8.3  2.9k",
+          "8 - Austin Wells (L) 6.0  3.7k |  7.8  2.9k",
+          "9 - Ryan McMahon (L) 6.1  3.2k |  7.8  2.9k"
         ]
       },
       "home": {
         "header": "BOS (4.2)",
         "lines": [
-          "1 - Romy Gonzalez (R) 8.4  4.7k |  10.6  3.2k",
-          "2 - Alex Bregman (R) 7.4  5.1k |  9.5  3.6k",
-          "3 - Trevor Story (R) 8.0  5k |  9.9  3.6k",
-          "4 - Rob Refsnyder (R) 6.1  3.9k |  7.8  2.8k",
-          "5 - Jarren Duran (L) 6.7  5.3k |  8.4  3.5k",
-          "6 - Carlos Narvaez (R) 5.0  3.2k |  6.3  2.8k",
-          "7 - Nate Eaton (R) 4.5  2.3k |  5.5  2.2k",
-          "8 - Nick Sogard (B) 5.0  2.6k |  6.3  2.3k",
-          "9 - Ceddanne Rafaela (R) 5.2  4k |  6.6  2.9k"
+          "1 - Romy Gonzalez (R) 8.3  4.7k |  10.4  3.2k",
+          "2 - Alex Bregman (R) 7.4  5.1k |  9.4  3.6k",
+          "3 - Trevor Story (R) 8.0  5k |  10.0  3.6k",
+          "4 - Rob Refsnyder (R) 6.1  3.9k |  7.7  2.8k",
+          "5 - Carlos Narvaez (R) 6.7  3.2k |  8.4  2.8k",
+          "6 - Nate Eaton (R) 4.8  2.3k |  5.9  2.2k",
+          "7 - Nick Sogard (B) 5.0  2.6k |  6.2  2.3k",
+          "8 - Connor Wong (R) 5.0  2.4k |  6.3  2.2k",
+          "9 - Ceddanne Rafaela (R) 5.1  4k |  6.4  2.9k"
         ]
       }
     }
@@ -202,29 +202,29 @@
       "away": {
         "header": "TEX (4.2)",
         "lines": [
-          "1 - Josh Smith (L) 7.2  3.5k |  9.2  2.9k",
+          "1 - Josh Smith (L) 7.4  3.5k |  9.5  2.9k",
           "2 - Wyatt Langford (R) 8.0  4.6k |  10.3  3.6k",
-          "3 - Joc Pederson (L) 7.0  2.4k |  9.0  2.8k",
-          "4 - Jake Burger (R) 7.9  3.3k |  10.1  2.9k",
-          "5 - Josh Jung (R) 7.2  3.1k |  9.0  2.9k",
-          "6 - Kyle Higashioka (R) 7.2  3.2k |  9.2  2.8k",
-          "7 - Alejandro Osuna (L) 4.7  2.3k |  5.9  2.3k",
-          "8 - Cody Freeman (R) 4.3  2.6k |  5.6  2.4k",
+          "3 - Joc Pederson (L) 6.9  2.4k |  9.0  2.8k",
+          "4 - Jake Burger (R) 7.5  3.3k |  9.7  2.9k",
+          "5 - Josh Jung (R) 7.5  3.1k |  9.4  2.9k",
+          "6 - Alejandro Osuna (L) 4.6  2.3k |  5.9  2.3k",
+          "7 - Jonah Heim (B) 5.0  2.5k |  6.5  2.5k",
+          "8 - Cody Freeman (R) 4.5  2.6k |  5.8  2.4k",
           "9 - Michael Helman (R) 8.2  3.9k |  10.7  2.6k"
         ]
       },
       "home": {
         "header": "NYM (4.3)",
         "lines": [
-          "1 - Francisco Lindor (B) 11.1  5.8k |  14.1  3.6k",
-          "2 - Juan Soto (L) 8.6  6.1k |  11.2  4.2k",
+          "1 - Francisco Lindor (B) 11.2  5.8k |  14.2  3.6k",
+          "2 - Juan Soto (L) 8.7  6.1k |  11.5  4.2k",
           "3 - Pete Alonso (R) 8.5  5.2k |  11.0  3.4k",
-          "4 - Mark Vientos (R) 7.4  4.2k |  9.4  2.9k",
-          "5 - Brandon Nimmo (L) 7.3  4.4k |  9.4  3k",
-          "6 - Starling Marte (R) 7.3  3.6k |  9.2  2.5k",
-          "7 - Francisco Alvarez (R) 5.6  3.1k |  7.2  2.5k",
-          "8 - Jose Siri (R) 5.8  2k |  7.5  2.2k",
-          "9 - Luisangel Acuna (N/A) 0.0  0 |  0.0  0"
+          "4 - Mark Vientos (R) 7.8  4.2k |  10.0  2.9k",
+          "5 - Brandon Nimmo (L) 7.5  4.4k |  9.6  3k",
+          "6 - Starling Marte (R) 7.1  3.6k |  8.9  2.5k",
+          "7 - Francisco Alvarez (R) 5.7  3.1k |  7.2  2.5k",
+          "8 - Jeff McNeil (L) 5.4  3.7k |  6.9  2.7k",
+          "9 - Jose Siri (R) 5.7  2k |  7.3  2.2k"
         ]
       }
     }
@@ -248,12 +248,12 @@
       "away": {
         "header": "DET (4.3)",
         "lines": [
-          "1 - Parker Meadows (L) 9.0  3.1k |  11.5  2.6k",
-          "2 - Gleyber Torres (R) 7.9  4.6k |  10.2  3.2k",
-          "3 - Kerry Carpenter (L) 10.0  4.6k |  12.6  3k",
-          "4 - Riley Greene (L) 9.3  5.2k |  12.0  3.6k",
-          "5 - Spencer Torkelson (R) 8.6  4.5k |  11.3  3.3k",
-          "6 - Wenceel Perez (B) 8.4  4.1k |  10.8  2.9k",
+          "1 - Parker Meadows (L) 9.1  3.1k |  11.6  2.6k",
+          "2 - Gleyber Torres (R) 7.6  4.6k |  9.9  3.2k",
+          "3 - Kerry Carpenter (L) 10.0  4.6k |  12.8  3k",
+          "4 - Riley Greene (L) 9.5  5.2k |  12.2  3.6k",
+          "5 - Spencer Torkelson (R) 9.0  4.5k |  11.6  3.3k",
+          "6 - Wenceel Perez (B) 8.3  4.1k |  10.6  2.9k",
           "7 - Colt Keith (L) 6.1  4k |  7.8  2.8k",
           "8 - Dillon Dingler (R) 5.9  3.5k |  7.5  2.9k",
           "9 - Zach McKinstry (L) 6.1  4.3k |  7.7  3k"
@@ -262,14 +262,14 @@
       "home": {
         "header": "MIA (4.2)",
         "lines": [
-          "1 - Xavier Edwards (B) 9.6  4.8k |  12.0  2.8k",
+          "1 - Xavier Edwards (B) 9.4  4.8k |  11.8  2.8k",
           "2 - Jakob Marsee (L) 8.7  4.8k |  11.1  3.3k",
-          "3 - Agustin Ramirez (R) 7.8  4.3k |  10.2  3k",
-          "4 - Otto Lopez (R) 8.3  4.1k |  10.5  3k",
-          "5 - Liam Hicks (L) 7.4  3.2k |  9.6  2.6k",
+          "3 - Agustin Ramirez (R) 7.8  4.3k |  10.1  3k",
+          "4 - Liam Hicks (L) 7.4  3.2k |  9.6  2.6k",
+          "5 - Otto Lopez (R) 8.0  4.1k |  10.1  3k",
           "6 - Heriberto Hernandez (R) 7.5  3.4k |  9.9  2.7k",
-          "7 - Troy Johnston (L) 4.9  2.8k |  6.1  2.3k",
-          "8 - Maximo Acosta (R) 4.9  3k |  6.3  2.1k",
+          "7 - Troy Johnston (L) 4.8  2.8k |  6.1  2.3k",
+          "8 - Maximo Acosta (R) 5.1  3k |  6.6  2.1k",
           "9 - Victor Mesa (N/A) 0.0  0 |  0.0  0"
         ]
       }

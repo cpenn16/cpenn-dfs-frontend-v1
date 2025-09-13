@@ -1,24 +1,12 @@
 #!/usr/bin/env python3
 """
-NFL_Exporter.py — Single meta.json version
------------------------------------------
-Exports the same artifacts as before (tasks, cheatsheets, gameboard, projections merge)
-but writes ONE consolidated meta file:
+NFL_Exporter.py — Single meta.json version + separate Player Pool export
+-----------------------------------------------------------------------
+Exports tasks, cheatsheets (Cheat Sheet), player_pool (Player Pool), gameboard,
+and merges salaries/time into projections — all while writing ONE consolidated
+meta file:
 
-  public/data/nfl/classic/latest/meta.json   (default base; configurable via --meta_rel)
-
-The meta file contains:
-{
-  "last_updated": "...",
-  "last_updated_ms": 173..., 
-  "source_workbook": "C:\\...\\NFL Week 2 Classic.xlsm",
-  "artifacts": [
-    {"path":"public/.../cheatsheets.json", "sheet":"Cheat Sheet", "record_count": 40, "duration_ms": 55, "kind":"cheatsheets"},
-    {"path":"public/.../matchups.json", "sheet":"NFL Game Dashboard", "record_count": 16, "duration_ms": 71, "kind":"gameboard"},
-    {"path":"public/.../projections.json", "record_count": 354, "duration_ms": 22, "kind":"merge", "dk_hits": 312, "fd_hits": 309},
-    {"path":"public/.../some_task.json", "sheet":"Some Sheet", "record_count": 120, "duration_ms": 30, "kind":"task","format":"json"}
-  ]
-}
+  public/data/nfl/classic/latest/meta.json   (default; configurable via --meta_rel)
 
 Usage
 -----
@@ -232,6 +220,21 @@ def _norm_header_label(s: str) -> str:
     t = (s or "").replace("\u00A0", " ").replace("\u202F", " ").strip()
     key = re.sub(r"\s+", " ", t).lower()
     return _HEADER_ALIASES.get(key, t)
+
+# Extra aliases for Player Pool → MLB-style labels
+_HEADER_ALIASES.update({
+    "opponent": "Opp",
+    "opp": "Opp",
+    "o/u": "O/U",
+    "imp. total": "Imp. Total",
+    "impl. total": "Imp. Total",
+    "projection": "Projection",
+    "proj": "Projection",
+    "value": "Value",
+    "pown": "pOWN",
+    "pown%": "pOWN",
+    "cash/gpp/both": "Cash/GPP/Both",
+})
 
 # ------------------------------ filters engine --------------------------
 
@@ -971,6 +974,19 @@ def merge_salaries_into_projections(project_root: Path,
         meta.add(proj_path, sheet=None, record_count=len(rows),
                  duration_ms=int((time.time()-t0)*1000), tags={"kind":"merge","dk_hits":dk_hits,"fd_hits":fd_hits})
 
+# ---------------------------- optional Player Pool ----------------------
+
+def _run_optional_player_pool(staged_xlsm: Path, project_root: Path, cfg: dict, meta: SingleMeta) -> None:
+    """
+    Reuse run_cheatsheets() for a second, independent export driven by cfg['player_pool'].
+    Does nothing if the 'player_pool' block is absent.
+    """
+    pp = cfg.get("player_pool")
+    if not isinstance(pp, dict):
+        return
+    print("• Player Pool: exporting from sheet:", pp.get("sheet", "Player Pool"))
+    run_cheatsheets(staged_xlsm, project_root, {"cheatsheets": pp}, meta)
+
 # --------------------------------- main ---------------------------------
 
 def _choose_project_root(arg_proj: Optional[str]) -> Path:
@@ -985,7 +1001,7 @@ def _choose_project_root(arg_proj: Optional[str]) -> Path:
     sys.exit(1)
 
 def main() -> None:
-    print(">>> NFL Exporter (single meta.json)")
+    print(">>> NFL Exporter (single meta.json + player_pool)")
     ap = argparse.ArgumentParser(description="Export NFL Excel workbook to site data files (CSV/JSON).")
     ap.add_argument("--xlsm",    default=DEFAULT_XLSM,   help="Path to the source workbook (.xls/.xlsx/.xlsm)")
     ap.add_argument("--project", default=DEFAULT_PROJ,   help="Path to project root (contains /public)")
@@ -1021,12 +1037,21 @@ def main() -> None:
                 print(f"⚠️  SKIP: task failed: {e}")
 
         print("\n=== CHEAT SHEETS ===")
-        try: run_cheatsheets(staged_xlsm, project_root, cfg, meta)
-        except Exception as e: print(f"⚠️  SKIP cheatsheets: {e}")
+        try:
+            # existing Cheat Sheet export
+            run_cheatsheets(staged_xlsm, project_root, cfg, meta)
+
+            # NEW: optional Player Pool export (separate artifact)
+            print("\n=== PLAYER POOL ===")
+            _run_optional_player_pool(staged_xlsm, project_root, cfg, meta)
+        except Exception as e:
+            print(f"⚠️  SKIP cheatsheets / player pool: {e}")
 
         print("\n=== GAMEBOARD (NFL Matchups) ===")
-        try: run_gameboard(staged_xlsm, project_root, cfg, meta)
-        except Exception as e: print(f"⚠️  SKIP gameboard: {e}")
+        try:
+            run_gameboard(staged_xlsm, project_root, cfg, meta)
+        except Exception as e:
+            print(f"⚠️  SKIP gameboard: {e}")
 
         try:
             kickoff_map = _build_kickoff_map_from_workbook(staged_xlsm)
