@@ -86,18 +86,10 @@ const normName = (s) =>
 // Build a name → { id, nameFromSite } index from site_ids json
 function buildSiteIdIndex(siteIdsList) {
   const idx = new Map();
-  for (const r of siteIdsList || []) {
+  for (const r of (siteIdsList || [])) {
     const id =
       String(
-        r.id ??
-          r.ID ??
-          r.playerId ??
-          r.player_id ??
-          r.fd_id ??
-          r.FD_ID ??
-          r.dk_id ??
-          r.DK_ID ??
-          ""
+        r.id ?? r.ID ?? r.playerId ?? r.player_id ?? r.fd_id ?? r.FD_ID ?? r.dk_id ?? r.DK_ID ?? ""
       ).trim();
 
     const nm0 = r.name ?? r.player ?? r.Player ?? r.displayName ?? r.Name;
@@ -112,7 +104,7 @@ function buildSiteIdIndex(siteIdsList) {
 // Try to discover FanDuel slate/group prefix
 function detectFdPrefix(siteIdsList) {
   const counts = new Map();
-  for (const r of siteIdsList || []) {
+  for (const r of (siteIdsList || [])) {
     const px =
       r.slateId ?? r.slate_id ?? r.groupId ?? r.group_id ?? r.lid ?? r.prefix ?? r.fd_prefix ?? null;
     if (px != null && px !== "") {
@@ -185,6 +177,7 @@ function useJson(url) {
 }
 
 /* ---------------------------- CSV export --------------------------- */
+/* (kept helpers; only the plain Export CSV button was removed per request) */
 function toPlainCSV(rows) {
   const header = ["#", "Salary", "Total", "Drivers"].join(",");
   const lines = rows.map((L, i) => {
@@ -1202,9 +1195,7 @@ export default function CupOptimizer() {
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-base font-bold">Lineups ({lineups.length})</h2>
               <div className="flex items-center gap-2">
-                <button className="px-3 py-1.5 border rounded text-sm" onClick={() => downloadPlainCSV(lineups)}>
-                  Export CSV
-                </button>
+                {/* Removed plain Export CSV button per request */}
                 <button
                   className="px-3 py-1.5 border rounded text-sm"
                   onClick={() =>
@@ -1221,27 +1212,45 @@ export default function CupOptimizer() {
                 </button>
               </div>
             </div>
-            <div className="overflow-auto max-h-[440px]">
+
+            {/* Shorter table + inside scroll */}
+            <div className="overflow-auto max-h-[320px]">
               <table className="min-w-full text-[12px] border-separate" style={{ borderSpacing: 0 }}>
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 sticky top-0">
                   <tr>
                     <th className={header}>#</th>
                     <th className={header}>Salary</th>
                     <th className={header}>Total {optBy === "pown" || optBy === "opt" ? "Projection" : metricLabel}</th>
-                    <th className={header}>Drivers</th>
+                    <th className={header}>Total pOWN%</th>
+                    <th className={header}>Drivers (sorted by salary)</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {lineups.map((L, i) => (
-                    <tr key={i} className="odd:bg-white even:bg-gray-50">
-                      <td className={cell}>{i + 1}</td>
-                      <td className={`${cell} tabular-nums`}>{fmt0(L.salary)}</td>
-                      <td className={`${cell} tabular-nums`}>{fmt1(L.total)}</td>
-                      <td className={`${cell} leading-snug`}>
-                        <span className="break-words">{L.drivers.join(" • ")}</span>
-                      </td>
-                    </tr>
-                  ))}
+                  {lineups.map((L, i) => {
+                    // Sort drivers by salary desc using chosen[] if available; fallback to raw names
+                    const chosenSorted = Array.isArray(L.chosen)
+                      ? [...L.chosen].sort((a, b) => (b?.salary || 0) - (a?.salary || 0))
+                      : [];
+                    const driversSorted = chosenSorted.length
+                      ? chosenSorted.map((r) => r.driver)
+                      : (Array.isArray(L.drivers) ? [...L.drivers] : []);
+
+                    const totalPownPct = chosenSorted.length
+                      ? chosenSorted.reduce((acc, r) => acc + (r.pown || 0) * 100, 0)
+                      : 0;
+
+                    return (
+                      <tr key={i} className="odd:bg-white even:bg-gray-50">
+                        <td className="px-2 py-0.5 text-center">{i + 1}</td>
+                        <td className="px-2 py-0.5 text-center tabular-nums">{fmt0(L.salary)}</td>
+                        <td className="px-2 py-0.5 text-center tabular-nums">{fmt1(L.total)}</td>
+                        <td className="px-2 py-0.5 text-center tabular-nums">{fmt1(totalPownPct)}</td>
+                        <td className="px-2 py-0.5 leading-snug">
+                          <span className="break-words">{driversSorted.join(" • ")}</span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -1263,7 +1272,7 @@ export default function CupOptimizer() {
             <h3 className="text-base font-semibold mb-2">Cards</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
               {lineups.map((L, idx) => {
-                const chosenSorted = [...L.chosen].sort((a, b) => b.salary - a.salary);
+                const chosenSorted = [...(L.chosen || [])].sort((a, b) => b.salary - a.salary);
                 const totalPownPct = chosenSorted.reduce((acc, r) => acc + (r.pown || 0) * 100, 0);
 
                 return (
